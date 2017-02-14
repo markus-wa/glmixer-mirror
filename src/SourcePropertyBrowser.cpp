@@ -158,68 +158,62 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     property->setItalics(true);
     root->addSubProperty(property);
 
-    // modifyable on/off
-    QtProperty *modifyroperty = boolManager->addProperty("Modifiable");
-    modifyroperty->setToolTip("Can you modify this source?");
-    idToProperty[modifyroperty->propertyName()] = modifyroperty;
-    root->addSubProperty(modifyroperty);
-    {
-        // Alpha
-        property = doubleManager->addProperty("Alpha");
-        property->setToolTip("Opacity (0 = transparent)");
-        idToProperty[property->propertyName()] = property;
-        doubleManager->setRange(property, 0.0, 1.0);
-        doubleManager->setSingleStep(property, 0.01);
-        doubleManager->setDecimals(property, PROPERTY_DECIMALS);
-        modifyroperty->addSubProperty(property);
-        // Position
-        property = pointManager->addProperty("Position");
-        idToProperty[property->propertyName()] = property;
-        property->setToolTip("X and Y coordinates of the center");
-        pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-        pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-        pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
-        pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
-        modifyroperty->addSubProperty(property);
-        // Scale
-        property = pointManager->addProperty("Scale");
-        idToProperty[property->propertyName()] = property;
-        property->setToolTip("Scaling factors on X and Y");
-        pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
-        pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
-        pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
-        pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
-        modifyroperty->addSubProperty(property);
-        // fixed aspect ratio on/off
-        property = boolManager->addProperty("FixedAspectRatio");
-        property->setToolTip("Keep width/height proportion when scaling");
-        idToProperty[property->propertyName()] = property;
-        modifyroperty->addSubProperty(property);
-        // Rotation angle
-        property = doubleManager->addProperty("Angle");
-        property->setToolTip("Angle of rotation in degrees (counter clock wise)");
-        idToProperty[property->propertyName()] = property;
-        doubleManager->setRange(property, 0, 360);
-        doubleManager->setSingleStep(property, 10.0);
-        modifyroperty->addSubProperty(property);
-        // Texture coordinates
-        property = rectManager->addProperty("Crop");
-        idToProperty[property->propertyName()] = property;
-        property->setToolTip("Texture coordinates");
-        rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
-        rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
-        rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
-        rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
-        rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[2], PROPERTY_DECIMALS);
-        rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[3], PROPERTY_DECIMALS);
-        modifyroperty->addSubProperty(property);
-        // Depth
-        property = doubleManager->addProperty("Depth");
-        property->setToolTip("Depth of the layer");
-        idToProperty[property->propertyName()] = property;
-        doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-        modifyroperty->addSubProperty(property);
-    }
+    // Alpha
+    property = doubleManager->addProperty("Alpha");
+    property->setToolTip("Opacity (0 = transparent)");
+    idToProperty[property->propertyName()] = property;
+    doubleManager->setRange(property, 0.0, 1.0);
+    doubleManager->setSingleStep(property, 0.01);
+    doubleManager->setDecimals(property, PROPERTY_DECIMALS);
+    root->addSubProperty(property);
+    // Position
+    property = pointManager->addProperty("Position");
+    idToProperty[property->propertyName()] = property;
+    property->setToolTip("X and Y coordinates of the center");
+    pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
+    pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+    pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
+    pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
+    root->addSubProperty(property);
+    // Scale
+    property = pointManager->addProperty("Scale");
+    idToProperty[property->propertyName()] = property;
+    property->setToolTip("Scaling factors on X and Y");
+    pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+    pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+    pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
+    pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
+    root->addSubProperty(property);
+    // fixed aspect ratio on/off
+    property = boolManager->addProperty("FixedAspectRatio");
+    property->setToolTip("Keep width/height proportion when scaling");
+    idToProperty[property->propertyName()] = property;
+    root->addSubProperty(property);
+    // Rotation angle
+    property = doubleManager->addProperty("Angle");
+    property->setToolTip("Angle of rotation in degrees (counter clock wise)");
+    idToProperty[property->propertyName()] = property;
+    doubleManager->setRange(property, 0, 360);
+    doubleManager->setSingleStep(property, 10.0);
+    root->addSubProperty(property);
+    // Texture coordinates
+    property = rectManager->addProperty("Crop");
+    idToProperty[property->propertyName()] = property;
+    property->setToolTip("Texture coordinates");
+    rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+    rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+    rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], PROPERTY_DECIMALS);
+    rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
+    rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[2], PROPERTY_DECIMALS);
+    rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[3], PROPERTY_DECIMALS);
+    root->addSubProperty(property);
+    // Depth
+    property = doubleManager->addProperty("Depth");
+    property->setToolTip("Depth of the layer");
+    idToProperty[property->propertyName()] = property;
+    doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+    root->addSubProperty(property);
+
     // enum list of Destination blending func
     QtProperty *blendingItem = enumManager->addProperty("Blending");
     idToProperty[blendingItem->propertyName()] = blendingItem;
@@ -569,11 +563,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
     if (!canChange())
         return;
 
-    if ( property == idToProperty["Modifiable"] ) {
-        currentItem->setModifiable(value);
-        updatePropertyTree();
-    }
-    else if ( property == idToProperty["Pixelated"] ) {
+    if ( property == idToProperty["Pixelated"] ) {
         currentItem->setPixelated(value);
     }
     else if ( property == idToProperty["FixedAspectRatio"] ) {
@@ -720,16 +710,6 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
     else if ( name.contains("Alpha"))
         doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
-    else if ( name.contains("Modifiable")) {
-        boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
-        idToProperty["Position"]->setEnabled(s->isModifiable());
-        idToProperty["Angle"]->setEnabled(s->isModifiable());
-        idToProperty["FixedAspectRatio"]->setEnabled(s->isModifiable());
-        idToProperty["Scale"]->setEnabled(s->isModifiable());
-        idToProperty["Crop"]->setEnabled(s->isModifiable());
-        idToProperty["Depth"]->setEnabled(s->isModifiable());
-        idToProperty["Alpha"]->setEnabled(s->isModifiable());
-    }
     else if ( name.contains("Blending")) {
         int preset = intFromBlendingPreset( s->getBlendFuncDestination(), s->getBlendEquation() );
         enumManager->setValue(idToProperty["Blending"], preset );

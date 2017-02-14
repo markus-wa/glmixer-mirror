@@ -119,7 +119,7 @@ bool SelectionManager::isInSelection(Source *s) const
 
 void SelectionManager::updateSelectionSource()
 {
-    // do not add sources which are not modifiable
+    // do not add sources which are not in current workspace
     for ( SourceSet::iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); sit++) {
         if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*sit)->getWorkspace() )
             _selectedSources.erase(sit);

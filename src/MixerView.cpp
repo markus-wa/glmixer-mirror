@@ -531,8 +531,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
                 // tool use
                 if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ) {
                     // ready for grabbing the current source
-                    if ( clicked->isModifiable() )
-                        setAction(View::TOOL);
+                    setAction(View::TOOL);
                 }
             }
         }
@@ -1098,7 +1097,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
         return sourceClicked();
     } else
-        return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
+        return (hits != 0);
 
 }
 
@@ -1121,7 +1120,7 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
 void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement

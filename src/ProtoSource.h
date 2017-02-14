@@ -185,9 +185,7 @@ public:
     inline bool isPixelated() const {
         return pixelated;
     }
-    inline bool isModifiable() const {
-        return modifiable;
-    }
+
     // select a filter
     typedef enum {
         FILTER_NONE = 0,
@@ -266,7 +264,6 @@ public:
     Q_INVOKABLE void _setChromaKeyTolerance(int t);
     Q_INVOKABLE void _setGamma(double g, double minI, double maxI, double minO, double maxO);
     Q_INVOKABLE void _setPixelated(bool on);
-    Q_INVOKABLE void _setModifiable(bool on);
     Q_INVOKABLE void _setBlending(uint sfactor, uint dfactor, uint eq);
     Q_INVOKABLE void _setInvertMode(invertModeType i);
     Q_INVOKABLE void _setFilter(filterType c);
@@ -280,7 +277,7 @@ public:
 protected:
 
     QString name;
-    bool modifiable, fixedAspectRatio;
+    bool fixedAspectRatio;
     double x, y, z;
     double scalex, scaley;
     double alphax, alphay;

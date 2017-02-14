@@ -313,18 +313,6 @@ void CatalogView::paint() {
             glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
         glEnd();
 
-        // indication that source is not modifiable
-        if (!item->source->isModifiable()) {
-
-            glPointSize(4.0);
-            glBegin(GL_POINTS);
-            glVertex2i( item->coordinates.left() +5, item->coordinates.top() +5); // Top Left
-            glVertex2i( item->coordinates.right() -5, item->coordinates.top() +5); // Top Right
-            glVertex2i( item->coordinates.right() -5, item->coordinates.bottom() -5); // Bottom Right
-            glVertex2i( item->coordinates.left() +5, item->coordinates.bottom() -5); // Bottom Left
-            glEnd();
-        }
-
         // selection border
         if ( SelectionManager::getInstance()->isInSelection(item->source) ) {
             glColor4ub(COLOR_SELECTION, 255 * _alpha);

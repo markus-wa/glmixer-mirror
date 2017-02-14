@@ -415,10 +415,7 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
             // tool
             if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
                 // ready for grabbing the current source
-                if ( clicked->isModifiable() ){
-                    // ready for grabbing the current source
-                    setAction(View::GRAB);
-                }
+                setAction(View::GRAB);
             }
             // context menu
             else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
@@ -764,7 +761,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
         return sourceClicked();
     } else
-        return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
+        return (hits != 0);
 }
 
 
@@ -952,7 +949,7 @@ double LayersView::unProjectDepth(int x, int y)
 
 void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
 {
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     // new depth = source depth + delta
     double newdepth = s->getDepth() + depthchange;

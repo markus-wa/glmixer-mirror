@@ -17,7 +17,7 @@ QStringList ProtoSource::getFilterNames() {
 }
 
 ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
-    modifiable(true), fixedAspectRatio(false), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
+    fixedAspectRatio(false), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
     scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
     centerx(0.0), centery(0.0), rotangle(0.0), texalpha(1.0), pixelated(false),
     filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
@@ -185,10 +185,6 @@ void ProtoSource::_setPixelated(bool on) {
     pixelated = on;
 }
 
-void ProtoSource::_setModifiable(bool on) {
-    modifiable = on;
-}
-
 void ProtoSource::_setBlending(uint sfactor, uint dfactor, uint eq) {
     source_blend = sfactor;
     destination_blend = dfactor;
@@ -245,7 +241,6 @@ void ProtoSource::importProperties(const ProtoSource *source, bool withGeometry)
         rotangle = source->rotangle;
         scalex = source->scalex;
         scaley = source->scaley;
-        modifiable = source->modifiable;
         fixedAspectRatio = source->fixedAspectRatio;
 
         _setAlphaCoordinates(source->alphax, source->alphay);
@@ -260,7 +255,6 @@ QDomElement ProtoSource::getConfiguration(QDomDocument &doc)
     QDomElement sourceElem = doc.createElement("Source");
 
     sourceElem.setAttribute("name", getName());
-    sourceElem.setAttribute("modifiable", isModifiable());
     sourceElem.setAttribute("fixedAR", isFixedAspectRatio());
 
     QDomElement pos = doc.createElement("Position");
@@ -351,7 +345,6 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
     QDomElement tmp;
 
     _setName( xmlconfig.attribute("name") );
-    _setModifiable( xmlconfig.attribute("modifiable", "1").toInt() );
     _setFixedAspectRatio( xmlconfig.attribute("fixedAR", "0").toInt() );
 
     double x = xmlconfig.firstChildElement("Position").attribute("X", "0").toDouble();
@@ -452,7 +445,7 @@ QDataStream &operator<<(QDataStream &stream, const ProtoSource *source){
             << source->getChromaKey()
             << source->getChromaKeyColor()
             << source->getChromaKeyTolerance()
-            << source->isModifiable()
+            << true /*source->isModifiable()*/
             << source->isFixedAspectRatio()
             << source->getName();
 
@@ -501,7 +494,7 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     stream >> boolValue;	source->_setChromaKey(boolValue);
     stream >> colorValue;	source->_setChromaKeyColor(colorValue);
     stream >> intValue;		source->_setChromaKeyTolerance(intValue);
-    stream >> boolValue;	source->_setModifiable(boolValue);
+    stream >> boolValue;	/*source->_setModifiable(boolValue);*/
     stream >> boolValue;	source->_setFixedAspectRatio(boolValue);
     stream >> stringValue;  source->_setName(stringValue);
 

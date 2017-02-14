@@ -285,12 +285,6 @@ void Source::setPixelated(bool on) {
     ProtoSource::_setPixelated(on);
 }
 
-void Source::setModifiable(bool on) {
-    emit methodCalled("_setModifiable(bool)", S_ARG(modifiable, on));
-
-    ProtoSource::_setModifiable(on);
-}
-
 
 void Source::setBlendFunc(uint sfactor, uint dfactor) {
     emit methodCalled("_setBlending(uint,uint,uint)", S_ARG(source_blend, sfactor), S_ARG(destination_blend, dfactor), S_ARG(blend_eq, blend_eq));
@@ -323,7 +317,7 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
     QDomElement sourceElem = ProtoSource::getConfiguration(doc);
     // set more config from Source
     sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
-    sourceElem.setAttribute("workspace", (int) getWorkspace());
+    sourceElem.setAttribute("workspace", getWorkspace());
 
     // freeframe gl plugin
 #ifdef GLM_FFGL
@@ -343,8 +337,13 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     bool ret = ProtoSource::setConfiguration(xmlconfig);
 
     // set workspace
-    int ws = xmlconfig.attribute("workspace", "0").toInt();
-    setWorkspace(ws);
+    setWorkspace(xmlconfig.attribute("workspace", "0").toInt());
+    // compatibility with old version of glm file
+    if ( xmlconfig.hasAttribute("modifiable") ) {
+        int modifiable = xmlconfig.attribute("modifiable", "1").toInt();
+        // non modifiable source are simply moved to another workspace
+        setWorkspace( modifiable > 0 ? 0 : 1);
+    }
 
     // apply FreeFrame plugins configuration
     // start loop of plugins to load

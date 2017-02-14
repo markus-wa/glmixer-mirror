@@ -1138,6 +1138,9 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
 bool RenderingManager::insertSource(Source *s)
 {
+    // set Workspace
+    s->setWorkspace( getRenderingWidget()->getCurrentWorkspace() );
+
     // inform undo manager
     emit methodCalled(QString("_insertSource(%1)").arg(s->getId()));
 
@@ -1216,15 +1219,6 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
 #endif
     // inform GUI
     emit currentSourceChanged(sit);
-}
-
-
-void RenderingManager::toggleUnchangeableCurrentSource(bool on){
-
-    if(isValid(_currentSource)) {
-        (*_currentSource)->setModifiable( ! on );
-        emit currentSourceChanged(_currentSource);
-    }
 }
 
 

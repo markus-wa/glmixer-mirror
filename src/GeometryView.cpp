@@ -401,7 +401,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
             if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
 
-                // manipulate the current source if modifiable
+                // manipulate the current source
                 if ( cs ){
                     quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
                     // now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
@@ -491,7 +491,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     // get current source
     Source *cs = getCurrentSource();
 
-    if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL)) {
+    if ( cs && (currentAction == View::GRAB || currentAction == View::TOOL)) {
 
         if (!isUserInput(event, INPUT_TOOL_INDIVIDUAL) && SelectionManager::getInstance()->isInSelection(cs))
             setCurrentSource(SelectionManager::getInstance()->selectionSource());
@@ -555,7 +555,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
         // by default, reset quadrant
         quadrant = 0;
-        // mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
+        // mouse over which sources ? fill in clickedSources list
         if ( !_modeMoveFrame && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
         {
             // if there is a current source
@@ -1019,7 +1019,7 @@ void GeometryView::panningBy(int x, int y, int dx, int dy) {
  **/
 void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     double dum;
     double bx, by; // before movement
@@ -1052,11 +1052,6 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
     // if the source is the selection, move the selection too
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable()) {
-                SelectionManager::getInstance()->updateSelectionSource();
-                continue;
-            }
             grabSource( *its, x, y, dx, dy);
         }
     }
@@ -1081,7 +1076,7 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
  **/
 void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char quadrant, bool option) {
 
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     double dum;
     double bx, by; // before movement
@@ -1162,11 +1157,6 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
         syratio *= s->getScaleY();
         // apply scaling to all sources
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
-            // discard non modifiable source
-            if (!(*its)->isModifiable()) {
-                SelectionManager::getInstance()->updateSelectionSource();
-                continue;
-            }
             (*its)->setPosition( s->getX() + ((*its)->getX() - sx) * sxratio,
                                  s->getY() + ((*its)->getY() - sy) * syratio);
             (*its)->scaleBy(sxratio , syratio);
@@ -1190,7 +1180,7 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
  **/
 void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool option) {
 
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     double dum;
     double bx, by; // before movement
@@ -1254,11 +1244,6 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 
-            // discard non modifiable source
-            if (!(*its)->isModifiable()) {
-                SelectionManager::getInstance()->updateSelectionSource();
-                continue;
-            }
             (*its)->scaleBy(sxratio , syratio);
             (*its)->setRotationAngle( (*its)->getRotationAngle() - angle);
 
@@ -1296,7 +1281,7 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
  **/
 void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool option) {
 
-    if (!s || !s->isModifiable()) return;
+    if (!s) return;
 
     double dum;
     double bx, by; // before movement
@@ -1491,14 +1476,7 @@ Source *GeometryView::getCurrentSource()
 
     // if current source is a valid source
     if (currentSource) {
-
-        // if the current source is not the selection source
-        if (currentSource != SelectionManager::getInstance()->selectionSource())
-            // return the source only if modifiable
-            return currentSource->isModifiable() ? currentSource : 0;
-        else
-            // or just return the selection source
-            return currentSource;
+        return currentSource;
     }
 
     return 0;
@@ -1601,9 +1579,6 @@ void alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p)
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
 
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
             // move horizontally or vertically
             if (a==View::AXIS_HORIZONTAL)
                 (*its)->setX( (*its)->getX() + delta.x() );
@@ -1631,9 +1606,6 @@ void GeometryView::alignSelection(View::Axis a, View::RelativePoint p, View::Ref
         QRectF ref = GeometryView::getBoundingBox(SelectionManager::getInstance()->copySelection(), true);
         // loop over sources of the selection
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
             // perform the computations
             alignSource(*its, ref, a, p);
         }
@@ -1804,9 +1776,6 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
 
         // perform the computations
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
             // perform the computations
             if (t == View::TRANSFORM_ROTATE )
                 // rotate by 90 the source into the selection ref
@@ -1845,9 +1814,6 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
     // do this for horizontal borders
     if (a==View::AXIS_HORIZONTAL) {
         for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
-            // discard non modifiable source
-            if (!(*i)->isModifiable())
-                continue;
             QRectF sbox = getBoundingBox(*i, true);
             switch (p) {
             case View::ALIGN_BOTTOM_LEFT:
@@ -1871,9 +1837,6 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
     else {
         // sort the list of sources by  y (inverted)
         for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
-            // discard non modifiable source
-            if (!(*i)->isModifiable())
-                continue;
             QRectF sbox = getBoundingBox(*i, true);
             switch (p) {
             case View::ALIGN_BOTTOM_LEFT:

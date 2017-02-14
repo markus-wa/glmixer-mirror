@@ -58,7 +58,7 @@
 QToolButton {
      border-style: solid;
      border-width: 1px;
-     border-radius:5px;
+     border-radius:10px;
 	 padding: 3px;
      min-height: 12px;
      min-width:12px;
@@ -1977,13 +1977,12 @@ Uncheck to display the restart frame when stopped.</string>
       <addaction name="actionWorkspace3Source"/>
      </widget>
      <addaction name="actionEditSource"/>
+     <addaction name="actionCloneSource"/>
      <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionSelectCurrent"/>
      <addaction name="menuSendToWorkspace"/>
-     <addaction name="actionUnchangeable"/>
      <addaction name="menuAspect_Ratio"/>
      <addaction name="actionResetSource"/>
-     <addaction name="actionCloneSource"/>
      <addaction name="actionDeleteSource"/>
     </widget>
     <addaction name="actionNewSource"/>

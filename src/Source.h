@@ -270,8 +270,6 @@ public:
     void setGamma(double g, double minI, double maxI, double minO, double maxO);
     // display pixelated ?
     void setPixelated(bool on);
-    // stick the source
-    void setModifiable(bool on);
     // Blending function
     void setBlendFunc(uint sfactor, uint dfactor);
     // Blending equation

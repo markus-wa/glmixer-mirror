@@ -235,7 +235,6 @@ public slots:
     void resetSource(SourceSet::iterator sit);
     void resetCurrentSource();
     void refreshCurrentSource();
-    void toggleUnchangeableCurrentSource(bool);
     void toggleFixAspectRatioCurrentSource(bool);
     void setOriginalAspectRatioCurrentSource();
     void setRenderingAspectRatioCurrentSource();
