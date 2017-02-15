@@ -55,5 +55,11 @@
         <file>images/iconsmall.png</file>
         <file>images/loopback_recursive.png</file>
         <file>images/loopback_non_recursive.png</file>
+        <file>images/workspace_3.png</file>
+        <file>images/workspace_2.png</file>
+        <file>images/workspace_1.png</file>
+        <file>images/off_workspace_3.png</file>
+        <file>images/off_workspace_2.png</file>
+        <file>images/off_workspace_1.png</file>
     </qresource>
 </RCC>

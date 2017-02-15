@@ -55,26 +55,6 @@
        <string notr="true">QFrame {
     background-color:  rgba(52,52,52, 255);
 }
-QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:10px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-    color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:checked {
-     border-color:  rgba(102,102,102, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
 </string>
       </property>
       <property name="frameShape">
@@ -152,8 +132,28 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonWorkspace1">
-         <property name="text">
-          <string>1</string>
+         <property name="toolTip">
+          <string>Switch to Workspace 1</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 0px;
+	 padding: 0px;
+     border-color: transparent;
+     background: transparent;
+}</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../images.qrc">
+           <normaloff>:/glmixer/images/off_workspace_1.png</normaloff>
+           <normalon>:/glmixer/images/workspace_1.png</normalon>:/glmixer/images/off_workspace_1.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -168,8 +168,28 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonWorkspace2">
-         <property name="text">
-          <string>2</string>
+         <property name="toolTip">
+          <string>Switch to Workspace 2</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 0px;
+	 padding: 0px;
+     border-color: transparent;
+     background: transparent;
+}</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../images.qrc">
+           <normaloff>:/glmixer/images/off_workspace_2.png</normaloff>
+           <normalon>:/glmixer/images/workspace_2.png</normalon>:/glmixer/images/off_workspace_2.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -184,8 +204,28 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonWorkspace3">
-         <property name="text">
-          <string>3</string>
+         <property name="toolTip">
+          <string>Switch to Workspace 3</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 0px;
+	 padding: 0px;
+     border-color: transparent;
+     background: transparent;
+}</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../images.qrc">
+           <normaloff>:/glmixer/images/off_workspace_3.png</normaloff>
+           <normalon>:/glmixer/images/workspace_3.png</normalon>:/glmixer/images/off_workspace_3.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -221,7 +261,7 @@ QToolButton:hover {
          </property>
          <property name="minimumSize">
           <size>
-           <width>50</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -292,8 +332,25 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom reset</string>
          </property>
-         <property name="text">
-          <string>...</string>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -306,8 +363,25 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom in</string>
          </property>
-         <property name="text">
-          <string>...</string>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -323,8 +397,25 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom out</string>
          </property>
-         <property name="text">
-          <string>...</string>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -340,8 +431,25 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom best fit</string>
          </property>
-         <property name="text">
-          <string>...</string>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -357,8 +465,25 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom on current source</string>
          </property>
-         <property name="text">
-          <string>...</string>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -1921,6 +2046,9 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuWorkspace">
+     <property name="toolTip">
+      <string/>
+     </property>
      <property name="title">
       <string>W&amp;orkspace</string>
      </property>
@@ -4130,7 +4258,7 @@ Uncheck to display the restart frame when stopped.</string>
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -5288,8 +5416,13 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checked">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../images.qrc">
+     <normaloff>:/glmixer/images/off_workspace_1.png</normaloff>
+     <normalon>:/glmixer/images/workspace_1.png</normalon>:/glmixer/images/off_workspace_1.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;1</string>
+    <string>Workspace 1</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 1</string>
@@ -5305,8 +5438,13 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../images.qrc">
+     <normaloff>:/glmixer/images/off_workspace_2.png</normaloff>
+     <normalon>:/glmixer/images/workspace_2.png</normalon>:/glmixer/images/off_workspace_2.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;2</string>
+    <string>Workspace 2</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 2</string>
@@ -5322,8 +5460,13 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../images.qrc">
+     <normaloff>:/glmixer/images/off_workspace_3.png</normaloff>
+     <normalon>:/glmixer/images/workspace_3.png</normalon>:/glmixer/images/off_workspace_3.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;3</string>
+    <string>Workspace 3</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 3</string>
@@ -5339,10 +5482,6 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/workspace_1.png</normaloff>:/glmixer/icons/workspace_1.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;1</string>
    </property>
@@ -5351,10 +5490,6 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/workspace_2.png</normaloff>:/glmixer/icons/workspace_2.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;2</string>
    </property>
@@ -5362,10 +5497,6 @@ Shortcut:                         Ctrl + Tab</string>
   <action name="actionWorkspace3Source">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/workspace_3.png</normaloff>:/glmixer/icons/workspace_3.png</iconset>
    </property>
    <property name="text">
     <string>&amp;3</string>
@@ -5390,6 +5521,7 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
  </resources>
  <connections>
