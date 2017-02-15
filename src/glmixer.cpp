@@ -2662,6 +2662,10 @@ void GLMixer::readSettings( QString pathtobin )
     else
         settings.setValue("defaultGeometry", saveGeometry());
 
+    const QRect actualGeometry(settings.value("actualGeometry").toRect());
+    if (actualGeometry.isValid() && windowState() & Qt::WindowMaximized)
+        setGeometry(actualGeometry);
+
     if (settings.contains("windowState"))
         restoreState(settings.value("windowState").toByteArray());
     else
@@ -2754,6 +2758,7 @@ void GLMixer::saveSettings()
 
     // windows config
     settings.setValue("geometry", saveGeometry());
+    settings.setValue("actualGeometry", geometry());
     settings.setValue("windowState", saveState());
     // qDebug() << "windowState" << saveState().toHex();
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
