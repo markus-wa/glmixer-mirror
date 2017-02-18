@@ -3027,6 +3027,14 @@ void GLMixer::restorePreferences(const QByteArray & state){
     OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
 #endif
 
+    // x. Undo level
+    int undolevel = 100;
+    stream >> undolevel;
+#ifdef GLM_UNDO
+    UndoManager::getInstance()->setMaximumSize(undolevel);
+#endif
+
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3129,6 +3137,14 @@ QByteArray GLMixer::getPreferences() const {
     portOSC = (int) OpenSoundControlManager::getInstance()->getPort();
 #endif
     stream << useOSC << portOSC;
+
+    // x. Undo level
+    int undolevel = 100;
+#ifdef GLM_UNDO
+    undolevel = UndoManager::getInstance()->maximumSize();
+#endif
+    stream << undolevel;
+
 
     return data;
 }

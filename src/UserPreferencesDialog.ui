@@ -1650,46 +1650,71 @@ font: 75;</string>
          <widget class="QWidget" name="PageOptions">
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <widget class="QGroupBox" name="LanguageGroupBox">
-             <property name="title">
-              <string>Language</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_13">
-              <item>
-               <widget class="QComboBox" name="languageSelection">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>English (default)</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <widget class="QGroupBox" name="SystemGroupBox">
              <property name="title">
               <string>System</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="3" column="1">
+               <widget class="QSpinBox" name="maximumUndoLevels">
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>100</number>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
                <widget class="QCheckBox" name="restoreLastSession">
                 <property name="toolTip">
                  <string>Re-open the last session when launching GLMixer.</string>
                 </property>
                 <property name="text">
-                 <string>Restore previous session on start</string>
+                 <string>Restore session on start</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="useCustomDialogs">
+                <property name="toolTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="statusTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="text">
+                 <string>Custom file dialogs with video preview</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Maximum number of undo levels:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="displayFramerate">
+                <property name="toolTip">
+                 <string>Shows the framerate in the upper right corner.</string>
+                </property>
+                <property name="text">
+                 <string>Display framerate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <widget class="QCheckBox" name="saveExitSession">
                 <property name="toolTip">
                  <string>Save the current session on exit (if possible)</string>
@@ -1702,39 +1727,33 @@ font: 75;</string>
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QCheckBox" name="useCustomDialogs">
-                <property name="toolTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="statusTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="text">
-                 <string>Show preview in file dialogs</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
+              <item row="2" column="0">
                <widget class="QCheckBox" name="displayTimeAsFrame">
                 <property name="toolTip">
                  <string>Shows time information as frame count instead of hh:mm:ss.</string>
                 </property>
                 <property name="text">
-                 <string>Show frame numbers instead of time</string>
+                 <string>Time as frame numbers</string>
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QCheckBox" name="displayFramerate">
-                <property name="toolTip">
-                 <string>Shows the framerate in the upper right corner.</string>
+              <item row="4" column="1">
+               <widget class="QSpinBox" name="numberWorkspaces">
+                <property name="minimum">
+                 <number>2</number>
                 </property>
+                <property name="maximum">
+                 <number>10</number>
+                </property>
+                <property name="value">
+                 <number>3</number>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_26">
                 <property name="text">
-                 <string>Display framerate</string>
+                 <string>Number of workspaces:</string>
                 </property>
                </widget>
               </item>
@@ -1851,7 +1870,7 @@ font: 75;</string>
                 <item row="2" column="1" colspan="2">
                  <widget class="QLabel" name="label_23">
                   <property name="text">
-                   <string>Icon size</string>
+                   <string>Mixing Icon size</string>
                   </property>
                  </widget>
                 </item>

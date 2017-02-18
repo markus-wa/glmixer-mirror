@@ -3274,7 +3274,7 @@ Uncheck to display the restart frame when stopped.</string>
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+    <set>Qt::NoDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Logs</string>
@@ -5422,7 +5422,7 @@ Shortcut:                         Ctrl + Tab</string>
      <normalon>:/glmixer/images/workspace_1.png</normalon>:/glmixer/images/off_workspace_1.png</iconset>
    </property>
    <property name="text">
-    <string>Workspace 1</string>
+    <string>&amp;Workspace 1</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 1</string>
@@ -5444,7 +5444,7 @@ Shortcut:                         Ctrl + Tab</string>
      <normalon>:/glmixer/images/workspace_2.png</normalon>:/glmixer/images/off_workspace_2.png</iconset>
    </property>
    <property name="text">
-    <string>Workspace 2</string>
+    <string>Workspace &amp;2</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 2</string>
@@ -5466,7 +5466,7 @@ Shortcut:                         Ctrl + Tab</string>
      <normalon>:/glmixer/images/workspace_3.png</normalon>:/glmixer/images/off_workspace_3.png</iconset>
    </property>
    <property name="text">
-    <string>Workspace 3</string>
+    <string>Workspace &amp;3</string>
    </property>
    <property name="toolTip">
     <string>Activate workspace 3</string>
@@ -5521,8 +5521,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

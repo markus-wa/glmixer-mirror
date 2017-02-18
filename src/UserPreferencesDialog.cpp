@@ -176,6 +176,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         useCustomDialogs->setChecked(true);
         saveExitSession->setChecked(true);
         iconSizeSlider->setValue(50);
+        maximumUndoLevels->setValue(100);
+        numberWorkspaces->setValue(3);
     }
 }
 
@@ -334,6 +336,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     OSCPort->setValue(portOSC);
     enableOSC->setChecked(useOSC);
 
+    // x. Undo level
+    int undolevel = 100;
+    stream >> undolevel;
+    maximumUndoLevels->setValue(undolevel);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -418,6 +425,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // w. Open Sound Control
     stream << enableOSC->isChecked() << OSCPort->value();
+
+    // x. Undo level
+    stream << maximumUndoLevels->value();
 
     return data;
 }

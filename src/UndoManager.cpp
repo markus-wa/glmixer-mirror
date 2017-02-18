@@ -34,7 +34,12 @@ UndoManager::~UndoManager() {
 
 void UndoManager::setMaximumSize(int m)
 {
-    _status = m > 1 ? READY : DISABLED;
+    if (m==0) {
+        clear();
+        _status = DISABLED;
+    } else
+        _status = READY;
+
     _maximumSize = m;
 }
 
@@ -56,6 +61,8 @@ void UndoManager::clear()
 
     if (_status > DISABLED)
         _status = READY;
+
+    emit currentChanged(false, false);
 
 #ifdef DEBUG_UNDO
     fprintf(stderr, "Undo CLEARED\n");
