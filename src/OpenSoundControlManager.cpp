@@ -78,7 +78,7 @@ void OpenSoundControlManager::setEnabled(bool enable, qint16 port)
     if (enable) {
         _port = port;
         _udpSocket = new QUdpSocket(this);
-        _udpSocket->bind(QHostAddress::LocalHost, _port);
+        _udpSocket->bind(_port);
         connect(_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
         qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server enabled (port " << _port <<").";
     }
@@ -164,9 +164,9 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
         if ( property == "Alpha") {
             if (value.size() > 0 && value[0].isValid()) {
                 bool ok = false;
-                int i = value[0].toInt(&ok);
+                double v = 1.0 - qBound(0.0, value[0].toDouble(&ok), 1.0);
                 if (ok)
-                    GLMixer::getInstance()->on_output_alpha_valueChanged(i);
+                    GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
                 else
                     throw osc::WrongArgumentTypeException();
             }
