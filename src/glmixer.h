@@ -132,9 +132,7 @@ public slots:
     void replaceCurrentSource();
     void undoChanged(bool, bool);
 
-    void setWorkspace(QAction *a);
-    void setWorkspace(int workspace);
-    void setSourceWorkspace(QAction *a);
+    void updateWorkspaceActions();
 
     // source config
     void connectSource(SourceSet::iterator csi);

@@ -41,6 +41,7 @@
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
 #include "glmixer.h"
+#include "WorkspaceManager.h"
 
 GLuint ViewRenderWidget::vertex_array_coords = 0;
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -161,7 +162,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0), current_workspace(0), max_workspace(3)
+    glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
     setAcceptDrops ( true );
@@ -201,10 +202,6 @@ ViewRenderWidget::ViewRenderWidget() :
     // sets the current cursor
     _currentCursor = 0;
     cursorEnabled = false;
-
-    // create the workspaces
-    for (int i = 0; i < max_workspace; ++i)
-        visible_workspace << true;
 
     // opengl HID display
     connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
@@ -350,14 +347,6 @@ void ViewRenderWidget::initializeGL()
     glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
     glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
 
-}
-
-void ViewRenderWidget::setCurrentWorkspace(int w)
-{
-    current_workspace = qBound(0,w,max_workspace);
-//    setWorkspaceVisible(w, true);
-
-    emit workspaceChanged(w);
 }
 
 void ViewRenderWidget::setViewMode(View::viewMode mode)
@@ -1173,7 +1162,8 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
     else if (_currentView == _renderingView)
         config.setAttribute("current", View::RENDERING);
 
-    config.setAttribute("workspace", getCurrentWorkspace());
+    config.setAttribute("workspace", WorkspaceManager::getInstance()->current());
+    config.setAttribute("workspaceCount", WorkspaceManager::getInstance()->count());
 
     QDomElement mix = _mixingView->getConfiguration(doc);
     mix.setAttribute("name", "Mixing");
@@ -1203,8 +1193,10 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
 void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
+    int wc = xmlconfig.attribute("workspaceCount", "3").toInt();
+    WorkspaceManager::getInstance()->setCount(wc);
     int ws = xmlconfig.attribute("workspace", "0").toInt();
-    setCurrentWorkspace(ws);
+    WorkspaceManager::getInstance()->setCurrent(ws);
 
     QDomElement child = xmlconfig.firstChildElement("View");
     while (!child.isNull()) {

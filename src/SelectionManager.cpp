@@ -10,6 +10,7 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 #include "GeometryView.h"
+#include "WorkspaceManager.h"
 
 
 // static members
@@ -55,7 +56,7 @@ void SelectionManager::select(Source *s) {
         return;
 
     // do not select source from other workspace
-    if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() )
+    if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() )
         return;
 
     if ( _selectedSources.count(s) > 0)
@@ -121,7 +122,7 @@ void SelectionManager::updateSelectionSource()
 {
     // do not add sources which are not in current workspace
     for ( SourceSet::iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); sit++) {
-        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*sit)->getWorkspace() )
+        if ( WorkspaceManager::getInstance()->current() != (*sit)->getWorkspace() )
             _selectedSources.erase(sit);
     }
 

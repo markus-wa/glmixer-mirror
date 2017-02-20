@@ -1139,7 +1139,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 bool RenderingManager::insertSource(Source *s)
 {
     // set Workspace
-    s->setWorkspace( getRenderingWidget()->getCurrentWorkspace() );
+    s->setWorkspace( WorkspaceManager::getInstance()->current() );
 
     // inform undo manager
     emit methodCalled(QString("_insertSource(%1)").arg(s->getId()));
@@ -1221,9 +1221,12 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     emit currentSourceChanged(sit);
 }
 
-void RenderingManager::setWorkspaceCurrentSource(int w)
+bool RenderingManager::setWorkspaceCurrentSource(int w)
 {
     if(isValid(_currentSource)) {
+
+        // bound value
+        w = qBound(0, w, WorkspaceManager::getInstance()->count() - 1);
 
         // ensure we move a Mixing group together
         _renderwidget->selectWholeGroup(*_currentSource);
@@ -1241,7 +1244,18 @@ void RenderingManager::setWorkspaceCurrentSource(int w)
             SelectionManager::getInstance()->clearSelection();
         }
 
-        _renderwidget->setCurrentWorkspace(w);
+        return true;
+    }
+
+    return false;
+}
+
+
+void RenderingManager::setWorkspaceCount(int w)
+{
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
+        if ( (*its)->getWorkspace() > w - 1 )
+            (*its)->setWorkspace(w - 1);
     }
 }
 
@@ -1488,6 +1502,9 @@ void RenderingManager::clearSourceSet() {
     UndoManager::getInstance()->clear();
 #endif
 
+    // restore default Workspaces
+    WorkspaceManager::getInstance()->setCount();
+    WorkspaceManager::getInstance()->setCurrent(0);
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -1531,11 +1548,10 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
         // switch to workspace of current source
         if (_currentSource != _front_sources.end()) {
 
-            // change onmly if workspace is different
-            int wc = getRenderingWidget()->getCurrentWorkspace();
+            // change only if workspace is different
             int ws = (*_currentSource)->getWorkspace();
-            if ( wc != ws ) {
-                getRenderingWidget()->setCurrentWorkspace( ws );
+            if ( ws != WorkspaceManager::getInstance()->current() ) {
+                WorkspaceManager::getInstance()->setCurrent(ws);
 
                 // if changing workspace without current source, clear selection
                 if ( !SelectionManager::getInstance()->isInSelection(*_currentSource))

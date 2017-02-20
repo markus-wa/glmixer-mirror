@@ -55,6 +55,23 @@
        <string notr="true">QFrame {
     background-color:  rgba(52,52,52, 255);
 }
+QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:6px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+     color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
 </string>
       </property>
       <property name="frameShape">
@@ -131,111 +148,48 @@
         </spacer>
        </item>
        <item>
-        <widget class="QToolButton" name="toolButtonWorkspace1">
-         <property name="toolTip">
-          <string>Switch to Workspace 1</string>
+        <widget class="QFrame" name="workspacesFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton {
-     border-style: solid;
      border-width: 0px;
-	 padding: 0px;
      border-color: transparent;
      background: transparent;
-}</string>
+}
+QToolButton:pressed {
+}
+QToolButton:hover {
+}
+</string>
          </property>
-         <property name="icon">
-          <iconset resource="../images.qrc">
-           <normaloff>:/glmixer/images/off_workspace_1.png</normaloff>
-           <normalon>:/glmixer/images/workspace_1.png</normalon>:/glmixer/images/off_workspace_1.png</iconset>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
          </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonWorkspace2">
-         <property name="toolTip">
-          <string>Switch to Workspace 2</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 0px;
-	 padding: 0px;
-     border-color: transparent;
-     background: transparent;
-}</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../images.qrc">
-           <normaloff>:/glmixer/images/off_workspace_2.png</normaloff>
-           <normalon>:/glmixer/images/workspace_2.png</normalon>:/glmixer/images/off_workspace_2.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonWorkspace3">
-         <property name="toolTip">
-          <string>Switch to Workspace 3</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 0px;
-	 padding: 0px;
-     border-color: transparent;
-     background: transparent;
-}</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../images.qrc">
-           <normaloff>:/glmixer/images/off_workspace_3.png</normaloff>
-           <normalon>:/glmixer/images/workspace_3.png</normalon>:/glmixer/images/off_workspace_3.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
+         <layout class="QHBoxLayout" name="workspacesLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
         </widget>
        </item>
        <item>
@@ -332,26 +286,6 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom reset</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:6px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-     color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
-</string>
-         </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/zoom-original.png</normaloff>:/glmixer/icons/zoom-original.png</iconset>
@@ -362,26 +296,6 @@ QToolButton:hover {
         <widget class="QToolButton" name="toolButtonZoomPlus">
          <property name="toolTip">
           <string>Zoom in</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:6px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-     color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
-</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -397,26 +311,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Zoom out</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:6px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-     color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
-</string>
-         </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
@@ -431,26 +325,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Zoom best fit</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:6px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-     color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
-</string>
-         </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/zoom-fit-best.png</normaloff>:/glmixer/icons/zoom-fit-best.png</iconset>
@@ -464,26 +338,6 @@ QToolButton:hover {
          </property>
          <property name="toolTip">
           <string>Zoom on current source</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:6px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-     color :  rgba(250,250,250, 255);
-}
-QToolButton:pressed {
-	background:  rgba(72,72,72, 255);
-}
-QToolButton:hover {
-     border-color:  rgba(72,72,72, 255);
-}
-</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -2056,9 +1910,8 @@ Uncheck to display the restart frame when stopped.</string>
       <iconset resource="../icons.qrc">
        <normaloff>:/glmixer/icons/workspaces.png</normaloff>:/glmixer/icons/workspaces.png</iconset>
      </property>
-     <addaction name="actionWorkspace1"/>
-     <addaction name="actionWorkspace2"/>
-     <addaction name="actionWorkspace3"/>
+     <addaction name="actionWorkspaceIncrement"/>
+     <addaction name="actionWorkspaceDecrement"/>
     </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -2120,9 +1973,7 @@ Uncheck to display the restart frame when stopped.</string>
        <iconset resource="../icons.qrc">
         <normaloff>:/glmixer/icons/workspaces.png</normaloff>:/glmixer/icons/workspaces.png</iconset>
       </property>
-      <addaction name="actionWorkspace1Source"/>
-      <addaction name="actionWorkspace2Source"/>
-      <addaction name="actionWorkspace3Source"/>
+      <addaction name="actionNewWorkspace"/>
      </widget>
      <addaction name="actionEditSource"/>
      <addaction name="actionCloneSource"/>
@@ -5502,6 +5353,33 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;3</string>
    </property>
   </action>
+  <action name="actionWorkspaceIncrement">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_2.png</normaloff>:/glmixer/icons/workspace_2.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Increment</string>
+   </property>
+  </action>
+  <action name="actionWorkspaceDecrement">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_1.png</normaloff>:/glmixer/icons/workspace_1.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Decrement</string>
+   </property>
+  </action>
+  <action name="actionNewWorkspace">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_2.png</normaloff>:/glmixer/icons/workspace_2.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -5525,70 +5403,6 @@ Shortcut:                         Ctrl + Tab</string>
   <include location="../images.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>toolButtonZoomFit</sender>
-   <signal>clicked()</signal>
-   <receiver>actionZoomBestFit</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1134</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonZoomMinus</sender>
-   <signal>clicked()</signal>
-   <receiver>actionZoomOut</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1110</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonZoomPlus</sender>
-   <signal>clicked()</signal>
-   <receiver>actionZoomIn</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1086</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonZoomReset</sender>
-   <signal>clicked()</signal>
-   <receiver>actionZoomReset</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1062</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>restartWhereStoppedCheckBox</sender>
    <signal>toggled(bool)</signal>
@@ -5630,22 +5444,6 @@ Shortcut:                         Ctrl + Tab</string>
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonZoomCurrent</sender>
-   <signal>clicked()</signal>
-   <receiver>actionZoomCurrentSource</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1158</x>
-     <y>76</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -5714,6 +5512,86 @@ Shortcut:                         Ctrl + Tab</string>
     <hint type="destinationlabel">
      <x>350</x>
      <y>846</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButtonZoomFit</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomBestFit</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1134</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButtonZoomReset</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomReset</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1062</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButtonZoomMinus</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomOut</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1110</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButtonZoomPlus</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomIn</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1086</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButtonZoomCurrent</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomCurrentSource</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1158</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

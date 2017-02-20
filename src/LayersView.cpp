@@ -31,6 +31,7 @@
 #include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
+#include "WorkspaceManager.h"
 
 #define MINZOOM 5.0
 #define DEFAULTZOOM 7.0
@@ -214,7 +215,7 @@ void LayersView::paint()
         s->blend();
 
         // Normal draw in current workspace
-        if (RenderingManager::getRenderingWidget()->getCurrentWorkspace() == s->getWorkspace()) {
+        if (WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
 
             //   draw stippled version of the source
             ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
@@ -727,7 +728,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby() || RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*its)->getWorkspace())
+        if ((*its)->isStandby() || WorkspaceManager::getInstance()->current() != (*its)->getWorkspace())
             continue;
 
         glPushMatrix();

@@ -29,6 +29,7 @@
 #include "RenderingManager.h"
 #include "SelectionManager.h"
 #include "OutputRenderWindow.h"
+#include "WorkspaceManager.h"
 #include "Tag.h"
 
 #define TOPMARGIN 20
@@ -333,14 +334,23 @@ void CatalogView::paint() {
 
     glEnable(GL_TEXTURE_2D);
 
-    // icons for workspace
-    static GLuint texid[3] = {0,0,0};
+    // icons for workspace (active and innactive)
+    static GLuint texid[WORKSPACE_MAX * 2] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     if (texid[0] == 0) {
-        // generate the texture with optimal performance ;
-        glGenTextures(3, texid);
-        for (int i = 0; i < 3; ++i) {
+        // generate the textures with optimal performance ;
+        glGenTextures(WORKSPACE_MAX * 2, texid);
+        for (int i = 0; i < WORKSPACE_MAX; ++i) {
             glBindTexture(GL_TEXTURE_2D, texid[i]);
-            QImage p(QString(":/glmixer/images/workspace_%1.png").arg(i+1));
+            QImage p(WorkspaceManager::getPixmap(i+1, true).toImage());
+            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+        for (int i = WORKSPACE_MAX; i < WORKSPACE_MAX * 2; ++i) {
+            glBindTexture(GL_TEXTURE_2D, texid[i]);
+            QImage p(WorkspaceManager::getPixmap(i-WORKSPACE_MAX+1, false).toImage());
             gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -350,9 +360,12 @@ void CatalogView::paint() {
     }
 
     // draw icon of source workspace
+    int p =  _size[_currentSize] / 5;
     foreach ( Icon *item, _icons) {
-        QRect coordinates( item->coordinates.topLeft() - QPoint(8, 6), QSize(24, 24));
-        glBindTexture(GL_TEXTURE_2D, texid[item->source->getWorkspace()]);
+        QRect coordinates( item->coordinates.topLeft() - QPoint(p/3, p/3), QSize(p,p));
+        int i = item->source->getWorkspace();
+        i += i == WorkspaceManager::getInstance()->current() ? 0 : WORKSPACE_MAX;
+        glBindTexture(GL_TEXTURE_2D, texid[i]);
         glColor4f(0.8, 0.8, 0.8, _alpha );
         glBegin(GL_QUADS);
             glTexCoord2f( 0.f, 1.f);

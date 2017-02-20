@@ -64,6 +64,7 @@
 #include "WebSourceCreationDialog.h"
 #include "VideoStreamDialog.h"
 #include "CodecManager.h"
+#include "WorkspaceManager.h"
 
 #define GLM_OSC
 #ifdef GLM_OSC
@@ -273,28 +274,30 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
+    // create menu for the Workspace Manager selection actions
+    QAction *sep = menuWorkspace->insertSeparator(actionWorkspaceIncrement);
+    menuWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getActions() );
 
-    QActionGroup *workspaceActions = new QActionGroup(this);
-    workspaceActions->addAction(actionWorkspace1);
-    actionWorkspace1->setData(0);
-    toolButtonWorkspace1->setDefaultAction(actionWorkspace1);
-    workspaceActions->addAction(actionWorkspace2);
-    actionWorkspace2->setData(1);
-    toolButtonWorkspace2->setDefaultAction(actionWorkspace2);
-    workspaceActions->addAction(actionWorkspace3);
-    actionWorkspace3->setData(2);
-    toolButtonWorkspace3->setDefaultAction(actionWorkspace3);
-    QObject::connect(workspaceActions, SIGNAL(triggered(QAction *)), this, SLOT(setWorkspace(QAction *) ) );
+    // create tool buttons in main view
+    foreach(QToolButton *b,  WorkspaceManager::getInstance()->getButtons()){
+        b->setParent(workspacesFrame);
+        workspacesLayout->addWidget(b);
+    }
 
-    QActionGroup *workspaceSourceActions = new QActionGroup(this);
-    workspaceSourceActions->addAction(actionWorkspace1Source);
-    actionWorkspace1Source->setData(0);
-    workspaceSourceActions->addAction(actionWorkspace2Source);
-    actionWorkspace2Source->setData(1);
-    workspaceSourceActions->addAction(actionWorkspace3Source);
-    actionWorkspace3Source->setData(2);
-    QObject::connect(workspaceSourceActions, SIGNAL(triggered(QAction *)), this, SLOT(setSourceWorkspace(QAction*)) );
+    // create menu for current source workspace actions
+    sep = menuSendToWorkspace->insertSeparator(actionNewWorkspace);
+    menuSendToWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getSourceActions());
 
+    // Workspace Management
+    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged()), this, SLOT(updateWorkspaceActions()) );
+    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), RenderingManager::getInstance(), SLOT(setWorkspaceCount(int)) );
+    QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
+    QObject::connect(actionWorkspaceDecrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(decrementCount()));
+    QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
+    // special behavior when adding workspace
+    QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when increment
+    QObject::connect(actionNewWorkspace, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setWorkspaceCurrentSource())); // move current source to latest when creating new
+    QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when creating new
 
     // HIDDEN actions
     // for debugging and development purposes
@@ -307,7 +310,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     setGLSLFragmentShader->setShortcut(QKeySequence("Shift+Ctrl+G,F"));
     addAction(setGLSLFragmentShader);
     QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
-
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);
@@ -564,9 +566,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), this, SLOT(updateStatusControlActions()));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
-
-    // Workspace change
-    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(workspaceChanged(int)), this, SLOT(setWorkspace(int)) );
 
     // a Timer to update sliders and counters
     frameSlider->setTracking(true);
@@ -1210,18 +1209,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         timingControlFrame->setEnabled(false);
 
         // check the menu action of the current source
-        switch ( (*csi)->getWorkspace() ) {
-        case 2:
-            actionWorkspace3Source->setChecked(true);
-            break;
-        case 1:
-            actionWorkspace2Source->setChecked(true);
-            break;
-        default:
-        case 0:
-            actionWorkspace1Source->setChecked(true);
-            break;
-        }
+        WorkspaceManager::getInstance()->getSourceActions()[(*csi)->getWorkspace()]->setChecked(true);
 
         // Set the status of start button without circular call to startCurrentSource
         QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
@@ -3443,37 +3431,9 @@ void GLMixer::undoChanged(bool undo, bool redo)
     actionRedo->setEnabled(redo);
 }
 
-void GLMixer::setWorkspace(int workspace)
+void GLMixer::updateWorkspaceActions()
 {
-    switch (workspace) {
-    case 2:
-        actionWorkspace3->setChecked(true);
-        break;
-    case 1:
-        actionWorkspace2->setChecked(true);
-        break;
-    default:
-    case 0:
-        actionWorkspace1->setChecked(true);
-        break;
-    }
-
-}
-
-void GLMixer::setWorkspace(QAction *a)
-{
-    int w1 = RenderingManager::getRenderingWidget()->getCurrentWorkspace();
-    int w2 = a->data().toInt();
-
-    if (w1 != w2) {
-        RenderingManager::getRenderingWidget()->setCurrentWorkspace( w2 );
-
-        RenderingManager::getInstance()->unsetCurrentSource();
-        SelectionManager::getInstance()->clearSelection();
-    }
-}
-
-void GLMixer::setSourceWorkspace(QAction *a)
-{
-    RenderingManager::getInstance()->setWorkspaceCurrentSource(a->data().toInt());
+    actionWorkspaceIncrement->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
+    actionWorkspaceDecrement->setEnabled(WorkspaceManager::getInstance()->count()>WORKSPACE_MIN);
+    actionNewWorkspace->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
 }

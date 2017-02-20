@@ -30,6 +30,7 @@
 #include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
+#include "WorkspaceManager.h"
 #include <algorithm>
 
 #define MINZOOM 0.1
@@ -123,7 +124,7 @@ void GeometryView::paint()
         s->blend();
 
         // test workspace
-        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() ) {
+        if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
             // draw shadow version of the source
             ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
         }
@@ -168,7 +169,7 @@ void GeometryView::paint()
         GLuint border_workspace = 0;
         int alpha = 200;
         QColor c = s->getTag()->getColor();
-        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() ) {
+        if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
             border_workspace = 3;
             alpha = (float) alpha * WORKSPACE_MAX_ALPHA;
             c = c.darker(WORKSPACE_COLOR_SHIFT);
@@ -957,7 +958,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     }
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        if ((*its)->isStandby() ||  RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*its)->getWorkspace())
+        if ((*its)->isStandby() ||  WorkspaceManager::getInstance()->current() != (*its)->getWorkspace())
             continue;
         glPushMatrix();
         // place and scale

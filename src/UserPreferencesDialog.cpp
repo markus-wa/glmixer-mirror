@@ -177,7 +177,6 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         saveExitSession->setChecked(true);
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
-        numberWorkspaces->setValue(3);
     }
 }
 

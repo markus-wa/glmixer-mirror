@@ -27,6 +27,7 @@
 #define RENDERINGMANAGER_H_
 
 #include "SourceSet.h"
+#include "WorkspaceManager.h"
 
 typedef enum {
     QUALITY_VGA = 0,
@@ -238,7 +239,8 @@ public slots:
     void toggleFixAspectRatioCurrentSource(bool);
     void setOriginalAspectRatioCurrentSource();
     void setRenderingAspectRatioCurrentSource();
-    void setWorkspaceCurrentSource(int);
+    bool setWorkspaceCurrentSource(int w = WORKSPACE_MAX);
+    void setWorkspaceCount(int);
 
     void dropSource();
     void dropSourceWithAlpha(double alphax, double alphay);
