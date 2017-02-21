@@ -2098,6 +2098,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionSelectNone"/>
     <addaction name="sourceControlMenu"/>
     <addaction name="separator"/>
+    <addaction name="actionOSCTranslator"/>
     <addaction name="actionPreferences"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -5380,6 +5381,11 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;New</string>
    </property>
   </action>
+  <action name="actionOSCTranslator">
+   <property name="text">
+    <string>OSC Translator</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -5399,8 +5405,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

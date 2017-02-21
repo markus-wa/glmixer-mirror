@@ -65,6 +65,7 @@
 #include "VideoStreamDialog.h"
 #include "CodecManager.h"
 #include "WorkspaceManager.h"
+#include "OpenSoundControlTranslator.h"
 
 #define GLM_OSC
 #ifdef GLM_OSC
@@ -3437,3 +3438,13 @@ void GLMixer::updateWorkspaceActions()
     actionWorkspaceDecrement->setEnabled(WorkspaceManager::getInstance()->count()>WORKSPACE_MIN);
     actionNewWorkspace->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
 }
+
+void GLMixer::on_actionOSCTranslator_triggered()
+{
+
+#ifdef GLM_OSC
+    static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator();
+    oscwidget->show();
+#endif
+}
+

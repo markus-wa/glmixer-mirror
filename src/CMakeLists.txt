@@ -73,6 +73,7 @@ SET(GLMIXER_SRCS
     MixingToolboxWidget.cpp
     LayoutToolboxWidget.cpp
     OpenSoundControlManager.cpp
+    OpenSoundControlTranslator.cpp
     NewSourceDialog.cpp
     WebSourceCreationDialog.cpp
     SessionSwitcher.cpp
@@ -110,6 +111,7 @@ SET(GLMIXER_UIS
     glmixer.ui
     VideoFileDialog.ui
     AlgorithmSelectionDialog.ui
+    OpenSoundControlTranslator.ui
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
     MixingToolboxWidget.ui

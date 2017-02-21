@@ -86,6 +86,7 @@ public slots:
     void on_actionWebsite_triggered();
     void on_actionTutorials_triggered();
     void on_actionPreferences_triggered();
+    void on_actionOSCTranslator_triggered();
     void on_actionNew_Session_triggered();
     void on_actionClose_Session_triggered();
     void on_actionSave_Session_triggered();

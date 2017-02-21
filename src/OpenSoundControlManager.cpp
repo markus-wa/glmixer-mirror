@@ -53,9 +53,9 @@ OpenSoundControlManager *OpenSoundControlManager::getInstance() {
 
 OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpSocket(0), _port(7000)
 {
+
+    addTranslation("/mrmr/slider/horizontal/0/iPhonebhbn", "/glmixer/render/Alpha");
 }
-
-
 
 qint16 OpenSoundControlManager::getPort()
 {
@@ -105,9 +105,17 @@ void OpenSoundControlManager::readPendingDatagrams()
             if (p.IsMessage()) {
                 osc::ReceivedMessage message(p);
 
+                // Apply Dictionnary translation
+                QString pattern = message.AddressPattern();
+                QMapIterator<QString, QString> i(_dictionnary);
+                while (i.hasNext()) {
+                    i.next();
+                    pattern.replace(i.key(), i.value());
+                }
+
                 // a valid address for OSC message is /glmixer/[property]/[attribute]
                 QRegExp validOSCAddressPattern("^/glmixer(/[A-z0-9]+)(/[A-z0-9]+)");
-                if ( !validOSCAddressPattern.exactMatch(message.AddressPattern()) )
+                if ( !validOSCAddressPattern.exactMatch( pattern ) )
                     throw osc::MalformedAddressException();
 
                 QString object = validOSCAddressPattern.capturedTexts()[1];
@@ -147,7 +155,7 @@ void OpenSoundControlManager::readPendingDatagrams()
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
-            qWarning() << "Error while parsing OSC message '"
+            qWarning() << sender.toString() << QChar(124).toLatin1() <<"OSC Error '"
                 << datagram.data() << "': " << e.what() << "\n";
         }
 
@@ -231,4 +239,14 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
             throw osc::InvalidObjectException();
     }
 
+}
+
+void OpenSoundControlManager::addTranslation(QString before, QString after)
+{
+    _dictionnary[before] = after;
+}
+
+QString OpenSoundControlManager::getTranslation(QString before)
+{
+    return _dictionnary[before];
 }

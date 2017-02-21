@@ -85,12 +85,18 @@ public slots:
     void readPendingDatagrams();
     void executeMessage(QString object, QString property, QVariantList value);
 
+    void addTranslation(QString before, QString after);
+    QString getTranslation(QString before);
+    QMap<QString, QString> getTranslationDictionnary() const { return _dictionnary; }
+
 private:
     OpenSoundControlManager();
     static OpenSoundControlManager *_instance;
 
     QUdpSocket *_udpSocket;
     qint16 _port;
+
+    QMap<QString, QString> _dictionnary;
 };
 
 #endif // OPENSOUNDCONTROLMANAGER_H
