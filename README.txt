@@ -148,6 +148,9 @@ Install programs and libraries (run the following in a terminal)
 
 You can now compile like under Unix (see above)
 
+To configure for OSX Release packaging:
+      $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=False -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -G Ninja ../glmixer-Source/
+
 
 
 WINDOWS COMPILATION
@@ -169,5 +172,3 @@ Install programs and x86_64 libraries (run the following in a terminal)
         pacman -S mingw-w64-x86_64-ffmpeg
 
 You can now compile like under Unix (see above)
-
-
