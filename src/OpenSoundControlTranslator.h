@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QSettings>
+#include <QRegExpValidator>
 
 namespace Ui {
 class OpenSoundControlTranslator;
@@ -20,12 +21,16 @@ public slots:
 
     void settingsChanged();
     void logMessage(QString m);
+    void addTranslation(QString before, QString after);
 
     void on_OSCHelp_pressed();
+    void on_addTranslation_pressed();
+    void on_verboseLogs_toggled(bool);
 
 private:
     Ui::OpenSoundControlTranslator *ui;
 
+    QRegExpValidator validator;
     QSettings *appSettings;
 };
 

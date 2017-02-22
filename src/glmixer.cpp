@@ -369,6 +369,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #endif
 
 
+#ifdef GLM_OSC
+#else
+    delete actionOSCTranslator;
+#endif
+
 #ifdef GLM_SESSION
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
@@ -2739,6 +2744,8 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("OSCPort"))
         portOSC = settings.value("OSCPort").toInt();
     OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
+    if (settings.contains("OSCVerbose"))
+        OpenSoundControlManager::getInstance()->setVerbose(settings.value("OSCVerbose").toBool());
 #endif
 
 #ifdef GLM_SESSION
@@ -2788,6 +2795,7 @@ void GLMixer::saveSettings()
 #ifdef GLM_OSC
     settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
     settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPort());
+    settings.setValue("OSCVerbose", OpenSoundControlManager::getInstance()->isVerbose());
 #endif
 
 #ifdef GLM_SESSION
@@ -3022,15 +3030,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> isize;
     ViewRenderWidget::setIconSize(MIN_ICON_SIZE + (double)isize * (MAX_ICON_SIZE-MIN_ICON_SIZE) / 100.0);
 
-//    // w. Open Sound Control
-//    bool useOSC = false;
-//    int portOSC = 7000;
-//    stream >> useOSC >> portOSC;
-//#ifdef GLM_OSC
-//    // start OSC
-//    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
-//#endif
-
     // x. Undo level
     int undolevel = 100;
     stream >> undolevel;
@@ -3132,15 +3131,6 @@ QByteArray GLMixer::getPreferences() const {
 
     // v. icon size
     stream << (int) ( 100.0 * (ViewRenderWidget::getIconSize() - MIN_ICON_SIZE) / (MAX_ICON_SIZE-MIN_ICON_SIZE) );
-
-//    // w. Open Sound Control
-//    bool useOSC = false;
-//    int portOSC = 7000;
-//#ifdef GLM_OSC
-//    useOSC = OpenSoundControlManager::getInstance()->isEnabled();
-//    portOSC = (int) OpenSoundControlManager::getInstance()->getPort();
-//#endif
-//    stream << useOSC << portOSC;
 
     // x. Undo level
     int undolevel = 100;
@@ -3456,8 +3446,9 @@ void GLMixer::updateWorkspaceActions()
 
 void GLMixer::on_actionOSCTranslator_triggered()
 {
+#ifdef GLM_OSC
     static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator(&settings);
     oscwidget->show();
-
+#endif
 }
 

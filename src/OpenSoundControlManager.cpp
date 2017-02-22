@@ -51,7 +51,7 @@ OpenSoundControlManager *OpenSoundControlManager::getInstance() {
     return _instance;
 }
 
-OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpSocket(0), _port(7000)
+OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpSocket(0), _port(7000), _verbose(false)
 {
 
     addTranslation("/mrmr/slider/horizontal/0/iPhonebhbn", "/glmixer/render/Alpha");
@@ -94,6 +94,8 @@ void OpenSoundControlManager::readPendingDatagrams()
         datagram.resize(_udpSocket->pendingDatagramSize());
         QHostAddress sender;
         quint16 senderPort;
+        bool ok = true;
+        QString errormessage;
 
         _udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
@@ -103,77 +105,136 @@ void OpenSoundControlManager::readPendingDatagrams()
             osc::ReceivedPacket p(datagram.constData(), datagram.size());
 
             if (p.IsMessage()) {
+
+                // read message pattern
                 osc::ReceivedMessage message(p);
+                if (_verbose)
+                    emit log( tr("%2 says '%1'").arg(datagram.data()).arg(sender.toString()));
 
-                // Apply Dictionnary translation
-                QString pattern = message.AddressPattern();
-                QMapIterator<QString, QString> i(_dictionnary);
-                while (i.hasNext()) {
-                    i.next();
-                    pattern.replace(i.key(), i.value());
-                }
-
-                // a valid address for OSC message is /glmixer/[property]/[attribute]
-                QRegExp validOSCAddressPattern("^/glmixer(/[A-z0-9]+)(/[A-z0-9]+)");
-                if ( !validOSCAddressPattern.exactMatch( pattern ) )
-                    throw osc::MalformedAddressException();
-
-                QString object = validOSCAddressPattern.capturedTexts()[1];
-                QString property = validOSCAddressPattern.capturedTexts()[2];
-
-                // build the arguments list
+                // check and build arguments list
                 QVariantList args;
+                QString values;
                 osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
                 for( ;arg != message.ArgumentsEnd(); arg++) {
 
-                    if ((arg)->IsInt32())
+                    if ((arg)->IsInt32()) {
                         args.append( (int) (arg)->AsInt32() );
-                    else if ((arg)->IsInt64())
+                        values.append(" " + QString::number((int)(arg)->AsInt32()));
+                    } else if ((arg)->IsInt64()) {
                         args.append( (int) (arg)->AsInt64() );
-                    else if ((arg)->IsFloat())
+                        values.append(" " + QString::number((int)(arg)->AsInt64()));
+                    } else if ((arg)->IsFloat()) {
                         args.append( (double) (arg)->AsFloat() );
-                    else if ((arg)->IsDouble())
+                        values.append(" " + QString::number((double)(arg)->AsFloat(), 'f', 4));
+                    } else if ((arg)->IsDouble()) {
                         args.append( (double) (arg)->AsDouble() );
-                    else if ((arg)->IsBool())
+                        values.append(" " + QString::number((double)(arg)->AsDouble(), 'f', 4));
+                    } else if ((arg)->IsBool()) {
                         args.append( (bool) (arg)->AsBool() );
-                    else if ((arg)->IsNil() || (arg)->IsInfinitum())
+                        values.append(" " + QString::number((int)(arg)->AsBool()));
+                    } else if ((arg)->IsNil() || (arg)->IsInfinitum()) {
                         args.append( (double) std::numeric_limits<double>::max() );
-                    else
+                        values.append(" N");
+                    } else
                         throw osc::WrongArgumentTypeException();
                 }
 
-                // Regular expression and argument list are valid!
-                // we can execute the command
-                executeMessage(object.remove(0,1), property.remove(0,1), args);
+                // read pattern
+                QString pattern = message.AddressPattern();
+
+                // try to execute original message
+                try {
+                    emit log("try " + pattern + values);
+                    executeMessage(pattern, args);
+                    // verbose log if no exception
+                    if (_verbose)
+                        emit log("Executing " + pattern + values);
+                }
+                catch( osc::Exception& e ){
+                    // any parsing errors such as unexpected argument types, or
+                    // missing arguments get thrown as exceptions.
+                    ok = false;
+                    errormessage = sender.toString() + " : '"
+                            + datagram.data() + "' - " + e.what();
+                    emit log("not ok");
+                }
+
+                // original message is not ok, try to translate
+                if (!ok) {
+
+                    // Apply Dictionnary translations
+                    QStringList translations;
+                    QMapIterator<QString, QString> i(_dictionnary);
+                    while (i.hasNext()) {
+                        i.next();
+                        if (pattern.contains(i.key())){
+                            QString translatedPattern = pattern;
+                            translatedPattern.replace(i.key(), i.value());
+                            translations << translatedPattern;
+                        }
+                    }
+
+                    // Execute all patterns after multiple translations
+                    foreach (const QString &c, translations) {
+                        // try again
+                        ok = true;
+                        emit log("try " + c + values);
+                        executeMessage(c, args);
+                        // verbose log if no exception
+                        if (_verbose)
+                            emit log("Executing " + c + values);
+                    }
+                }
 
             }
             else
                 throw osc::BundleNotSupportedException();
 
-
         }
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
-            QString message = sender.toString() + " sent '"
-                + datagram.data() + "'  : " + e.what();
-            emit log(message);
+            ok = false;
+            errormessage = sender.toString() + " : '"
+                    + datagram.data() + "' - " + e.what();
         }
+
+        if (!ok)
+            emit log(errormessage);
 
     }
 
 }
 
 
-void OpenSoundControlManager::executeMessage(QString object, QString property, QVariantList value)
+
+void OpenSoundControlManager::executeMessage(QString pattern, QVariantList arguments)
 {
+    // a valid address for OSC message is /glmixer/[property]/[attribute]
+    QRegExp validOSCAddressPattern("^/glmixer(/[A-z0-9]+)(/[A-z0-9]+)");
+    if ( !validOSCAddressPattern.exactMatch( pattern ) )
+        throw osc::MalformedAddressException();
+
+    QString object = validOSCAddressPattern.capturedTexts()[1];
+    QString property = validOSCAddressPattern.capturedTexts()[2];
+
+    // Regular expression and argument list are valid!
+    // we can execute the command
+    execute(object.remove(0,1), property.remove(0,1), arguments);
+}
+
+void OpenSoundControlManager::execute(QString object, QString property, QVariantList arguments)
+{
+
+    emit log("execute " + object + "  " + property);
+
     // Target OBJECT named "render" (control rendering attributes)
     if ( object == "render" ) {
         // Target ATTRIBUTE for render : alpha (transparency)
         if ( property == "Alpha") {
-            if (value.size() > 0 && value[0].isValid()) {
+            if (arguments.size() > 0 && arguments[0].isValid()) {
                 bool ok = false;
-                double v = 1.0 - qBound(0.0, value[0].toDouble(&ok), 1.0);
+                double v = 1.0 - qBound(0.0, arguments[0].toDouble(&ok), 1.0);
                 if (ok)
                     GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
                 else
@@ -183,8 +244,8 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
                 throw osc::MissingArgumentException();
         }
         else if ( property == "Pause") {
-            if (value.size() > 0 && value[0].isValid())
-                RenderingManager::getInstance()->pause( value[0].toBool() );
+            if (arguments.size() > 0 && arguments[0].isValid())
+                RenderingManager::getInstance()->pause( arguments[0].toBool() );
             else
                 throw osc::MissingArgumentException();
         }
@@ -204,8 +265,8 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
 
             // fill the list with values
             int i = 0;
-            for (; i < value.size() ; ++i, slot += ',' ) {
-                arguments.append( GenericArgument(value[i]) );
+            for (; i < arguments.size() ; ++i, slot += ',' ) {
+                arguments.append( GenericArgument(arguments[i]) );
                 slot += arguments[i].typeName();
             }
             // finish the list with empty arguments
@@ -220,8 +281,12 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
             // get the source on which to call the method
             Source *s = *sit;
 
+
             // Try to find the index of the given slot
             int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
+
+            emit log("execute " + s->getName() + "  " + qPrintable(slot) + QString::number(methodIndex) );
+
             if ( methodIndex > 0 ) {
 
 //                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
@@ -244,10 +309,17 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
 
 void OpenSoundControlManager::addTranslation(QString before, QString after)
 {
-    _dictionnary[before] = after;
+    _dictionnary.insertMulti(before, after);
 }
 
-QString OpenSoundControlManager::getTranslation(QString before)
+bool OpenSoundControlManager::hasTranslation(QString before, QString after)
 {
-    return _dictionnary[before];
+    QStringList l = _dictionnary.values(before);
+    if (l.isEmpty()) {
+        return false;
+    }
+    else {
+        return l.contains(after);
+    }
 }
+

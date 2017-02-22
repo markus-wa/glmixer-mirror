@@ -11,13 +11,19 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
 {
     ui->setupUi(this);
 
+    QRegExp validRegex("[/A-z0-9]+");
+    validator.setRegExp(validRegex);
+    ui->afterTranslation->setValidator(&validator);
+
     if (appSettings) {
         // restore table translator
+
     }
 
     // set GUI initial status from Manager
     ui->enableOSC->setChecked( OpenSoundControlManager::getInstance()->isEnabled());
     ui->OSCPort->setValue( OpenSoundControlManager::getInstance()->getPort() );
+    ui->verboseLogs->setChecked( OpenSoundControlManager::getInstance()->isVerbose() );
 
     // connect GUI to Manager
     connect(ui->enableOSC, SIGNAL(toggled(bool)), this, SLOT(settingsChanged()) );
@@ -32,9 +38,27 @@ OpenSoundControlTranslator::~OpenSoundControlTranslator()
     delete ui;
 }
 
-void OpenSoundControlTranslator::on_OSCHelp_pressed()
+void OpenSoundControlTranslator::addTranslation(QString before, QString after)
 {
-    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+    if (before.isEmpty() || after.isEmpty())
+        return;
+
+    // add only if not already existing
+    if (!OpenSoundControlManager::getInstance()->hasTranslation(before, after)) {
+        // add item to the table
+        QStringList l;
+        l << before << after;
+        QTreeWidgetItem *item = new QTreeWidgetItem(l);
+        ui->tableTranslation->addTopLevelItem(item);
+
+        // add translation to Manager
+        OpenSoundControlManager::getInstance()->addTranslation(before, after);
+    }
+}
+
+void OpenSoundControlTranslator::on_addTranslation_pressed()
+{
+    addTranslation(ui->beforeTranslation->text(), ui->afterTranslation->text());
 }
 
 void OpenSoundControlTranslator::settingsChanged()
@@ -47,4 +71,16 @@ void OpenSoundControlTranslator::settingsChanged()
 void OpenSoundControlTranslator::logMessage(QString m)
 {
     ui->consoleOSC->append(m);
+}
+
+void OpenSoundControlTranslator::on_OSCHelp_pressed()
+{
+    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+}
+
+
+void  OpenSoundControlTranslator::on_verboseLogs_toggled(bool on)
+{
+    OpenSoundControlManager::getInstance()->setVerbose(on);
+    ui->consoleOSC->append(tr("Verbose logs %1").arg(on ? "on":"off"));
 }

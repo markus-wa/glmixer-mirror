@@ -81,6 +81,41 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="verboseLogs">
+           <property name="text">
+            <string>Verbose</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QToolButton" name="clearLogs">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QTextBrowser" name="consoleOSC">
          <property name="styleSheet">
           <string notr="true">QTextEdit { 
@@ -114,7 +149,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLineEdit" name="beforeTranslationOSC"/>
+          <widget class="QLineEdit" name="beforeTranslation"/>
          </item>
          <item row="1" column="1">
           <widget class="QLabel" name="arrow">
@@ -124,10 +159,10 @@
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QLineEdit" name="afterTranslationOSC"/>
+          <widget class="QLineEdit" name="afterTranslation"/>
          </item>
          <item row="1" column="3">
-          <widget class="QToolButton" name="buttonAddTranslationOSC">
+          <widget class="QToolButton" name="addTranslation">
            <property name="text">
             <string>+</string>
            </property>
@@ -136,7 +171,36 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableTranslationOSC"/>
+        <widget class="QTreeWidget" name="tableTranslation">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="itemsExpandable">
+          <bool>true</bool>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="expandsOnDoubleClick">
+          <bool>true</bool>
+         </property>
+         <attribute name="headerStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>Input</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Translation</string>
+          </property>
+         </column>
+        </widget>
        </item>
       </layout>
      </widget>

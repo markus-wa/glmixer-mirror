@@ -83,11 +83,14 @@ public slots:
     qint16 getPort();
 
     void readPendingDatagrams();
-    void executeMessage(QString object, QString property, QVariantList value);
+    void executeMessage(QString pattern, QVariantList arguments);
 
     void addTranslation(QString before, QString after);
-    QString getTranslation(QString before);
+    bool hasTranslation(QString before, QString after);
     QMap<QString, QString> getTranslationDictionnary() const { return _dictionnary; }
+
+    void setVerbose(bool on) { _verbose = on; }
+    bool isVerbose() const { return _verbose; }
 
 signals:
     void log(QString);
@@ -96,10 +99,13 @@ private:
     OpenSoundControlManager();
     static OpenSoundControlManager *_instance;
 
+    void execute(QString object, QString property, QVariantList arguments);
+
     QUdpSocket *_udpSocket;
     qint16 _port;
 
     QMap<QString, QString> _dictionnary;
+    bool _verbose;
 };
 
 #endif // OPENSOUNDCONTROLMANAGER_H
