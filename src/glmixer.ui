@@ -5383,7 +5383,7 @@ Shortcut:                         Ctrl + Tab</string>
   </action>
   <action name="actionOSCTranslator">
    <property name="text">
-    <string>OSC Translator</string>
+    <string>Open Sound Control</string>
    </property>
   </action>
  </widget>

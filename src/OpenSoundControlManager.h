@@ -89,6 +89,9 @@ public slots:
     QString getTranslation(QString before);
     QMap<QString, QString> getTranslationDictionnary() const { return _dictionnary; }
 
+signals:
+    void log(QString);
+
 private:
     OpenSoundControlManager();
     static OpenSoundControlManager *_instance;

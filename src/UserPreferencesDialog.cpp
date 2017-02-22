@@ -163,8 +163,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         speedZoom->setValue(120);
         centeredZoom->setChecked(false);
         selectionViewContextMenu->setCurrentIndex(0);
-        enableOSC->setChecked(false);
-        OSCPort->setValue(7000);
+//        enableOSC->setChecked(false);
+//        OSCPort->setValue(7000);
     }
 
     if (stackedPreferences->currentWidget() == PageOptions){
@@ -328,12 +328,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> isize;
     iconSizeSlider->setValue(isize);
 
-    // w. Open Sound Control
-    bool useOSC = false;
-    int portOSC = 7000;
-    stream >> useOSC >> portOSC;
-    OSCPort->setValue(portOSC);
-    enableOSC->setChecked(useOSC);
+//    // w. Open Sound Control
+//    bool useOSC = false;
+//    int portOSC = 7000;
+//    stream >> useOSC >> portOSC;
+//    OSCPort->setValue(portOSC);
+//    enableOSC->setChecked(useOSC);
 
     // x. Undo level
     int undolevel = 100;
@@ -423,7 +423,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << iconSizeSlider->value();
 
     // w. Open Sound Control
-    stream << enableOSC->isChecked() << OSCPort->value();
+//    stream << enableOSC->isChecked() << OSCPort->value();
 
     // x. Undo level
     stream << maximumUndoLevels->value();
@@ -502,7 +502,7 @@ void UserPreferencesDialog::on_recordingBufferSize_valueChanged(int percent)
     recordingBuffersizeString->setText(getByteSizeString(RenderingEncoder::computeBufferSize(percent)));
 }
 
-void UserPreferencesDialog::on_OSCHelp_pressed()
-{
-    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
-}
+//void UserPreferencesDialog::on_OSCHelp_pressed()
+//{
+//    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+//}

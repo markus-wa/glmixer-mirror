@@ -155,8 +155,9 @@ void OpenSoundControlManager::readPendingDatagrams()
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
-            qWarning() << sender.toString() << QChar(124).toLatin1() <<"OSC Error '"
-                << datagram.data() << "': " << e.what() << "\n";
+            QString message = sender.toString() + " sent '"
+                + datagram.data() + "'  : " + e.what();
+            emit log(message);
         }
 
     }

@@ -2724,13 +2724,22 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
-
     // last tools used
     if (settings.contains("lastToolMixing"))
         RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolMixing").toInt() ,View::MIXING);
     if (settings.contains("lastToolGeometry"))
         RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolGeometry").toInt() ,View::GEOMETRY);
 
+    // Open Sound Control
+#ifdef GLM_OSC
+    bool useOSC = false;
+    int portOSC = 7000;
+    if (settings.contains("OSCEnabled"))
+        useOSC = settings.value("OSCEnabled").toBool();
+    if (settings.contains("OSCPort"))
+        portOSC = settings.value("OSCPort").toInt();
+    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
+#endif
 
 #ifdef GLM_SESSION
     // Switcher session
@@ -2774,6 +2783,12 @@ void GLMixer::saveSettings()
     // last tools used
     settings.setValue("lastToolMixing", (int) RenderingManager::getRenderingWidget()->getToolMode(View::MIXING));
     settings.setValue("lastToolGeometry", (int) RenderingManager::getRenderingWidget()->getToolMode(View::GEOMETRY));
+
+    // Open Sound Control
+#ifdef GLM_OSC
+    settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
+    settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPort());
+#endif
 
 #ifdef GLM_SESSION
     // save settings of session switcher
@@ -3007,14 +3022,14 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> isize;
     ViewRenderWidget::setIconSize(MIN_ICON_SIZE + (double)isize * (MAX_ICON_SIZE-MIN_ICON_SIZE) / 100.0);
 
-    // w. Open Sound Control
-    bool useOSC = false;
-    int portOSC = 7000;
-    stream >> useOSC >> portOSC;
-#ifdef GLM_OSC
-    // start OSC
-    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
-#endif
+//    // w. Open Sound Control
+//    bool useOSC = false;
+//    int portOSC = 7000;
+//    stream >> useOSC >> portOSC;
+//#ifdef GLM_OSC
+//    // start OSC
+//    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
+//#endif
 
     // x. Undo level
     int undolevel = 100;
@@ -3118,14 +3133,14 @@ QByteArray GLMixer::getPreferences() const {
     // v. icon size
     stream << (int) ( 100.0 * (ViewRenderWidget::getIconSize() - MIN_ICON_SIZE) / (MAX_ICON_SIZE-MIN_ICON_SIZE) );
 
-    // w. Open Sound Control
-    bool useOSC = false;
-    int portOSC = 7000;
-#ifdef GLM_OSC
-    useOSC = OpenSoundControlManager::getInstance()->isEnabled();
-    portOSC = (int) OpenSoundControlManager::getInstance()->getPort();
-#endif
-    stream << useOSC << portOSC;
+//    // w. Open Sound Control
+//    bool useOSC = false;
+//    int portOSC = 7000;
+//#ifdef GLM_OSC
+//    useOSC = OpenSoundControlManager::getInstance()->isEnabled();
+//    portOSC = (int) OpenSoundControlManager::getInstance()->getPort();
+//#endif
+//    stream << useOSC << portOSC;
 
     // x. Undo level
     int undolevel = 100;
@@ -3441,10 +3456,8 @@ void GLMixer::updateWorkspaceActions()
 
 void GLMixer::on_actionOSCTranslator_triggered()
 {
-
-#ifdef GLM_OSC
-    static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator();
+    static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator(&settings);
     oscwidget->show();
-#endif
+
 }
 
