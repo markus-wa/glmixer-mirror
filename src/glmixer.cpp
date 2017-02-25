@@ -2746,6 +2746,14 @@ void GLMixer::readSettings( QString pathtobin )
     OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
     if (settings.contains("OSCVerbose"))
         OpenSoundControlManager::getInstance()->setVerbose(settings.value("OSCVerbose").toBool());
+    // restore table translator
+    int size = settings.beginReadArray("OSCTranslations");
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        OpenSoundControlManager::getInstance()->addTranslation(settings.value("before").toString(),
+                       settings.value("after").toString());
+    }
+    settings.endArray();
 #endif
 
 #ifdef GLM_SESSION
@@ -2796,6 +2804,18 @@ void GLMixer::saveSettings()
     settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
     settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPort());
     settings.setValue("OSCVerbose", OpenSoundControlManager::getInstance()->isVerbose());
+    settings.remove("OSCTranslations");
+    settings.beginWriteArray("OSCTranslations");
+    int i = 0;
+    QListIterator< QPair<QString, QString> > t(*(OpenSoundControlManager::getInstance()->getTranslationDictionnary()));
+    while (t.hasNext()) {
+        QPair<QString, QString> p = t.next();
+        settings.setArrayIndex(i);
+        settings.setValue("before", p.first);
+        settings.setValue("after", p.second);
+        ++i;
+    }
+    settings.endArray();
 #endif
 
 #ifdef GLM_SESSION

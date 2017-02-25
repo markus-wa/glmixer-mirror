@@ -1,8 +1,129 @@
 #include "OpenSoundControlTranslator.moc"
 #include "ui_OpenSoundControlTranslator.h"
+
+#include "common.h"
 #include "OpenSoundControlManager.h"
 
+#include <QMenu>
 #include <QDesktopServices>
+
+
+TranslationTableModel::TranslationTableModel(QObject *parent)
+    :QAbstractTableModel(parent)
+{
+    dictionnary = OpenSoundControlManager::getInstance()->getTranslationDictionnary();
+}
+
+int TranslationTableModel::rowCount(const QModelIndex & /*parent*/) const
+{
+   return dictionnary->size();
+}
+
+int TranslationTableModel::columnCount(const QModelIndex & /*parent*/) const
+{
+    return 2;
+}
+
+QVariant TranslationTableModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (index.row() >= dictionnary->size() || index.row() < 0)
+        return QVariant();
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        // reading keys
+        if (index.column() == 0 )
+            return dictionnary->at(index.row()).first;
+        // reading value
+        return dictionnary->at(index.row()).second;
+
+    }
+    return QVariant();
+}
+
+QVariant TranslationTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal) {
+            switch (section)
+            {
+            case 0:
+                return QString("Inputs");
+            case 1:
+                return QString("Translations");
+            }
+        }
+    }
+    return QVariant();
+}
+
+Qt::ItemFlags TranslationTableModel::flags(const QModelIndex & index) const
+{
+//    return Qt::ItemIsSelectable |  Qt::ItemIsEditable | Qt::ItemIsEnabled ;
+    if (!index.isValid())
+        return Qt::ItemIsEnabled;
+
+    return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+}
+
+bool TranslationTableModel::setData(const QModelIndex & index, const QVariant & value, int role)
+{
+    if (role == Qt::EditRole)
+    {
+        // remember value from editor
+        QPair<QString, QString> p = dictionnary->value(index.row());
+
+        if (index.column() == 0)
+            p.first = value.toString();
+        else if (index.column() == 1)
+            p.second = value.toString();
+        else
+            return false;
+
+        dictionnary->replace(index.row(), p);
+        emit(dataChanged(index, index));
+        return true;
+    }
+
+    return false;
+}
+
+bool TranslationTableModel::insertRows(int position, int rows, const QModelIndex &index)
+{
+    Q_UNUSED(index);
+    beginInsertRows(QModelIndex(), position, position+rows-1);
+
+    for (int row=0; row < rows; row++) {
+        QPair<QString, QString> pair(" ", " ");
+        dictionnary->insert(position, pair);
+    }
+
+    endInsertRows();
+    return true;
+}
+
+bool TranslationTableModel::removeRows(int position, int rows, const QModelIndex &index)
+{
+    Q_UNUSED(index);
+    beginRemoveRows(QModelIndex(), position, position+rows-1);
+
+    for (int row=0; row < rows; ++row) {
+        dictionnary->removeAt(position);
+    }
+
+    endRemoveRows();
+    return true;
+}
+
+bool TranslationTableModel::contains(QString before, QString after)
+{
+    return dictionnary->contains( QPair<QString, QString>(before, after) );
+}
+
 
 OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWidget *parent) :
     QWidget(parent),
@@ -11,14 +132,18 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
 {
     ui->setupUi(this);
 
+    // set model to table view
+    ui->tableTranslation->setModel(&translations);
+    ui->tableTranslation->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tableTranslation, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
+
+    // Use embedded fixed size font
+    ui->consoleOSC->setFontFamily(getMonospaceFont());
+    ui->consoleOSC->setFontPointSize(10);
+
     QRegExp validRegex("[/A-z0-9]+");
     validator.setRegExp(validRegex);
     ui->afterTranslation->setValidator(&validator);
-
-    if (appSettings) {
-        // restore table translator
-
-    }
 
     // set GUI initial status from Manager
     ui->enableOSC->setChecked( OpenSoundControlManager::getInstance()->isEnabled());
@@ -26,8 +151,8 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
     ui->verboseLogs->setChecked( OpenSoundControlManager::getInstance()->isVerbose() );
 
     // connect GUI to Manager
-    connect(ui->enableOSC, SIGNAL(toggled(bool)), this, SLOT(settingsChanged()) );
-    connect(ui->OSCPort, SIGNAL(valueChanged(int)), this, SLOT(settingsChanged()) );
+    connect(ui->enableOSC, SIGNAL(toggled(bool)), this, SLOT(updateManager()) );
+    connect(ui->OSCPort, SIGNAL(valueChanged(int)), this, SLOT(updateManager()) );
 
     // connect logs
     connect(OpenSoundControlManager::getInstance(), SIGNAL(log(QString)), this, SLOT(logMessage(QString)) );
@@ -38,30 +163,59 @@ OpenSoundControlTranslator::~OpenSoundControlTranslator()
     delete ui;
 }
 
-void OpenSoundControlTranslator::addTranslation(QString before, QString after)
+void OpenSoundControlTranslator::showEvent(QShowEvent *e)
 {
-    if (before.isEmpty() || after.isEmpty())
-        return;
 
-    // add only if not already existing
-    if (!OpenSoundControlManager::getInstance()->hasTranslation(before, after)) {
-        // add item to the table
-        QStringList l;
-        l << before << after;
-        QTreeWidgetItem *item = new QTreeWidgetItem(l);
-        ui->tableTranslation->addTopLevelItem(item);
-
-        // add translation to Manager
-        OpenSoundControlManager::getInstance()->addTranslation(before, after);
+    if (appSettings) {
+        if (appSettings->contains("OSCTranslatorHeader")) {
+            ui->tableTranslation->horizontalHeader()->restoreState(appSettings->value("OSCTranslatorHeader").toByteArray());
+        }
     }
+
+    QWidget::showEvent(e);
+}
+
+void OpenSoundControlTranslator::hideEvent(QHideEvent *e)
+{
+    if (appSettings) {
+
+        appSettings->setValue("OSCTranslatorHeader", ui->tableTranslation->horizontalHeader()->saveState());
+    }
+
+    QWidget::hideEvent(e);
 }
 
 void OpenSoundControlTranslator::on_addTranslation_pressed()
 {
-    addTranslation(ui->beforeTranslation->text(), ui->afterTranslation->text());
+    QString before = ui->beforeTranslation->text();
+    QString after  = ui->afterTranslation->text();
+
+    if (before.isEmpty() || after.isEmpty())
+        return;
+
+    if (translations.contains(before, after))
+        return;
+
+    // insert translation in table
+    translations.insertRows(0, 1);
+    QModelIndex index = translations.index(0, 0, QModelIndex());
+    translations.setData(index, before, Qt::EditRole);
+    index = translations.index(0, 1, QModelIndex());
+    translations.setData(index, after, Qt::EditRole);
+
+    // clear selection
+    ui->tableTranslation->clearSelection();
 }
 
-void OpenSoundControlTranslator::settingsChanged()
+
+
+void  OpenSoundControlTranslator::on_verboseLogs_toggled(bool on)
+{
+    OpenSoundControlManager::getInstance()->setVerbose(on);
+}
+
+
+void OpenSoundControlTranslator::updateManager()
 {
     bool on = ui->enableOSC->isChecked();
     qint16 p = (qint16) ui->OSCPort->value();
@@ -73,14 +227,29 @@ void OpenSoundControlTranslator::logMessage(QString m)
     ui->consoleOSC->append(m);
 }
 
-void OpenSoundControlTranslator::on_OSCHelp_pressed()
+void OpenSoundControlTranslator::contextMenu(QPoint p)
 {
-    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+    static QMenu *contextmenu = NULL;
+    if (contextmenu == NULL) {
+        contextmenu = new QMenu(this);
+        QAction *remove = new QAction(tr("Remove"), this);
+        connect(remove, SIGNAL(triggered()), this, SLOT(removeSelection()));
+        contextmenu->addAction(remove);
+    }
+    contextmenu->popup(ui->tableTranslation->viewport()->mapToGlobal(p));
 }
 
-
-void  OpenSoundControlTranslator::on_verboseLogs_toggled(bool on)
+void OpenSoundControlTranslator::removeSelection()
 {
-    OpenSoundControlManager::getInstance()->setVerbose(on);
-    ui->consoleOSC->append(tr("Verbose logs %1").arg(on ? "on":"off"));
+   QModelIndexList selection = ui->tableTranslation->selectionModel()->selectedRows();
+   translations.removeRows(selection[0].row(), selection.size());
+}
+
+void OpenSoundControlTranslator::on_OSCHelp_pressed()
+{
+    // glmixer help
+//    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+
+    // global help OSC
+    QDesktopServices::openUrl(QUrl("http://opensoundcontrol.org/spec-1_0", QUrl::TolerantMode));
 }

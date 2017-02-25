@@ -77,18 +77,21 @@ public:
     static OpenSoundControlManager *getInstance();
 
 public slots:
-    void setEnabled(bool enable, qint16 port);
 
+    // server UDP
+    void setEnabled(bool enable, qint16 port);
     bool isEnabled();
     qint16 getPort();
 
     void readPendingDatagrams();
     void executeMessage(QString pattern, QVariantList arguments);
 
+    // translator
     void addTranslation(QString before, QString after);
     bool hasTranslation(QString before, QString after);
-    QMap<QString, QString> getTranslationDictionnary() const { return _dictionnary; }
+    QList< QPair<QString, QString> > *getTranslationDictionnary() const { return _dictionnary; }
 
+    // logs
     void setVerbose(bool on) { _verbose = on; }
     bool isVerbose() const { return _verbose; }
 
@@ -104,7 +107,7 @@ private:
     QUdpSocket *_udpSocket;
     qint16 _port;
 
-    QMap<QString, QString> _dictionnary;
+    QList< QPair<QString, QString> > *_dictionnary;
     bool _verbose;
 };
 

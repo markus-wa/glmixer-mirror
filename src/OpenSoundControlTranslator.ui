@@ -72,6 +72,9 @@
    </item>
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -123,6 +126,12 @@
    color: rgb(255, 255, 255); 
 }</string>
          </property>
+         <property name="openExternalLinks">
+          <bool>false</bool>
+         </property>
+         <property name="openLinks">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -137,7 +146,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="whatbefore">
            <property name="text">
-            <string>When receiving this</string>
+            <string>When receiving this input</string>
            </property>
           </widget>
          </item>
@@ -171,35 +180,37 @@
         </layout>
        </item>
        <item>
-        <widget class="QTreeWidget" name="tableTranslation">
+        <widget class="QTableView" name="tableTranslation">
+         <property name="editTriggers">
+          <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+         </property>
+         <property name="tabKeyNavigation">
+          <bool>false</bool>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::ContiguousSelection</enum>
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
          </property>
-         <property name="itemsExpandable">
-          <bool>true</bool>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="expandsOnDoubleClick">
-          <bool>true</bool>
-         </property>
-         <attribute name="headerStretchLastSection">
+         <attribute name="horizontalHeaderHighlightSections">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
          </attribute>
-         <column>
-          <property name="text">
-           <string>Input</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Translation</string>
-          </property>
-         </column>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderCascadingSectionResizes">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderHighlightSections">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -210,26 +221,29 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QTextEdit" name="docOSC">
+        <widget class="QTextBrowser" name="docOSC">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:200; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;OpenSoundControl GLMixer Message format&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400; font-style:italic;&quot;&gt;See &lt;/span&gt;&lt;a href=&quot;http://opensoundcontrol.org/spec-1_0&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400; font-style:italic; text-decoration: underline; color:#ff8c49;&quot;&gt;http://opensoundcontrol.org/spec-1_0&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400; font-style:italic;&quot;&gt; for full specifications.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;An OSC Message is composed of an &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; and a list of &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Valid OSC &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; for glmixer are in the form:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;An OSC Message is composed of an &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; and a list of &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;. A valid OSC &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; for GLMixer is in the form:&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/{target}/{property}&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Where target is either ‘render’, or the name of a source. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;The target ‘render’ has two properties: ‘Alpha’ (integer value 0 .. 100) and ‘Pause’ (boolean). &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;The target ‘render’ has two properties: ‘Alpha’ (float value 0 .. 1.0) and ‘Pause’ (boolean). &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Example OSC message:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/render/Alpha i 50&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/render/Alpha f 0.5&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/render/Pause T&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;&lt;br /&gt;Source Properties&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;A source target has several properties, described below. Properties will take the value of the &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; given, depending on their type (i for integer, f for float). Special type values are: N (Nil, no value given), T (True, for boolean), F (False, for boolean).&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;A source target has several properties, described below. Properties will take the value of the &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; given, depending on their type (i for integer, f for float). &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Special type values are: N (Nil, no value given), T (True, for boolean), F (False, for boolean).&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; cellpadding=&quot;4&quot;&gt;
 &lt;tr&gt;
@@ -410,7 +424,11 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/ChromaKeyColor iii 240 20 20&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Gamma fffff 0.5 0 1 0 1&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Gamma fNNNN 0.5&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;More help in GLMixer Wiki : &lt;a href=&quot;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ff8c49;&quot;&gt;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -437,6 +455,38 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>361</x>
      <y>47</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enableOSC</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>tabWidget</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>49</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>85</x>
+     <y>87</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearLogs</sender>
+   <signal>clicked()</signal>
+   <receiver>consoleOSC</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>481</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>444</x>
+     <y>187</y>
     </hint>
    </hints>
   </connection>
