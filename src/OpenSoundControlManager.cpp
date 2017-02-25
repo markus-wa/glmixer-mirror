@@ -180,12 +180,7 @@ void OpenSoundControlManager::readPendingDatagrams()
                         // at least one execution was successful
                         ok = true;
                     }
-                    catch( osc::InvalidObjectException& e ){
-                        errors << pat + " " + e.what();
-                        if (_verbose)
-                            emit log(tr("\tFailed - ") + e.what() );
-                    }
-                    catch( osc::InvalidAttributeException& e ){
+                    catch( osc::Exception& e ){
                         errors << pat + " " + e.what();
                         if (_verbose)
                             emit log(tr("\tFailed - ") + e.what() );
