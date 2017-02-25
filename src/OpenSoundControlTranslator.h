@@ -45,9 +45,11 @@ public:
 public slots:
 
     void updateManager();
-    void logMessage(QString m);
     void contextMenu(QPoint);
     void removeSelection();
+
+    void logMessage(QString m);
+    void logError(QString m);
 
     void on_OSCHelp_pressed();
     void on_addTranslation_pressed();

@@ -97,6 +97,7 @@ public slots:
 
 signals:
     void log(QString);
+    void error(QString);
 
 private:
     OpenSoundControlManager();

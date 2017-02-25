@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QRegExp>
 #include <QStringList>
+#include <QNetworkInterface>
 
 #include "OpenSoundControlManager.moc"
 
@@ -75,11 +76,18 @@ void OpenSoundControlManager::setEnabled(bool enable, qint16 port)
     }
 
     if (enable) {
+        // bind socket and connect reading slot
         _port = port;
         _udpSocket = new QUdpSocket(this);
         _udpSocket->bind(_port);
         connect(_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
-        qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server enabled (port " << _port <<").";
+
+        // Provide informative log
+        QStringList addresses;
+        foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
+            if (a.protocol() == QAbstractSocket::IPv4Protocol)
+                addresses << a.toString();
+        qDebug() << addresses.join(", ") << QChar(124).toLatin1() << "UDP OSC Server enabled (port " << _port <<").";
     }
     else
         qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server disabled.";
@@ -100,7 +108,7 @@ void OpenSoundControlManager::readPendingDatagrams()
 
         // initialize error message
         bool ok = false;
-        QString logstring = sender.toString() + " - '" + datagram.constData() + "' ";
+        QString logstring = sender.toString() + " - '" + datagram.data() + "' ";
 
         // PROCESS THE UDP Datagram
         try {
@@ -202,7 +210,7 @@ void OpenSoundControlManager::readPendingDatagrams()
         }
 
         if (!ok)
-            emit log(logstring);
+            emit error(logstring);
 
     }
 

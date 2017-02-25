@@ -6,6 +6,7 @@
 
 #include <QMenu>
 #include <QDesktopServices>
+#include <QNetworkInterface>
 
 
 TranslationTableModel::TranslationTableModel(QObject *parent)
@@ -156,6 +157,7 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
 
     // connect logs
     connect(OpenSoundControlManager::getInstance(), SIGNAL(log(QString)), this, SLOT(logMessage(QString)) );
+    connect(OpenSoundControlManager::getInstance(), SIGNAL(error(QString)), this, SLOT(logError(QString)) );
 }
 
 OpenSoundControlTranslator::~OpenSoundControlTranslator()
@@ -220,6 +222,28 @@ void OpenSoundControlTranslator::updateManager()
     bool on = ui->enableOSC->isChecked();
     qint16 p = (qint16) ui->OSCPort->value();
     OpenSoundControlManager::getInstance()->setEnabled(on, p);
+
+
+    ui->consoleOSC->setTextColor(QColor(160, 250, 160));
+    if (on) {
+        QStringList addresses;
+        foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
+            if (a.protocol() == QAbstractSocket::IPv4Protocol)
+                addresses << a.toString() + ":" + QString::number(p);
+
+        logMessage(tr("Listening to ") + addresses.join(", "));
+    }
+    else
+        logMessage(tr("Disabled"));
+    ui->consoleOSC->setTextColor(Qt::white);
+
+}
+
+void OpenSoundControlTranslator::logError(QString m)
+{
+    ui->consoleOSC->setTextColor(QColor(250, 160, 160));
+    ui->consoleOSC->append(m);
+    ui->consoleOSC->setTextColor(Qt::white);
 }
 
 void OpenSoundControlTranslator::logMessage(QString m)
