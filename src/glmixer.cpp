@@ -290,7 +290,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     menuSendToWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getSourceActions());
 
     // Workspace Management
-    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged()), this, SLOT(updateWorkspaceActions()) );
+    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), this, SLOT(updateWorkspaceActions()) );
     QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), RenderingManager::getInstance(), SLOT(setWorkspaceCount(int)) );
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
     QObject::connect(actionWorkspaceDecrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(decrementCount()));
