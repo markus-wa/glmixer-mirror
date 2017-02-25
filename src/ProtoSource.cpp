@@ -18,7 +18,7 @@ QStringList ProtoSource::getFilterNames() {
 
 ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
     fixedAspectRatio(false), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
-    scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+    scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0), alphaangle(0.0),
     centerx(0.0), centery(0.0), rotangle(0.0), texalpha(1.0), pixelated(false),
     filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
     brightness(0.f), contrast(1.f),	saturation(1.f),
@@ -73,44 +73,32 @@ void ProtoSource::_setTextureCoordinates(QRectF textureCoords) {
     textureCoordinates = textureCoords;
 }
 
-void ProtoSource::_setAlphaCoordinates(double x, double y) {
+void ProtoSource::_setAlphaCoordinates(double ax, double ay) {
 
     // set new alpha coordinates
-    alphax = x;
-    alphay = y;
+    alphax = ax;
+    alphay = ay;
 
-    // Compute distance to the center
-    // QUADRATIC
-    double d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE);
+    // remember angle
+    if (ABS(alphax) > EPSILON || ABS(alphay) > EPSILON)
+        alphaangle = atan2(alphax, alphay);
+
+    // Compute distance to the center ( QUADRATIC )
+    double d = ((ax * ax) + (ay * ay)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE);
 
     // adjust alpha according to distance to center
-    if (d < 1.0)
-        texalpha = 1.0 - d;
-    else
-        texalpha = 0.0;
+    texalpha = 1.0 - MINI(d, 1.0);
 }
 
 void ProtoSource::_setAlpha(double a) {
 
+    // apply new alpha
     texalpha = CLAMP(a, 0.0, 1.0);
 
     // compute new alpha coordinates to match this alpha
-    double dx = 0, dy = 0;
-
-    // special case when source at the center
-    if (ABS(alphax) < EPSILON && ABS(alphay) < EPSILON)
-        dy = 1.0;
-    else { // general case ; compute direction of the alpha coordinates
-        dx = alphax / sqrt(alphax * alphax + alphay * alphay);
-        dy = alphay / sqrt(alphax * alphax + alphay * alphay);
-    }
-
     double da = sqrt((1.0 - texalpha) * (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE));
-
-    // set new alpha coordinates
-    alphax = dx * da;
-    alphay = dy * da;
-
+    alphax = sin(alphaangle) * da;
+    alphay = cos(alphaangle) * da;
 }
 
 void ProtoSource::_setMask(int maskType) {

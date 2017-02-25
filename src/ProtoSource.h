@@ -249,7 +249,7 @@ public:
     Q_INVOKABLE void _setGeometry(double px, double py, double sx, double sy, double rx, double ry, double a);
     Q_INVOKABLE void _setFixedAspectRatio(bool on);
     Q_INVOKABLE void _setTextureCoordinates(QRectF textureCoords);
-    Q_INVOKABLE void _setAlphaCoordinates(double x, double y);
+    Q_INVOKABLE void _setAlphaCoordinates(double ax, double ay);
     Q_INVOKABLE void _setAlpha(double a);
     Q_INVOKABLE void _setMask(int maskType);
     Q_INVOKABLE void _setColor(QColor c);
@@ -280,7 +280,7 @@ protected:
     bool fixedAspectRatio;
     double x, y, z;
     double scalex, scaley;
-    double alphax, alphay;
+    double alphax, alphay, alphaangle;
     double centerx, centery, rotangle;
     double texalpha;
     QColor texcolor;
