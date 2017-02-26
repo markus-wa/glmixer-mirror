@@ -1,9 +1,9 @@
-#include "HistoryManager.moc"
-
 #include <QtGlobal>
 #include <QDebug>
 
-#include <Source.h>
+#include "Source.h"
+
+#include "HistoryManager.moc"
 
 
 HistoryManager::Event::Event(QObject *o, QMetaMethod m, QVector< QVariantPair > args) : _object(o), _method(m), _iskey(false)

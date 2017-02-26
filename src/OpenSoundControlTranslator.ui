@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>GLMixer Open Sound Control</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/glmixer/icons/network.png</normaloff>:/glmixer/icons/network.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox_9">
@@ -126,6 +130,12 @@
    color: rgb(255, 255, 255); 
 }</string>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
          <property name="openExternalLinks">
           <bool>false</bool>
          </property>
@@ -195,6 +205,9 @@
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="showGrid">
+          <bool>false</bool>
          </property>
          <attribute name="horizontalHeaderHighlightSections">
           <bool>false</bool>

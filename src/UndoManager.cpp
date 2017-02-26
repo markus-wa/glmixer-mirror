@@ -1,4 +1,3 @@
-
 #include "defines.h"
 #include "SourceSet.h"
 #include "Source.h"

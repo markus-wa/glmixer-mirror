@@ -42,6 +42,7 @@ QVariant TranslationTableModel::data(const QModelIndex &index, int role) const
         return dictionnary->at(index.row()).second;
 
     }
+
     return QVariant();
 }
 
@@ -59,6 +60,7 @@ QVariant TranslationTableModel::headerData(int section, Qt::Orientation orientat
             }
         }
     }
+
     return QVariant();
 }
 
@@ -133,6 +135,11 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
 {
     ui->setupUi(this);
 
+    QFile file(":/style/default");
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(file.readAll());
+    setStyleSheet(styleSheet);
+
     // set model to table view
     ui->tableTranslation->setModel(&translations);
     ui->tableTranslation->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -180,7 +187,6 @@ void OpenSoundControlTranslator::showEvent(QShowEvent *e)
 void OpenSoundControlTranslator::hideEvent(QHideEvent *e)
 {
     if (appSettings) {
-
         appSettings->setValue("OSCTranslatorHeader", ui->tableTranslation->horizontalHeader()->saveState());
     }
 

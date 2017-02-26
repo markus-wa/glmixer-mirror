@@ -5382,8 +5382,12 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
   </action>
   <action name="actionOSCTranslator">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/network.png</normaloff>:/glmixer/icons/network.png</iconset>
+   </property>
    <property name="text">
-    <string>Open Sound Control</string>
+    <string>Op&amp;en Sound Control</string>
    </property>
   </action>
  </widget>

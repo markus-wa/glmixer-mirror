@@ -236,6 +236,10 @@ if(USE_HISTORY_MANAGEMENT)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         HistoryManager.cpp
         HistoryManagerWidget.cpp
+        HistoryRecorderWidget.cpp
+    )
+    SET(GLMIXER_UIS  ${GLMIXER_UIS}
+        HistoryRecorderWidget.ui
     )
     message( STATUS "Using History Management")
 endif(USE_HISTORY_MANAGEMENT)
@@ -464,7 +468,6 @@ INSTALL(TARGETS ${GLMIXER_BINARY}
         BUNDLE DESTINATION . COMPONENT Runtime
         RUNTIME DESTINATION "./bin" COMPONENT Runtime
     )
-
 
 
 IF(APPLE)

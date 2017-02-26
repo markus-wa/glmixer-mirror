@@ -368,7 +368,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     delete actionHistoryDockWidget;
 #endif
 
-
 #ifdef GLM_OSC
 #else
     delete actionOSCTranslator;

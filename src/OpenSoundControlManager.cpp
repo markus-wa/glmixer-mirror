@@ -75,9 +75,11 @@ void OpenSoundControlManager::setEnabled(bool enable, qint16 port)
         _udpSocket = 0;
     }
 
+    // set port
+    _port = port;
+
     if (enable) {
         // bind socket and connect reading slot
-        _port = port;
         _udpSocket = new QUdpSocket(this);
         _udpSocket->bind(_port);
         connect(_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));

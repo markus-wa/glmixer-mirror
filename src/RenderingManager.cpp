@@ -1158,10 +1158,10 @@ bool RenderingManager::_insertSource(Source *s)
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
-                //#ifdef GLM_HISTORY
-                //                // connect source to the history manager
-                //                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
-                //#endif
+//#ifdef GLM_HISTORY
+//                // connect source to the history manager
+//                HistoryManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+//#endif
 
 #ifdef GLM_UNDO
                 // connect source to the undo manager

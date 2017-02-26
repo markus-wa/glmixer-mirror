@@ -184,5 +184,6 @@
         <file>icons/workspace_3.png</file>
         <file>icons/workspace_2.png</file>
         <file>icons/workspace_1.png</file>
+        <file>icons/network.png</file>
     </qresource>
 </RCC>
