@@ -9,6 +9,49 @@
 #include <QNetworkInterface>
 
 
+TranslationDelegate::TranslationDelegate(QObject *parent) :
+    QItemDelegate(parent)
+{
+    QRegExp validRegex("[/A-z0-9]+");
+    validator.setRegExp(validRegex);
+}
+
+QWidget *TranslationDelegate::createEditor(QWidget *parent,
+                                    const QStyleOptionViewItem &option,
+                                    const QModelIndex &index) const
+{
+    QLineEdit *editor = new QLineEdit(parent);
+    editor->setValidator(&validator);
+    return editor;
+}
+
+
+void TranslationDelegate::setEditorData(QWidget *editor,
+                                 const QModelIndex &index) const
+{
+    QString value =index.model()->data(index, Qt::EditRole).toString();
+        QLineEdit *line = static_cast<QLineEdit*>(editor);
+        line->setText(value);
+}
+
+
+void TranslationDelegate::setModelData(QWidget *editor,
+                                QAbstractItemModel *model,
+                                const QModelIndex &index) const
+{
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    QString value = line->text();
+    model->setData(index, value);
+}
+
+void TranslationDelegate::updateEditorGeometry(QWidget *editor,
+                                        const QStyleOptionViewItem &option,
+                                        const QModelIndex &index) const
+{
+    editor->setGeometry(option.rect);
+}
+
+
 TranslationTableModel::TranslationTableModel(QObject *parent)
     :QAbstractTableModel(parent)
 {
@@ -140,10 +183,14 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
     QString styleSheet = QLatin1String(file.readAll());
     setStyleSheet(styleSheet);
 
-    // set model to table view
-    ui->tableTranslation->setModel(&translations);
+    // improve table view with input validator and context menu
+    TranslationDelegate *itDelegate = new  TranslationDelegate;
+    ui->tableTranslation->setItemDelegateForColumn(1, itDelegate);
     ui->tableTranslation->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableTranslation, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
+
+    // set model to table view
+    ui->tableTranslation->setModel(&translations);
 
     // Use embedded fixed size font
     ui->consoleOSC->setFontFamily(getMonospaceFont());

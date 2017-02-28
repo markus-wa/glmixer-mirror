@@ -5,10 +5,28 @@
 #include <QSettings>
 #include <QRegExpValidator>
 #include <QAbstractTableModel>
+#include <QAbstractItemView>
+#include <QItemDelegate>
 
 namespace Ui {
 class OpenSoundControlTranslator;
 }
+
+class TranslationDelegate : public QItemDelegate
+{
+    Q_OBJECT
+public:
+    explicit TranslationDelegate(QObject *parent = 0);
+
+protected:
+    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget * editor, const QModelIndex & index) const;
+    void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const;
+    void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+
+private:
+    QRegExpValidator validator;
+};
 
 class TranslationTableModel : public QAbstractTableModel
 {
@@ -43,7 +61,6 @@ public:
     ~OpenSoundControlTranslator();
 
 public slots:
-
     void updateManager();
     void contextMenu(QPoint);
     void removeSelection();
@@ -56,7 +73,6 @@ public slots:
     void on_verboseLogs_toggled(bool);
 
 protected:
-
     void showEvent(QShowEvent *);
     void hideEvent(QHideEvent *);
 
