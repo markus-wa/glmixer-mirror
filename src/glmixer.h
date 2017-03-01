@@ -200,7 +200,7 @@ private:
     class TagsManager *tagsManager;
 #endif
 #ifdef GLM_HISTORY
-    class HistoryManagerWidget *actionHistoryView;
+    class HistoryRecorderWidget *actionHistoryView;
 #endif
 #ifdef GLM_FFGL
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;

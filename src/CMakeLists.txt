@@ -235,6 +235,7 @@ if(USE_HISTORY_MANAGEMENT)
     add_definitions(-DGLM_HISTORY)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         HistoryManager.cpp
+        HistoryRecorder.cpp
         HistoryManagerWidget.cpp
         HistoryRecorderWidget.cpp
     )

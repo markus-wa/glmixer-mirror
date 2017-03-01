@@ -2,36 +2,44 @@
 #include <QDebug>
 
 #include "Source.h"
+#include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 #include "HistoryManager.moc"
 
+
+//#define DEBUG_HISTORY
 
 HistoryManager::Event::Event(QObject *o, QMetaMethod m, QVector< QVariantPair > args) : _object(o), _method(m), _iskey(false)
 {
     // convert the list of QVariant pairs into list of History Arguments
     foreach ( const QVariantPair &a, args) {
         // create pair of History Arguments as a Vector
-        QVector<GenericArgument> argument;
+        QVector<SourceArgument> argument;
         // set value only for valid QVariant
         if (a.first.isValid()) {
-            argument.append( GenericArgument(a.first) );
-            argument.append( GenericArgument(a.second) );
-//            qDebug() << argument[BACKWARD] << argument[FORWARD];
+            argument.append( SourceArgument(a.first) );
+            argument.append( SourceArgument(a.second) );
         } else {
             // else create empty arguments
-            argument.append( GenericArgument() );
-            argument.append( GenericArgument() );
+            argument.append( SourceArgument() );
+            argument.append( SourceArgument() );
         }
         // append the history argument to the list (in order)
         _arguments.append(argument);
     }
 
-//    qDebug() << "Stored to " << _method.signature() << _arguments.size();
+#ifdef DEBUG_HISTORY
+    qDebug() << "New Event " << _method.signature() << _arguments.size();
+#endif
 }
 
 void HistoryManager::Event::invoke(HistoryManager::Direction dir) {
 
-//    qDebug() << "Invoke " << objectName() << signature() << _arguments.size() << " arguments : " << _arguments[0][dir] << _arguments[1][dir] << _arguments[2][dir] << _arguments[3][dir] << _arguments[4][dir];
+#ifdef DEBUG_HISTORY
+    qDebug() << "Invoke " << _object->objectName() <<  _method.signature() << dir ;
+    qDebug() << _arguments;
+#endif
 
     // invoke the method with all arguments (including empty arguments)
     _method.invoke(_object, Qt::QueuedConnection, _arguments[0][dir].argument(), _arguments[1][dir].argument(), _arguments[2][dir].argument(), _arguments[3][dir].argument(), _arguments[4][dir].argument(), _arguments[5][dir].argument(), _arguments[6][dir].argument() );
@@ -53,11 +61,24 @@ QString HistoryManager::Event::arguments(Direction dir) const {
 
     QString args("");
 
-    foreach (QVector<GenericArgument> a, _arguments) {
+    foreach (QVector<SourceArgument> a, _arguments) {
         args += " " + a[dir].string();
     }
 
     return args;
+}
+
+
+HistoryManager::Event & HistoryManager::Event::operator = (const Event & other )
+{
+    if (this != &other) // protect against invalid self-assignment
+    {
+        _object = other._object;
+        _method = other._method;
+        _arguments = other._arguments;
+        _iskey = other._iskey;
+    }
+    return *this;
 }
 
 bool HistoryManager::Event::operator == ( const HistoryManager::Event & other ) const
@@ -71,103 +92,156 @@ bool HistoryManager::Event::operator != ( const HistoryManager::Event & other ) 
 }
 
 
-HistoryManager::HistoryManager(QObject *parent) : QObject(parent), _maximumSize(1000)
+HistoryManager::HistoryManager(QObject *parent) : QObject(parent),
+    _direction(FORWARD), _play(false), _loop(true), _reverse(true), _maximumSize(10000)
 {
     _current = _history.begin();
-
-    _timer.start();
-}
-
-HistoryManager::EventMap HistoryManager::events(HistoryManager::Direction dir) const {
-
-    HistoryManager::EventMap eventmap;
-
-    if (dir == HistoryManager::BACKWARD) {
-
-        EventMap::iterator i = (EventMap::iterator) _history.begin();
-        while ( i != _current ){
-
-            eventmap.insert(i.key(),i.value());
-            ++i;
-        }
-
-    }
-    else {
-
-    }
-
-    return eventmap;
-}
-
-void HistoryManager::rememberEvent(QString signature, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4, QVariantPair arg5, QVariantPair arg6, QVariantPair arg7)
-{
-
-    QObject *sender_object = sender();
-    if (sender_object) {
-
-
-        // keep time of the event (only even numbers)
-        qint64 t = _timer.elapsed();
-        t += t%2;
-
-        // get meta object of the object sending this slot
-        QMetaObject *sender_metaobject = (QMetaObject *) sender_object->metaObject();
-
-        // get slot id
-        int methodId = sender_metaobject->indexOfSlot(qPrintable(signature));
-
-        // get the method of this meta class
-        QMetaMethod method = sender_metaobject->method( methodId );
-
-        // list of arguments
-        QVector< QVariantPair > arguments;
-        arguments << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << arg7;
-
-        // create an object storing this method call
-        Event *newcall = new Event(sender_object, method, arguments );
-
-        // if current event is not the last in the history
-        // then remove all the remaining items
-        EventMap::iterator it = ++_current;
-        while ( it != _history.end() ){
-            delete it.value();
-            it = _history.erase(it);
-        }
-
-        // remember the event in the history
-         _current = _history.insert(t, newcall);
-
-//        qDebug() << "Stored " << t << sender_metaobject->className() << newcall->signature() << newcall->arguments();
-
-        // inform that history changed
-        emit changed();
-    }
 }
 
 
 void HistoryManager::clear()
 {
-    // delete all objects
-    qDeleteAll(_history);
-
     // empty the list
     _history.clear();
 
     // go to end
     _current = _history.begin();
+    _currentTime = 0;
 
     // inform that history changed
     emit changed();
 
+#ifdef DEBUG_HISTORY
     qDebug() << "HistoryManager " << _history.size() << " elements";
+#endif
+}
+
+
+// append history
+void HistoryManager::appendEvents(EventMap history)
+{
+    // append events in multimap
+    _history += history;
+
+    _current = _history.begin();
+    _currentTime = _current.key();
+
+    // inform that history changed
+    emit changed();
 }
 
 
 
+double HistoryManager::duration() const
+{
+    QList<qint64> keys = _history.keys();
+    if (keys.empty())
+        return 0.0;
+    else
+        return (double) keys.back() / 1000.0;
+}
+
+
+void HistoryManager::updateCursor()
+{
+
+    if (_direction == FORWARD)
+    {
+        _currentTime += _timer.restart();
+
+        // execute all steps until the elapsed time
+        while (_current.key() < _currentTime && _current != _history.end()) {
+            _current.value().invoke(_direction);
+            _current++;
+        }
+
+        // loop
+        if (_current == _history.end()) {
+
+            if (!_loop)
+                play(false);
+
+            if (_reverse) {
+                _direction = _direction==FORWARD ? BACKWARD : FORWARD;
+                _current--;
+            } else {
+                _current = _history.begin();
+                _currentTime = _current.key();
+            }
+        }
+    }
+    else
+    {
+        _currentTime -= _timer.restart();
+
+        // execute all steps until the elapsed time
+        while (_current.key() > _currentTime && _current != _history.begin()) {
+            _current.value().invoke(_direction);
+            _current--;
+        }
+
+        // loop
+        if (_current == _history.begin()) {
+
+            if (!_loop)
+                play(false);
+
+            if (_reverse) {
+                _direction = _direction==FORWARD ? BACKWARD : FORWARD;
+            } else {
+                _current = _history.end() -1;
+                _currentTime = _current.key();
+            }
+        }
+    }
+
+}
+
+void HistoryManager::play(bool on)
+{
+    // set play mode
+    _play = on;
+
+    if (_play) {
+        // connect to ticking clock
+        connect(RenderingManager::getRenderingWidget(), SIGNAL(tick()), SLOT(updateCursor()));
+        _timer.start();
+    }
+    else {
+        // disconnect ticking clock
+        RenderingManager::getRenderingWidget()->disconnect(this);
+    }
+
+    emit playing(_play);
+}
+
+void HistoryManager::rewind()
+{
+    _current = _history.begin();
+    _currentTime = _current.key();
+    _direction = FORWARD;
+
+    QList<Event> events = _history.values(_currentTime);
+    foreach(Event e, events)
+        e.invoke(FORWARD);
+}
+
+
+qint64 HistoryManager::cursorPosition() const
+{
+    return _current.key();
+}
 
 void HistoryManager::setCursorPosition(qint64 t)
 {
+//    if (t == 0) {
+//        _current = _history.begin();
+//        _currentTime = _current.key();
+//    }
+//    else {
 
+//    }
+//    _current.value().invoke(_direction);
 }
 
 void HistoryManager::setCursorNextPositionForward()
@@ -178,7 +252,7 @@ void HistoryManager::setCursorNextPositionForward()
     if ( _current != _history.end() ) {
 
         // invoke the previous event
-        _current.value()->invoke(HistoryManager::FORWARD);
+        _current.value().invoke(HistoryManager::FORWARD);
 
         // move the cursor to the previous event
         _current++;
@@ -198,7 +272,7 @@ void HistoryManager::setCursorNextPositionBackward()
     if ( _current != _history.begin() ) {
 
         // invoke the previous event
-        _current.value()->invoke(HistoryManager::BACKWARD);
+        _current.value().invoke(HistoryManager::BACKWARD);
 
         // move the cursor to the previous event
         _current--;

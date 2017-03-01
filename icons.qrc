@@ -185,5 +185,6 @@
         <file>icons/workspace_2.png</file>
         <file>icons/workspace_1.png</file>
         <file>icons/network.png</file>
+        <file>icons/media-bidirection.png</file>
     </qresource>
 </RCC>

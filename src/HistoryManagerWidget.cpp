@@ -1,56 +1,19 @@
 #include "HistoryManagerWidget.moc"
 
 
-HistoryManagerWidget::HistoryManagerWidget(QWidget *parent) : QTableView(parent)
+
+HistoryManagerModel::HistoryManagerModel(HistoryManager *hm, QWidget *parent) : QAbstractTableModel(parent)
 {
-    setModel(&_historyModel);
-
-    setAutoScroll(true);
-
-    setColumnWidth(0, 60);
-    setColumnWidth(1, 100);
-    setColumnWidth(2, 180);
-    setColumnWidth(3, 220);
-    setColumnWidth(4, 220);
-
-}
-
-void HistoryManagerWidget::setHistoryManager(HistoryManager *hm)
-{
-    _history = hm;
-    updateHistory();
-}
-
-void HistoryManagerWidget::updateHistory()
-{
-    // reload the events
-    _historyModel.setHistoryMap( _history->events() );
-
-    // scroll to end of list
-    scrollToBottom ();
-
-    // resize height
-    resizeRowsToContents();
-//    resizeColumnsToContents();
-}
-
-
-HistoryManagerModel::HistoryManagerModel(QWidget *parent) : QAbstractTableModel(parent)
-{
-
-}
-
-
-void HistoryManagerModel::setHistoryMap(const QMultiMap<qint64, HistoryManager::Event *> &map)
-{
-    _historyMap = map;
-    reset();
+    _historyManager = hm;
 }
 
 
 int HistoryManagerModel::rowCount(const QModelIndex &parent) const
 {
-    return _historyMap.size();
+    if (_historyManager)
+        return _historyManager->_history.size();
+
+    return 0;
 }
 
 int HistoryManagerModel::columnCount(const QModelIndex &parent) const
@@ -60,10 +23,10 @@ int HistoryManagerModel::columnCount(const QModelIndex &parent) const
 
 QVariant HistoryManagerModel::data(const QModelIndex &index, int role) const
 {
-    static QFont standardFont("Monospace", QFont().pointSize() * 0.8);
-    static QFont keyFont("Monospace", QFont().pointSize() * 0.8, QFont::Bold, true);
+//    static QFont standardFont("Monospace", QFont().pointSize() * 0.8);
+//    static QFont keyFont("Monospace", QFont().pointSize() * 0.8, QFont::Bold, true);
 
-    if (!index.isValid())
+    if (!index.isValid() || !_historyManager)
            return QVariant();
 
     QVariant returnvalue;
@@ -73,20 +36,20 @@ QVariant HistoryManagerModel::data(const QModelIndex &index, int role) const
     }
     else if (role == Qt::DisplayRole) {
 
-        QMultiMap<qint64, HistoryManager::Event *>::const_iterator i = _historyMap.begin() + index.row();
+        HistoryManager::EventMap::iterator i = _historyManager->_history.begin() + index.row();
 
         if ( index.column() == 0 )
             returnvalue = i.key();
         else if ( index.column() == 1 )
-            returnvalue = i.value()->objectName();
+            returnvalue = i.value().objectName();
         else if ( index.column() == 2 )
-            returnvalue = i.value()->signature().section('(',0,0);
+            returnvalue = i.value().signature().section('(',0,0);
         else if ( index.column() == 3 )
-            returnvalue = i.value()->arguments(HistoryManager::BACKWARD);
+            returnvalue = i.value().arguments(HistoryManager::BACKWARD);
         else if ( index.column() == 4 )
-            returnvalue = i.value()->arguments(HistoryManager::FORWARD);
-    }
+            returnvalue = i.value().arguments(HistoryManager::FORWARD);
 
+    }
 
     return returnvalue;
 }
@@ -101,6 +64,24 @@ QVariant HistoryManagerModel::headerData(int section, Qt::Orientation orientatio
         static QStringList header  = QStringList() << "t" << "object" << "method" << "before" << "after";
         returnvalue = header.at(section);
     }
+    else if ( orientation == Qt::Vertical ) {
+        returnvalue = section;
+    }
 
     return returnvalue;
+}
+
+HistoryManagerWidget::HistoryManagerWidget(HistoryManager *hm, QWidget *parent) : QTableView(parent)
+{
+    _historyModel = new HistoryManagerModel(hm, this);
+    setModel(_historyModel);
+
+//    setAutoScroll(true);
+
+//    setColumnWidth(0, 60);
+//    setColumnWidth(1, 100);
+//    setColumnWidth(2, 180);
+//    setColumnWidth(3, 220);
+//    setColumnWidth(4, 220);
+
 }

@@ -270,17 +270,17 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             // create the string describing the slot
             // and build the list of arguments
             QString slot = "_set" + property + "(";
-            QVector<GenericArgument> arguments;
+            QVector<SourceArgument> arguments;
 
             // fill the list with values
             int i = 0;
             for (; i < args.size() ; ++i, slot += ',' ) {
-                arguments.append( GenericArgument(args[i]) );
+                arguments.append( SourceArgument(args[i]) );
                 slot += arguments[i].typeName();
             }
             // finish the list with empty arguments
             for (; i < 7; ++i) {
-                arguments.append( GenericArgument() );
+                arguments.append( SourceArgument() );
             }
 
             if (slot.contains(','))

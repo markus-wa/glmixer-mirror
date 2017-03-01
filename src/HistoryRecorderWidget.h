@@ -1,22 +1,35 @@
-#ifndef HISTORYRECORDER_H
-#define HISTORYRECORDER_H
+#ifndef HISTORYRECORDERWIDGET_H
+#define HISTORYRECORDERWIDGET_H
 
 #include <QWidget>
+#include <QTreeWidget>
+
+#include "HistoryManager.h"
+#include "HistoryRecorder.h"
+#include "HistoryManagerWidget.h"
 
 namespace Ui {
-class HistoryRecorder;
+class HistoryRecorderWidget;
 }
 
-class HistoryRecorder : public QWidget
+class HistoryRecorderWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit HistoryRecorder(QWidget *parent = 0);
-    ~HistoryRecorder();
+    explicit HistoryRecorderWidget(QWidget *parent = 0);
+    ~HistoryRecorderWidget();
+
+public slots:
+
+    void on_recordingsTable_currentItemChanged (QTreeWidgetItem * current, QTreeWidgetItem *previous );
+    void on_recordButton_toggled(bool on);
 
 private:
-    Ui::HistoryRecorder *ui;
+    Ui::HistoryRecorderWidget *ui;
+
+    HistoryManagerWidget *_editor;
+    HistoryRecorder *_recorder;
 };
 
 #endif // HISTORYRECORDER_H

@@ -85,7 +85,7 @@
 #endif
 
 #ifdef GLM_HISTORY
-#include "HistoryManagerWidget.h"
+#include "HistoryRecorderWidget.h"
 #endif
 
 #ifdef GLM_SHM
@@ -361,7 +361,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifdef GLM_HISTORY
     // setup the history toolbox
-    actionHistoryView = new HistoryManagerWidget(this);
+    actionHistoryView = new HistoryRecorderWidget(this);
     actionHistorydockWidgetContentsLayout->addWidget(actionHistoryView);
 #else
     // DISABLE HISTORY MANAGER

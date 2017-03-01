@@ -45,7 +45,7 @@ typedef QPair<QVariant, QVariant> QVariantPair;
  * which is used when the method is invoked.
  *
 */
-class GenericArgument
+class SourceArgument
 {
     int intValue;
     uint uintValue;
@@ -55,17 +55,21 @@ class GenericArgument
     QString stringValue;
     QColor colorValue;
 
-    char *type;
+    QVariant::Type type;
 
 public:
-    GenericArgument(QVariant v = QVariant());
+    SourceArgument(QVariant v = QVariant());
     QVariant variant() const;
     QString string() const;
-    QString typeName() const { return QString(type); }
+    QString typeName() const { return QString(QVariant::typeToName(type)); }
     QGenericArgument argument() const;
+
+    bool operator == ( const SourceArgument & other ) const;
+    bool operator != ( const SourceArgument & other ) const;
+    SourceArgument & operator = (const SourceArgument & other );
 };
 
-QDebug operator << ( QDebug out, const GenericArgument & a );
+QDebug operator << ( QDebug out, const SourceArgument & a );
 
 
 /**

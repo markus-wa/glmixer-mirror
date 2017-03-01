@@ -14,22 +14,22 @@
 
 
 /*
- * History manager keeps a list of method calls given to the
- * rememberMethodCall slot. Each call is stored with all information
- * necessary for calling the method again : object to send to,
- * method to call, and arguments. The time of the call is also
- * stored.
+ * History manager stores a list of events (method call)
+ * and allows to append, remove or modify events in the list.
  *
- * The history manager then offers functionnality for replaying
- * the list of method calls with the same timing.
+ * It can take input from History Recorder to add elements
+ * to the list (append events).
  *
- * Key events are remembered too (e.g. for undo)
+ * It manages a cursor into the list of events to allow
+ * executing the commands (invoke event).
  *
  * */
 
 class HistoryManager : public QObject
 {
     Q_OBJECT
+
+    friend class HistoryManagerModel;
 
 public:
     HistoryManager(QObject *parent = 0);
@@ -52,42 +52,56 @@ public:
 
         bool operator == ( const Event & other ) const;
         bool operator != ( const Event & other ) const;
+        Event & operator = (const Event & other );
 
     private:
         QObject *_object;
         QMetaMethod _method;
-        QVector< QVector<GenericArgument> > _arguments;
+        QVector< QVector<SourceArgument> > _arguments;
         bool _iskey;
     };
 
-    typedef QMultiMap<qint64, Event *> EventMap;
+    typedef QMultiMap<qint64, Event> EventMap;
 
-    // get the history of events
-    EventMap events(Direction dir = BACKWARD) const;
 
-    // get the cursor time
-    qint64 cursorPosition() const;
+    // append history
+    void appendEvents(EventMap history);
+
+    // duration
+    double duration() const;
+
+    // playback
+    bool isPlaying() const { return _play; }
+    bool isLoop() const { return _loop; }
+    bool isReverse() const { return _reverse; }
 
     // get maximum size
     int maximumSize() const;
 
-
 signals:
     void changed();
+    void playing(bool);
 
 public slots:
 
     // clear the history
     void clear();
-    // go to the position given time
-    void setCursorPosition(qint64 t);
-    // jump to the next event in history (bakward or forward)
+
+    // navigate into history
+    qint64 cursorPosition() const;
+    void setCursorPosition(qint64 t = 0);
     void setCursorNextPosition(Direction dir);
     void setCursorNextPositionForward();
     void setCursorNextPositionBackward();
 
-    // store an event in history
-    void rememberEvent(QString signature, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4, QVariantPair arg5, QVariantPair arg6, QVariantPair arg7);
+    // control playback
+    void rewind();
+    void play(bool on);
+    void loop(bool on) { _loop = on; }
+    void reverse(bool on) { _reverse = on; }
+
+    // synchronize with display
+    void updateCursor();
 
     // set the maximum number of items in the history
     void setMaximumSize(int max);
@@ -95,11 +109,20 @@ public slots:
 private:
 
     EventMap _history;
+
+    // replay toolbox
     EventMap::iterator _current;
-//    qint64 _currentTime;
+    qint64 _currentTime;
+    QElapsedTimer _timer;
+    Direction _direction;
+    bool _play, _loop, _reverse;
+
+    // TODO : limit number of elements in history
     int _maximumSize;
 
-    QElapsedTimer _timer;
 };
+
+typedef HistoryManager * HistoryManagerStar;
+Q_DECLARE_METATYPE(HistoryManagerStar);
 
 #endif // HISTORYMANAGER_H

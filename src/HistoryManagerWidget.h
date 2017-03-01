@@ -9,21 +9,20 @@
 
 class HistoryManagerModel : public QAbstractTableModel
 {
+    Q_OBJECT
 
 public:
-    explicit HistoryManagerModel(QWidget *parent = 0);
-
-    // set history to display
-    void setHistoryMap(const QMultiMap<qint64, HistoryManager::Event *> &map);
+    explicit HistoryManagerModel(HistoryManager *hm, QWidget *parent = 0);
 
     // implementation of QAbstractTable
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
+    QVariant data(const QModelIndex &index, int role) const;
+
 private:
-    QMultiMap<qint64, HistoryManager::Event *> _historyMap;
+    HistoryManager *_historyManager;
 
 };
 
@@ -32,16 +31,10 @@ class HistoryManagerWidget : public QTableView
     Q_OBJECT
 
 public:
-    explicit HistoryManagerWidget(QWidget *parent = 0);
-
-    void setHistoryManager(HistoryManager *hm);
-
-public slots:
-    void updateHistory();
+    explicit HistoryManagerWidget(HistoryManager *hm = NULL, QWidget *parent = 0);
 
 private:
-    HistoryManager *_history;
-    HistoryManagerModel _historyModel;
+    HistoryManagerModel *_historyModel;
 };
 
 #endif // HISTORYMANAGERWIDGET_H

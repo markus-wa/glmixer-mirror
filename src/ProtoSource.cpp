@@ -491,105 +491,93 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
 
 
 
-GenericArgument::GenericArgument(QVariant val) : intValue(0), uintValue(0), doubleValue(0.0), boolValue(false)
+SourceArgument::SourceArgument(QVariant val) : intValue(0), uintValue(0), doubleValue(0.0), boolValue(false)
 {
+    type = val.type();
     if (val.isValid()) {
         // create a persistent value and an argument which can be reinjected
-        switch (val.type()) {
+        switch (type) {
         case QVariant::Int:
             intValue = val.toInt();
-            type = "int";
             break;
         case QVariant::UInt:
             uintValue = val.toUInt();
-            type = "uint";
             break;
         case QVariant::Double:
             doubleValue = val.toDouble();
-            type = "double";
             break;
         case QVariant::Bool:
             boolValue = val.toBool();
-            type = "bool";
             break;
         case QVariant::RectF:
             rectValue = val.toRectF();
-            type = "QRectF";
             break;
         case QVariant::Color:
             colorValue = val.value<QColor>();
-            type = "QColor";
             break;
         case QVariant::String:
             stringValue = val.toString();
-            type = "QString";
             break;
         default:
             break;
         }
     }
-    else
-        type = "";
 }
 
-QVariant GenericArgument::variant() const
+QVariant SourceArgument::variant() const
 {
-    QVariant val( QVariant::nameToType(type) );
-    if (val.isValid()) {
-        switch (val.type()) {
-        case QVariant::Int:
-            return QVariant(intValue);
-        case QVariant::UInt:
-            return QVariant(uintValue);
-        case QVariant::Double:
-            return QVariant(doubleValue);
-        case QVariant::Bool:
-            return QVariant(boolValue);
-        case QVariant::RectF:
-            return QVariant(rectValue);
-        case QVariant::String:
-            return QVariant(stringValue);
-        case QVariant::Color:
-        {
-            QVariant col = colorValue;
-            return col;
-        }
-        default:
-            break;
-        }
+    switch (type) {
+    case QVariant::Int:
+        return QVariant(intValue);
+    case QVariant::UInt:
+        return QVariant(uintValue);
+    case QVariant::Double:
+        return QVariant(doubleValue);
+    case QVariant::Bool:
+        return QVariant(boolValue);
+    case QVariant::RectF:
+        return QVariant(rectValue);
+    case QVariant::String:
+        return QVariant(stringValue);
+    case QVariant::Color:
+    {
+        QVariant col = colorValue;
+        return col;
     }
-    return QVariant();
+    case QVariant::Invalid:
+    default:
+        return QVariant();
+        break;
+    }
+
 }
 
-QGenericArgument GenericArgument::argument() const
+QGenericArgument SourceArgument::argument() const
 {
-    QVariant val( QVariant::nameToType(type) );
-
-    if (val.isValid()) {
-        switch (val.type()) {
-        case QVariant::Int:
-            return QArgument<int>(type, intValue);
-        case QVariant::UInt:
-            return QArgument<uint>(type, uintValue);
-        case QVariant::Double:
-            return QArgument<double>(type, doubleValue);
-        case QVariant::Bool:
-            return QArgument<bool>(type, boolValue);
-        case QVariant::RectF:
-            return QArgument<QRectF>(type, rectValue);
-        case QVariant::String:
-            return QArgument<QString>(type, stringValue);
-        case QVariant::Color:
-            return QArgument<QColor>(type, colorValue);
-        default:
-            break;
-        }
+    switch (type) {
+    case QVariant::Int:
+        return QArgument<int>(QVariant::typeToName(type), intValue);
+    case QVariant::UInt:
+        return QArgument<uint>(QVariant::typeToName(type), uintValue);
+    case QVariant::Double:
+        return QArgument<double>(QVariant::typeToName(type), doubleValue);
+    case QVariant::Bool:
+        return QArgument<bool>(QVariant::typeToName(type), boolValue);
+    case QVariant::RectF:
+        return QArgument<QRectF>(QVariant::typeToName(type), rectValue);
+    case QVariant::String:
+        return QArgument<QString>(QVariant::typeToName(type), stringValue);
+    case QVariant::Color:
+        return QArgument<QColor>(QVariant::typeToName(type), colorValue);
+    case QVariant::Invalid:
+    default:
+        return QGenericArgument();
+        break;
     }
-    return QGenericArgument();
 }
 
 
-QString GenericArgument::string() const
+QString SourceArgument::string() const
 {
     QVariant v = variant();
 
@@ -605,10 +593,36 @@ QString GenericArgument::string() const
         return variant().toString();
 }
 
-QDebug operator << ( QDebug out, const GenericArgument & a )
+QDebug operator << ( QDebug out, const SourceArgument & a )
 {
     out << a.string();
     return out;
+}
+
+SourceArgument & SourceArgument::operator = (const SourceArgument & other )
+{
+    if (this != &other) // protect against invalid self-assignment
+    {
+        intValue = other.intValue;
+        uintValue = other.uintValue;
+        doubleValue = other.doubleValue;
+        boolValue = other.boolValue;
+        rectValue = other.rectValue;
+        stringValue = other.stringValue;
+        colorValue = other.colorValue;
+        type = other.type;
+    }
+    return *this;
+}
+
+bool SourceArgument::operator == ( const SourceArgument & other ) const
+{
+    return ( this->variant() == other.variant() );
+}
+
+bool SourceArgument::operator != ( const SourceArgument & other ) const
+{
+    return ( this->variant() == other.variant() );
 }
 
 

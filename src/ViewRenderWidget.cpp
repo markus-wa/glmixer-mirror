@@ -610,6 +610,9 @@ void ViewRenderWidget::refresh()
 
 void ViewRenderWidget::paintGL()
 {
+    // for animation
+    emit tick();
+
     //
     // 1. The view
     //

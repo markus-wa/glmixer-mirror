@@ -169,6 +169,7 @@ signals:
     void zoomPercentChanged(int);
 
     void mousePressed(bool);
+    void tick();
 
 public slots:
 
