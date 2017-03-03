@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -28,13 +32,7 @@
 	<string>1.0</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
-	<key>LSRequiresCarbon</key>
-	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>(c) Bruno Herbelin</string>
-	<key>NSPrincipalClass</key>
-  <string>NSApplication</string>
-  <key>NSHighResolutionCapable</key>
-  <true/>
+	<string>Bruno Herbelin</string>
 </dict>
 </plist>

@@ -302,19 +302,21 @@ IF(APPLE)
 
   # set how it shows up in the Info.plist file
   SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
+
   # set where in the bundle to put the icns file
   SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   # include the icns file in the target
   SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
 
-    # create the application
-    add_executable(${GLMIXER_BINARY} MACOSX_BUNDLE
-            ${GLMIXER_SRCS}
-            ${GLMIXER_UIS_H}
-            ${GLMIXER_RCS_SRCS}
-            ${GLMIXER_QM}
-    )
+  # create the application
+  add_executable(${GLMIXER_BINARY} MACOSX_BUNDLE
+          ${GLMIXER_SRCS}
+          ${GLMIXER_UIS_H}
+          ${GLMIXER_RCS_SRCS}
+          ${GLMIXER_QM}
+  )
 
+  set_target_properties(${GLMIXER_BINARY} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
 
 ELSE(APPLE)
 
@@ -385,12 +387,14 @@ IF(APPLE)
     set(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
     set(qtconf_dest_dir GLMixer.app/Contents/Resources)
 
+    set( CPACK_BINARY_DRAGNDROP ON)
+
     # OSX cpack info
     set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_DEPLOYMENT_TARGET}_${CMAKE_OSX_ARCHITECTURES}")
     set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
-    set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
     set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
-    set( CPACK_BINARY_DRAGNDROP ON)
+    set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
+
 
 ELSE(APPLE)
 

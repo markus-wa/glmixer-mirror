@@ -290,7 +290,6 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             // get the source on which to call the method
             Source *s = *sit;
 
-
             // Try to find the index of the given slot
             int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
             if ( methodIndex > 0 ) {
@@ -322,4 +321,3 @@ bool OpenSoundControlManager::hasTranslation(QString before, QString after)
 {
     return _dictionnary->count( (QPair<QString, QString>(before, after) ) ) > 0;
 }
-
