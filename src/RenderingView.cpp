@@ -112,8 +112,8 @@ void RenderingView::paint()
              // OR it is selected
              || SelectionManager::getInstance()->isInSelection(s)
              // OR if there is no current source and no selection (i.e default case draw everything)
-             || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
-                && !SelectionManager::getInstance()->hasSelection() )  ) {
+             /*|| ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
+                && !SelectionManager::getInstance()->hasSelection() ) */ ) {
 
             // place and scale
             glPushMatrix();
@@ -131,6 +131,21 @@ void RenderingView::paint()
             glPopMatrix();
         }
 
+
+    }
+
+    if (( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource()) && !SelectionManager::getInstance()->hasSelection() ))
+    {
+        // Re-Draw frame buffer in the render window
+        // With correct rendering on top of the different workspaces
+        ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
+        glPushMatrix();
+        glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
+        glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glCallList(ViewRenderWidget::vertex_array_coords);
+        glDrawArrays(GL_QUADS, 0, 4);
+        glPopMatrix();
     }
 
     // unset mode for source
