@@ -202,28 +202,6 @@ void OutputRenderWidget::paintGL()
         glCallList(ViewRenderWidget::quad_texured);
     }
 
-    // draw the pause symbol on top
-    if (RenderingManager::getInstance()->isPaused() && !(windowFlags() & Qt::Window)){
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        gluOrtho2D(0.0, width(), 0.0, height());
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-
-        glDisable(GL_TEXTURE_2D);
-        qglColor(Qt::lightGray);
-        glRecti(15, height() - 5, 25, height() - 30);
-        glRecti(30, height() - 5, 40, height() - 30);
-        glEnable(GL_TEXTURE_2D);
-
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-    }
 }
 
 

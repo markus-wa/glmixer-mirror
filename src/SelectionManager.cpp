@@ -125,7 +125,7 @@ void SelectionManager::updateSelectionSource()
         if ( WorkspaceManager::getInstance()->current() != (*sit)->getWorkspace() )
             sit = _selectedSources.erase(sit);
         else
-            sit++;
+            ++sit;
     }
 
     // inform of the status of the selection

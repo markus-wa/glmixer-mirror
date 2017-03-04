@@ -191,8 +191,12 @@ public:
         return _fbo ? _fbo->handle() : 0;
     }
 
-    inline unsigned int getPreviousFrameDelay() const {
-        return previousframe_delay;
+    inline unsigned int getPreviousFramePeriodicity() const {
+        return previous_frame_period;
+    }
+
+    inline unsigned int getDisplayFramePeriodicity() const {
+        return output_frame_period;
     }
 
     QImage captureFrameBuffer(QImage::Format format = QImage::Format_RGB888);
@@ -228,7 +232,8 @@ public:
 public slots:
 
     inline void setClearToWhite(bool on) { clearWhite = on; }
-    inline void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
+    inline void setPreviousFramePeriodicity(unsigned int period) { previous_frame_period = CLAMP(period,1,60);}
+    inline void setDisplayFramePeriodicity(unsigned int period) { output_frame_period = CLAMP(period,1,60);}
 
     void pause(bool on);
     void clearBasket();
@@ -286,7 +291,8 @@ protected:
     QGLFramebufferObject *previousframe_fbo;
     GLuint pboIds[2];
     int pbo_index, pbo_nextIndex;
-    unsigned int previousframe_index, previousframe_delay;
+    unsigned int output_frame_index, output_frame_period;
+    unsigned int previous_frame_index, previous_frame_period;
     bool clearWhite;
     GLint maxtexturewidth, maxtextureheight;
     frameBufferQuality renderingQuality;
@@ -305,7 +311,7 @@ protected:
     Source *_defaultSource;
     Source::scalingMode _scalingMode;
     bool _playOnDrop;
-    bool paused;
+    bool paused, needsUpdate;
     unsigned int maxSourceCount;
     // set of sources using previousframe_fbo
     SourceSet _rendering_sources;

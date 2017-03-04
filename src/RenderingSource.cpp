@@ -50,7 +50,7 @@ int RenderingSource::getFrameHeight() const {
 
 double RenderingSource::getFrameRate() const {
     if (_recursive)
-        return RenderingManager::getRenderingWidget()->getFramerate() / double(RenderingManager::getInstance()->getPreviousFrameDelay());
+        return RenderingManager::getRenderingWidget()->getFramerate() / double(RenderingManager::getInstance()->getPreviousFramePeriodicity());
     else
         return RenderingManager::getRenderingWidget()->getFramerate();
 }

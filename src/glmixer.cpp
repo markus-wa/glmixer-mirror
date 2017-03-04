@@ -487,8 +487,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionShareToSPOUT, SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
     QObject::connect(RenderingManager::getInstance(), SIGNAL(spoutSharingEnabled(bool)), actionShareToSPOUT, SLOT(setChecked(bool)));
 #endif
-    output_aspectratio->setMenu(aspectRatioMenu);
     output_onair->setDefaultAction(actionToggleRenderingVisible);
+    output_pause->setDefaultAction(actionPause);
+    output_aspectratio->setMenu(aspectRatioMenu);
     output_fullscreen->setDefaultAction(actionFullscreen);
     QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
     QObject::connect(RenderingManager::getInstance()->getSessionSwitcher(), SIGNAL(alphaChanged(int)), output_alpha, SLOT(setValue(int)));
@@ -2936,9 +2937,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::getInstance()->setDefaultPlayOnDrop(defaultStartPlaying);
 
     // e. PreviousFrameDelay
-    uint  PreviousFrameDelay = 1;
-    stream >> PreviousFrameDelay;
-    RenderingManager::getInstance()->setPreviousFrameDelay(PreviousFrameDelay);
+    uint  previous_frame_period = 1;
+    stream >> previous_frame_period;
+    RenderingManager::getInstance()->setPreviousFramePeriodicity(previous_frame_period);
 
     // f. Stippling mode
     uint stipplingMode = 0;
@@ -3049,13 +3050,17 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> isize;
     ViewRenderWidget::setIconSize(MIN_ICON_SIZE + (double)isize * (MAX_ICON_SIZE-MIN_ICON_SIZE) / 100.0);
 
-    // x. Undo level
+    // w. Undo level
     int undolevel = 100;
     stream >> undolevel;
 #ifdef GLM_UNDO
     UndoManager::getInstance()->setMaximumSize(undolevel);
 #endif
 
+    // x.  output frame periodicity
+    uint  display_frame_period = 1;
+    stream >> display_frame_period;
+    RenderingManager::getInstance()->setDisplayFramePeriodicity(display_frame_period);
 
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
@@ -3089,7 +3094,7 @@ QByteArray GLMixer::getPreferences() const {
     stream << RenderingManager::getInstance()->getDefaultPlayOnDrop();
 
     // e.  PreviousFrameDelay
-    stream << RenderingManager::getInstance()->getPreviousFrameDelay();
+    stream << RenderingManager::getInstance()->getPreviousFramePeriodicity();
 
     // f. Stippling mode
     stream << ViewRenderWidget::getStipplingMode();
@@ -3151,13 +3156,15 @@ QByteArray GLMixer::getPreferences() const {
     // v. icon size
     stream << (int) ( 100.0 * (ViewRenderWidget::getIconSize() - MIN_ICON_SIZE) / (MAX_ICON_SIZE-MIN_ICON_SIZE) );
 
-    // x. Undo level
+    // w. Undo level
     int undolevel = 100;
 #ifdef GLM_UNDO
     undolevel = UndoManager::getInstance()->maximumSize();
 #endif
     stream << undolevel;
 
+    // x.  output frame periodicity
+    stream << RenderingManager::getInstance()->getDisplayFramePeriodicity();
 
     return data;
 }

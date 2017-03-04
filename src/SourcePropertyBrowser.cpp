@@ -1003,7 +1003,7 @@ public:
             infoManager->setValue(idToProperty["Rendering method"], "Blit to frame buffer object" );
         else
             infoManager->setValue(idToProperty["Rendering method"], "Draw in frame buffer object" );
-        infoManager->setValue(idToProperty["Frame delay"], QString::number(RenderingManager::getInstance()->getPreviousFrameDelay()) );
+        infoManager->setValue(idToProperty["Frame delay"], QString::number(RenderingManager::getInstance()->getPreviousFramePeriodicity()) );
 
         // show properties
         addProperty(idToProperty["Recursive"]);

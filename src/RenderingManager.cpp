@@ -170,7 +170,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), maxSourceCount(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
 {
     // idenfity for event
     setObjectName("RenderingManager");
@@ -440,10 +440,10 @@ void RenderingManager::postRenderToFrameBuffer() {
     if (_rendering_sources.size() > 0 && !paused)
     {
         // frame delay
-        previousframe_index++;
-        if (!(previousframe_index % previousframe_delay))
+        previous_frame_index++;
+        if (!(previous_frame_index % previous_frame_period))
         {
-            previousframe_index = 0;
+            previous_frame_index = 0;
             // use the accelerated GL_EXT_framebuffer_blit if available
             if (RenderingManager::blit_fbo_extension)
             {
@@ -564,6 +564,7 @@ void RenderingManager::postRenderToFrameBuffer() {
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
 
+    needsUpdate = false;
 }
 
 void RenderingManager::preRenderToFrameBuffer()
@@ -575,15 +576,26 @@ void RenderingManager::preRenderToFrameBuffer()
     glPushAttrib( GL_COLOR_BUFFER_BIT );
 
     // clear frame buffer
-    if (_fbo && /*!paused &&*/ _fbo->bind())
+    if (!paused)
     {
-        if (clearWhite)
-            glClearColor(1.f, 1.f, 1.f, 1.f);
-        else
-            glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // frame delay
+        if (!(++output_frame_index % output_frame_period))
+        {
+            output_frame_index = 0;
 
-        _fbo->release();
+            if (_fbo && _fbo->bind())
+            {
+                if (clearWhite)
+                    glClearColor(1.f, 1.f, 1.f, 1.f);
+                else
+                    glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                _fbo->release();
+            }
+
+            needsUpdate = true;
+        }
     }
 
     // clear catalog
@@ -610,7 +622,7 @@ void RenderingManager::sourceRenderToFrameBuffer(Source *source) {
     glPushMatrix();
     glLoadIdentity();
 
-    if (!paused)
+    if (needsUpdate)
     {
         // render to the frame buffer object
         if (_fbo && _fbo->bind())
@@ -634,6 +646,7 @@ void RenderingManager::sourceRenderToFrameBuffer(Source *source) {
         else
             qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
                                          "(RenderingManager %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
+
     }
 
 
@@ -1695,8 +1708,7 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 
         if (newdepth < 0) {
             // if request to place the source in a negative depth, shift all sources forward
-            for (SourceSet::iterator it = _front_sources.begin(); it
-                 != _front_sources.end(); it++)
+            for (SourceSet::iterator it = _front_sources.begin(); it != _front_sources.end(); it++)
                 (*it)->setDepth((*it)->getDepth() - newdepth);
         }
 

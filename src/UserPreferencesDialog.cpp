@@ -129,13 +129,15 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         updatePeriod->setValue(16); // default fps at 60
         on_updatePeriod_valueChanged( updatePeriod->value() );
         disableFiltering->setChecked(false);
-        fullscreenMonitor->setCurrentIndex(0);
         disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
         disablePixelBufferObject->setChecked(!GLEW_EXT_pixel_buffer_object);
         disableOutputRecording->setChecked(false);
     }
 
     if (stackedPreferences->currentWidget() == PageRecording) {
+        fullscreenMonitor->setCurrentIndex(0);
+        outputSkippedFrames->setValue(1);
+        on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
         recordingFormatSelection->setCurrentIndex(4);
         recordingUpdatePeriod->setValue(40);
         recordingFolderBox->setChecked(false);
@@ -222,9 +224,9 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     defaultStartPlaying->setChecked(DefaultPlayOnDrop);
 
     // e.  PreviousFrameDelay
-    uint  PreviousFrameDelay = 1;
-    stream >> PreviousFrameDelay;
-    loopbackSkippedFrames->setValue( (int) PreviousFrameDelay);
+    uint  previous_frame_period = 1;
+    stream >> previous_frame_period;
+    loopbackSkippedFrames->setValue( (int) previous_frame_period);
 
     // f. Mixing icons stippling
     uint  stippling = 0;
@@ -326,10 +328,15 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> isize;
     iconSizeSlider->setValue(isize);
 
-    // x. Undo level
+    // w. Undo level
     int undolevel = 100;
     stream >> undolevel;
     maximumUndoLevels->setValue(undolevel);
+
+    // x.  output frame periodicity
+    uint  display_frame_period = 1;
+    stream >> display_frame_period;
+    outputSkippedFrames->setValue( (int) display_frame_period);
 
 }
 
@@ -413,8 +420,11 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // v. icon size
     stream << iconSizeSlider->value();
 
-    // x. Undo level
+    // w. Undo level
     stream << maximumUndoLevels->value();
+
+    // x. output frame periodicity
+    stream << (uint) outputSkippedFrames->value();
 
     return data;
 }
@@ -482,6 +492,14 @@ void UserPreferencesDialog::on_loopbackSkippedFrames_valueChanged(int i)
     fps /= (double) i;
 
     loopbackFPS->setText( QString("%1 fps").arg((int)fps));
+}
+
+void UserPreferencesDialog::on_outputSkippedFrames_valueChanged(int i)
+{
+    double fps =  1000.0 / double( updatePeriod->value() ) ;
+    fps /= (double) i;
+
+    outputFPS->setText( QString("%1 fps").arg((int)fps));
 }
 
 
