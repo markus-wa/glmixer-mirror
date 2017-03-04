@@ -75,6 +75,7 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
     // update labels
     on_updatePeriod_valueChanged( updatePeriod->value() );
     on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
+    on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
 
     defaultProperties->showProperties(defaultSource);
     defaultProperties->setPropertyEnabled("Resolution", false);
