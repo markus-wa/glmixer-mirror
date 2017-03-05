@@ -62,12 +62,14 @@ class folderValidator : public QValidator
     folderValidator(QObject *parent) : QValidator(parent) { }
 
     QValidator::State validate ( QString & input, int & pos ) const {
-      QDir d(input);
-      if( d.exists() )
-          return QValidator::Acceptable;
-      if( d.isAbsolute() )
-          return QValidator::Intermediate;
-      return QValidator::Invalid;
+        if( input.isEmpty() )
+            return QValidator::Intermediate;
+        QDir d(input);
+        if( d.exists() )
+            return QValidator::Acceptable;
+        if( d.isAbsolute() )
+            return QValidator::Intermediate;
+        return QValidator::Invalid;
     }
 };
 

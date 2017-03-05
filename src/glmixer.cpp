@@ -2960,10 +2960,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::getRecorder()->setAutomaticSavingMode(automaticSave);
     QString automaticSaveFolder;
     stream >> automaticSaveFolder;
-    QDir d(automaticSaveFolder);
-    if ( !d.exists())
-        d = QDir::current();
-    RenderingManager::getRecorder()->setAutomaticSavingFolder(d);
+    RenderingManager::getRecorder()->setAutomaticSavingFolder(automaticSaveFolder);
 
     // i. disable filtering
     bool disablefilter = false;

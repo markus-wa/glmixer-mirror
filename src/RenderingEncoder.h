@@ -87,42 +87,42 @@ protected:
 
 class RenderingEncoder: public QObject {
 
-	Q_OBJECT
+    Q_OBJECT
 
     friend class EncodingThread;
 
 public:
 
     RenderingEncoder(QObject * parent = 0);
-	~RenderingEncoder();
+    ~RenderingEncoder();
 
     void addFrame(unsigned char *data = 0);
 
-	// preferences encoding
-	void setEncodingFormat(encodingformat f);
-	encodingformat encodingFormat() { return format; }
-	void setUpdatePeriod(uint ms) { update=ms; }
-	uint updatePeriod() { return update; }
+    // preferences encoding
+    void setEncodingFormat(encodingformat f);
+    encodingformat encodingFormat() { return format; }
+    void setUpdatePeriod(uint ms) { update=ms; }
+    uint updatePeriod() { return update; }
     void setFrameSize(QSize s) { if (!started) framesSize = s; }
 
-	// preferences saving mode
-	void setAutomaticSavingMode(bool on);
-	bool automaticSavingMode() { return automaticSaving;}
-	void setAutomaticSavingFolder(QDir d);
-	QDir automaticSavingFolder() { return savingFolder; }
+    // preferences saving mode
+    void setAutomaticSavingMode(bool on);
+    bool automaticSavingMode() { return automaticSaving;}
+    void setAutomaticSavingFolder(QString d);
+    QDir automaticSavingFolder() { return savingFolder; }
 
-	// status
-	bool isActive() { return started; }
-	int getRecodingTime();
-	bool isRecording() { return started && !paused ; }
+    // status
+    bool isActive() { return started; }
+    int getRecodingTime();
+    bool isRecording() { return started && !paused ; }
 
     // utility
     static unsigned long computeBufferSize(int percent);
     static int computeBufferPercent(unsigned long bytes);
 
 public slots:
-	void setActive(bool on);
-	void setPaused(bool on);
+    void setActive(bool on);
+    void setPaused(bool on);
     void saveFile(QString suffix, QString filename = QString::null);
     void saveFileAs(QString suffix, QString description);
     void close();
@@ -131,34 +131,34 @@ public slots:
     unsigned long getBufferSize();
 
 signals:
-	void activated(bool);
+    void activated(bool);
     void processing(bool);
-	void status(const QString &, int);
-	void selectAspectRatio(const standardAspectRatio );
+    void status(const QString &, int);
+    void selectAspectRatio(const standardAspectRatio );
 
 protected:
     void timerEvent(QTimerEvent *event);
     bool start();
 
 private:
-	// files location
+    // files location
     QString temporaryFileName;
-	QDir savingFolder, temporaryFolder;
-	bool automaticSaving;
+    QDir savingFolder, temporaryFolder;
+    bool automaticSaving;
 
-	// state machine
-	bool started, paused;
-	QTime timer;
+    // state machine
+    bool started, paused;
+    QTime timer;
     int elapseTimer, skipframecount;
 
-	// encoder
+    // encoder
     QSize framesSize;
     EncodingThread *encoder;
 
-	uint update, displayupdate;
-	encodingformat format;
-	video_rec_t *recorder;
-	char errormessage[256];
+    uint update, displayupdate;
+    encodingformat format;
+    video_rec_t *recorder;
+    char errormessage[256];
     unsigned long bufferSize;
 };
 

@@ -208,9 +208,12 @@ void EncodingThread::run() {
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
 
     // set default format
-    temporaryFileName = "__temp__";
     setEncodingFormat(FORMAT_AVI_FFVHUFF);
+
     // init file saving
+    temporaryFileName = "__temp__";
+    savingFolder =  QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
+    temporaryFolder = "";
     setAutomaticSavingMode(false);
 
     encoder = NULL;
@@ -516,9 +519,14 @@ void RenderingEncoder::setAutomaticSavingMode(bool on) {
 }
 
 
-void RenderingEncoder::setAutomaticSavingFolder(QDir d) {
+void RenderingEncoder::setAutomaticSavingFolder(QString d) {
 
-    savingFolder = d;
+    QDir directory(d);
+
+    if ( d.isEmpty() || !directory.exists())
+        savingFolder = QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
+    else
+        savingFolder =  directory;
 
     setAutomaticSavingMode(automaticSaving);
 }
