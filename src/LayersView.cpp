@@ -617,25 +617,33 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
         return;
     }
 
+    SourceSet::iterator current = RenderingManager::getInstance()->getCurrentSource();
+    double z_min = std::numeric_limits<double>::max();
+    double z_max = -std::numeric_limits<double>::max();
+
     // 0. consider either the list of clicked sources, either the full list
-    SourceSet::iterator beginning, end;
-    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-        beginning = end = RenderingManager::getInstance()->getCurrentSource();
-        end++;
-    } else {
-        beginning = RenderingManager::getInstance()->getBegin();
-        end = RenderingManager::getInstance()->getEnd();
+    if (onlyClickedSource) {
+        if (SelectionManager::getInstance()->hasSelection()) {
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+                z_min = MINI (z_min, (*its)->getDepth());
+                z_max = MAXI (z_max, (*its)->getDepth());
+            }
+        }
+        else if ( RenderingManager::getInstance()->isValid(current) ) {
+            z_min = z_max = (*current)->getDepth();
+        }
     }
 
-    // Compute bounding depths of every sources
-    double z_min = 10000, z_max = -10000;
-    for(SourceSet::iterator  its = beginning; its != end; its++) {
-        z_min = MINI (z_min, (*its)->getDepth());
-        z_max = MAXI (z_max, (*its)->getDepth());
+    // Compute bounding depths of every sources if not already done
+    if (z_max < 0) {
+        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+            z_min = MINI (z_min, (*its)->getDepth());
+            z_max = MAXI (z_max, (*its)->getDepth());
+        }
     }
 
     // focus on the first
-    setZoom	( z_max - 1.0);
+    setZoom	( z_max );
 
     // change lookat distance to cover the range max-min
     setPanning(DEFAULT_PANNING);

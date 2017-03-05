@@ -94,8 +94,6 @@ private:
 
     // limbo area (where sources are in standy)
     double limboSize;
-//    bool _modeScaleLimbo;
-//    bool _modeMoveCircle;
 
     // Special action modes
     typedef enum {

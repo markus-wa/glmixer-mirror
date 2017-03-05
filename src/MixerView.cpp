@@ -838,27 +838,41 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
         return;
     }
 
+    SourceSet::iterator current = RenderingManager::getInstance()->getCurrentSource();
+    double x_min = std::numeric_limits<double>::max();
+    double x_max = -std::numeric_limits<double>::max();
+    double y_min = std::numeric_limits<double>::max();
+    double y_max = -std::numeric_limits<double>::max();
+
     // 0. consider either the list of clicked sources, either the full list
-    SourceSet::iterator beginning, end;
-    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-        beginning = end = RenderingManager::getInstance()->getCurrentSource();
-        end++;
-    } else {
-        beginning = RenderingManager::getInstance()->getBegin();
-        end = RenderingManager::getInstance()->getEnd();
+    if (onlyClickedSource) {
+
+        if (SelectionManager::getInstance()->hasSelection()) {
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+                // get alpha coordinates
+                x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
+                x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
+                y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
+                y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
+            }
+        }
+        else if ( RenderingManager::getInstance()->isValid(current) ) {
+            x_min = (*current)->getAlphaX() - SOURCE_UNIT * (*current)->getAspectRatio();
+            x_max = (*current)->getAlphaX() + SOURCE_UNIT * (*current)->getAspectRatio();
+            y_min = (*current)->getAlphaY() - SOURCE_UNIT ;
+            y_max = (*current)->getAlphaY() + SOURCE_UNIT ;
+        }
     }
 
-    // 1. compute bounding box of every sources to consider
-    double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
-    for(SourceSet::iterator  its = beginning; its != end; its++) {
-        // ignore standby sources
-        if ((*its)->isStandby())
-            continue;
-        // get alpha coordinates
-        x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
-        x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
-        y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
-        y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
+    // 1. Compute bounding depths of every sources if not already done
+    if (x_max < -maxpanx) {
+        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+            // get alpha coordinates
+            x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
+            x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
+            y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
+            y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
+        }
     }
 
     // 2. Apply the panning to the new center
