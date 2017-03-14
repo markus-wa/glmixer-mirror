@@ -1212,7 +1212,7 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string/>
+                 <string>Set time</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton {
@@ -5337,8 +5337,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

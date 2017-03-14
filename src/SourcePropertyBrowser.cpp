@@ -916,6 +916,15 @@ public:
             infoManager->setValue(idToProperty["Duration"], getStringFromTime(vf->getDuration()) );
             addProperty(idToProperty["Duration"]);
 
+            // Duration
+            property = infoManager->addProperty( QLatin1String("Frames") );
+            property->setToolTip("Number of frames in the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Frames"], QString::number(vf->getNumFrames()) );
+            addProperty(idToProperty["Frames"]);
+
             // interlacing
             property = infoManager->addProperty( QLatin1String("Interlaced") );
             property->setToolTip("Is the source encoded with interlaced frames?");
