@@ -880,6 +880,15 @@ public:
             idToProperty["File name"]->setToolTip(vf->getFileName());
             addProperty(idToProperty["File name"]);
 
+            // File Location
+            property = infoManager->addProperty( QLatin1String("File path") );
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["File path"], videoFileInfo.absolutePath() );
+            idToProperty["File path"]->setToolTip(vf->getFileName());
+            addProperty(idToProperty["File path"]);
+
             // File size
             property = infoManager->addProperty( QLatin1String("File size") );
             property->setToolTip("Size of the file on disk.");
