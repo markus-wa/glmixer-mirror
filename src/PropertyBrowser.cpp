@@ -1,10 +1,8 @@
 #include "PropertyBrowser.moc"
 
-#include <QPair>
-#include <QVBoxLayout>
-#include <QScrollArea>
-#include <QMenu>
-#include <QDebug>
+
+#include <QtGui>
+
 #include <QtTreePropertyBrowser>
 #include <QtButtonPropertyBrowser>
 #include <QtGroupBoxPropertyBrowser>
@@ -27,7 +25,6 @@
 #include <QtCheckBoxFactory>
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
-#include <QDesktopServices>
 
 
 PropertyBrowser::PropertyBrowser(QWidget *parent) :
@@ -122,10 +119,14 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     openUrlAction = new QAction(QObject::tr("Show file in browser"), this);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(showReferenceURL() ) );
 
+    copyClipboardAction = new QAction(QObject::tr("Copy text"), this);
+    QObject::connect(copyClipboardAction, SIGNAL(triggered()), this, SLOT(copyPropertyText() ) );
+
     // Actions of the Tree Context Menu
     menuTree.addAction(defaultValueAction);
     menuTree.addAction(resetAction);
     menuTree.addAction(openUrlAction);
+    menuTree.addAction(copyClipboardAction);
 
     // TODO : expand and collapse with another mean than context menu
 //    menuTree.addSeparator();
@@ -160,6 +161,14 @@ void PropertyBrowser::showReferenceURL(){
 
     if (referenceURL.isValid())
         QDesktopServices::openUrl(referenceURL);
+
+}
+
+void PropertyBrowser::copyPropertyText(){
+
+    QtProperty *property = propertyTreeEditor->currentItem()->property();
+    if ( property->hasValue() )
+        QApplication::clipboard()->setText( property->valueText() );
 
 }
 

@@ -50,6 +50,7 @@ public slots:
     void setHeaderVisible(bool);
     void setReferenceURL(QUrl u = QUrl());
     void showReferenceURL();
+    void copyPropertyText();
 
     // Context menu actions
     virtual void ctxMenuTree(const QPoint &);
@@ -106,7 +107,7 @@ protected:
     // context menus
     QUrl referenceURL;
     QMenu menuTree;
-    QAction *resetAction, *defaultValueAction, *openUrlAction;
+    QAction *resetAction, *defaultValueAction, *openUrlAction, *copyClipboardAction;
     bool displayPropertyTree;
 };
 
