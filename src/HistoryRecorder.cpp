@@ -5,27 +5,35 @@
 HistoryRecorder::HistoryRecorder(QObject *parent) : QObject(parent)
 {
     // connect recorder to all source events
-    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+    for (SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
         connect(*its, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(storeEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
     }
 
+
+    _timer.start();
+
+    // void event for the beginning
+    _history.append(0, History::Event());
 }
 
 HistoryRecorder::~HistoryRecorder()
 {
-    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
-        (*its)->disconnect(this);
-    }
-
     // empty the list
     _history.clear();
 }
 
 
-HistoryManager::EventMap HistoryRecorder::getEvents()
+History HistoryRecorder::stop()
 {
+    for (SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+        (*its)->disconnect(this);
+    }
+
+    // void event for the beginning
+    _history.append(_timer.elapsed(), History::Event());
+
     return _history;
 }
 
@@ -38,11 +46,7 @@ void HistoryRecorder::storeEvent(QString signature, QVariantPair arg1, QVariantP
     if (sender_object) {
 
         // keep time of the event (only even numbers)
-        qint64 t = 0;
-        if (_history.empty())
-            _timer.start();
-        else
-            t = _timer.elapsed();
+        qint64 t = _timer.elapsed();
         t += t%2;
 
         // get meta object of the object sending this slot
@@ -59,10 +63,10 @@ void HistoryRecorder::storeEvent(QString signature, QVariantPair arg1, QVariantP
         arguments << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << arg7;
 
         // create an object storing this method call
-        HistoryManager::Event newcall(sender_object, method, arguments );
+        History::Event newcall(sender_object, method, arguments );
 
         // remember the event in the history
-        _history.insert(t, newcall);
+        _history.append(t, newcall);
 
 
 #ifdef DEBUG_HISTORY

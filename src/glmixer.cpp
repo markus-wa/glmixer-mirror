@@ -146,7 +146,7 @@ void GLMixer::deleteInstance() {
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), selectedSourceVideoFile(NULL),
-    refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true),
+    /*refreshTimingTimer(0),*/ _displayTimeAsFrame(false), _restoreLastSession(true),
     _saveExitSession(true), _disableOutputWhenRecord(false)
 {
     setupUi ( this );
@@ -573,13 +573,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
 
-    // a Timer to update sliders and counters
-    frameSlider->setTracking(true);
-    refreshTimingTimer = new QTimer(this);
-    Q_CHECK_PTR(refreshTimingTimer);
-    refreshTimingTimer->setInterval(150);
-    QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
-    QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
+    // Setup the timeline
+    timeline->setLabelFont(getMonospaceFont(), 7);
+    QObject::connect(markInButton, SIGNAL(clicked()), timeline, SLOT(setBeginToCurrent()));
+    QObject::connect(markOutButton, SIGNAL(clicked()), timeline, SLOT(setEndToCurrent()));
+    QObject::connect(resetMarkInButton, SIGNAL(clicked()), timeline, SLOT(setBeginToMinimum()));
+    QObject::connect(resetMarkOutButton, SIGNAL(clicked()), timeline, SLOT(setEndToMaximum()));
     frameForwardButton->setHidden(true);
 
     // start with new file
@@ -593,7 +592,6 @@ GLMixer::~GLMixer()
     delete mfd;
     delete sfd;
     delete upd;
-    delete refreshTimingTimer;
     delete mixingToolBox;
     delete outputpreview;
 
@@ -614,7 +612,7 @@ void GLMixer::closeEvent(QCloseEvent * event ){
     if (_saveExitSession && !currentSessionFileName.isEmpty())
         on_actionSave_Session_triggered();
 
-    refreshTimingTimer->stop();
+//    refreshTimingTimer->stop();
 
     mixingToolBox->close();
     outputpreview->close();
@@ -660,15 +658,6 @@ void GLMixer::keyReleaseEvent(QKeyEvent * event) {
     else
         QMainWindow::keyReleaseEvent(event);
 
-}
-
-
-void GLMixer::updateRefreshTimerState(){
-
-    if (selectedSourceVideoFile && /*!selectedSourceVideoFile->isPaused() &&*/ selectedSourceVideoFile->isRunning() && vcontrolDockWidget->isVisible() )
-        refreshTimingTimer->start();
-    else
-        refreshTimingTimer->stop();
 }
 
 void GLMixer::on_actionFormats_and_Codecs_triggered(){
@@ -1150,9 +1139,16 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(playSpeedChanged(double)), playSpeedDisplay, SLOT(display(double)) );
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(playSpeedFactorChanged(int)), playSpeedSlider, SLOT(setValue(int)) );
-        QObject::disconnect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
-        QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
+//        QObject::disconnect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
+//        QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(seekEnabled(bool)), this, SLOT(enableSeek(bool)));
+
+        // timeline
+        QObject::disconnect(selectedSourceVideoFile, SIGNAL(timeChanged(double)), timeline, SLOT(setValue(double)));
+        QObject::disconnect(selectedSourceVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
+        QObject::disconnect(timeline, SIGNAL(beginChanged(double)), selectedSourceVideoFile, SLOT(setMarkIn(double)) );
+        QObject::disconnect(timeline, SIGNAL(endChanged(double)), selectedSourceVideoFile, SLOT(setMarkOut(double)) );
+        timeline->reset();
 
         // disconnect control buttons
         QObject::disconnect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
@@ -1164,13 +1160,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
         QObject::disconnect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
         QObject::disconnect(videoLoopButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setLoop(bool)));
-        QObject::disconnect(markInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkIn()));
-        QObject::disconnect(markOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkOut()));
-        QObject::disconnect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
-        QObject::disconnect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
 
         // stop update of the GUI
-        refreshTimingTimer->stop();
+//        refreshTimingTimer->stop();
 
         // clear video file control
         selectedSourceVideoFile = NULL;
@@ -1246,6 +1238,20 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     playSpeedSlider->setValue(selectedSourceVideoFile->getPlaySpeedFactor());
                     playSpeedDisplay->display(selectedSourceVideoFile->getPlaySpeed());
 
+                    // timeline
+                    timeline->setMinimum(selectedSourceVideoFile->getBegin());
+                    timeline->setMaximum(selectedSourceVideoFile->getEnd());
+                    timeline->setStep(selectedSourceVideoFile->getFrameDuration());
+                    timeline->setRange(qMakePair(selectedSourceVideoFile->getMarkIn(), selectedSourceVideoFile->getMarkOut()));
+                    timeline->setValue(selectedSourceVideoFile->getCurrentFrameTime());
+
+                    // timeline
+                    QObject::connect(selectedSourceVideoFile, SIGNAL(timeChanged(double)), timeline, SLOT(setValue(double)));
+                    QObject::connect(selectedSourceVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
+                    QObject::connect(timeline, SIGNAL(beginChanged(double)), selectedSourceVideoFile, SLOT(setMarkIn(double)) );
+                    QObject::connect(timeline, SIGNAL(endChanged(double)), selectedSourceVideoFile, SLOT(setMarkOut(double)) );
+                    QObject::connect(timeline, SIGNAL(valueRequested(double)), selectedSourceVideoFile, SLOT(seekToPosition(double)) );
+
                     // CONTROL signals from GUI to VideoFile
                     QObject::connect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
                     QObject::connect(playSpeedSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeedFactor(int)));
@@ -1256,10 +1262,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     QObject::connect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
                     QObject::connect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
                     QObject::connect(videoLoopButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setLoop(bool)));
-                    QObject::connect(markInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkIn()));
-                    QObject::connect(markOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkOut()));
-                    QObject::connect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
-                    QObject::connect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
+
 
                     // DISPLAY consistency from VideoFile to GUI
 //                    QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
@@ -1270,8 +1273,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     QObject::connect(selectedSourceVideoFile, SIGNAL(playSpeedFactorChanged(int)), playSpeedSlider, SLOT(setValue(int)) );
 
                     // Consistency and update timer control from VideoFile
-                    QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
-                    QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
+//                    QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
+//                    QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
                     QObject::connect(selectedSourceVideoFile, SIGNAL(seekEnabled(bool)), this, SLOT(enableSeek(bool)));
 
                 } // end video file
@@ -1297,9 +1300,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
     // update gui content from timings
     refreshTiming();
-    updateMarks();
-    // restart slider timer if necessary
-    updateRefreshTimerState();
     // update the status (enabled / disabled) of source control actions
     updateStatusControlActions();
 
@@ -1776,35 +1776,15 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 
 }
 
-
-void GLMixer::on_markInSlider_sliderReleased (){
-
-    double percent = (double)(markInSlider->value())/(double)frameSlider->maximum();
-    double pos = selectedSourceVideoFile->getDuration() * percent ;
-    pos += selectedSourceVideoFile->getBegin();
-    selectedSourceVideoFile->setMarkIn(pos);
-}
-
-void GLMixer::on_markOutSlider_sliderReleased (){
-
-    double percent = (double)(markOutSlider->value())/(double)frameSlider->maximum();
-    double pos =  selectedSourceVideoFile->getDuration() * percent ;
-    pos += selectedSourceVideoFile->getBegin();
-    selectedSourceVideoFile->setMarkOut(pos);
-}
-
 void GLMixer::refreshTiming(){
 
     // reset to zero if no video file
     if (!selectedSourceVideoFile) {
-        frameSlider->setValue(0);
         timeLineEdit->setText( "" );
         return;
     }
 
     double t = selectedSourceVideoFile->getCurrentFrameTime();
-    int f_percent = (int) ( ( t - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
-    frameSlider->setValue(f_percent);
 
     if (_displayTimeAsFrame)
         timeLineEdit->setText( QString("Frame %1").arg((int) (t * selectedSourceVideoFile->getFrameRate())) );
@@ -1822,26 +1802,26 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
     if (a == QAbstractSlider::SliderMove) {
 
         // compute where we should jump to
-        double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
-        double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
+//        double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
+//        double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
 
-        // limit within marks of video file
-        if ( pos > selectedSourceVideoFile->getMarkOut() )
-            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
+//        // limit within marks of video file
+//        if ( pos > selectedSourceVideoFile->getMarkOut() )
+//            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
 
-        else if ( pos < selectedSourceVideoFile->getMarkIn())
-            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
+//        else if ( pos < selectedSourceVideoFile->getMarkIn())
+//            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
 
-        pos = qBound(selectedSourceVideoFile->getMarkIn(), pos, selectedSourceVideoFile->getMarkOut());
+//        pos = qBound(selectedSourceVideoFile->getMarkIn(), pos, selectedSourceVideoFile->getMarkOut());
 
-        // request seek ; we need to have the VideoFile process running to go there
-        selectedSourceVideoFile->seekToPosition(pos);
+//        // request seek ; we need to have the VideoFile process running to go there
+//        selectedSourceVideoFile->seekToPosition(pos);
 
-        // show the time of the frame (refreshTiming disabled)
-        if (_displayTimeAsFrame)
-            timeLineEdit->setText( QString("Frame %1").arg((int) (pos * selectedSourceVideoFile->getFrameRate())) );
-        else
-            timeLineEdit->setText( getStringFromTime(pos) );
+//        // show the time of the frame (refreshTiming disabled)
+//        if (_displayTimeAsFrame)
+//            timeLineEdit->setText( QString("Frame %1").arg((int) (pos * selectedSourceVideoFile->getFrameRate())) );
+//        else
+//            timeLineEdit->setText( getStringFromTime(pos) );
 
     }
 
@@ -1853,7 +1833,7 @@ void  GLMixer::on_frameSlider_sliderPressed (){
         return;
 
     // do not update slider position automatically anymore ; this interferes with user input
-    refreshTimingTimer->stop();
+//    refreshTimingTimer->stop();
 
     // disconnect the button from the VideoFile signal ; this way when we will unpause (see below), the button will keep its state
     QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
@@ -1872,7 +1852,7 @@ void  GLMixer::on_frameSlider_sliderReleased (){
     QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 
     // restart the refresh timer if it should be
-    updateRefreshTimerState();
+//    updateRefreshTimerState(); // timeline ?
 
 }
 
@@ -1909,37 +1889,6 @@ void GLMixer::on_fastForwardButton_released(){
 
     if (selectedSourceVideoFile)
         selectedSourceVideoFile->setFastForward(false);
-}
-
-
-void GLMixer::updateMarks (){
-
-    if (!vcontrolDockWidget->isVisible())
-        return;
-
-    int i_percent = 0;
-    int o_percent = (double)frameSlider->maximum();
-
-    if (selectedSourceVideoFile){
-        // adjust the marking sliders according to the source marks in and out
-        i_percent = (int) ( (double)( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
-        o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
-
-        if (_displayTimeAsFrame) {
-            markInSlider->setToolTip( tr("Begin: %1").arg((int) (selectedSourceVideoFile->getMarkIn() * selectedSourceVideoFile->getFrameRate())) );
-            markOutSlider->setToolTip( tr("End: %1").arg((int) (selectedSourceVideoFile->getMarkOut() * selectedSourceVideoFile->getFrameRate())) );
-        } else {
-            markInSlider->setToolTip( tr("Begin: ") + getStringFromTime(selectedSourceVideoFile->getMarkIn()) );
-            markOutSlider->setToolTip( tr("End: ") + getStringFromTime(selectedSourceVideoFile->getMarkOut()) );
-        }
-
-    }
-
-    markInSlider->setValue(i_percent);
-    markOutSlider->setValue(o_percent);
-
-    // update property for marks in / out
-    emit sourceMarksModified(_displayTimeAsFrame);
 }
 
 
@@ -3255,19 +3204,18 @@ void GLMixer::startButton_toogled(bool on) {
         (*cs)->play(on);
         // update gui content from timings
         refreshTiming();
-        updateRefreshTimerState();
+//        updateRefreshTimerState(); // timeline ?
     }
 
 }
 
 void GLMixer::on_actionSourcePlay_triggered(){
 
-    // toggle play/stop of current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs))
         (*cs)->play(!(*cs)->isPlaying());
 
-    // loop over the selection and toggle play/stop of each source (but the current source already toggled)
+    // loop over the selection and toggle play/stop of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs)
             (*its)->play(!(*its)->isPlaying());
@@ -3280,7 +3228,7 @@ void GLMixer::on_actionSourceRestart_triggered(){
     if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
         selectedSourceVideoFile->seekBegin();
 
-    // loop over the selection and apply action of each source (but the current source already done)
+    // loop over the selection and apply action of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
@@ -3295,7 +3243,7 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
     if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
         selectedSourceVideoFile->seekBackward();
 
-    // loop over the selection and apply action of each source (but the current source already done)
+    // loop over the selection and apply action of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
@@ -3312,7 +3260,7 @@ void GLMixer::on_actionSourcePause_triggered(){
     if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
         selectedSourceVideoFile->pause(!selectedSourceVideoFile->isPaused());
 
-    // loop over the selection and toggle pause/resume of each source (but the current source already toggled)
+    // loop over the selection and toggle pause/resume of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
@@ -3328,7 +3276,7 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
     if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
         selectedSourceVideoFile->seekForward();
 
-    // loop over the selection and apply action of each source (but the current source already done)
+    // loop over the selection and apply action of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();

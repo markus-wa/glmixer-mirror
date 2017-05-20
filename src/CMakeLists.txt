@@ -84,6 +84,7 @@ SET(GLMIXER_SRCS
     VideoStreamDialog.cpp
     SizeSelectionWidget.cpp
     WorkspaceManager.cpp
+    TimelineSlider.cpp
 )
 
 
@@ -234,7 +235,9 @@ if(USE_HISTORY_MANAGEMENT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_HISTORY" ) # make QtCreator happy
     add_definitions(-DGLM_HISTORY)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        History.cpp
         HistoryManager.cpp
+        HistoryPlayer.cpp
         HistoryRecorder.cpp
         HistoryManagerWidget.cpp
         HistoryRecorderWidget.cpp

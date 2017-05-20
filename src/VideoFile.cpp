@@ -960,6 +960,7 @@ void VideoFile::video_refresh_timer()
             // ask to show the current picture (and to delete it when done)
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
+            emit timeChanged(current_frame_pts);
 
             //            fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
 

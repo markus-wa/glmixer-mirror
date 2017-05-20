@@ -352,12 +352,6 @@ public:
         return mark_in;
     }
     /**
-     * Set the IN mark time ; this is the time in the video where the playback will restart or loop.
-     *
-     * @param t Mark IN time, in stream time base (usually frame number).
-     */
-    void setMarkIn(double  t);
-    /**
      * Get the time when the OUT mark was set
      *
      * @return Mark OUT time, in stream time base (usually frame number).
@@ -365,20 +359,6 @@ public:
     inline double  getMarkOut() const {
         return mark_out;
     }
-    /**
-     * Set the OUT mark time ; this is the time in the video at which the playback will end (pause) or loop.
-     *
-     * @param t Mark OUT time, in stream time base (usually frame number).
-     */
-    void setMarkOut(double  t);
-    /**
-     * Requests a seek (jump) into the video to the time t.
-     *
-     * Does nothing if the process is not running (started) or already seeking.
-     *
-     * @param t Time where to jump to, in stream time base (usually frame number). t shall be > 0 and < getEnd().
-     */
-    void seekToPosition(double  t);
     /**
      * Requests a seek (jump) into the video by a given amount of seconds.
      *
@@ -420,6 +400,7 @@ signals:
      * @param id the argument is the id of the VideoPicture to read.
      */
     void frameReady(VideoPicture *);
+    void timeChanged(double);
     /**
      * Signal emmited when started or stopped;
      *
@@ -515,11 +496,23 @@ public slots:
         setMarkOut(getEnd());
     }
     /**
+     * Set the IN mark time ; this is the time in the video where the playback will restart or loop.
+     *
+     * @param t Mark IN time, in stream time base (usually frame number).
+     */
+    void setMarkIn(double  t);
+    /**
      * Set the IN mark to the current frame.
      */
     inline void setMarkIn() {
         setMarkIn(getCurrentFrameTime());
     }
+    /**
+     * Set the OUT mark time ; this is the time in the video at which the playback will end (pause) or loop.
+     *
+     * @param t Mark OUT time, in stream time base (usually frame number).
+     */
+    void setMarkOut(double  t);
     /**
      * Set the OUT mark to the current frame.
      */
@@ -570,6 +563,14 @@ public slots:
      *
      */
     inline void resetPlaySpeed() { setPlaySpeedFactor(100);}
+    /**
+     * Requests a seek (jump) into the video to the time t.
+     *
+     * Does nothing if the process is not running (started) or already seeking.
+     *
+     * @param t Time where to jump to, in stream time base (usually frame number). t shall be > 0 and < getEnd().
+     */
+    void seekToPosition(double  t);
     /**
      * Seek backward of SEEK_STEP percent of the movie duration.
      * Does nothing if the process is not running (started).

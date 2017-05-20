@@ -1147,7 +1147,7 @@ QToolButton:hover {
             <bool>true</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1194,7 +1194,7 @@ QToolButton:hover {
                  <bool>true</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1268,7 +1268,7 @@ QToolButton:hover {
                  <bool>true</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1345,7 +1345,7 @@ QToolButton:hover {
                  <bool>true</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1382,257 +1382,23 @@ QToolButton:hover {
               </item>
              </layout>
             </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <property name="spacing">
-               <number>2</number>
-              </property>
-              <property name="leftMargin">
-               <number>2</number>
-              </property>
-              <property name="rightMargin">
-               <number>2</number>
-              </property>
-              <item>
-               <widget class="QSlider" name="frameSlider">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Current position</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
-border: 1px solid  palette(dark);
-background: transparent;
-height: 0px;
-}
-
-QSlider::handle:horizontal {
-image: url(:/glmixer/icons/media-playback-start.png);
-background: palette(midlight);
-border: 1px solid palette(shadow);
-border-radius: 10px;
-width: 18px;
-margin-top: -10px;
-margin-bottom: -10px;
-}
-
-QSlider::handle:horizontal:hover {
-background: qradialgradient(cx: 0.5, cy: 0.5, fx: 0.5, fy: 0.5, radius: 0.6, stop: 0 palette(highlight), stop: 1 palette(midlight) );
-}
-
-QSlider::handle:horizontal:disabled {
-background:  palette(window);
-border: 1px solid palette(dark);
-}
-
-QSlider::groove:horizontal:disabled {
-border-color: palette(dark);
-}
-</string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>1000</number>
-                </property>
-                <property name="pageStep">
-                 <number>100</number>
-                </property>
-                <property name="tracking">
-                 <bool>false</bool>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSlider" name="markInSlider">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Position of the begin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
-border: 1px solid lightgray;
-background: transparent;
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::sub-page:horizontal {
-background: transparent;
-border: 1px solid palette(dark);
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::add-page:horizontal {
-background: palette(midlight);
-border: 1px solid palette(dark);
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::handle:horizontal {
-image: url(:/glmixer/icons/media-in.png);
-background: transparent;
-border: 0px solid;
-width: 16px;
-margin-top: -7px;
-margin-bottom: -7px;
-}
-
-QSlider::handle:horizontal:hover {
-background: qradialgradient(cx: 0.5, cy: 0.5, fx: 0.5, fy: 0.5, radius: 0.6, stop: 0 palette(highlight), stop: 1 transparent );
-}
-
-QSlider::sub-page:horizontal:disabled {
-background: palette(window);
-border-color: palette(dark);
-}
-
-QSlider::add-page:horizontal:disabled {
-background: palette(window);
-border-color: palette(dark);
-}
-</string>
-                </property>
-                <property name="maximum">
-                 <number>1000</number>
-                </property>
-                <property name="value">
-                 <number>0</number>
-                </property>
-                <property name="tracking">
-                 <bool>true</bool>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSlider" name="markOutSlider">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Position of the end&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
-border: 1px solid lightgray;
-background: transparent;
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::add-page:horizontal {
-background: transparent;
-border: 1px solid palette(dark);
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::sub-page:horizontal {
-background: palette(midlight);
-border: 1px solid palette(dark);
-height: 4px;
-border-radius: 3px;
-}
-
-QSlider::handle:horizontal {
-image: url(:/glmixer/icons/media-out.png);
-background: transparent;
-border: 0px solid;
-width: 16px;
-margin-top: -7px;
-margin-bottom: -7px;
-}
-
-QSlider::handle:horizontal:hover {
-background: qradialgradient(cx: 0.5, cy: 0.5, fx: 0.5, fy: 0.5, radius: 0.6, stop: 0 palette(highlight), stop: 1 transparent );
-}
-
-QSlider::sub-page:horizontal:disabled {
-background: palette(window);
-border-color: palette(dark);
-}
-
-QSlider::add-page:horizontal:disabled {
-background: palette(window);
-border-color: palette(dark);
-}
-s</string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>1000</number>
-                </property>
-                <property name="value">
-                 <number>1000</number>
-                </property>
-                <property name="tracking">
-                 <bool>true</bool>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-                <property name="tickInterval">
-                 <number>200</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
            </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="TimelineSlider" name="timeline">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
           </widget>
          </item>
          <item>
@@ -4859,7 +4625,7 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+     <normaloff>:/glmixer/icons/media-playback-playstop.png</normaloff>:/glmixer/icons/media-playback-playstop.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Play / Stop</string>
@@ -4904,7 +4670,7 @@ Shortcut:                         Ctrl + Tab</string>
   <action name="actionSourcePause">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-playback-pause.png</normaloff>:/glmixer/icons/media-playback-pause.png</iconset>
+     <normaloff>:/glmixer/icons/media-playback-playpause.png</normaloff>:/glmixer/icons/media-playback-playpause.png</iconset>
    </property>
    <property name="text">
     <string>Pa&amp;use / Resume</string>
@@ -5334,6 +5100,12 @@ Shortcut:                         Ctrl + Tab</string>
    <slots>
     <slot>changeUpdatePeriod(int)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>TimelineSlider</class>
+   <extends>QFrame</extends>
+   <header>TimelineSlider.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

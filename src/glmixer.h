@@ -74,8 +74,6 @@ public slots:
     void on_actionEditSource_triggered();
     void on_actionFormats_and_Codecs_triggered();
     void on_actionOpenGL_extensions_triggered();
-    void on_markInSlider_sliderReleased();
-    void on_markOutSlider_sliderReleased();
     void on_frameForwardButton_clicked();
     void on_fastForwardButton_pressed();
     void on_fastForwardButton_released();
@@ -116,8 +114,6 @@ public slots:
     void setTool(QAction *a);
     void setCursor(QAction *a);
     void setAspectRatio(QAction *a);
-    void updateRefreshTimerState();
-    void updateMarks();
     void enableSeek(bool);
     void refreshTiming();
     void newSession();
@@ -164,7 +160,6 @@ public slots:
 #endif
 
 signals:
-    void sourceMarksModified(bool);
     void sessionLoaded();
     void keyPressed(int, bool);
 
@@ -206,7 +201,7 @@ private:
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
 
-    QTimer *refreshTimingTimer;
+//    QTimer *refreshTimingTimer;
     bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
 

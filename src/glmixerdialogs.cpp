@@ -239,7 +239,7 @@ QString getStringFromTime(double time)
     int h = s / 3600;
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
-    int ds = (int) (time * 100.0);
+    int ds = (int) qRound(time * 100.0);
     return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
 }
 

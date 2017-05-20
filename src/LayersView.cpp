@@ -643,7 +643,7 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
     }
 
     // focus on the first
-    setZoom	( z_max );
+    setZoom	( z_max + 1.0);
 
     // change lookat distance to cover the range max-min
     setPanning(DEFAULT_PANNING);

@@ -4,8 +4,9 @@
 #include <QWidget>
 #include <QTreeWidget>
 
-#include "HistoryManager.h"
+#include "HistoryPlayer.h"
 #include "HistoryRecorder.h"
+#include "HistoryManager.h"
 #include "HistoryManagerWidget.h"
 
 namespace Ui {
@@ -30,6 +31,7 @@ private:
 
     HistoryManagerWidget *_editor;
     HistoryRecorder *_recorder;
+    HistoryPlayer *_player;
 };
 
 #endif // HISTORYRECORDER_H

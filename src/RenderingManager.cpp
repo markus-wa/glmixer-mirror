@@ -1185,6 +1185,7 @@ bool RenderingManager::_insertSource(Source *s)
             }
             else
                 qCritical() << tr("Not enough space to insert the source into the stack (%1).").arg(_front_sources.size());
+
         }
         else
             qCritical() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);

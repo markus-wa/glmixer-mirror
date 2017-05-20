@@ -22,7 +22,7 @@ public:
     explicit HistoryRecorder(QObject *parent = 0);
     virtual ~HistoryRecorder();
 
-    HistoryManager::EventMap getEvents();
+    History stop();
 
 signals:
 
@@ -33,7 +33,7 @@ public slots:
 
 
 private:
-    HistoryManager::EventMap _history;
+    History _history;
     QElapsedTimer _timer;
 };
 

@@ -56,7 +56,7 @@ void HistoryRecorderWidget::on_recordButton_toggled(bool on)
 
         // append recorded events to manager
         HistoryManager *manager = new HistoryManager;
-        manager->appendEvents(_recorder->getEvents());
+        manager->setHistory(_recorder->stop());
 
         // store manager in item
         recordItem->setData(0, Qt::UserRole, QVariant::fromValue(manager) );
