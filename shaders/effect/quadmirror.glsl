@@ -1,7 +1,7 @@
 // https://www.shadertoy.com/view/lly3zd
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-	vec2 uv = fragCoord.xy / iResolution.xy;
+        vec2 uv = fragCoord.xy / iResolution.xy;
     uv.y -= 0.5;
     uv.x -= 0.5;
     vec2 uv2 = uv * 2.;
@@ -30,5 +30,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     if (doFlipY == 1.0)
         uv2.y = 1.0 - uv2.y;
 
-    fragColor = mix(texture2D(iChannel0, uv2),vec4(0.0,0.0,0.0,0.0), 0.);
+    fragColor = mix(texture(iChannel0, uv2),vec4(0.0,0.0,0.0,0.0), 0.);
 }

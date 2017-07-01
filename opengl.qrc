@@ -29,5 +29,6 @@
         <file>shaders/source/star nest.glsl</file>
         <file>shaders/source/voronoi distance.glsl</file>
         <file>shaders/source/fireball.glsl</file>
+        <file>shaders/source/baba.glsl</file>
     </qresource>
 </RCC>

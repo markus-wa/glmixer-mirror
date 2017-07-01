@@ -1,9 +1,14 @@
 
 #include "FreeFrameFragmentCodePlugin.h"
 
+const char *fragmentDeclarationCode = "vec4 texture(in sampler2D c, in vec2 uv, in float bias = 0.0) {"
+        "return texture2D(c, uv * vec2(1.0, -1.0), bias);"
+        "}\0";
+
 const char *fragmentMainCode = "\nvoid main(void){\n"
-                               "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
-                               "}\0";
+        "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
+        "}\0";
+
 const char *emptyString = " \0";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,19 +170,16 @@ FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 
         glBegin(GL_QUADS);
         //lower left
-        glTexCoord2d(0.0, 0.0);
-        glVertex2f(-1,-1);
-
-        //upper left
         glTexCoord2d(0.0, 1.0);
+        glVertex2f(-1,-1);
+        //upper left
+        glTexCoord2d(0.0, 0.0);
         glVertex2f(-1,1);
-
         //upper right
-        glTexCoord2d(1.0, 1.0);
-        glVertex2f(1,1);
-
-        //lower right
         glTexCoord2d(1.0, 0.0);
+        glVertex2f(1,1);
+        //lower right
+        glTexCoord2d(1.0, 1.0);
         glVertex2f(1,-1);
         glEnd();
     glEndList();
@@ -268,7 +270,6 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // disable shader program
         glUseProgram(0);
 
-        char fragLog[4096];
         char progLog[4096];
         infologLength = 0;
 
@@ -278,8 +279,9 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         if (!fragmentShaderCode)
             setFragmentProgramCode(fragmentShaderDefaultCode);
 
-        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+strlen(fragmentMainCode)+2));
-        strcpy(fsc, fragmentShaderHeader);
+        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentDeclarationCode) + strlen(fragmentShaderHeader) + strlen(fragmentShaderCode) + strlen(fragmentMainCode) + 2));
+        strcpy(fsc, fragmentDeclarationCode);
+        strcat(fsc, fragmentShaderHeader);
         strcat(fsc, "\n");
         strcat(fsc, fragmentShaderCode);
         // Main function
@@ -288,14 +290,12 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, (const GLchar **) &fsc, NULL);
         glCompileShader(fragmentShader);
-        glGetShaderInfoLog(fragmentShader, 4096, &infologLength, fragLog);
+        glGetShaderInfoLog(fragmentShader, 8192, &infologLength, infoLog);
 
         shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
         glGetProgramInfoLog(shaderProgram, 4096, &infologLength, progLog);
-
-        sprintf(infoLog, "%s\n%s", fragLog, progLog);
 
         // use the shader program
         glUseProgram(shaderProgram);

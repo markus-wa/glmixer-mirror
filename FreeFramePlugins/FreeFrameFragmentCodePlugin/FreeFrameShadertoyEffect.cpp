@@ -12,7 +12,7 @@ const char *fragmentShaderHeaderEffect =  "uniform vec3      iResolution;       
 
 const char *fragmentShaderDefaultCodeEffect = "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n"
         "\tvec2 uv = fragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tfragColor = texture2D(iChannel0, uv);\n"
+        "\tfragColor = texture(iChannel0, uv);\n"
         "}\0";
 
 

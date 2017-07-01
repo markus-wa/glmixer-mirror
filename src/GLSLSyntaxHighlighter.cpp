@@ -201,6 +201,7 @@ GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
     glslFunc.append("texture1DProj");
     glslFunc.append("texture1DLod");
     glslFunc.append("texture1DProjLod");
+    glslFunc.append("texture");
     glslFunc.append("texture2D");
     glslFunc.append("texture2DProj");
     glslFunc.append("texture2DLod");

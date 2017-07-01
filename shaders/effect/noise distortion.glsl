@@ -115,9 +115,9 @@ const float sc1t = 1.0 /scalDivt;
 const float sc2t = sc1t/scalDivt;
 const float sc3t = sc2t/scalDivt;
 float FBM(vec3 v) {
-	return 1.   *0.5    * snoise(v*vec3(sc3, sc3, sc3t)) + 
-		   0.4  *0.25   * snoise(v*vec3(sc2, sc2, sc2t)) + 
-		   0.15 *0.125  * snoise(v*vec3(sc1, sc1, sc1t));
+        return 1.   *0.5    * snoise(v*vec3(sc3, sc3, sc3t)) +
+                   0.4  *0.25   * snoise(v*vec3(sc2, sc2, sc2t)) +
+                   0.15 *0.125  * snoise(v*vec3(sc1, sc1, sc1t));
 }
 
 
@@ -134,7 +134,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
    vec2 uv = (vec2(iResolution.x-fragCoord.x, fragCoord.y) / iResolution.xy) * (1. - 2.*zoom) + vec2(zoom, zoom);
    float niceNoise1 = FBM( vec3(80.0 * uv, speed * 60.*iGlobalTime));
    float niceNoise2 = FBM( vec3(80.0 * uv, speed * 62.*iGlobalTime + 300.));
-   fragColor = texture2D(iChannel0, uv + vec2(magn*0.2*niceNoise1,magn*0.21*niceNoise2) );
+   fragColor = texture(iChannel0, uv + vec2(magn*0.2*niceNoise1,magn*0.21*niceNoise2) );
 }
 
 

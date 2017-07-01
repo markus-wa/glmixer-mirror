@@ -15,8 +15,8 @@ bool tri(const vec2 p1, const vec2 p2, const vec2 p3, const vec2 p)
        ((p2.y - p3.y)*(p1.x - p3.x) + (p3.x - p2.x)*(p1.y - p3.y));
 
     float gamma = 1.0 - alpha - beta;
-    
-    return (alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0);      
+
+    return (alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0);
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
@@ -25,7 +25,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 norm = cell.xy / cellSize;
     vec2 res = vec2(0.0, 0.0);
     float bright = 1.0;
-    
+
     //1
     if (tri(vec2(0.0,0.0), vec2(1.0,0.0), vec2(0.5,0.125), norm)) {res = vec2(0.5, -0.125); bright = light;}
     //2
@@ -46,14 +46,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     else if (tri(vec2(1.0,1.0), vec2(0.5,0.875), vec2(0.5,0.5), norm)) {res = vec2(0.5, 0.875); bright = dark;}
     //8
     else if (tri(vec2(0.0,1.0), vec2(1.0,1.0), vec2(0.5,0.875), norm)) {res = vec2(0.5, 0.875); bright = light;}
-        
+
     fragColor = vec4(0.0,0.0,0.0,0.0);
     for(float i = -1.5; i<1.5; i+=1.0)
     {
         for (float j = -1.5; j<1.5; j+=1.0)
         {
-            fragColor += clamp(texture2D(
-                iChannel0, 
+            fragColor += clamp(texture(
+                iChannel0,
                 vec2(
                     ((floor(fragCoord.x/cellSize.x)+res.x)*cellSize.x+i)/iChannelResolution[0].x,
                     ((floor(fragCoord.y/cellSize.y)+res.y)*cellSize.y+j)/iChannelResolution[0].y
@@ -62,5 +62,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         }
     }
     fragColor = clamp(fragColor / 9.0, 0.0, 1.0);
-    
+
 }
