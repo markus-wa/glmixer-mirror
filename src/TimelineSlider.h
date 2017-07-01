@@ -98,6 +98,7 @@ private:
     double step_value;
     double user_value;
     QPair<double,double> range_value;
+    QPair<double,double> range_cursor;
     double mark_value;
     int margin_pixel;
 

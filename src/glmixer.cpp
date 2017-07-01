@@ -1793,69 +1793,6 @@ void GLMixer::refreshTiming(){
 
 }
 
-
-void GLMixer::on_frameSlider_actionTriggered (int a) {
-
-    if (!selectedSourceVideoFile)
-        return;
-
-    if (a == QAbstractSlider::SliderMove) {
-
-        // compute where we should jump to
-//        double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
-//        double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
-
-//        // limit within marks of video file
-//        if ( pos > selectedSourceVideoFile->getMarkOut() )
-//            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
-
-//        else if ( pos < selectedSourceVideoFile->getMarkIn())
-//            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
-
-//        pos = qBound(selectedSourceVideoFile->getMarkIn(), pos, selectedSourceVideoFile->getMarkOut());
-
-//        // request seek ; we need to have the VideoFile process running to go there
-//        selectedSourceVideoFile->seekToPosition(pos);
-
-//        // show the time of the frame (refreshTiming disabled)
-//        if (_displayTimeAsFrame)
-//            timeLineEdit->setText( QString("Frame %1").arg((int) (pos * selectedSourceVideoFile->getFrameRate())) );
-//        else
-//            timeLineEdit->setText( getStringFromTime(pos) );
-
-    }
-
-}
-
-void  GLMixer::on_frameSlider_sliderPressed (){
-
-    if (!selectedSourceVideoFile)
-        return;
-
-    // do not update slider position automatically anymore ; this interferes with user input
-//    refreshTimingTimer->stop();
-
-    // disconnect the button from the VideoFile signal ; this way when we will unpause (see below), the button will keep its state
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // pause because we want to move the slider
-    selectedSourceVideoFile->pause(true);
-
-}
-
-void  GLMixer::on_frameSlider_sliderReleased (){
-
-    // slider moved, frame was displayed, still paused; we un-pause if it was playing.
-    selectedSourceVideoFile->pause(pauseButton->isChecked());
-
-    // reconnect the pause button
-    QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // restart the refresh timer if it should be
-//    updateRefreshTimerState(); // timeline ?
-
-}
-
 void GLMixer::enableSeek (bool on){
 
 //    if (on){

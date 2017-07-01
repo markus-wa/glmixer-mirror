@@ -100,6 +100,8 @@ void TimelineSlider::reset() {
     step_value = 0.2;
     range_value.first = 0.0;
     range_value.second = 1.0;
+    range_cursor.first = 0.0;
+    range_cursor.second = 1.0;
     mark_value = 1.0;
     user_value = -1.0;
     cursor_state = CURSOR_NONE;
@@ -135,6 +137,9 @@ void TimelineSlider::setRange(QPair<double, double> r) {
         r.first = r.second;
     r.first = qBound(min_value, r.first, max_value);
     r.second = qBound(min_value, r.second, max_value);
+
+    // set cursors
+    range_cursor = r;
 
     // round the value by the value step
     qint64 intval_before = (int) qRound64(range_value.first / step_value);
@@ -193,11 +198,11 @@ TimelineSlider::cursor TimelineSlider::mouseOver(QMouseEvent * e)
     if ( e->pos().y() < height()/2 && qAbs( getPosFromVal(cur_value) - e->pos().x()) < GRAB_THRESHOLD ) {
         return CURSOR_CURRENT;
     }
-    else if ( qAbs( getPosFromVal(range_value.first) - e->pos().x()) < GRAB_THRESHOLD ) {
+    else if ( qAbs( getPosFromVal(range_cursor.first) - e->pos().x()) < GRAB_THRESHOLD ) {
 
         return CURSOR_RANGE_MIN;
     }
-    else if ( qAbs( getPosFromVal(range_value.second) - e->pos().x()) < GRAB_THRESHOLD ) {
+    else if ( qAbs( getPosFromVal(range_cursor.second) - e->pos().x()) < GRAB_THRESHOLD ) {
 
         return CURSOR_RANGE_MAX;
     }
@@ -219,13 +224,11 @@ void TimelineSlider::mouseMoveEvent ( QMouseEvent * event )
         break;
     case CURSOR_RANGE_MIN:
         // slider for min position
-        // (will repaint)
-        setBegin( getValFromPos(event->pos().x()));
+        range_cursor.first = getValFromPos(event->pos().x()) ;
         break;
     case CURSOR_RANGE_MAX:
         // slider for max position
-        // (will repaint)
-        setEnd( getValFromPos(event->pos().x()));
+        range_cursor.second = getValFromPos(event->pos().x()) ;
         break;
     default:
     {
@@ -276,9 +279,28 @@ void TimelineSlider::mousePressEvent ( QMouseEvent * event )
 void TimelineSlider::mouseReleaseEvent ( QMouseEvent *event )
 {
     cursor_state = mouseOver(event);
+
+    switch (cursor_state) {
+    case CURSOR_RANGE_MIN:
+        // min position
+        // (will repaint)
+        setBegin( getValFromPos(event->pos().x()) );
+        break;
+    case CURSOR_RANGE_MAX:
+        // max position
+        // (will repaint)
+        setEnd( getValFromPos(event->pos().x()) );
+        break;
+    default:
+    {
+
+    }
+    }
+
     if (cursor_state != CURSOR_OVER)
         cursor_state = CURSOR_NONE;
-    repaint();
+
+//    repaint();
 }
 
 
@@ -333,6 +355,8 @@ void TimelineSlider::drawWidget(QPainter &qp)
     int userPosition = getPosFromVal(user_value);
     int rangeBegin = getPosFromVal( range_value.first );
     int rangeEnd = getPosFromVal( range_value.second );
+    int rangeCursorBegin = getPosFromVal( range_cursor.first );
+    int rangeCursorEnd = getPosFromVal( range_cursor.second );
 
     // compute useful coordinates
     int range_mark_y = draw_area.height() / 2 + RANGE_MARK_HEIGHT;
@@ -437,27 +461,32 @@ void TimelineSlider::drawWidget(QPainter &qp)
 
 
     // Draw range
-    qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(110));
-    qp.setPen(COLOR_RANGE.darker(200));
+    qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(120));
+    qp.setPen(COLOR_RANGE.darker(150));
     qp.drawLine(rangeBegin, HEIGHT_TIME_BAR, rangeBegin, range_mark_y);
     qp.drawLine(rangeEnd, HEIGHT_TIME_BAR, rangeEnd, range_mark_y);
 
-    // draw indicators of begin and end
+    // draw cursor of begin and end
+    qp.setPen(COLOR_RANGE.darker(200));
+    qp.drawLine(rangeCursorBegin, HEIGHT_TIME_BAR, rangeCursorBegin, range_mark_y);
+    qp.drawLine(rangeCursorEnd, HEIGHT_TIME_BAR, rangeCursorEnd, range_mark_y);
     qp.setPen(PEN_MARK);
-    qp.drawPoint(rangeBegin +2, range_mark_y -1);
-    qp.drawPoint(rangeEnd -2, range_mark_y -1);
+    qp.drawPoint(rangeCursorBegin +2, range_mark_y -1);
+    qp.drawPoint(rangeCursorEnd -2, range_mark_y -1);
 
     // compute position begin value
-    QString label_b = TimelineSlider::getStringFromTime( begin() );
-    int pos_text_b = rangeBegin - metrics.width(label_b) -1;
+//    QString label_b = TimelineSlider::getStringFromTime( begin() );
+    QString label_b = TimelineSlider::getStringFromTime( range_cursor.first );
+    int pos_text_b = rangeCursorBegin - metrics.width(label_b) -1;
     if (pos_text_b < 1)
-        pos_text_b = rangeBegin + 5;
+        pos_text_b = rangeCursorBegin + 5;
 
     // compute position end value
-    QString label_e = TimelineSlider::getStringFromTime( end() );
-    int pos_text_e = rangeEnd;
+//    QString label_e = TimelineSlider::getStringFromTime( end() );
+    QString label_e = TimelineSlider::getStringFromTime( range_cursor.second );
+    int pos_text_e = rangeCursorEnd;
     if (pos_text_e + metrics.width(label) > width())
-        pos_text_e = rangeEnd - metrics.width(label_e) - 5;
+        pos_text_e = rangeCursorEnd - metrics.width(label_e) - 5;
 
     qp.setPen(palette().color(QPalette::WindowText));
     // draw both labels if enough space between them

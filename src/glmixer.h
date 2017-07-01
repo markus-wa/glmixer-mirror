@@ -77,9 +77,6 @@ public slots:
     void on_frameForwardButton_clicked();
     void on_fastForwardButton_pressed();
     void on_fastForwardButton_released();
-    void on_frameSlider_sliderPressed();
-    void on_frameSlider_sliderReleased();
-    void on_frameSlider_actionTriggered(int);
     void on_actionAbout_triggered();
     void on_actionWebsite_triggered();
     void on_actionTutorials_triggered();
