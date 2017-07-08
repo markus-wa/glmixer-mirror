@@ -1148,6 +1148,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
         QObject::disconnect(timeline, SIGNAL(beginChanged(double)), selectedSourceVideoFile, SLOT(setMarkIn(double)) );
         QObject::disconnect(timeline, SIGNAL(endChanged(double)), selectedSourceVideoFile, SLOT(setMarkOut(double)) );
+        QObject::disconnect(timeline, SIGNAL(valueRequested(double)), selectedSourceVideoFile, SLOT(seekToPosition(double)) );
         timeline->reset();
 
         // disconnect control buttons

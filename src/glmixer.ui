@@ -594,9 +594,6 @@ border-bottom-left-radius: 5px;
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
-   <property name="toolTip">
-    <string>Controls for video playback of media sources.</string>
-   </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
@@ -5109,8 +5106,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>
