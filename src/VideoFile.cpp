@@ -1605,7 +1605,7 @@ void DecodingThread::run()
                         else {
                             // if loop mode off, stop after this frame
                             actionFrame |= VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK;
-                            pts = is->duration;
+                            pts = is->mark_out;
                         }
                     }
 
