@@ -1310,6 +1310,7 @@ void VideoFile::requestSeek(double time, bool lock)
 
         seek_mutex->lock();
         seek_pos = time;
+
         parsing_mode = VideoFile::SEEKING_PARSING;
         if (lock)
             // wait for the thread to aknowledge the seek request
@@ -1452,6 +1453,7 @@ void DecodingThread::run()
         if (is->parsing_mode == VideoFile::SEEKING_PARSING) {
             // compute dts of seek target from seek position
             seek_target = av_rescale_q(is->seek_pos, (AVRational){1, 1}, is->video_st->time_base);
+
         }
         is->seek_cond->wakeAll();
         is->seek_mutex->unlock();
@@ -1467,6 +1469,8 @@ void DecodingThread::run()
                 qDebug() << is->filename << QChar(124).toLatin1()
                          << QObject::tr("Could not seek to frame (%1).").arg(is->seek_pos);
             }
+
+            previous_dts = seek_target;
 
             // flush buffers after seek
             avcodec_flush_buffers(is->video_st->codec);
@@ -1533,7 +1537,6 @@ void DecodingThread::run()
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
-                previous_dts = dts;
                 dts = 0;
 
                  if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
@@ -1544,8 +1547,11 @@ void DecodingThread::run()
                         dts = previous_dts + 1;
                  }
 
-                // compute presentation time stamp
-                pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
+                 previous_dts = dts;
+                 // compute presentation time stamp
+                 pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
+
+//                qDebug() << " dts " << dts << " pts " << pts << " out " << is->mark_out;
 
                 // if seeking in decoded frames
                 if (is->parsing_mode == VideoFile::SEEKING_DECODING) {
@@ -1597,7 +1603,7 @@ void DecodingThread::run()
                     }
 
                     // test if time will exceed one of the limits
-                    if ( !(pts < is->mark_out) || !(pts < lastpts)  )
+                    if ( !(pts < is->mark_out) || !(pts < is->getEnd() ) || !(pts < lastpts)  )
                     {
 
                         // react according to loop mode
@@ -1632,6 +1638,7 @@ void DecodingThread::run()
         if (eof) {
 
             is->requestSeek(is->mark_in);
+            previous_dts = 0;
 
             // react according to loop mode
             if ( !is->loop_video )
