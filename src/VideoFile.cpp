@@ -1429,6 +1429,7 @@ void DecodingThread::run()
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
+    int64_t previous_dts = 0; // Previous decoding time stamp (checking for continuity)
     int error_count = 0;
     bool eof = false;
 
@@ -1444,7 +1445,6 @@ void DecodingThread::run()
 
         // free packet every time
         av_free_packet(&packet);
-        av_init_packet(&packet);
 
         // seek stuff goes here
         int64_t seek_target = AV_NOPTS_VALUE;
@@ -1502,8 +1502,9 @@ void DecodingThread::run()
         if ( packet.stream_index == is->videoStream ) {
 
             // remember packet pts in case the decoding looses it
-            if (packet.pts >= 0 && packet.pts != AV_NOPTS_VALUE)
-                is->video_st->codec->reordered_opaque = packet.pts;
+            if (packet.dts >= 0 && packet.dts != AV_NOPTS_VALUE) {
+                is->video_st->codec->reordered_opaque = packet.dts;
+            }
 
             frameFinished = 0;
 
@@ -1532,14 +1533,16 @@ void DecodingThread::run()
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
+                previous_dts = dts;
                 dts = 0;
 
                  if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
                     dts = _pFrame->pkt_pts;
-                 else if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE)
+                 else if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE) {
                     dts = _pFrame->reordered_opaque;
-                else
-                    dts = _pFrame->pkt_dts;
+                    if (dts < previous_dts)
+                        dts = previous_dts + 1;
+                 }
 
                 // compute presentation time stamp
                 pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
