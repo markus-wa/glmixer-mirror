@@ -20,6 +20,10 @@ TimelineSlider::TimelineSlider(QWidget *parent) :
     RANGE_MARK_HEIGHT = 25;
     draw_area = QRect(margin_pixel, 0, size().width() - margin_pixel * 2, size().height());
 
+    overlayFont = font();
+    labelFont.setPointSize(9);
+    overlayFont.setBold(true);
+    overlayFont.setItalic(true);
     labelFont = font();
     labelFont.setPointSize(7);
     setFont(labelFont);
@@ -94,6 +98,7 @@ double TimelineSlider::getValFromPos(int p)
 }
 
 void TimelineSlider::reset() {
+    speed = 1.0;
     cur_value = 0.0;
     min_value = 0.0;
     max_value = 1.0;
@@ -520,7 +525,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
         qp.drawText(pos_text_b, range_mark_y - 2, label_b);
 
     // draw duration information
-    QString label_d = TimelineSlider::getStringFromTime( range_cursor.second - range_cursor.first );
+    QString label_d = TimelineSlider::getStringFromTime( (range_cursor.second - range_cursor.first) / speed );
 
     QFontMetrics overlayFontMetrics(overlayFont);
     if ( rangeEnd - rangeBegin > overlayFontMetrics.width(label_d)) {

@@ -59,6 +59,7 @@ public slots:
     void setEndToMaximum();
     void setBeginToCurrent();
     void setEndToCurrent();
+    void setSpeed(double s) { speed = s; }
 
 signals:
     void valueRequested(double);
@@ -110,6 +111,7 @@ private:
     QRect  draw_area;
     QFont labelFont;
     QFont overlayFont;
+    double speed;
 };
 
 #endif // TIMELINESLIDER_H
