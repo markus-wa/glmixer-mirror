@@ -109,6 +109,7 @@ private:
     int RANGE_MARK_HEIGHT;
     QRect  draw_area;
     QFont labelFont;
+    QFont overlayFont;
 };
 
 #endif // TIMELINESLIDER_H

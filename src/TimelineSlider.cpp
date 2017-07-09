@@ -345,8 +345,13 @@ void TimelineSlider::paintEvent(QPaintEvent *e) {
 
 void TimelineSlider::setLabelFont(const QString &fontFamily, int pointSize)
 {
+    overlayFont = QFont(fontFamily, pointSize + 2);
+    overlayFont.setBold(true);
+    overlayFont.setItalic(true);
+
     labelFont = QFont(fontFamily, pointSize);
     setFont(labelFont);
+
 }
 
 void TimelineSlider::drawWidget(QPainter &qp)
@@ -379,10 +384,8 @@ void TimelineSlider::drawWidget(QPainter &qp)
 
     // draw marks and text
     qp.setPen(palette().color(QPalette::WindowText));
-//    labelFont = font();
-//    labelFont.setPointSize(7);
-    setFont(labelFont);
-    QFontMetrics metrics(labelFont);
+    qp.setFont(labelFont);
+    QFontMetrics labelFontMetrics(labelFont);
 
     double t = min_value;
     int pos = zero_x;
@@ -397,7 +400,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
 
         // create label and compute its pixel width
         QString label = TimelineSlider::getStringFromTime( t );
-        int width_text = metrics.width(label) / 2;
+        int width_text = labelFontMetrics.width(label) / 2;
 
         // draw mark and label if enough space
         if ( pos - width_text > lastpos + width_text )
@@ -405,7 +408,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
             qp.drawLine(pos, HEIGHT_TIME_BAR, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT);
 
             // display discard label for borders
-            if (pos - width_text + metrics.width(label) < draw_area.right() - 3 )
+            if (pos - width_text + labelFontMetrics.width(label) < draw_area.right() - 3 )
                 qp.drawText(pos - width_text, DISTANCE_MARK_TEXT, label);
 
             // remember last drawn label
@@ -441,7 +444,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     // draw last value
     pos = getPosFromVal(max_value);
     QString label = TimelineSlider::getStringFromTime( max_value );
-    int width_text = metrics.width(label) / 2;
+    int width_text = labelFontMetrics.width(label) / 2;
     qp.setPen(palette().color(QPalette::WindowText));
     qp.drawLine(pos, HEIGHT_TIME_BAR + LINE_MARK_LENGHT, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT );
     qp.drawText(pos - width_text, DISTANCE_MARK_TEXT, label);
@@ -449,7 +452,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     // show cursor value
     // current value
     label = TimelineSlider::getStringFromTime( cur_value );
-    int pos_text = currentPosition - metrics.width(label) / 2;
+    int pos_text = currentPosition - labelFontMetrics.width(label) / 2;
 
     // draw position cursor
     qp.setPen(PEN_MARK);
@@ -467,7 +470,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     qp.drawPath(myPath);
 
     // draw area for cursor text
-    qp.fillRect(pos_text - 2, 0, metrics.width(label) + 4, HEIGHT_TIME_BAR - 4, COLOR_MARK);
+    qp.fillRect(pos_text - 2, 0, labelFontMetrics.width(label) + 4, HEIGHT_TIME_BAR - 4, COLOR_MARK);
 
     // draw text on top
     qp.setPen(palette().color(QPalette::HighlightedText));
@@ -476,8 +479,8 @@ void TimelineSlider::drawWidget(QPainter &qp)
 
 
     // Draw range
-    qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(120));
-    qp.setPen(COLOR_RANGE.darker(150));
+    qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(150));
+    qp.setPen(COLOR_RANGE.darker(170));
     qp.drawLine(rangeBegin, HEIGHT_TIME_BAR, rangeBegin, range_mark_y);
     qp.drawLine(rangeEnd, HEIGHT_TIME_BAR, rangeEnd, range_mark_y);
 
@@ -492,7 +495,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     // compute position begin value
 //    QString label_b = TimelineSlider::getStringFromTime( begin() );
     QString label_b = TimelineSlider::getStringFromTime( range_cursor.first );
-    int pos_text_b = rangeCursorBegin - metrics.width(label_b) -1;
+    int pos_text_b = rangeCursorBegin - labelFontMetrics.width(label_b) -1;
     if (pos_text_b < 1)
         pos_text_b = rangeCursorBegin + 5;
 
@@ -500,12 +503,12 @@ void TimelineSlider::drawWidget(QPainter &qp)
 //    QString label_e = TimelineSlider::getStringFromTime( end() );
     QString label_e = TimelineSlider::getStringFromTime( range_cursor.second );
     int pos_text_e = rangeCursorEnd;
-    if (pos_text_e + metrics.width(label) > width())
-        pos_text_e = rangeCursorEnd - metrics.width(label_e) - 5;
+    if (pos_text_e + labelFontMetrics.width(label) > width())
+        pos_text_e = rangeCursorEnd - labelFontMetrics.width(label_e) - 5;
 
     qp.setPen(palette().color(QPalette::WindowText));
     // draw both labels if enough space between them
-    if ( qAbs(pos_text_b - pos_text_e) > metrics.width(label_e)  ) {
+    if ( qAbs(pos_text_b - pos_text_e) > labelFontMetrics.width(label_e)  ) {
         qp.drawText(pos_text_e, range_mark_y - 2, label_e);
         qp.drawText(pos_text_b, range_mark_y - 2, label_b);
     }
@@ -515,6 +518,17 @@ void TimelineSlider::drawWidget(QPainter &qp)
     }
     else
         qp.drawText(pos_text_b, range_mark_y - 2, label_b);
+
+    // draw duration information
+    QString label_d = TimelineSlider::getStringFromTime( range_cursor.second - range_cursor.first );
+
+    QFontMetrics overlayFontMetrics(overlayFont);
+    if ( rangeEnd - rangeBegin > overlayFontMetrics.width(label_d)) {
+        int pos_text_d = rangeBegin + (rangeEnd - rangeBegin) / 2 - overlayFontMetrics.width(label_d)/2;
+        qp.setFont(overlayFont);
+        qp.setPen(Qt::white);
+        qp.drawText(pos_text_d, range_mark_y - (RANGE_MARK_HEIGHT/2) + overlayFontMetrics.height()/2, label_d);
+    }
 
     // draw mouse over cursor value
 //    if (cursor_state == CURSOR_OVER)
