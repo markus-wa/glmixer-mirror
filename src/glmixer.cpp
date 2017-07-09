@@ -276,8 +276,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
     // create menu for the Workspace Manager selection actions
-    QAction *sep = menuWorkspace->insertSeparator(actionWorkspaceIncrement);
-    menuWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getActions() );
+    menuWorkspace->insertActions(actionWorkspaceIncrement, WorkspaceManager::getInstance()->getActions() );
+
+    toolButtonWorkspaceExclusive->setDefaultAction(actionWorkspaceExclusive);
 
     // create tool buttons in main view
     foreach(QToolButton *b,  WorkspaceManager::getInstance()->getButtons()){
@@ -286,7 +287,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     }
 
     // create menu for current source workspace actions
-    sep = menuSendToWorkspace->insertSeparator(actionNewWorkspace);
+    QAction *sep = menuSendToWorkspace->insertSeparator(actionNewWorkspace);
     menuSendToWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getSourceActions());
 
     // Workspace Management
@@ -295,6 +296,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
     QObject::connect(actionWorkspaceDecrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(decrementCount()));
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
+    QObject::connect(actionWorkspaceExclusive, SIGNAL(toggled(bool)), WorkspaceManager::getInstance(), SLOT(setExclusiveDisplay(bool)));
     // special behavior when adding workspace
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when increment
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setWorkspaceCurrentSource())); // move current source to latest when creating new

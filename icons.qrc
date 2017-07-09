@@ -188,5 +188,6 @@
         <file>icons/media-bidirection.png</file>
         <file>icons/media-playback-playstop.png</file>
         <file>icons/media-playback-playpause.png</file>
+        <file>icons/workspace_3_on.png</file>
     </qresource>
 </RCC>

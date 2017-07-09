@@ -22,6 +22,7 @@ public:
 
     int current() const;
     int count() const { return _count; }
+    bool isExclusiveDisplay() { return _exclusive; }
 
     QList<QAction *> getActions() const { return _actions->actions(); }
     QList<QToolButton *> getButtons() const { return _buttons; }
@@ -37,6 +38,7 @@ public slots:
     void incrementCount();
     void decrementCount();
     void setCurrent(int n = WORKSPACE_MAX);
+    void setExclusiveDisplay(bool on) { _exclusive = on; }
 
     void onWorkspaceAction(QAction *a);
     void onSourceWorkspaceAction(QAction *a);
@@ -49,7 +51,7 @@ private:
     QActionGroup *_actions;
     QActionGroup *_sourceActions;
     QList<QToolButton *> _buttons;
-
+    bool _exclusive;
 };
 
 #endif // WORKSPACEMANAGER_H

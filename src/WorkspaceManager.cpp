@@ -17,7 +17,7 @@ WorkspaceManager *WorkspaceManager::getInstance() {
 }
 
 
-WorkspaceManager::WorkspaceManager() : QObject(), _count(0), _actions(0), _sourceActions(0)
+WorkspaceManager::WorkspaceManager() : QObject(), _count(0), _actions(0), _sourceActions(0), _exclusive(false)
 {
     // create action list with N workspaces
     _actions = new QActionGroup(this);
@@ -32,7 +32,7 @@ WorkspaceManager::WorkspaceManager() : QObject(), _count(0), _actions(0), _sourc
         a->setCheckable(true);
         a->setData(i);
 
-        QAction *sa = _sourceActions->addAction(icon, QString(" %1").arg(i+1));
+        QAction *sa = _sourceActions->addAction(icon, QString("Workspace %1").arg(i+1));
         sa->setCheckable(true);
         sa->setData(i);
 

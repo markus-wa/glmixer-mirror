@@ -234,7 +234,7 @@ void MixerView::paint()
 
         }
         // Shadow draw in other workspace
-        else {
+        else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
 
             // set shadow color and alpha
             ViewRenderWidget::program->setUniformValue( _baseColor, s->getColor().darker(WORKSPACE_COLOR_SHIFT));

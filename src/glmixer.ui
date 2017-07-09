@@ -148,6 +148,24 @@ QToolButton:hover {
         </spacer>
        </item>
        <item>
+        <widget class="QToolButton" name="toolButtonWorkspaceExclusive">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/workspace_3_on.png</normaloff>
+           <normalon>:/glmixer/icons/workspace_3.png</normalon>:/glmixer/icons/workspace_3_on.png</iconset>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QFrame" name="workspacesFrame">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1692,6 +1710,8 @@ Uncheck to display the restart frame when stopped.</string>
      </property>
      <addaction name="actionWorkspaceIncrement"/>
      <addaction name="actionWorkspaceDecrement"/>
+     <addaction name="separator"/>
+     <addaction name="actionWorkspaceExclusive"/>
     </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -5079,6 +5099,22 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Op&amp;en Sound Control</string>
+   </property>
+  </action>
+  <action name="actionWorkspaceExclusive">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_3.png</normaloff>
+     <normalon>:/glmixer/icons/workspace_3_on.png</normalon>:/glmixer/icons/workspace_3.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Exclusive Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Show exclusively the sources in the current workspace</string>
    </property>
   </action>
  </widget>

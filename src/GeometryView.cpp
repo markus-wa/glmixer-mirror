@@ -125,28 +125,35 @@ void GeometryView::paint()
 
         // test workspace
         if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
-            // draw shadow version of the source
-            ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
+            // Draw source in canvas if not exclusive display
+            if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+                // draw shadow version of the source
+                ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
+                s->draw();
+            }
         }
-
+        else
         // Draw source in canvas
-        s->draw();
+            s->draw();
 
         // done geometry
         glPopMatrix();
 
     }
 
-    // Re-Draw frame buffer in the render window
-    // With correct rendering on top of the different workspaces
-    ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
-    glPushMatrix();
-    glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
-    glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glCallList(ViewRenderWidget::vertex_array_coords);
-    glDrawArrays(GL_QUADS, 0, 4);
-    glPopMatrix();
+
+    if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        // Re-Draw frame buffer in the render window
+        // With correct rendering on top of the different workspaces
+        ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
+        glPushMatrix();
+        glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
+        glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glCallList(ViewRenderWidget::vertex_array_coords);
+        glDrawArrays(GL_QUADS, 0, 4);
+        glPopMatrix();
+    }
 
     // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
@@ -170,6 +177,10 @@ void GeometryView::paint()
         int alpha = 200;
         QColor c = s->getTag()->getColor();
         if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
+
+            if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
+                continue;
+
             border_workspace = 3;
             alpha = (float) alpha * WORKSPACE_MAX_ALPHA;
             c = c.darker(WORKSPACE_COLOR_SHIFT);
