@@ -2,9 +2,7 @@
 #define GLMIXERDIALOGS_H
 
 #include <QtGui>
-
-#include "SourcePropertyBrowser.h"
-#include "SourceDisplayWidget.h"
+#include "Source.h"
 
 QString getStringFromTime(double time);
 double getTimeFromString(QString line);
@@ -46,16 +44,15 @@ public:
 class SourceFileEditDialog: public QDialog {
 
     Source *s;
-    PropertyBrowser *specificSourcePropertyBrowser;
-    SourceDisplayWidget *sourcedisplay;
+    class PropertyBrowser *specificSourcePropertyBrowser;
+    class SourceDisplayWidget *sourcedisplay;
+#ifdef GLM_FFGL
+    class FFGLPluginBrowser *pluginBrowser;
+#endif
 
 public:
-
     SourceFileEditDialog(QWidget *parent, Source *source, QString caption);
-    ~SourceFileEditDialog() {
-        delete specificSourcePropertyBrowser;
-        delete sourcedisplay;
-    }
+    ~SourceFileEditDialog();
     QSize sizeHint() const {
         return QSize(400, 500);
     }

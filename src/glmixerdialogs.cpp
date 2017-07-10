@@ -1,7 +1,11 @@
 #include "glmixerdialogs.moc"
 
 #include "RenderingManager.h"
-
+#include "SourcePropertyBrowser.h"
+#include "SourceDisplayWidget.h"
+#ifdef GLM_FFGL
+#include "FFGLPluginBrowser.h"
+#endif
 
 int CaptureDialog::getWidth()
 {
@@ -141,6 +145,7 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     QVBoxLayout *verticalLayout;
     QDialogButtonBox *DecisionButtonBox;
+    QTabWidget *tabs;
 
     setObjectName(QString::fromUtf8("SourceEditDialog"));
     setWindowTitle(caption);
@@ -151,18 +156,44 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     sourcedisplay = new SourceDisplayWidget(this, SourceDisplayWidget::GRID);
     sourcedisplay->setMinimumSize(QSize(160, 100));
-    sourcedisplay->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-
+    sourcedisplay->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     sourcedisplay->setSource(s);
     verticalLayout->addWidget(sourcedisplay);
 
     specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser(s, this);
     specificSourcePropertyBrowser->setDisplayPropertyTree(false);
     specificSourcePropertyBrowser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+
+#ifdef GLM_FFGL
+    if (s->getFreeframeGLPluginStack()->empty()) {
+        verticalLayout->addWidget(specificSourcePropertyBrowser);
+    }
+    else {
+        // show effects if there are plugins
+        sourcedisplay->setEffectsEnabled(true);
+        // create plugin browser
+        pluginBrowser = new FFGLPluginBrowser(this);
+        pluginBrowser->setDisplayPropertyTree(false);
+        pluginBrowser->showProperties( s->getFreeframeGLPluginStack() );
+        // show two tabs
+        tabs = new QTabWidget(this);
+        tabs->addTab(new QWidget(), "Source");
+        tabs->addTab(new QWidget(), "Plugins");
+        verticalLayout->addWidget(tabs);
+        QVBoxLayout *tabLayout = new QVBoxLayout(this);
+        tabLayout = new QVBoxLayout(this);
+        tabLayout->addWidget(specificSourcePropertyBrowser);
+        tabs->widget(0)->setLayout(tabLayout);
+        tabLayout = new QVBoxLayout(this);
+        tabLayout->addWidget(pluginBrowser);
+        tabs->widget(1)->setLayout(tabLayout);
+    }
+#else
     verticalLayout->addWidget(specificSourcePropertyBrowser);
+#endif
 
     DecisionButtonBox = new QDialogButtonBox(this);
-    DecisionButtonBox->setStandardButtons(QDialogButtonBox::Ok);
+    DecisionButtonBox->addButton("Done", QDialogButtonBox::AcceptRole);
     DecisionButtonBox->addButton("Replace by another source", QDialogButtonBox::RejectRole);
     verticalLayout->addWidget(DecisionButtonBox);
 
@@ -171,7 +202,13 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), parent, SLOT(replaceCurrentSource()));
 }
 
-
+SourceFileEditDialog::~SourceFileEditDialog() {
+    delete specificSourcePropertyBrowser;
+    delete sourcedisplay;
+#ifdef GLM_FFGL
+    delete pluginBrowser;
+#endif
+}
 
 
 void setupAboutDialog(QDialog *AboutGLMixer)
