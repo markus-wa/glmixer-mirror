@@ -1703,7 +1703,7 @@ void GLMixer::on_actionEditSource_triggered()
         sed.exec();
 
         // update the property browser of the source
-        connectSource(cs);
+        connectSource(RenderingManager::getInstance()->getCurrentSource());
     }
 }
 
