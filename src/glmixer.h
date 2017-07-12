@@ -198,7 +198,6 @@ private:
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
 
-//    QTimer *refreshTimingTimer;
     bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
 
