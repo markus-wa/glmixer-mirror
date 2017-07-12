@@ -62,7 +62,7 @@ void ProtoSource::_setGeometry(double px, double py, double sx, double sy, doubl
     if (ry < std::numeric_limits<double>::max())
         centery = ry;
     if (a < std::numeric_limits<double>::max())
-        rotangle = a;
+        rotangle = a ; //fmod(a + 3600.0, 360.0);
 }
 
 void ProtoSource::_setFixedAspectRatio(bool on) {
