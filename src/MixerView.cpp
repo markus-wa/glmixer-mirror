@@ -292,7 +292,11 @@ void MixerView::paint()
 
         // check if the sources are in the current view
         int w = selectionMap.begin()->second->getWorkspace();
-        float a = 0.8f * (WorkspaceManager::getInstance()->current() == w ? 1.0 : WORKSPACE_MAX_ALPHA);
+        float a = 0.8f;
+        if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() )
+            a *= (WorkspaceManager::getInstance()->current() == w ? 1.0 : WORKSPACE_MAX_ALPHA);
+        else
+            continue;
 
         // use color of the group
         glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), a);
