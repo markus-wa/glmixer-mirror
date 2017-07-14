@@ -914,6 +914,7 @@ void VideoFile::video_refresh_timer()
         // NB: if paused BUT the first pict in the queue is tagged for ACTION_RESET_PTS, then still proceed
         if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
         {
+
             // now working on the head of the queue, that we take off the queue
             currentvp = pictq.dequeue();
 
@@ -925,6 +926,7 @@ void VideoFile::video_refresh_timer()
             // by informing it about the new size of the queue
             pictq_cond->wakeAll();
         }
+
         // release lock
         pictq_mutex->unlock();
     }
@@ -1137,6 +1139,9 @@ int VideoFile::getStreamFrameHeight() const
 
 void VideoFile::clean_until_time_picture_queue(double time) {
 
+    if (pictq.empty())
+        return;
+
     if (time < getBegin())
         time = getEnd();
 
@@ -1153,14 +1158,16 @@ void VideoFile::clean_until_time_picture_queue(double time) {
     // found a mark frame in the queue
     if ( pictq.size() > i ) {
         // remove all what is after
-        while ( pictq.size() > i)
+        while ( pictq.size() > i )
             delete pictq.takeLast();
 
-//        // sanity check (but should never be the case)
-//        if (! pictq.empty())
-//            // restart filling in at the last pts of the cleanned queue
-//            requestSeek( pictq.takeLast()->getPts() );
+        // restart filling in at the last pts of the cleanned queue
+        if (! pictq.empty()) // sanity check (but should never be the case)
+        {
+            requestSeek( pictq.last()->getPts() );
+        }
     }
+
     // done with the cleanup
     pictq_mutex->unlock();
 
@@ -1506,9 +1513,8 @@ void DecodingThread::run()
         if ( packet.stream_index == is->videoStream ) {
 
             // remember packet pts in case the decoding looses it
-            if (packet.dts >= 0 && packet.dts != AV_NOPTS_VALUE) {
+            if (packet.dts >= 0 && packet.dts != AV_NOPTS_VALUE)
                 is->video_st->codec->reordered_opaque = packet.dts;
-            }
 
             frameFinished = 0;
 
@@ -1534,24 +1540,23 @@ void DecodingThread::run()
             // No error, but did we get a full video frame?
             if ( frameFinished > 0)
             {
+                // by default, a frame will be displayed
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
                 dts = 0;
-
-                 if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
-                    dts = _pFrame->pkt_pts;
-                 else if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE) {
+                if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
+                    dts = _pFrame->pkt_pts; // good case
+                else if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE) {
+                    // bad case
                     dts = _pFrame->reordered_opaque;
                     if (dts < previous_dts)
                         dts = previous_dts + 1;
-                 }
-
-                 previous_dts = dts;
-                 // compute presentation time stamp
-                 pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
-
-//                qDebug() << " dts " << dts << " pts " << pts << " out " << is->mark_out;
+                }
+                // remember previous dts
+                previous_dts = dts;
+                // compute presentation time stamp
+                pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
 
                 // if seeking in decoded frames
                 if (is->parsing_mode == VideoFile::SEEKING_DECODING) {
@@ -1573,9 +1578,7 @@ void DecodingThread::run()
                         if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
                             // tag the frame as a MARK frame
                             actionFrame |= VideoPicture::ACTION_MARK;
-
                     }
-
                 }
 
                 // if not seeking, queue picture for display
@@ -1598,7 +1601,8 @@ void DecodingThread::run()
                         lastpts = (double) (is->video_st->last_dts_for_order_check) * av_q2d(is->video_st->time_base);
                     }
                     else {
-                        // no end of file detected : will be reached when at last frame dts (1 frame before duration)
+                        // no end of file detected :
+                        // will be reached when at last frame dts (1 frame before duration)
                         lastpts -= is->getFrameDuration() ;
                     }
 
@@ -1618,12 +1622,15 @@ void DecodingThread::run()
                         }
                     }
 
+                }
+
+                // if still not seeking, queue picture for display
+                // (not obvious as seeking might have been requested during wait above)
+                if (is->parsing_mode == VideoFile::SEEKING_NONE)
+                {
                     // add frame to the queue of pictures
                     is->queue_picture(_pFrame, pts, actionFrame);
-
-
-                } // end if (SEEKING_NONE)
-
+                }
 
             } // end if (frameFinished)
 
