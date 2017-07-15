@@ -1593,6 +1593,11 @@ void DecodingThread::run()
                         is->pictq_cond->wait(is->pictq_mutex);
                     is->pictq_mutex->unlock();
 
+                    // ignore frame if seek has been asked while waiting
+                    // (appens when user asks for seek)
+                    if (is->parsing_mode != VideoFile::SEEKING_NONE)
+                        continue;
+
                     // test the end of file
                     double lastpts = is->duration;
                     if (eof && is->video_st->last_dts_for_order_check > 0) {
@@ -1622,15 +1627,10 @@ void DecodingThread::run()
                         }
                     }
 
-                }
-
-                // if still not seeking, queue picture for display
-                // (not obvious as seeking might have been requested during wait above)
-                if (is->parsing_mode == VideoFile::SEEKING_NONE)
-                {
                     // add frame to the queue of pictures
                     is->queue_picture(_pFrame, pts, actionFrame);
                 }
+
 
             } // end if (frameFinished)
 
