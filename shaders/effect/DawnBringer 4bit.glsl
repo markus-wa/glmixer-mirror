@@ -45,5 +45,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 #	undef TRY
 
         best0 = sqrt(best0); best1 = sqrt(best1);
-        fragColor = vec4(mod(c.x + c.y, 2.0) >  (hash(c * 2.0 + fract(sin(vec2(floor(iGlobalTime), floor(iGlobalTime * 1.7))))) * 0.75) + (best1 / (best0 + best1)) ? dst1 : dst0, 1.0);
+        fragColor = vec4(mod(c.x + c.y, 2.0) >  (hash(c * 2.0 + fract(sin(vec2(floor(iTime), floor(iTime * 1.7))))) * 0.75) + (best1 / (best0 + best1)) ? dst1 : dst0, 1.0);
 }

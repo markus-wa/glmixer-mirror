@@ -130,6 +130,8 @@ QString FFGLPluginSourceShadertoy::getLogs()
         }
     }
 
+    c.append(warnings);
+
     return c;
 }
 
@@ -152,7 +154,30 @@ QString FFGLPluginSourceShadertoy::getHeaders()
 }
 
 void FFGLPluginSourceShadertoy::setCode(QString code)
-{
+{    //
+    // Pre-analyse the code to check for potential sources of errors
+    // and generate internal warnings
+    //
+    warnings.clear(); // cleanup warnings
+    int h = getHeaders().count('\n') + 2; // number of lines before code
+
+    // WARNING on the presence of 'texture2D' call
+    int i = code.indexOf("texture2D");
+    if (i > 0)
+        warnings.append( QString("\n(%1) : warning : texture2D deprecated, use 'texture' instead.").arg( h + code.left(i).count('\n')) );
+
+    // WARNING on the presence of 'iMouse' variable
+    i = code.indexOf("iMouse");
+    if (i > 0)
+        warnings.append( QString("\n(%1) : error : iMouse (mouse coordinates in ShaderToy) not implemented.").arg( h + code.left(i).count('\n')) );
+
+    // WARNING on the presence of 'iGlobalTime' variable
+    i = code.indexOf("iGlobalTime");
+    if (i > 0) {
+        warnings.append( QString("\n(%1) : warning : iGlobalTime deprecated, use 'iTime' instead.").arg( h + code.left(i).count('\n')) );
+        code.replace("iGlobalTime", "iTime");
+    }
+
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
@@ -162,6 +187,7 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
             p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.trimmed().toLatin1().data() );
 
     }
+
 }
 
 void FFGLPluginSourceShadertoy::setKey(int key, bool status)

@@ -5,7 +5,7 @@ float circ(vec2 p) {
     float r = length(p);
     r = sqrt(r);
 
-    return abs(8. * r * fract(iGlobalTime));
+    return abs(8. * r * fract(iTime));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )

@@ -51,7 +51,7 @@ float fbm( vec3 p )
 
 vec3 fbm3( vec3 p )
 {
-    if (ANIM) p += iGlobalTime/8.;
+    if (ANIM) p += iTime/8.;
     float fx = fbm(p);
     float fy = fbm(p+vec3(1345.67,0,45.67));
     float fz = fbm(p+vec3(0,4567.8,-123.4));

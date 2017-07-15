@@ -3,7 +3,7 @@
 #include "FreeFrameFragmentCodePlugin.h"
 
 const char *fragmentShaderHeaderEffect =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
-                                    "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
+                                    "uniform float     iTime;                 // shader playback time (in seconds)\n"
                                     "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
                                     "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n"
                                     "uniform int       key[10];               // keyboard [0] to [9] (1 when key down)\n"

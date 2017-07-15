@@ -43,7 +43,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float a = 40.0;
 
 #ifdef ANIMATED
-    float time = iGlobalTime*.2 + .5;
+    float time = iTime*.2 + .5;
     r = .9- .9 *cos(time * 6.283);
 #endif
 

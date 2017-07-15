@@ -24,7 +24,7 @@ void DrawVignette( inout vec3 color, vec2 uv )
 
 void DrawScanline( inout vec3 color, vec2 uv )
 {
-    float scanline 	= clamp( 0.95 + 0.05 * cos( 3.14 * ( uv.y + 0.008 * iGlobalTime ) * 240.0 * 1.0 ), 0.0, 1.0 );
+    float scanline 	= clamp( 0.95 + 0.05 * cos( 3.14 * ( uv.y + 0.008 * iTime ) * 240.0 * 1.0 ), 0.0, 1.0 );
     float grille 	= 0.85 + 0.15 * clamp( 1.5 * cos( 3.14 * uv.x * 640.0 * 1.0 ), 0.0, 1.0 );
     color *= scanline * grille * 1.2;
 }
@@ -36,7 +36,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float resMultY  = floor( iResolution.y / 192.0 );
     float resRcp    = 1.0 / max( min( resMultX, resMultY ), 1.0 );
 
-    float time		= iGlobalTime;
+    float time		= iTime;
     float screenWidth	= floor( iResolution.x * resRcp );
     float screenHeight	= floor( iResolution.y * resRcp );
     float pixelX 	= floor( fragCoord.x * resRcp );

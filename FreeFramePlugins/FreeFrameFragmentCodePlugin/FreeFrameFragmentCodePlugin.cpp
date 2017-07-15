@@ -306,7 +306,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
         if (uniform_viewportsize > -1)
             glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
-        uniform_time = glGetUniformLocation(shaderProgram, "iGlobalTime");
+        uniform_time = glGetUniformLocation(shaderProgram, "iTime");
         uniform_channeltime = glGetUniformLocation(shaderProgram, "iChannelTime[0]");
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
         uniform_keys = glGetUniformLocation(shaderProgram, "key");

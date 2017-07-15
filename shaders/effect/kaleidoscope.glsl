@@ -11,7 +11,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
         vec2 uv = -1.0 + 2.0*fragCoord.xy / iResolution.xy;
 
-        float a = iGlobalTime*0.2;
+        float a = iTime*0.2;
         vec4 color = vec4(0.0);
         for (float i = 1.0; i < 10.0; i += 1.0) {
                 uv = vec2(sin(a)*uv.y - cos(a)*uv.x, sin(a)*uv.x + cos(a)*uv.y);
@@ -31,7 +31,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
         vec2 uv = -1.0 + 2.0*fragCoord.xy / iResolution.xy;
 
-        float a = iGlobalTime*0.2;
+        float a = iTime*0.2;
 
         for (float i = 1.0; i < 10.0; i += 1.0) {
                 uv = vec2(sin(a)*uv.y - cos(a)*uv.x, sin(a)*uv.x + cos(a)*uv.y);

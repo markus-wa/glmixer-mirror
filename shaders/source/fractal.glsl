@@ -3,7 +3,7 @@
 
 float field(in vec3 p) {
 
-	float strength = 7. + .03 * log(1.e-6 + fract(sin(iGlobalTime) * 4373.11));
+	float strength = 7. + .03 * log(1.e-6 + fract(sin(iTime) * 4373.11));
 	float accum = 0.;
 	float prev = 1.;
 	float tw = 0.;
@@ -13,7 +13,7 @@ float field(in vec3 p) {
 		p = abs(p) / mag + vec3(-.5, -.4, -1.5);
 
 		float w = exp(-float(i) / 7.);
-		accum += w * exp(-strength * pow(abs(mag - prev), 2.3)) + 0.0005*sin(10.1*iGlobalTime / 1.6);
+		accum += w * exp(-strength * pow(abs(mag - prev), 2.3)) + 0.0005*sin(10.1*iTime / 1.6);
 
 		tw += w;
 		prev = mag;
@@ -29,7 +29,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
 	vec3 p = vec3(uvs / 4., 0) + vec3(1., -1.3, 0.);
 
-	p += .2 * vec3(sin(iGlobalTime / 76.), sin(iGlobalTime / 62.),  sin(iGlobalTime / 228.));
+	p += .2 * vec3(sin(iTime / 76.), sin(iTime / 62.),  sin(iTime / 228.));
 
 	float t = field(p);
 	float v = (1. - exp((abs(uv.x) - 1.) * 6.)) * (1. - exp((abs(uv.y) - 1.) * 6.));

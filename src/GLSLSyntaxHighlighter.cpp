@@ -55,7 +55,7 @@ GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
     glslkeywords.append("iResolution");
     glslkeywords.append("iChannelResolution");
     glslkeywords.append("iChannel0");
-    glslkeywords.append("iGlobalTime");
+    glslkeywords.append("iTime");
     glslkeywords.append("iChannelTime");
     glslkeywords.append("iDate");
     glslkeywords.append("key");

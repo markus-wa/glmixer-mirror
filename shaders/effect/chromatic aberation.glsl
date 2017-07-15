@@ -9,10 +9,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 #ifdef ANIMATED
     amount = 0.0;
-    amount = (1.0 + sin(iGlobalTime*6.0)) * 0.5;
-    amount *= 1.0 + sin(iGlobalTime*16.0) * 0.5;
-    amount *= 1.0 + sin(iGlobalTime*19.0) * 0.5;
-    amount *= 1.0 + sin(iGlobalTime*27.0) * 0.5;
+    amount = (1.0 + sin(iTime*6.0)) * 0.5;
+    amount *= 1.0 + sin(iTime*16.0) * 0.5;
+    amount *= 1.0 + sin(iTime*19.0) * 0.5;
+    amount *= 1.0 + sin(iTime*27.0) * 0.5;
     amount = pow(amount, 3.0);
     amount *= 0.05;
 #endif

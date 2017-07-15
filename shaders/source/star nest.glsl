@@ -24,7 +24,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec2 uv=fragCoord.xy/iResolution.xy-.5;
         uv.y*=iResolution.y/iResolution.x;
         vec3 dir=vec3(uv*zoom,1.);
-        float time=iGlobalTime*speed+.25;
+        float time=iTime*speed+.25;
 
         //mouse rotation
         vec3 iMouse = iResolution / 2.0;

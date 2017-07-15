@@ -44,7 +44,7 @@ float fbm(vec2 n) {
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     vec2 p = fragCoord.xy / iResolution.xy;
 	vec2 uv = p*vec2(iResolution.x/iResolution.y,1.0);    
-    float time = iGlobalTime * speed;
+    float time = iTime * speed;
     float q = fbm(uv * cloudscale * 0.5);
     
     //ridged noise shape
@@ -74,7 +74,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     
     //noise colour
     float c = 0.0;
-    time = iGlobalTime * speed * 2.0;
+    time = iTime * speed * 2.0;
     uv = p*vec2(iResolution.x/iResolution.y,1.0);
 	uv *= cloudscale*2.0;
     uv -= q - time;
@@ -87,7 +87,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     
     //noise ridge colour
     float c1 = 0.0;
-    time = iGlobalTime * speed * 3.0;
+    time = iTime * speed * 3.0;
     uv = p*vec2(iResolution.x/iResolution.y,1.0);
 	uv *= cloudscale*3.0;
     uv -= q - time;

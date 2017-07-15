@@ -34,7 +34,7 @@ vec3 voronoi( in vec2 x )
         vec2 g = vec2(float(i),float(j));
 		vec2 o = hash( n + g );
 		#ifdef ANIMATE
-        o = 0.5 + 0.5*sin( iGlobalTime + 6.2831*o );
+        o = 0.5 + 0.5*sin( iTime + 6.2831*o );
         #endif	
         vec2 r = g + o - f;
         float d = dot(r,r);
@@ -57,7 +57,7 @@ vec3 voronoi( in vec2 x )
         vec2 g = mg + vec2(float(i),float(j));
 		vec2 o = hash( n + g );
 		#ifdef ANIMATE
-        o = 0.5 + 0.5*sin( iGlobalTime + 6.2831*o );
+        o = 0.5 + 0.5*sin( iTime + 6.2831*o );
         #endif	
         vec2 r = g + o - f;
 

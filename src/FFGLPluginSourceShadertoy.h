@@ -65,6 +65,7 @@ signals:
 private:
 
     static RTTI type;
+    QString warnings;
 };
 
 #endif // FFGLPLUGINSOURCEFACTORY_H
