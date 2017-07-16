@@ -43,6 +43,9 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
     qDebug() << " RenderingManager::getInstance()->getFrameBufferWidth() " << w;
     _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32);
 
+    // clear the image to transparent
+    _rendered.fill(QColor(0,0,0,0));
+
     // render an image from the svg
     QPainter imagePainter(&_rendered);
     if (!imagePainter.isActive())
