@@ -1,5 +1,5 @@
 const int _VolumeSteps = 32;
-const float _StepSize = 0.1; 
+const float _StepSize = 0.1;
 const float _Density = 0.2;
 
 const float _SphereRadius = 2.0;
@@ -43,96 +43,96 @@ float fbm( vec3 p )
     f += 0.2500*noise( p ); p = m*p*2.03;
     f += 0.1250*noise( p ); p = m*p*2.01;
     f += 0.0625*noise( p );
-    //p = m*p*2.02; f += 0.03125*abs(noise( p ));	
+    //p = m*p*2.02; f += 0.03125*abs(noise( p ));
     return f;
 }
 
 // returns signed distance to surface
 float distanceFunc(vec3 p)
-{	
-	float d = length(p) - _SphereRadius;	// distance to sphere
-	
-	// offset distance with pyroclastic noise
-	//p = normalize(p) * _SphereRadius;	// project noise point to sphere surface
-	d += fbm(p*_NoiseFreq + _NoiseAnim*iTime) * _NoiseAmp;
-	return d;
+{
+        float d = length(p) - _SphereRadius;	// distance to sphere
+
+        // offset distance with pyroclastic noise
+        //p = normalize(p) * _SphereRadius;	// project noise point to sphere surface
+        d += fbm(p*_NoiseFreq + _NoiseAnim*iTime) * _NoiseAmp;
+        return d;
 }
 
-// color gradient 
+// color gradient
 // this should be in a 1D texture really
 vec4 gradient(float x)
 {
-	// no constant array initializers allowed in GLES SL!
-	const vec4 c0 = vec4(2, 2, 1, 1);	// yellow
-	const vec4 c1 = vec4(1, 0, 0, 1);	// red
-	const vec4 c2 = vec4(0, 0, 0, 0); 	// black
-	const vec4 c3 = vec4(0, 0.5, 1, 0.5); 	// blue
-	const vec4 c4 = vec4(0, 0, 0, 0); 	// black
-	
-	x = clamp(x, 0.0, 0.999);
-	float t = fract(x*4.0);
-	vec4 c;
-	if (x < 0.25) {
-		c =  mix(c0, c1, t);
-	} else if (x < 0.5) {
-		c = mix(c1, c2, t);
-	} else if (x < 0.75) {
-		c = mix(c2, c3, t);
-	} else {
-		c = mix(c3, c4, t);		
-	}
-	//return vec4(x);
-	//return vec4(t);
-	return c;
+        // no constant array initializers allowed in GLES SL!
+        const vec4 c0 = vec4(2, 2, 1, 1);	// yellow
+        const vec4 c1 = vec4(1, 0, 0, 1);	// red
+        const vec4 c2 = vec4(0, 0, 0, 0); 	// black
+        const vec4 c3 = vec4(0, 0.5, 1, 0.5); 	// blue
+        const vec4 c4 = vec4(0, 0, 0, 0); 	// black
+
+        x = clamp(x, 0.0, 0.999);
+        float t = fract(x*4.0);
+        vec4 c;
+        if (x < 0.25) {
+                c =  mix(c0, c1, t);
+        } else if (x < 0.5) {
+                c = mix(c1, c2, t);
+        } else if (x < 0.75) {
+                c = mix(c2, c3, t);
+        } else {
+                c = mix(c3, c4, t);
+        }
+        //return vec4(x);
+        //return vec4(t);
+        return c;
 }
 
 // shade a point based on distance
 vec4 shade(float d)
-{	
-	// lookup in color gradient
-	return gradient(d);
-	//return mix(vec4(1, 1, 1, 1), vec4(0, 0, 0, 0), smoothstep(1.0, 1.1, d));
+{
+        // lookup in color gradient
+        return gradient(d);
+        //return mix(vec4(1, 1, 1, 1), vec4(0, 0, 0, 0), smoothstep(1.0, 1.1, d));
 }
 
 // procedural volume
 // maps position to color
 vec4 volumeFunc(vec3 p)
 {
-	float d = distanceFunc(p);
-	return shade(d);
+        float d = distanceFunc(p);
+        return shade(d);
 }
 
 // ray march volume from front to back
 // returns color
 vec4 rayMarch(vec3 rayOrigin, vec3 rayStep, out vec3 pos)
 {
-	vec4 sum = vec4(0, 0, 0, 0);
-	pos = rayOrigin;
-	for(int i=0; i<_VolumeSteps; i++) {
-		vec4 col = volumeFunc(pos);
-		col.a *= _Density;
-		//col.a = min(col.a, 1.0);
-		
-		// pre-multiply alpha
-		col.rgb *= col.a;
-		sum = sum + col*(1.0 - sum.a);	
+        vec4 sum = vec4(0, 0, 0, 0);
+        pos = rayOrigin;
+        for(int i=0; i<_VolumeSteps; i++) {
+                vec4 col = volumeFunc(pos);
+                col.a *= _Density;
+                //col.a = min(col.a, 1.0);
+
+                // pre-multiply alpha
+                col.rgb *= col.a;
+                sum = sum + col*(1.0 - sum.a);
 #if 0
-		// exit early if opaque
-        	if (sum.a > _OpacityThreshold)
-            		break;
-#endif		
-		pos += rayStep;
-	}
-	return sum;
+                // exit early if opaque
+                if (sum.a > _OpacityThreshold)
+                        break;
+#endif
+                pos += rayStep;
+        }
+        return sum;
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 p = (fragCoord.xy / iResolution.xy)*2.0-1.0;
     p.x *= iResolution.x/ iResolution.y;
-	vec3 iMouse = iResolution / 2.0;
-    float rotx = (iMouse.y / iResolution.y)*4.0;
-    float roty = -(iMouse.x / iResolution.x)*4.0;
+    vec3 v = iResolution / 2.0;
+    float rotx = (v.y / iResolution.y)*4.0;
+    float roty = -(v.x / iResolution.x)*4.0;
 
     float zoom = 4.0;
 
@@ -144,11 +144,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 rd = normalize( p.x*uu + p.y*vv + 1.5*ww );
 
     ro += rd*2.0;
-	
+
     // volume render
     vec3 hitPos;
     vec4 col = rayMarch(ro, rd*_StepSize, hitPos);
     //vec4 col = gradient(p.x);
-	    
+
     fragColor = col;
 }

@@ -192,13 +192,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 uu = normalize(cross( vec3(0.0,1.0,0.0), ww ));
     vec3 vv = normalize(cross(ww,uu));
     vec2 q = gl_FragCoord.xy / iResolution.xy;
-    vec2 p = -1.0 + 2.0*q;
+    vec2 p = -1.0 + 1.5*q;
     p.x *= iResolution.x/ iResolution.y;
     vec3 cameraDir = normalize( p.x*uu + p.y*vv - 1.5*ww );
 
     //light
-    vec3 iMouse = 2.0 * iResolution / 3.0;
-    vec2 iM = iMouse.xy;
+    vec2 iM = 2.0 * iResolution.xy / 3.0;
     if (iM == vec2(0.)) {
         iM = vec2(iResolution.x*0.7, iResolution.y*0.7); // Default
     }

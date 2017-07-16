@@ -27,9 +27,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         float time=iTime*speed+.25;
 
         //mouse rotation
-        vec3 iMouse = iResolution / 2.0;
-        float a1=.5+iMouse.x/iResolution.x*2.;
-        float a2=.8+iMouse.y/iResolution.y*2.;
+        vec3 c = iResolution / 2.0;
+        float a1=.5+c.x/iResolution.x*2.;
+        float a2=.8+c.y/iResolution.y*2.;
         mat2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
         mat2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
         dir.xz*=rot1;

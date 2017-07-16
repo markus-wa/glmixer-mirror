@@ -159,7 +159,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
         vec2 uv = fragCoord.xy / iResolution.xy;
     uv = ( uv * 2.0 - 1.0 );
     uv.x *= iResolution.x / iResolution.y;
-    float time = iTime * 0.3 ; //+ iMouse.x*0.01;
+    float time = iTime * 0.3 ;
 
     // ray
     vec3 ang = vec3(sin(time*3.0)*0.1,sin(time)*0.2+0.3,time);

@@ -101,11 +101,7 @@ float snoise(vec3 v)
                                 dot(p2,x2), dot(p3,x3) ) );
   }
 
-
-
-
 // FBM / Octave Noise
-
 const float scalDiv = 4.;
 const float scalDivt = 2.1;
 const float sc1 = 1.0/scalDiv;
@@ -121,11 +117,8 @@ float FBM(vec3 v) {
 }
 
 
-//float mouseX = iMouse.x/iResolution.x;
-//float mouseY = iMouse.y/iResolution.y;
-
-float magn = 0.55;  //mouseX;
-float speed = 0.06; //mouseY;
+float magn = 0.55;
+float speed = 0.06;
 
 float zoom = 0.05;
 
