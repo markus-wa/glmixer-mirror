@@ -991,6 +991,9 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 
     }
 
+    if (s)
+        s->update();
+
     return ( (Source *) s );
 }
 #endif
