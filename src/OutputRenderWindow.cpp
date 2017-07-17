@@ -266,6 +266,7 @@ void OutputRenderWindow::setFullScreen(bool on) {
 
             // use geometry from selected desktop for fullscreen
             setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
+            // no reason to repeat the move, but it seems necessary under OSX...
             move(QApplication::desktop()->screenGeometry(fullscreenMonitorIndex).topLeft());
 
             // apply fullscreen
@@ -274,10 +275,10 @@ void OutputRenderWindow::setFullScreen(bool on) {
         }
         else
         {
-//#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
             // it is required to hide the window before in order to avoid the bug of auto-maximization of window
             hide();
-//#endif
+#endif
             // appy normal window state
             setWindowState( Qt::WindowNoState | Qt::WindowActive);
             // use saved & previous window geometry otherwise
