@@ -255,7 +255,13 @@ void GLSLCodeEditorWidget::showLogs()
             stylesheet = "background: rgb(255, 120, 0);";
 
         // go to the first line number given in error message
-        ui->codeTextEdit->gotoline(logs.section('(', 1, 1).section(')', 0, 0).toUInt() -1);
+        // example syntax GLSL (1) : '0(18) : error C0000: syntax error'
+        int linenumber = logs.section('(', 1, 1).section(')', 0, 0).toUInt();
+        if (linenumber < 1)
+            // example syntax GLSL (2): 'ERROR: 0:11: 'uv' : syntax error'
+            linenumber = logs.section(':', 2, 2).section(':', 0, 0).toUInt();
+        if (linenumber > 0)
+            ui->codeTextEdit->gotoline(linenumber -1);
 
     }
 

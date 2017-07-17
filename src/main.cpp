@@ -25,12 +25,17 @@
 #include <QTextCodec>
 
 #include "common.h"
-#include "QLogStream.h"
 #include "glmixer.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #ifdef GLM_SHM
 #include "SharedMemoryManager.h"
+#endif
+
+#ifdef GLM_LOGS
+#ifndef Q_OS_MAC
+#include "QLogStream.h"
+#endif
 #endif
 
 void testRegExp(QString pattern, Qt::CaseSensitivity cs, QRegExp::PatternSyntax syntax,  QString text)
@@ -194,5 +199,3 @@ int main(int argc, char **argv)
 
     return returnvalue;
 }
-
-

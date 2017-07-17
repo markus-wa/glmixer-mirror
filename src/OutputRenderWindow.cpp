@@ -263,22 +263,26 @@ void OutputRenderWindow::setFullScreen(bool on) {
 
         if (on) {
             switching = true;
+
             // use geometry from selected desktop for fullscreen
             setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
+            move(QApplication::desktop()->screenGeometry(fullscreenMonitorIndex).topLeft());
+
             // apply fullscreen
             setWindowState( Qt::WindowNoState | Qt::WindowFullScreen);
             show();
         }
         else
         {
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
             // it is required to hide the window before in order to avoid the bug of auto-maximization of window
             hide();
-#endif
+//#endif
             // appy normal window state
             setWindowState( Qt::WindowNoState | Qt::WindowActive);
             // use saved & previous window geometry otherwise
             setGeometry( windowGeometry );
+
             show();
             switching = false;
         }

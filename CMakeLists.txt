@@ -65,6 +65,9 @@ if( APPLE )
         set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.5;10.6;10.7;10.8;10.9;10.10;10.11;10.12" )
     endif()
 
+    # avoid display all the warnings about OPENGL DEPRECATED
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+
 endif( APPLE )
 
 # avoid stupid cmake warning

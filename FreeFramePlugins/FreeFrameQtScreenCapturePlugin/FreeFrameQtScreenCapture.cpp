@@ -61,7 +61,11 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    QImage image = QPixmap::grabWindow(qApp->desktop()->winId()).toImage();
+    // alternatively ; select only one screen
+    //QWidget *desktopWidget = QApplication::desktop()->screen(0);
+    //QImage image = QPixmap::grabWindow(desktopWidget->winId()).toImage();
+
+    QImage image = QPixmap::grabWindow(QApplication::desktop()->winId()).toImage();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,
                  GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
@@ -123,7 +127,7 @@ FFResult FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-    QImage image = QPixmap::grabWindow(qApp->desktop()->winId()).toImage();
+    QImage image = QPixmap::grabWindow(QApplication::desktop()->winId()).toImage();
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width(), image.height(),
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 

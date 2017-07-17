@@ -1,7 +1,10 @@
 
 #include "FreeFrameFragmentCodePlugin.h"
 
-const char *fragmentDeclarationCode = "vec4 texture(in sampler2D c, in vec2 uv, in float bias = 0.0) {"
+const char *fragmentDeclarationCode = "vec4 texture(in sampler2D c, in vec2 uv) {"
+        "return texture2D(c, uv * vec2(1.0, -1.0));"
+        "} "
+        "vec4 texture(in sampler2D c, in vec2 uv, in float bias) {"
         "return texture2D(c, uv * vec2(1.0, -1.0), bias);"
         "}\0";
 
