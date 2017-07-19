@@ -8,6 +8,7 @@
 #include "FreeFrameQtScreenCapture.h"
 
 
+#define FFPARAM_PORTION (0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -41,6 +42,12 @@ FreeFrameQtScreenCapture::FreeFrameQtScreenCapture()
 
     displayList = 0;
     textureIndex = 0;
+
+    // Parameters
+    SetParamInfo(FFPARAM_PORTION, "Portion", FF_TYPE_STANDARD, 1.0f);
+    portion = 1.f;
+
+    param_changed = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,15 +67,6 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    // alternatively ; select only one screen
-QWidget *desktopWidget = QApplication::desktop()->screen();
-QRect desktopRect = QApplication::desktop()->availableGeometry();
-QImage image = QPixmap::grabWindow(desktopWidget->winId(), desktopRect.x(), desktopRect.y(), desktopRect.width(), desktopRect.height()).toImage();
-
-//    QImage image = QPixmap::grabWindow(QApplication::desktop()->winId()).toImage();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,
-                 GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
     if (displayList == 0) {
         displayList = glGenLists(1);
@@ -128,14 +126,24 @@ FFResult FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
+    // grab desktop (primary screen)
     QWidget *desktopWidget = QApplication::desktop()->screen();
     QRect desktopRect = QApplication::desktop()->availableGeometry();
-    QImage image = QPixmap::grabWindow(desktopWidget->winId(), desktopRect.x(), desktopRect.y(), desktopRect.width(), desktopRect.height()).toImage();
+    QImage image = QPixmap::grabWindow(desktopWidget->winId(), desktopRect.x(), desktopRect.y(), (int) ( (float) desktopRect.width() * portion), (int) ( (float) desktopRect.height() * portion)).toImage();
 
-//QImage image = QPixmap::grabWindow(QApplication::desktop()->winId()).toImage();
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width(), image.height(),
-                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
+    // new value of the portion parameter
+    if(param_changed) {
+        // define texture according to new image size
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,
+                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
+
+        param_changed = false;
+    }
+    // otherwise fast call to texsubimage
+    else
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width(), image.height(),
+                        GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
     glCallList(displayList);
 
@@ -147,3 +155,50 @@ FFResult FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     return FF_SUCCESS;
 }
+
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD FreeFrameQtScreenCapture::SetParameter(const SetParameterStruct* pParam)
+{
+    if (pParam != NULL) {
+        if (pParam->ParameterNumber == FFPARAM_PORTION) {
+            portion = *((float *)(unsigned)&(pParam->NewParameterValue));
+            param_changed = true;
+            return FF_SUCCESS;
+        }
+    }
+    return FF_FAIL;
+}
+
+DWORD FreeFrameQtScreenCapture::GetParameter(DWORD index)
+{
+    DWORD dwRet = 0;
+
+    if (index == FFPARAM_PORTION) {
+        *((float *)(unsigned)&dwRet) = portion;
+        return dwRet;
+    } else
+        return FF_FAIL;
+}
+
+#else
+// FFGL 1.6
+FFResult FreeFrameQtScreenCapture::SetFloatParameter(unsigned int index, float value)
+{
+    if (index == FFPARAM_PORTION) {
+        portion = value;
+        param_changed = true;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+float FreeFrameQtScreenCapture::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_PORTION)
+        return portion;
+
+    return 0.0;
+}
+#endif

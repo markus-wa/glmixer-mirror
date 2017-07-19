@@ -17,11 +17,15 @@ public:
     DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
     DWORD   InitGL(const FFGLViewportStruct *vp);
     DWORD   DeInitGL();
+    DWORD	SetParameter(const SetParameterStruct* pParam);
+    DWORD	GetParameter(DWORD dwIndex);
 #else
     // FFGL 1.6
     FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
+    FFResult	SetFloatParameter(unsigned int index, float value);
+    float	    GetFloatParameter(unsigned int index);
 #endif
 
     ///////////////////////////////////////////////////
@@ -45,6 +49,8 @@ protected:
 
     GLuint textureIndex;
     GLuint displayList;
+    float portion;
+    bool param_changed;
 };
 
 
