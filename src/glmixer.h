@@ -113,8 +113,6 @@ public slots:
     void setAspectRatio(QAction *a);
     void enableSeek(bool);
     void refreshTiming();
-    void newSession();
-    void openSessionFile();
     void switchToSessionFile(QString filename);
     void actionLoad_RecentSession_triggered();
     QString getRestorelastSessionFilename();
@@ -125,12 +123,18 @@ public slots:
     void startButton_toogled(bool);
     void replaceCurrentSource();
     void undoChanged(bool, bool);
-
+    QString getNotes();
     void updateWorkspaceActions();
 
     // source config
     void connectSource(SourceSet::iterator csi);
     void sessionChanged();
+
+    void openSessionFile();
+    void newSession();
+    void closeSession();
+    void saveSession(bool close = false, bool quit = false);
+    void postSaveSession();
 
 #ifdef GLM_LOGS
     void Log(int, QString);
@@ -210,5 +214,17 @@ private:
 #endif
 };
 
+
+class SessionSaver : public QThread
+ {
+     Q_OBJECT
+
+     void run();
+     QString _filename;
+
+public:
+     SessionSaver(QString filename);
+
+};
 
 #endif /* GLV_H_ */

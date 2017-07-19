@@ -551,6 +551,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionAspectRatioSetRendering, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setRenderingAspectRatioCurrentSource()));
     QObject::connect(actionAspectRatioFixed , SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(toggleFixAspectRatioCurrentSource(bool)));
     QObject::connect(actionResetSource, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+    actionCloneSource->setEnabled(false);
 
     // Signals between cursors and their configuration gui
     QObject::connect(dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
@@ -611,27 +612,35 @@ GLMixer::~GLMixer()
 
 void GLMixer::closeEvent(QCloseEvent * event ){
 
-    if (_saveExitSession && !currentSessionFileName.isEmpty())
-        on_actionSave_Session_triggered();
+    if (_saveExitSession && !currentSessionFileName.isEmpty() && maybeSave) {
+        saveSession(true, true);
+        event->ignore();
+    }
+//    else if (currentSessionFileName.isEmpty() && maybeSave) {
+//        on_actionClose_Session_triggered();
+//        event->ignore();
+//    }
+    else {
 
-    mixingToolBox->close();
-    outputpreview->close();
-    layoutToolBox->close();
+        mixingToolBox->close();
+        outputpreview->close();
+        layoutToolBox->close();
 #ifdef GLM_FFGL
-    pluginGLSLCodeEditor->close();
+        pluginGLSLCodeEditor->close();
 #endif
 #ifdef GLM_SESSION
-    switcherSession->close();
+        switcherSession->close();
 #endif
 #ifdef GLM_TAG
-    tagsManager->close();
+        tagsManager->close();
 #endif
 #ifdef GLM_HISTORY
-    actionHistoryView->close();
+        actionHistoryView->close();
 #endif
 
-    QApplication::closeAllWindows();
-    event->accept();
+        QApplication::closeAllWindows();
+        event->accept();
+    }
 }
 
 
@@ -1872,7 +1881,8 @@ void GLMixer::confirmSessionFileName(){
     if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty()) {
         setWindowTitle(QString("%1 %2 - unsaved").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()));
         actionAppend_Session->setEnabled(false);
-    } else {
+    }
+    else {
         // title and menu
         setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(QFileInfo(currentSessionFileName).fileName()));
         actionAppend_Session->setEnabled(true);
@@ -1905,34 +1915,8 @@ void GLMixer::on_actionNew_Session_triggered()
     actionMixingView->trigger();
 }
 
-void GLMixer::on_actionClose_Session_triggered()
+void GLMixer::closeSession()
 {
-    // inform the user that data might be lost
-    int ret = QMessageBox::Discard;
-    if (maybeSave) {
-         QMessageBox msgBox;
-         msgBox.setText(tr("The session have been modified."));
-         msgBox.setInformativeText(tr("Do you want to save your changes ?"));
-         msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
-         msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-         msgBox.setDefaultButton(QMessageBox::Save);
-         ret = msgBox.exec();
-    }
-    // react according to user's answer
-    switch (ret) {
-       case QMessageBox::Save:
-           // Save was clicked
-           on_actionSave_Session_triggered();
-           break;
-       case QMessageBox::Cancel:
-           // Cancel was clicked
-           return;
-       case QMessageBox::Discard:
-       default:
-           // keep on to create new session
-           break;
-    }
-
     // make a new session
     currentSessionFileName = QString();
 
@@ -1940,6 +1924,37 @@ void GLMixer::on_actionClose_Session_triggered()
     actionToggleRenderingVisible->setEnabled(false);
     QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
     RenderingManager::getSessionSwitcher()->startTransition(false);
+
+}
+
+void GLMixer::on_actionClose_Session_triggered()
+{
+    // inform the user that data might be lost
+    int ret = QMessageBox::Discard;
+    if (maybeSave) {
+        QMessageBox msgBox;
+        msgBox.setText(tr("The session have been modified."));
+        msgBox.setInformativeText(tr("Do you want to save your changes ?"));
+        msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Save);
+        ret = msgBox.exec();
+    }
+    // react according to user's answer
+    switch (ret) {
+    case QMessageBox::Save:
+        // Save was clicked (will
+        saveSession(true);
+        break;
+    case QMessageBox::Cancel:
+        // Cancel was clicked
+        return;
+    case QMessageBox::Discard:
+    default:
+        // keep on to create new session
+        closeSession();
+        break;
+    }
 
 }
 
@@ -1979,84 +1994,124 @@ void GLMixer::newSession()
     qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
 }
 
+QString GLMixer::getNotes()
+{
+    return blocNoteEdit->toPlainText();
+}
 
-void GLMixer::on_actionSave_Session_triggered(){
+SessionSaver::SessionSaver(QString filename) : QThread(), _filename(filename)
+{
 
-    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty())
-        on_actionSave_Session_as_triggered();
-    else
-    {
+}
 
-        QFile file(currentSessionFileName);
-        if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-            qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Problem writing; ") << file.errorString();
-            qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot save session file.");
-            return;
-        }
-        QTextStream out(&file);
+void SessionSaver::run()
+{
+    QFile file(_filename);
+    if (!file.open(QFile::WriteOnly | QFile::Text) ) {
+        qWarning() << _filename << QChar(124).toLatin1() << tr("Problem writing; ") << file.errorString();
+        qCritical() << _filename << QChar(124).toLatin1() << tr("Cannot save session file.");
+        return;
+    }
+    QTextStream out(&file);
 
-        QDomDocument doc;
-        QDomProcessingInstruction instr = doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
-        doc.appendChild(instr);
+    QDomDocument doc;
+    QDomProcessingInstruction instr = doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+    doc.appendChild(instr);
 
-        QDomElement root = doc.createElement("GLMixer");
-        root.setAttribute("version", XML_GLM_VERSION);
+    QDomElement root = doc.createElement("GLMixer");
+    root.setAttribute("version", XML_GLM_VERSION);
 
-        QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).dir());
-        renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
-        root.appendChild(renderConfig);
+    QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(_filename).dir());
+    renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
+    root.appendChild(renderConfig);
 
-        QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
-        root.appendChild(viewConfig);
+    QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
+    root.appendChild(viewConfig);
 
-        QDomElement rendering = doc.createElement("Rendering");
-        rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
-        root.appendChild(rendering);
+    QDomElement rendering = doc.createElement("Rendering");
+    rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
+    root.appendChild(rendering);
 
-        QDomElement notes = doc.createElement("Notes");
-        QDomText text = doc.createTextNode(blocNoteEdit->toPlainText());
-        notes.appendChild(text);
-        root.appendChild(notes);
+    QDomElement notes = doc.createElement("Notes");
+    QDomText text = doc.createTextNode(GLMixer::getInstance()->getNotes() );
+    notes.appendChild(text);
+    root.appendChild(notes);
 
-        doc.appendChild(root);
-        doc.save(out, 4);
+    doc.appendChild(root);
+    doc.save(out, 4);
 
-        file.close();
+    file.close();
+}
 
-        if (!currentSessionFileName.isEmpty())
-        {
-            confirmSessionFileName();
+void GLMixer::postSaveSession()
+{
+    // validate that session is saved
+    maybeSave = false;
 
 #ifdef GLM_SESSION
-            // update session switcher
-            switcherSession->fileChanged( currentSessionFileName );
+    // update session switcher
+    switcherSession->fileChanged( currentSessionFileName );
 #endif
-        }
+    // log
+    statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+    qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
 
-        // log
-        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
-        qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
+    // broadcast session file ready
+    emit sessionLoaded();
+}
 
-        // broadcast session file ready
-        emit sessionLoaded();
-        maybeSave = false;
+
+void GLMixer::saveSession(bool close, bool quit){
+
+    QString fileName = currentSessionFileName;
+
+    // for 'save file as' or new session
+    if ( fileName.isEmpty() ) // NULL or empty current sessio filename
+    {
+        QString suggestion = QString("glmix %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+
+        fileName = getFileName(tr("Save session"),
+                               tr("GLMixer session") + " (*.glm)",
+                               QString("glm"), suggestion);
+    }
+
+    // do we have a file name ?
+    if ( !fileName.isEmpty() )
+    {
+        currentSessionFileName = fileName;
+
+        // create working thread
+        SessionSaver *workerThread = new SessionSaver(currentSessionFileName);
+
+        // launch save
+        connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+        connect(workerThread, SIGNAL(finished()), this, SLOT(postSaveSession()));
+
+        // close after save if requested
+        if (close)
+            connect(workerThread, SIGNAL(finished()), this, SLOT(closeSession()));
+
+        if (quit)
+            connect(workerThread, SIGNAL(finished()), actionQuit, SLOT(trigger()));
+
+        // start saving
+        statusbar->showMessage( tr("Saving %1...").arg( currentSessionFileName ) );
+        workerThread->start();
+
     }
 
 }
 
+void GLMixer::on_actionSave_Session_triggered(){
+
+    saveSession();
+}
+
 void GLMixer::on_actionSave_Session_as_triggered()
 {
-    QString suggestion = QString("glmix %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+    currentSessionFileName = QString::null;
+    saveSession();
 
-    QString fileName = getFileName(tr("Save session"),
-                                   tr("GLMixer session") + " (*.glm)",
-                                   QString("glm"), suggestion);
-
-    if ( !fileName.isEmpty() ) {
-        // now we got a filename, save the file:
-        currentSessionFileName = fileName;
-        on_actionSave_Session_triggered();
-    }
 }
 
 void GLMixer::on_actionLoad_Session_triggered()
