@@ -162,7 +162,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
+    glRenderWidget(), faded(false), busy(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
     setAcceptDrops ( true );
@@ -610,6 +610,8 @@ void ViewRenderWidget::refresh()
 
 void ViewRenderWidget::paintGL()
 {
+    static GLfloat angle = 0;
+
     // for animation
     emit tick();
 
@@ -641,9 +643,17 @@ void ViewRenderWidget::paintGL()
     // 3. draw a semi-transparent overlay if view should be faded out
     //
     //
-    if (faded) {
+    if (busy) {
+        // the busy overlay is in two call lists for animation
+        glCallList(ViewRenderWidget::fading + 1);
+        glScalef( 800.0 / (float) width(), 800.0 / (float) height(), 1.0);
+        angle = fmod(angle + 3601.0, 360.0);
+        glRotatef( angle, 0.0, 0.0, 1.0);
+        glCallList(ViewRenderWidget::fading + 2);
+    }
+    else if (faded) {
+        // the fading overlay is in one single call list
         glCallList(ViewRenderWidget::fading);
-//        setMouseCursor(MOUSE_ARROW);
     }
     // if not faded, means the area is active
     else
@@ -2296,9 +2306,23 @@ GLuint ViewRenderWidget::buildBordersTools()
 
 GLuint ViewRenderWidget::buildFadingList()
 {
+    static GLuint texid = 0;
 
-    GLuint id = glGenLists(1);
+    if (texid == 0) {
+        // generate the texture
+        glGenTextures(1, &texid);
+        glBindTexture(GL_TEXTURE_2D, texid);
+        QImage p(":/glmixer/images/loading.png");
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
 
+    GLuint id = glGenLists(3);
+
+    // simple overlay for fading the view
     glNewList(id, GL_COMPILE);
 
     glMatrixMode(GL_PROJECTION);
@@ -2313,6 +2337,46 @@ GLuint ViewRenderWidget::buildFadingList()
     glBlendEquation(GL_FUNC_ADD);
     glColor4ub(COLOR_FADING, 128);
     glRectf(-1, -1, 1, 1);
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glEndList();
+
+    // overlay for fading the view and
+    // displaying the loading animation
+
+    // PART 1
+    // as simple fading, just more opaque
+    glNewList(id + 1, GL_COMPILE);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    glColor4ub(COLOR_FADING, 160);
+    glRectf(-1, -1, 1, 1);
+
+    glEndList();
+
+    // PART 2
+    // draw the busy loading overlay
+    glNewList(id + 2, GL_COMPILE);
+
+    glScalef(0.3, 0.3, 0.3);
+    glColor4ub(255, 255, 255, 220);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glCallList(quad_texured);
+    glDisable(GL_TEXTURE_2D);
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();

@@ -119,12 +119,12 @@ public slots:
     void confirmSessionFileName();
     bool useSystemDialogs();
     void updateStatusControlActions();
-    void showBusyRecording(bool);
     void startButton_toogled(bool);
     void replaceCurrentSource();
     void undoChanged(bool, bool);
     QString getNotes();
     void updateWorkspaceActions();
+    void setBusy(bool busy = true);
 
     // source config
     void connectSource(SourceSet::iterator csi);
@@ -159,6 +159,8 @@ public slots:
 #ifdef GLM_FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
 #endif
+
+    void disable() { setDisabled(true); }
 
 signals:
     void sessionLoaded();

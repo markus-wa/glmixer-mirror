@@ -61,5 +61,6 @@
         <file>images/off_workspace_3.png</file>
         <file>images/off_workspace_2.png</file>
         <file>images/off_workspace_1.png</file>
+        <file>images/loading.png</file>
     </qresource>
 </RCC>

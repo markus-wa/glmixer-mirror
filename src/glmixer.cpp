@@ -507,7 +507,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(processing(bool)), actionRecord, SLOT(setDisabled(bool)));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(processing(bool)), this, SLOT(showBusyRecording(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(processing(bool)), this, SLOT(setBusy(bool)));
 
     // connect recorder to disable many actions, like quitting, opening session, preferences, etc.
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
@@ -613,7 +613,7 @@ GLMixer::~GLMixer()
 void GLMixer::closeEvent(QCloseEvent * event ){
 
     if (_saveExitSession && !currentSessionFileName.isEmpty() && maybeSave) {
-        saveSession(true, true);
+        saveSession(false, true);
         event->ignore();
     }
 //    else if (currentSessionFileName.isEmpty() && maybeSave) {
@@ -2058,6 +2058,7 @@ void GLMixer::postSaveSession()
 
     // broadcast session file ready
     emit sessionLoaded();
+    setBusy(false);
 }
 
 
@@ -2078,6 +2079,8 @@ void GLMixer::saveSession(bool close, bool quit){
     // do we have a file name ?
     if ( !fileName.isEmpty() )
     {
+        setBusy(true);
+
         currentSessionFileName = fileName;
 
         // create working thread
@@ -2091,8 +2094,9 @@ void GLMixer::saveSession(bool close, bool quit){
         if (close)
             connect(workerThread, SIGNAL(finished()), this, SLOT(closeSession()));
 
-        if (quit)
+        if (quit) {
             connect(workerThread, SIGNAL(finished()), actionQuit, SLOT(trigger()));
+        }
 
         // start saving
         statusbar->showMessage( tr("Saving %1...").arg( currentSessionFileName ) );
@@ -3383,16 +3387,6 @@ void GLMixer::on_actionTutorials_triggered() {
     QDesktopServices::openUrl(QUrl("https://vimeo.com/album/2401475", QUrl::TolerantMode));
 }
 
-void GLMixer::showBusyRecording(bool on) {
-
-    static QMessageBox *busy = 0;
-
-    if (!busy)
-        busy = new QMessageBox(QMessageBox::Information, "Saving recording...", "Please wait while the file is being saved to disk.", QMessageBox::NoButton, this);
-
-    busy->setVisible(on);
-}
-
 void GLMixer::undoChanged(bool undo, bool redo)
 {
     actionUndo->setEnabled(undo);
@@ -3413,4 +3407,27 @@ void GLMixer::on_actionOSCTranslator_triggered()
     oscwidget->show();
 #endif
 }
+
+
+void GLMixer::setBusy(bool busy)
+{
+    static QTimer *timer = NULL;
+    if (timer == NULL) {
+        timer = new QTimer();
+        timer->setSingleShot(true);
+
+        connect(timer, SIGNAL(timeout()), RenderingManager::getRenderingWidget(), SLOT(setBusy()));
+        connect(timer, SIGNAL(timeout()), this, SLOT(disable()));
+    }
+
+    timer->stop();
+
+    if (busy)
+        timer->start(150);
+    else {
+        RenderingManager::getRenderingWidget()->setBusy(false);
+        setDisabled(false);
+    }
+}
+
 

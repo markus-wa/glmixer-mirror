@@ -188,8 +188,8 @@ public slots:
     void setCatalogSizeMedium();
     void setCatalogSizeLarge();
     void setFaded(bool on) { faded = on; }
+    void setBusy(bool on = true) { busy = on; }
     void setCursorEnabled(bool on);
-
 
 public:
     // Shading
@@ -232,7 +232,7 @@ private:
     class LayersView *_layersView;
     class RenderingView *_renderingView;
     class CatalogView *_catalogView;
-    bool faded;
+    bool faded, busy;
 
     // C u r s o r s
     Cursor *_currentCursor;
