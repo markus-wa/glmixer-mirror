@@ -96,7 +96,7 @@ public:
     Source *newRenderingSource(bool recursive, double depth = -1.0);
     Source *newCaptureSource(QImage img, double depth = -1.0);
     Source *newMediaSource(VideoFile *vf, double depth = -1.0);
-    Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
+    Source *newSvgSource(QByteArray content, double depth = -1.0);
     Source *newWebSource(QUrl web, int w, int h, int height, int scroll, int update, double depth = -1.0);
     Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
     Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);

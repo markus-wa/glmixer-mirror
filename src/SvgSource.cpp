@@ -28,9 +28,10 @@
 
 Source::RTTI SvgSource::type = Source::SVG_SOURCE;
 
-SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(texture, d), _svg(svg) {
+SvgSource::SvgSource(QByteArray content, GLuint texture, double d): Source(texture, d), _svg(NULL), _xmlcontent(content) {
 
     // if the svg renderer could load the file
+    _svg = new QSvgRenderer(content);
     if (!_svg || !_svg->isValid())
         SourceConstructorException().raise();
 
@@ -72,8 +73,7 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
 #if QT_VERSION >= 0x040700
-    glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
+    glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
 #else
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
                   0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
@@ -108,19 +108,7 @@ QDomElement SvgSource::getConfiguration(QDomDocument &doc, QDir current)
 
 QByteArray SvgSource::getDescription(){
 
-    QBuffer dev;
-
-    QSvgGenerator generator;
-    generator.setOutputDevice(&dev);
-    generator.setTitle(getName());
-    generator.setResolution(150);
-
-    QPainter painter;
-    painter.begin(&generator);
-    _svg->render(&painter,_svg->viewBoxF());
-    painter.end();
-
-    return dev.buffer();
+    return _xmlcontent.simplified();
 }
 
 

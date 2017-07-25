@@ -1396,9 +1396,14 @@ void GLMixer::on_actionSvgSource_triggered(){
             return;
         }
 
-        QSvgRenderer *svg = new QSvgRenderer(fileName);
+        QFile svgfile(fileName);
+        if(!svgfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qCritical() << fileName <<  QChar(124).toLatin1() << tr("Could not open file.");
+            return;
+        }
+        QByteArray data = svgfile.readAll();
 
-        Source *s = RenderingManager::getInstance()->newSvgSource(svg);
+        Source *s = RenderingManager::getInstance()->newSvgSource(data);
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New vector Graphics source created with file ")<< fileName;
@@ -2547,14 +2552,18 @@ void GLMixer::drop(QDropEvent *event)
         // loading SVG files
         for (i = 0; i < svgFiles.size(); ++i)
         {
-            QSvgRenderer *svg = new QSvgRenderer(svgFiles.at(i));
-            Source *s = RenderingManager::getInstance()->newSvgSource(svg);
+            QFile svgfile(svgFiles.at(i));
+            if(!svgfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                qWarning() << svgFiles.at(i) <<  QChar(124).toLatin1() << tr("Could not open file.");
+                break;
+            }
+            QByteArray data = svgfile.readAll();
+            Source *s = RenderingManager::getInstance()->newSvgSource(data);
             if ( s ) {
                 RenderingManager::getInstance()->addSourceToBasket(s);
                 qDebug() << s->getName() << QChar(124).toLatin1()<< tr("New vector Graphics source created with file ")<< svgFiles.at(i);
             } else {
                 qWarning() << svgFiles.at(i) << QChar(124).toLatin1() << "[" << ++errors << "]" << tr("The source could not be created.");
-                delete svg;
             }
         }
 

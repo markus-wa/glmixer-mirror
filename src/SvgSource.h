@@ -57,12 +57,13 @@ public:
     // only friends can create a source
 protected:
 
-    SvgSource(QSvgRenderer *svg, GLuint texture, double d);
+    SvgSource(QByteArray content, GLuint texture, double d);
     ~SvgSource();
 
 private:
     QSvgRenderer *_svg;
     QImage _rendered;
+    QByteArray _xmlcontent;
 
 };
 

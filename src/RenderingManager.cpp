@@ -703,7 +703,7 @@ QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
 }
 
 
-Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
+Source *RenderingManager::newSvgSource(QByteArray content, double depth){
 
 #ifndef NDEBUG
     qDebug() << tr("RenderingManager::newSvgSource ")<< depth;
@@ -720,7 +720,7 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 
     try {
         // create a source appropriate
-        s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
+        s = new SvgSource(content, textureIndex, getAvailableDepthFrom(depth));
         s->setName(_defaultSource->getName() + "Svg");
 
         // connect to error
@@ -2074,9 +2074,8 @@ int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, Q
         QDomElement svg = t.firstChildElement("Svg");
         QByteArray data =  svg.text().toLatin1();
 
-        QSvgRenderer *rendersvg = new QSvgRenderer(data);
-        if ( rendersvg )
-            newsource = RenderingManager::_instance->newSvgSource(rendersvg, depth);
+        if ( !data.isEmpty() )
+            newsource = RenderingManager::_instance->newSvgSource(data, depth);
 
         if (!newsource) {
             qWarning() << child.attribute("name")<< QChar(124).toLatin1()
