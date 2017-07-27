@@ -1650,25 +1650,64 @@ QString RenderingManager::getAvailableNameFrom(QString name) const{
 
 double RenderingManager::getAvailableDepthFrom(double depth) const {
 
-    double tentativeDepth = depth;
+    double foundDepth = depth;
 
     // place it at the front if no depth is provided (default argument = -1)
-    if (tentativeDepth < 0)
-        tentativeDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth() + 0.4;
+    if (foundDepth < 0) {
 
-    tentativeDepth += dropBasket.size();
+        // first (or only) source to drop
+        if ( dropBasket.empty() ) {
+            // take the depth of front source in the rendering manager source set
+            foundDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth();
+        }
+        else {
+            // take the depth of the last added source in the basket
+            foundDepth  = (*dropBasket.rbegin())->getDepth();
+        }
 
-    // try to find a source at this depth in the list; it is not ok if it exists
-    bool isok = false;
-    while (!isok) {
-        if ( isValid( std::find_if(_front_sources.begin(), _front_sources.end(), isCloseTo(tentativeDepth)) ) ){
-            tentativeDepth += DEPTH_EPSILON;
-        } else
-            isok = true;
+        // place the depth forward
+        foundDepth += DEPTH_DEFAULT_SPACING;
+
     }
-    // finally the tentative depth is ok
-    return tentativeDepth;
+    // a depth is given, try to place the source at this location
+    else {
+
+        // try to find a source at this depth in the list; it is not ok if it exists
+        bool isok = false;
+        while (!isok) {
+            if ( isValid( std::find_if(_front_sources.begin(), _front_sources.end(), isCloseTo(foundDepth)) ) ){
+                foundDepth += DEPTH_EPSILON;
+            } else
+                isok = true;
+        }
+    }
+
+    // make some room if we hit the maximum depth
+    if (foundDepth > MAX_DEPTH_LAYER) {
+
+        // compute the depth between sources to uniformly distribute them
+        double d_inc = MAX_DEPTH_LAYER / (float)(_front_sources.size() + dropBasket.size() + 1 );
+
+        // if this is not a problem for distinguishing depth
+        if (d_inc > DEPTH_EPSILON)
+        {
+            // uniformly space all depths of sources
+            double d = 0;
+            for (SourceSet::iterator it = _front_sources.begin(); it != _front_sources.end(); it++, d+=d_inc)
+                (*it)->setDepth(d);
+
+            for (SourceList::iterator it = dropBasket.begin(); it != dropBasket.end(); it++, d+=d_inc)
+                (*it)->setDepth(d);
+
+            foundDepth = d;
+        }
+        // else the foundDepth will be invalid
+    }
+
+    // eventually the tentative depth is ok
+    return foundDepth;
 }
+
 
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
                                                   double newdepth) {

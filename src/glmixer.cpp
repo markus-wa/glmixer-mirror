@@ -2438,11 +2438,12 @@ void GLMixer::drop(QDropEvent *event)
         event->acceptProposedAction();
         QList<QUrl> urlList = mimeData->urls();
 
-        // arbitrary limitation in the amount of drops allowed (avoid manipulation mistakes)
-        if (urlList.size() > MAX_DROP_FILES)
-            qWarning() << "[" << ++errors << "]" << tr("Cannot open more than %1 files at a time.").arg(MAX_DROP_FILES);
+        // limitation in the amount of drops allowed
+        if (urlList.size() > RenderingManager::getInstance()->getAvailableSourceCount())
+            qWarning() << "[" << ++errors << "]" << tr("Cannot add more than %1 sources.").arg(RenderingManager::getInstance()->getAvailableSourceCount());
 
-        for (int i = 0; i < urlList.size() && i < MAX_DROP_FILES; ++i) {
+        int max = qMin(urlList.size(), RenderingManager::getInstance()->getAvailableSourceCount() );
+        for (int i = 0; i < max; ++i) {
 
 #ifdef Q_OS_MAC
 

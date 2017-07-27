@@ -228,6 +228,7 @@ public:
     static inline bool usePboExtension() { return pbo_extension; }
     static void setUsePboExtension(bool on);
 
+    int getAvailableSourceCount() { return maxSourceCount - _front_sources.size(); }
 
 public slots:
 
@@ -312,7 +313,7 @@ protected:
     Source::scalingMode _scalingMode;
     bool _playOnDrop;
     bool paused, needsUpdate;
-    unsigned int maxSourceCount;
+    int maxSourceCount;
     // set of sources using previousframe_fbo
     SourceSet _rendering_sources;
 
