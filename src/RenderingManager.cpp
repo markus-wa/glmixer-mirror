@@ -1187,7 +1187,7 @@ bool RenderingManager::_insertSource(Source *s)
                 return true;
             }
             else
-                qCritical() << tr("Not enough space to insert the source into the stack (%1).").arg(_front_sources.size());
+                qCritical() << tr("Not enough space to insert the source into the stack (%1). %2").arg(_front_sources.size()).arg(s->getDepth());
 
         }
         else
@@ -1653,21 +1653,10 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
     double foundDepth = depth;
 
     // place it at the front if no depth is provided (default argument = -1)
-    if (foundDepth < 0) {
+    if (foundDepth < 0.0) {
+        foundDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth() + DEPTH_DEFAULT_SPACING;
 
-        // first (or only) source to drop
-        if ( dropBasket.empty() ) {
-            // take the depth of front source in the rendering manager source set
-            foundDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth();
-        }
-        else {
-            // take the depth of the last added source in the basket
-            foundDepth  = (*dropBasket.rbegin())->getDepth();
-        }
-
-        // place the depth forward
-        foundDepth += DEPTH_DEFAULT_SPACING;
-
+        foundDepth += dropBasket.size();
     }
     // a depth is given, try to place the source at this location
     else {

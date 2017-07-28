@@ -1082,7 +1082,10 @@ void GLMixer::on_actionMediaSource_triggered(){
 
     // open all files from the list
     QStringListIterator fileNamesIt(fileNames);
+    setBusy(true);
     while (fileNamesIt.hasNext()){
+
+        QCoreApplication::processEvents();
 
         VideoFile *newSourceVideoFile = NULL;
         QString filename = fileNamesIt.next();
@@ -1118,7 +1121,10 @@ void GLMixer::on_actionMediaSource_triggered(){
                 qCritical() << filename << QChar(124).toLatin1() << tr("The file could not be opened.");
 
         }
+
     }
+    // done
+    setBusy(false);
 
     if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
         statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
@@ -2526,9 +2532,11 @@ void GLMixer::drop(QDropEvent *event)
 
     } else if (!mediaFiles.isEmpty() || !svgFiles.isEmpty()) {
         // loading Media files
+        setBusy(true);
         int i = 0;
         for (; i < mediaFiles.size(); ++i)
         {
+            QCoreApplication::processEvents();
             VideoFile *newSourceVideoFile  = new VideoFile(this);
 
             // if the video file was created successfully
@@ -2553,6 +2561,7 @@ void GLMixer::drop(QDropEvent *event)
         // loading SVG files
         for (i = 0; i < svgFiles.size(); ++i)
         {
+            QCoreApplication::processEvents();
             QFile svgfile(svgFiles.at(i));
             if(!svgfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 qWarning() << svgFiles.at(i) <<  QChar(124).toLatin1() << tr("Could not open file.");
@@ -2568,6 +2577,7 @@ void GLMixer::drop(QDropEvent *event)
             }
         }
 
+        setBusy(false);
         // inform session changed
         sessionChanged();
     }
@@ -3433,7 +3443,7 @@ void GLMixer::setBusy(bool busy)
     timer->stop();
 
     if (busy)
-        timer->start(150);
+        timer->start(100);
     else {
         RenderingManager::getRenderingWidget()->setBusy(false);
         setDisabled(false);
