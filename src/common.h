@@ -37,6 +37,7 @@
 #include <GL/glew.h>
 
 #ifdef Q_OS_MAC
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>

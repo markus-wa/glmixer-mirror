@@ -2388,7 +2388,7 @@ GLuint ViewRenderWidget::buildFadingList()
     return id;
 }
 
-static char * rotate_top_right[] =
+const char * rotate_top_right[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ",
         "                         ",
@@ -2417,7 +2417,7 @@ static char * rotate_top_right[] =
         "                         "};
 
 
-static char * rotate_top_left[] =
+const char * rotate_top_left[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ",
         "                         ",
@@ -2445,7 +2445,7 @@ static char * rotate_top_left[] =
         "                         ",
         "                         "};
 
-static char * rotate_bot_left[] =
+const char * rotate_bot_left[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ",
         "                         ",
@@ -2473,7 +2473,7 @@ static char * rotate_bot_left[] =
         "                         ",
         "                         "};
 
-static char * rotate_bot_right[] =
+const char * rotate_bot_right[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ",
         "                         ",
@@ -2502,7 +2502,7 @@ static char * rotate_bot_right[] =
         "                         "};
 
 
-static char * cursor_arrow_xpm[] =
+const char * cursor_arrow_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ", "                         ",
         "       +                 ", "       ++                ",
@@ -2518,7 +2518,7 @@ static char * cursor_arrow_xpm[] =
         "               ++        ", "                         ",
         "                         " };
 
-static char * cursor_openhand_xpm[] =
+const char * cursor_openhand_xpm[] =
 { "16 16 3 1", " 	g None", ".	g #000000", "+	g #EEEEEE", "       ..       ",
         "   .. .++...    ", "  .++..++.++.   ", "  .++..++.++. . ",
         "   .++.++.++..+.", "   .++.++.++.++.", " .. .+++++++.++.",
@@ -2526,7 +2526,7 @@ static char * cursor_openhand_xpm[] =
         "  .+++++++++++. ", "  .++++++++++.  ", "   .+++++++++.  ",
         "    .+++++++.   ", "     .++++++.   ", "                " };
 
-static char * cursor_closedhand_xpm[] =
+const char * cursor_closedhand_xpm[] =
 { "16 16 3 1", " 	g None", ".	g #000000", "+	g #EEEEEE", "                ",
         "                ", "                ", "    .. .. ..    ",
         "   .++.++.++..  ", "   .++++++++.+. ", "    .+++++++++. ",
@@ -2534,7 +2534,7 @@ static char * cursor_closedhand_xpm[] =
         "   .+++++++++.  ", "    .+++++++.   ", "     .++++++.   ",
         "     .++++++.   ", "                ", "                " };
 
-static char * cursor_sizef_xpm[] =
+const char * cursor_sizef_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ", "                         ",
         "                         ", "                         ",
@@ -2550,7 +2550,7 @@ static char * cursor_sizef_xpm[] =
         "                         ", "                         ",
         "                         " };
 
-static char * cursor_sizeb_xpm[] =
+const char * cursor_sizeb_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ", "                         ",
         "                         ", "                         ",
@@ -2566,7 +2566,7 @@ static char * cursor_sizeb_xpm[] =
         "                         ", "                         ",
         "                         " };
 
-static char * cursor_question_xpm[] =
+const char * cursor_question_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "+                        ", "++          .......      ",
         "+.+        .+++++++.     ", "+..+      .++....+++.    ",
@@ -2582,7 +2582,7 @@ static char * cursor_question_xpm[] =
         "                         ", "                         ",
         "                         " };
 
-static char * cursor_sizeall_xpm[] =
+const char * cursor_sizeall_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ", "           ++            ",
         "          +..+           ", "         +....+          ",
@@ -2598,7 +2598,7 @@ static char * cursor_sizeall_xpm[] =
         "           ++            ", "                         ",
         "                         " };
 
-static char * cursor_hand_xpm[] =
+const char * cursor_hand_xpm[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "         ..              ", "        .++.             ",
         "        +..+             ", "        +..+             ",
@@ -2690,3 +2690,4 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
 {
     GLMixer::getInstance()->drop(event);
 }
+

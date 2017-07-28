@@ -30,7 +30,7 @@ add_subdirectory(FreeFrameShakePlugin)
 add_subdirectory(FreeFrameQtScreenCapturePlugin)
 add_subdirectory(FreeFrameFragmentCodePlugin)
 
-add_subdirectory(FreeFrameFFPlayPlugin)
+#add_subdirectory(FreeFrameFFPlayPlugin)
 
 
 # platform specific plugins & ressource

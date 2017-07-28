@@ -1675,7 +1675,7 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
     if (foundDepth > MAX_DEPTH_LAYER) {
 
         // compute the depth between sources to uniformly distribute them
-        double d_inc = MAX_DEPTH_LAYER / (float)(_front_sources.size() + dropBasket.size() + 1 );
+        double d_inc = MAX_DEPTH_LAYER / (double)(_front_sources.size() + dropBasket.size() + 1 );
 
         // if this is not a problem for distinguishing depth
         if (d_inc > DEPTH_EPSILON)
