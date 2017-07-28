@@ -132,17 +132,17 @@ void RenderingManager::setUseFboBlitExtension(bool on){
 
 void RenderingManager::setUsePboExtension(bool on){
 
-    if (glewIsSupported("GL_EXT_pixel_buffer_object") || glewIsSupported("GL_ARB_pixel_buffer_object") )
+    if (glewIsSupported("GL_ARB_pixel_buffer_object") )
         RenderingManager::pbo_extension = on;
     else {
         // if extension not supported but it is requested, show warning
         if (on) {
-            qCritical()  << tr("OpenGL Pixel Buffer Object is requested but not supported (GL_EXT_pixel_buffer_object).\n\nDisabling Pixel Buffer Object.");
+            qCritical()  << tr("OpenGL Pixel Buffer Object is requested but not supported (GL_ARB_pixel_buffer_object).\n\nDisabling Pixel Buffer Object.");
         }
         RenderingManager::pbo_extension = false;
     }
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Pixel Buffer Object (GL_EXT_pixel_buffer_object) ") << (RenderingManager::pbo_extension ? "ON" : "OFF");
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Pixel Buffer Object (GL_ARB_pixel_buffer_object) ") << (RenderingManager::pbo_extension ? "ON" : "OFF");
 }
 
 RenderingManager *RenderingManager::getInstance() {

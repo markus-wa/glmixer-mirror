@@ -48,7 +48,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), 
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
     disableBlitFrameBuffer->setEnabled( glewIsSupported("GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample") );
-    disablePixelBufferObject->setEnabled( glewIsSupported("GL_EXT_pixel_buffer_object") || glewIsSupported("GL_ARB_pixel_buffer_object") );
+    disablePixelBufferObject->setEnabled( glewIsSupported("GL_ARB_pixel_buffer_object") );
 
     // add a validator for folder selection in recording preference
     recordingFolderLine->setValidator(new folderValidator(this));
