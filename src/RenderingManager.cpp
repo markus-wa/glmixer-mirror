@@ -116,7 +116,7 @@ SessionSwitcher *RenderingManager::getSessionSwitcher() {
 
 void RenderingManager::setUseFboBlitExtension(bool on){
 
-    if (glewIsSupported("GL_EXT_framebuffer_blit"))
+    if (glewIsSupported("GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample"))
         RenderingManager::blit_fbo_extension = on;
     else {
         // if extension not supported but it is requested, show warning
@@ -1187,11 +1187,11 @@ bool RenderingManager::_insertSource(Source *s)
                 return true;
             }
             else
-                qCritical() << tr("Not enough space to insert the source into the stack (%1). %2").arg(_front_sources.size()).arg(s->getDepth());
+                qWarning() << tr("No more space in depth stack to add this source (%1).").arg(_front_sources.size());
 
         }
         else
-            qCritical() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);
+            qWarning() << tr("The maximum amount of source supported is reached (%1).").arg(maxSourceCount);
     }
 
     return false;
@@ -2283,7 +2283,7 @@ int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, Q
 
         }
         else {
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+            qCritical() << child.attribute("name") << QChar(124).toLatin1()
                        << tr("Could not insert source.");
             errors++;
             delete newsource;
