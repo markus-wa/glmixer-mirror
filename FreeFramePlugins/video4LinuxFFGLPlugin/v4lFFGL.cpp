@@ -69,7 +69,7 @@ public:
         // Using MMAP method: apparently the most robust.
         io = IO_METHOD_MMAP;
         fd = -1;
-        force_format = false;
+        force_format = true;
         draw_buffer = 0;
         read_buffer = 1;
         textureIndex = 0;
@@ -87,10 +87,11 @@ void *update_thread(void *c);
 
 #define FFPARAM_DEVICE 0
 
-void errno_exit(const char *s)
+int errno_exit(const char *s)
 {
-    fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "v4l2 - %s error %d, %s\n", s, errno, strerror(errno));
+//    exit(EXIT_FAILURE);
+    return errno;
 }
 
 int xioctl(int fh, int request, void *arg)
@@ -114,16 +115,76 @@ void process_image(const void *p, int size, video4LinuxFreeFrameGLData *current)
     current->draw_buffer = tmp;
     pthread_mutex_unlock( &(current->mutex) );
 
-    int s = 0;
-    s = v4lconvert_convert(current->m_convertData, &(current->m_capSrcFormat), &(current->m_capDestFormat),
-                           (unsigned char *)p, size,
-                           (unsigned char *)current->_glbuffer[current->draw_buffer], current->m_capDestFormat.fmt.pix.sizeimage);
+    if ( current->m_capSrcFormat.fmt.pix.pixelformat != V4L2_PIX_FMT_YUYV)
+    {
+        int s = 0;
+        s = v4lconvert_convert(current->m_convertData, &(current->m_capSrcFormat),
+                               &(current->m_capDestFormat),
+                               (unsigned char *)p, size,
+                               (unsigned char *)current->_glbuffer[current->draw_buffer],
+                current->m_capDestFormat.fmt.pix.sizeimage);
 
-    //fprintf(stderr, "%d error v4lconvert_convert", err);
-    if ( s == -1 || s != int(current->m_capDestFormat.fmt.pix.sizeimage) )
-        errno_exit(v4lconvert_get_error_message(current->m_convertData));
+        if ( s == -1 || s != int(current->m_capDestFormat.fmt.pix.sizeimage) )
+            fprintf(stderr, "%s", v4lconvert_get_error_message(current->m_convertData));
 
-    //    _glbuffer = (unsigned char *)p;
+    }
+    // custom YUV to RGB conversion (
+    else {
+        int y;
+        int cr;
+        int cb;
+        int i, j;
+
+        double r;
+        double g;
+        double b;
+        unsigned char* rgb_image = (unsigned char *)current->_glbuffer[current->draw_buffer];
+        unsigned char* yuyv_image = (unsigned char *)p;
+
+        for (i = 0, j = 0; i < current->width * current->height * 3; i+=6, j+=4) {
+            //first pixel
+            y = yuyv_image[j];
+            cb = yuyv_image[j+1];
+            cr = yuyv_image[j+3];
+
+            r = y + (1.4065 * (cr - 128));
+            g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
+            b = y + (1.7790 * (cb - 128));
+
+            //This prevents colour distortions in your rgb image
+            if (r < 0) r = 0;
+            else if (r > 255) r = 255;
+            if (g < 0) g = 0;
+            else if (g > 255) g = 255;
+            if (b < 0) b = 0;
+            else if (b > 255) b = 255;
+
+            rgb_image[i] = (unsigned char)r;
+            rgb_image[i+1] = (unsigned char)g;
+            rgb_image[i+2] = (unsigned char)b;
+
+            //second pixel
+            y = yuyv_image[j+2];
+            cb = yuyv_image[j+1];
+            cr = yuyv_image[j+3];
+
+            r = y + (1.4065 * (cr - 128));
+            g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
+            b = y + (1.7790 * (cb - 128));
+
+            if (r < 0) r = 0;
+            else if (r > 255) r = 255;
+            if (g < 0) g = 0;
+            else if (g > 255) g = 255;
+            if (b < 0) b = 0;
+            else if (b > 255) b = 255;
+
+            rgb_image[i+3] = (unsigned char)r;
+            rgb_image[i+4] = (unsigned char)g;
+            rgb_image[i+5] = (unsigned char)b;
+        }
+    }
+
 }
 
 int read_frame(video4LinuxFreeFrameGLData *current)
@@ -136,15 +197,14 @@ int read_frame(video4LinuxFreeFrameGLData *current)
         if (-1 == read(current->fd, current->buffers[0].start, current->buffers[0].length)) {
             switch (errno) {
             case EAGAIN:
+                // retry
                 return 0;
-
             case EIO:
                 /* Could ignore EIO, see spec. */
-
                 /* fall through */
-
             default:
-                errno_exit("read");
+                current->stop = true;
+                return errno_exit("read");
             }
         }
 
@@ -160,24 +220,24 @@ int read_frame(video4LinuxFreeFrameGLData *current)
         if (-1 == xioctl(current->fd, VIDIOC_DQBUF, &buf)) {
             switch (errno) {
             case EAGAIN:
+                // retry
                 return 0;
-
             case EIO:
                 /* Could ignore EIO, see spec. */
-
                 /* fall through */
-
             default:
-                errno_exit("VIDIOC_DQBUF");
+                current->stop = true;
+                return errno_exit("VIDIOC_DQBUF");
             }
         }
 
-        assert(buf.index < current->n_buffers);
-
         process_image(current->buffers[buf.index].start, buf.bytesused, current);
 
-        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
-            errno_exit("VIDIOC_QBUF");
+        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf)) {
+            current->stop = true;
+            return errno_exit("VIDIOC_QBUF");
+        }
+
         break;
 
     case IO_METHOD_USERPTR:
@@ -189,15 +249,14 @@ int read_frame(video4LinuxFreeFrameGLData *current)
         if (-1 == xioctl(current->fd, VIDIOC_DQBUF, &buf)) {
             switch (errno) {
             case EAGAIN:
+                // retry
                 return 0;
-
             case EIO:
                 /* Could ignore EIO, see spec. */
-
                 /* fall through */
-
             default:
-                errno_exit("VIDIOC_DQBUF");
+                current->stop = true;
+                return errno_exit("VIDIOC_DQBUF");
             }
         }
 
@@ -206,12 +265,14 @@ int read_frame(video4LinuxFreeFrameGLData *current)
                     && buf.length == current->buffers[i].length)
                 break;
 
-        assert(i < current->n_buffers);
 
         process_image((void *)buf.m.userptr, buf.bytesused, current);
 
-        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
-            errno_exit("VIDIOC_QBUF");
+        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf)){
+            current->stop = true;
+            return errno_exit("VIDIOC_QBUF");
+        }
+
         break;
     }
 
@@ -243,8 +304,8 @@ void update(video4LinuxFreeFrameGLData *current)
         }
 
         if (0 == r) {
-            fprintf(stderr, "select timeout\n");
-            exit(EXIT_FAILURE);
+            fprintf(stderr, "v4l2 - select timeout\n");
+            break;
         }
 
         if (read_frame(current))
@@ -255,21 +316,6 @@ void update(video4LinuxFreeFrameGLData *current)
 
 }
 
-
-void *update_thread(void *c)
-{
-    video4LinuxFreeFrameGLData *current = (video4LinuxFreeFrameGLData *) c;
-
-    for(;;) {
-
-        update(current);
-
-        if (current->stop)
-            break;
-    }
-
-    return 0;
-}
 
 bool stop_capturing(video4LinuxFreeFrameGLData *current)
 {
@@ -287,6 +333,9 @@ bool stop_capturing(video4LinuxFreeFrameGLData *current)
             return false;
         break;
     }
+
+    fprintf(stderr, "v4l2 - Stop Capturing %s\n", current->dev_name);
+
     return true;
 }
 
@@ -367,6 +416,8 @@ bool uninit_device(video4LinuxFreeFrameGLData *current)
 
     v4lconvert_destroy(current->m_convertData);
 
+    fprintf(stderr, "v4l2 - Released device %s\n", current->dev_name);
+
     return true;
 }
 
@@ -375,7 +426,7 @@ bool init_read(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
     current->buffers = (buffer *) calloc(1, sizeof(*(current->buffers)));
 
     if (!current->buffers) {
-        fprintf(stderr, "Out of memory\n");
+        fprintf(stderr, "v4l2 - Out of memory\n");
         return false;
     }
 
@@ -383,7 +434,7 @@ bool init_read(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
     current->buffers[0].start = malloc(buffer_size);
 
     if (!current->buffers[0].start) {
-        fprintf(stderr, "Out of memory\n");
+        fprintf(stderr, "v4l2 - Out of memory\n");
         return false;
     }
 
@@ -402,20 +453,20 @@ bool init_mmap(video4LinuxFreeFrameGLData *current)
 
     if (-1 == xioctl(current->fd, VIDIOC_REQBUFS, &req)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s does not support memory mapping\n", current->dev_name);
+            fprintf(stderr, "v4l2 - %s does not support memory mapping\n", current->dev_name);
         }
         return false;
     }
 
     if (req.count < 2) {
-        fprintf(stderr, "Insufficient buffer memory on %s\n", current->dev_name);
+        fprintf(stderr, "v4l2 - Insufficient buffer memory on %s\n", current->dev_name);
         return false;
     }
 
     current->buffers = (buffer *) calloc(req.count, sizeof(*(current->buffers)));
 
     if (!current->buffers) {
-        fprintf(stderr, "Out of memory\n");
+        fprintf(stderr, "v4l2 - Out of memory\n");
         return false;
     }
 
@@ -459,7 +510,7 @@ bool init_userp(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
 
     if (-1 == xioctl(current->fd, VIDIOC_REQBUFS, &req)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s does not support user pointer i/o\n", current->dev_name);
+            fprintf(stderr, "v4l2 - %s does not support user pointer i/o\n", current->dev_name);
         }
 
         return false;
@@ -468,7 +519,7 @@ bool init_userp(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
     current->buffers = (buffer *) calloc(4, sizeof(*(current->buffers)));
 
     if (!current->buffers) {
-        fprintf(stderr, "Out of memory\n");
+        fprintf(stderr, "v4l2 - Out of memory\n");
         return false;
     }
 
@@ -477,12 +528,12 @@ bool init_userp(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
         current->buffers[current->n_buffers].start = malloc(buffer_size);
 
         if (!current->buffers[current->n_buffers].start) {
-            fprintf(stderr, "Out of memory\n");
+            fprintf(stderr, "v4l2 - Out of memory\n");
             return false;
         }
     }
 
-    fprintf(stderr, "init userp %d x %d \n", 4, buffer_size);
+//    fprintf(stderr, "init userp %d x %d \n", 4, buffer_size);
 
     return true;
 }
@@ -497,20 +548,20 @@ bool init_device(video4LinuxFreeFrameGLData *current)
 
     if (-1 == xioctl(current->fd, VIDIOC_QUERYCAP, &cap)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s is no V4L2 device\n", current->dev_name);
+            fprintf(stderr, "v4l2 - %s is no Video4Linux device\n", current->dev_name);
         }
         return false;
     }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-        fprintf(stderr, "%s is no video capture device\n", current->dev_name);
+        fprintf(stderr, "v4l2 - %s is no video capture device\n", current->dev_name);
         return false;
     }
 
     switch (current->io) {
     case IO_METHOD_READ:
         if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
-            fprintf(stderr, "%s does not support read i/o\n", current->dev_name);
+            fprintf(stderr, "v4l2 - %s does not support read i/o\n", current->dev_name);
             return false;
         }
         break;
@@ -518,7 +569,7 @@ bool init_device(video4LinuxFreeFrameGLData *current)
     case IO_METHOD_MMAP:
     case IO_METHOD_USERPTR:
         if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-            fprintf(stderr, "%s does not support streaming i/o\n",  current->dev_name);
+            fprintf(stderr, "v4l2 - %s does not support streaming i/o\n",  current->dev_name);
             return false;
         }
         break;
@@ -528,42 +579,43 @@ bool init_device(video4LinuxFreeFrameGLData *current)
     /* Select video input, video standard and tune here. */
 
 
-    CLEAR(cropcap);
+//    CLEAR(cropcap);
 
-    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (0 == xioctl(current->fd, VIDIOC_CROPCAP, &cropcap)) {
-        crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        crop.c = cropcap.defrect; /* reset to default */
+//    if (0 == xioctl(current->fd, VIDIOC_CROPCAP, &cropcap)) {
+//        crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//        crop.c = cropcap.defrect; /* reset to default */
 
-        if (-1 == xioctl(current->fd, VIDIOC_S_CROP, &crop)) {
-            switch (errno) {
-            case EINVAL:
-                /* Cropping not supported. */
-                break;
-            default:
-                /* Errors ignored. */
-                break;
-            }
-        }
-    } else {
-        /* Errors ignored. */
-    }
+//        if (-1 == xioctl(current->fd, VIDIOC_S_CROP, &crop)) {
+//            switch (errno) {
+//            case EINVAL:
+//                /* Cropping not supported. */
+//                break;
+//            default:
+//                /* Errors ignored. */
+//                break;
+//            }
+//        }
+//    } else {
+//        /* Errors ignored. */
+//    }
 
 
     CLEAR(fmt);
 
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (current->force_format) {
-        fmt.fmt.pix.width       = 320;
-        fmt.fmt.pix.height      = 240;
+        fmt.fmt.pix.width       = 1024;
+        fmt.fmt.pix.height      = 768;
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
-        //                current->fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-
+        fmt.fmt.pix.field       = V4L2_FIELD_NONE;
+        // try to get those parameters from the camera
         if (-1 == xioctl(current->fd, VIDIOC_S_FMT, &fmt))
             return false;
-        /* Note VIDIOC_S_FMT may change width and height. */
-    } else {
+        /* Note VIDIOC_S_FMT may change pixelformat, width and height depending on camera */
+    }
+    else {
         /* Preserve original settings as set by v4l2-ctl for example */
         if (-1 == xioctl(current->fd, VIDIOC_G_FMT, &fmt))
             return false;
@@ -576,51 +628,63 @@ bool init_device(video4LinuxFreeFrameGLData *current)
     min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
     if (fmt.fmt.pix.sizeimage < min)
         fmt.fmt.pix.sizeimage = min;
+    v4lconvert_fixup_fmt(&(current->m_capSrcFormat));
+    v4lconvert_fixup_fmt(&(current->m_capDestFormat));
 
+    // remember width, height and format of the input
     current->width = fmt.fmt.pix.width;
     current->height = fmt.fmt.pix.height;
+    current->m_capSrcFormat = fmt;
 
+    // format for destination is the same, except for the PIXELS
+    current->m_capDestFormat = fmt;
+    current->m_capDestFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+
+    current->m_convertData = v4lconvert_create(current->fd);
+//    current->m_convertData
+
+
+    int err = 0;
+    err = v4lconvert_try_format(current->m_convertData, &(current->m_capDestFormat), &(current->m_capSrcFormat));
+    if (err == -1) {
+
+        fprintf(stderr, "v4l2 - Failed to create converter.\n");
+        return false;
+    }
+
+//    fprintf(stderr, "v4lconvert_try_format passed\n");
+
+    // Allocate OpenGL buffers
+    current->_glbuffer[0] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
+    current->_glbuffer[1] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
+
+    // initialize
     switch (current->io) {
     case IO_METHOD_READ:
         init_read(fmt.fmt.pix.sizeimage, current);
-        break;
-
-    case IO_METHOD_MMAP:
-        init_mmap(current);
+        fprintf(stderr, "v4l2 - using IO_METHOD_READ\n");
         break;
 
     case IO_METHOD_USERPTR:
         init_userp(fmt.fmt.pix.sizeimage,current);
+        fprintf(stderr, "v4l2 - using IO_METHOD_USERPTR\n");
+        break;
+
+    default:
+    case IO_METHOD_MMAP:
+        init_mmap(current);
+        fprintf(stderr, "v4l2 - using IO_METHOD_MMAP\n");
         break;
     }
 
-    fprintf(stderr, "v4lconvert_create\n");
 
-    current->m_convertData = v4lconvert_create(current->fd);
-
-    current->m_capSrcFormat = fmt;
-    current->m_capDestFormat = fmt;
-    current->m_capDestFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
-
-
-    fprintf(stderr, "v4lconvert_try_format\n");
-    int err = 0;
-    err = v4lconvert_try_format(current->m_convertData, &(current->m_capDestFormat), &(current->m_capSrcFormat));
-    if (err == -1)
-        return false;
-
-    fprintf(stderr, "malloc %d ", current->m_capDestFormat.fmt.pix.sizeimage);
-    current->_glbuffer[0] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
-    current->_glbuffer[1] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
-
-    fprintf(stderr, "init_device %d x %d : ", current->width, current->height);
-    fprintf(stderr, " convert pixelformat  %c%c%c%c ",
-            fmt.fmt.pix.pixelformat & 0xFF, (fmt.fmt.pix.pixelformat >> 8) & 0xFF,
-            (fmt.fmt.pix.pixelformat >> 16) & 0xFF, (fmt.fmt.pix.pixelformat >> 24) & 0xFF);
-    fprintf(stderr, " to  %c%c%c%c \n",
-            current->m_capDestFormat.fmt.pix.pixelformat & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 8) & 0xFF,
-            (current->m_capDestFormat.fmt.pix.pixelformat >> 16) & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 24) & 0xFF);
-
+    fprintf(stderr, "v4l2 - Device %s initiatlized ; %d x %d ", current->dev_name, current->width, current->height);
+    fprintf(stderr, " %c%c%c%c \n",
+            current->m_capSrcFormat.fmt.pix.pixelformat & 0xFF, (current->m_capSrcFormat.fmt.pix.pixelformat >> 8) & 0xFF,
+            (current->m_capSrcFormat.fmt.pix.pixelformat >> 16) & 0xFF, (current->m_capSrcFormat.fmt.pix.pixelformat >> 24) & 0xFF);
+//    fprintf(stderr, " to  %c%c%c%c \n",
+//            current->m_capDestFormat.fmt.pix.pixelformat & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 8) & 0xFF,
+//            (current->m_capDestFormat.fmt.pix.pixelformat >> 16) & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 24) & 0xFF);
 
     return true;
 }
@@ -632,6 +696,8 @@ bool close_device(video4LinuxFreeFrameGLData *current)
 
     current->fd = -1;
 
+    fprintf(stderr, "v4l2 - Closed device %s\n", current->dev_name);
+
     return true;
 }
 
@@ -640,24 +706,44 @@ bool open_device(video4LinuxFreeFrameGLData *current)
     struct stat st;
 
     if (-1 == stat(current->dev_name, &st)) {
-        fprintf(stderr, "Cannot identify '%s': %d, %s\n",  current->dev_name, errno, strerror(errno));
+        fprintf(stderr, "v4l2 - Cannot identify '%s': %d, %s\n",  current->dev_name, errno, strerror(errno));
         return false;
     }
 
     if (!S_ISCHR(st.st_mode)) {
-        fprintf(stderr, "%s is no device\n", current->dev_name);
+        fprintf(stderr, "v4l2 - %s is no device\n", current->dev_name);
         return false;
     }
 
     current->fd = open(current->dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
 
     if (-1 == current->fd) {
-        fprintf(stderr, "Cannot open '%s': %d, %s\n", current->dev_name, errno, strerror(errno));
+        fprintf(stderr, "v4l2 - Cannot open '%s': %d, %s\n", current->dev_name, errno, strerror(errno));
         return false;
     }
     return true;
 }
 
+
+void *update_thread(void *c)
+{
+    video4LinuxFreeFrameGLData *current = (video4LinuxFreeFrameGLData *) c;
+
+    for(;;) {
+
+        update(current);
+
+        if (current->stop)
+            break;
+
+    }
+
+    stop_capturing(current);
+    uninit_device(current);
+    close_device(current);
+
+    return 0;
+}
 
 GLuint displayList = 0;
 
@@ -665,7 +751,7 @@ GLuint displayList = 0;
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
         video4LinuxFreeFrameGL::CreateInstance,	// Create method
         "FFGLV4L",								// Plugin unique ID
         "Video4Linux",                          // Plugin name
@@ -694,7 +780,7 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 
     // Parameters
     SetParamInfo(FFPARAM_DEVICE, "Device", FF_TYPE_TEXT, "/dev/video0");
-    sprintf(data->dev_name, "/dev/video0");
+    sprintf(data->dev_name, " ");
 }
 
 video4LinuxFreeFrameGL::~video4LinuxFreeFrameGL()
@@ -805,14 +891,15 @@ FFResult video4LinuxFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     if (!data->stop) {
 
+        glBindTexture(GL_TEXTURE_2D, data->textureIndex);
+
         pthread_mutex_lock( &(data->mutex) );
         // get a new frame
-        GLuint tmp = data->read_buffer;
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->width, data->height, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[data->read_buffer]);
+//        fprintf(stderr, "%d %d image", data->width, data->height);
+
         pthread_mutex_unlock( &(data->mutex) );
-
-
-        glBindTexture(GL_TEXTURE_2D, data->textureIndex);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->width, data->height, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[tmp]);
 
     } else {
 
@@ -841,17 +928,23 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
 {
     if (index == FFPARAM_DEVICE) {
 
-        fprintf(stderr,"changing for device : %s\n", value);
+        if ( strcmp(value, data->dev_name) == 0 ) {
 
-        // TODO : stop and restart plugin if already running
+            fprintf(stderr,"v4l2 - Already using device %s\n", data->dev_name);
+            return FF_SUCCESS;
+        }
+
+        // stop if already running
         if (! data->stop) {
             data->stop = true;
             pthread_join( data->thread, NULL );
 
-            if (stop_capturing(data))
-                if (uninit_device(data))
-                    close_device(data);
+            stop_capturing(data);
+            uninit_device(data);
+            close_device(data);
         }
+
+        fprintf(stderr,"v4l2 - Opening device %s\n", value);
 
         sprintf(data->dev_name, "%s", value);
 
@@ -860,16 +953,20 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
             if (data->textureIndex != 0)
                 glDeleteTextures(1, &(data->textureIndex));
 
+            glEnable(GL_TEXTURE_2D);
             glGenTextures(1, &(data->textureIndex));
             glBindTexture(GL_TEXTURE_2D, data->textureIndex);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             data->read_buffer = 0;
             data->draw_buffer = 0;
-            update( data);
+            update( data );
 
+//            fprintf(stderr, "init texture %d x %d \n", data->width, data->height);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data->width, data->height, 0, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[data->read_buffer]);
 
             // start capturing thread
@@ -877,11 +974,11 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
             data->draw_buffer = 1;
             int rc = pthread_create( &(data->thread), NULL, &update_thread, (void *) data);
             if( rc != 0 )
-                fprintf(stderr,"Thread creation failed: %d\n", rc);
+                fprintf(stderr,"v4l2 - Thread creation failed: %d\n", rc);
 
         }
         else {
-            printf("Failed to open: %s\n", value);
+            printf("v4l2 - Failed to open %s\n", value);
             data->stop = true;
         }
 

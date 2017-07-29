@@ -47,6 +47,13 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 #ifdef Q_OS_MAC
     ui->freeframeEmbededList->removeItem(2);
 #else
+
+#ifdef Q_OS_LINUX
+    ui->freeframeEmbededList->setItemText(2, "Camera (Video4Linux)");
+#else
+    ui->freeframeEmbededList->setItemText(2, "Camera (Win ESCAPI)");
+#endif
+
     ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Camera")));
 #endif
 
