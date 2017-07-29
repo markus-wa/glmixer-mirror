@@ -66,6 +66,7 @@ public:
 
     video4LinuxFreeFrameGLData(){
 
+        sprintf(dev_name, " ");
         // Using MMAP method: apparently the most robust.
         io = IO_METHOD_MMAP;
         fd = -1;
@@ -662,23 +663,23 @@ bool init_device(video4LinuxFreeFrameGLData *current)
     switch (current->io) {
     case IO_METHOD_READ:
         init_read(fmt.fmt.pix.sizeimage, current);
-        fprintf(stderr, "v4l2 - using IO_METHOD_READ\n");
+//        fprintf(stderr, "v4l2 - using IO_METHOD_READ\n");
         break;
 
     case IO_METHOD_USERPTR:
         init_userp(fmt.fmt.pix.sizeimage,current);
-        fprintf(stderr, "v4l2 - using IO_METHOD_USERPTR\n");
+//        fprintf(stderr, "v4l2 - using IO_METHOD_USERPTR\n");
         break;
 
     default:
     case IO_METHOD_MMAP:
         init_mmap(current);
-        fprintf(stderr, "v4l2 - using IO_METHOD_MMAP\n");
+//        fprintf(stderr, "v4l2 - using IO_METHOD_MMAP\n");
         break;
     }
 
 
-    fprintf(stderr, "v4l2 - Device %s initiatlized ; %d x %d ", current->dev_name, current->width, current->height);
+    fprintf(stderr, "v4l2 - Device %s initialized ; %d x %d ", current->dev_name, current->width, current->height);
     fprintf(stderr, " %c%c%c%c \n",
             current->m_capSrcFormat.fmt.pix.pixelformat & 0xFF, (current->m_capSrcFormat.fmt.pix.pixelformat >> 8) & 0xFF,
             (current->m_capSrcFormat.fmt.pix.pixelformat >> 16) & 0xFF, (current->m_capSrcFormat.fmt.pix.pixelformat >> 24) & 0xFF);
@@ -779,8 +780,7 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
     SetMaxInputs(0);
 
     // Parameters
-    SetParamInfo(FFPARAM_DEVICE, "Device", FF_TYPE_TEXT, "/dev/video0");
-    sprintf(data->dev_name, " ");
+    SetParamInfo(FFPARAM_DEVICE, "Device", FF_TYPE_TEXT, "auto");
 }
 
 video4LinuxFreeFrameGL::~video4LinuxFreeFrameGL()
@@ -944,11 +944,49 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
             close_device(data);
         }
 
-        fprintf(stderr,"v4l2 - Opening device %s\n", value);
 
-        sprintf(data->dev_name, "%s", value);
+        if ( strcmp(value, "auto") == 0 ) {
+            bool ok = false;
+            int device_count = 0;
 
-        if (open_device(data) && init_device(data) && start_capturing(data) ) {
+            for (;;) {
+                if (device_count>9)
+                    break;
+
+                sprintf(data->dev_name, "/dev/video%d", device_count);
+                if (open_device(data) ) {
+                    if (init_device(data)) {
+                        ok = true;
+                        break;
+                    }
+                    close_device(data);
+                }
+                device_count++;
+            }
+
+            if ( !ok ){
+                fprintf(stderr,"v4l2 - No available device found\n");
+                return FF_SUCCESS;
+            }
+        }
+        else {
+            sprintf(data->dev_name, "%s", value);
+            if (!open_device(data)) {
+                fprintf(stderr,"v4l2 - Failed to open %s\n", value);
+                return FF_SUCCESS;
+            }
+            if (!init_device(data)) {
+                fprintf(stderr,"v4l2 - Failed to initialize %s\n", value);
+                close_device(data);
+                return FF_SUCCESS;
+            }
+        }
+
+
+        fprintf(stderr,"v4l2 - Using device %s\n", data->dev_name);
+
+
+        if ( start_capturing(data) ) {
 
             if (data->textureIndex != 0)
                 glDeleteTextures(1, &(data->textureIndex));
@@ -983,6 +1021,7 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
         }
 
         return FF_SUCCESS;
+
     }
 
     return FF_FAIL;
