@@ -25,6 +25,7 @@ private:
     QGLFramebufferObject *_fbo;
     GLuint _pbo, _pbo_texture;
     float _img_ar;
+    QImage _image;
 };
 
 #endif // GLTESTWIDGET_H

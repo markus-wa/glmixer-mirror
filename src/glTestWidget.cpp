@@ -20,8 +20,14 @@ void glTestWidget::initializeGL() {
 
     glRenderWidget::initializeGL();
 
+#ifdef Q_OS_MAC
+    setBackgroundColor(Qt::black);
+#else
+    setBackgroundColor(palette().color(QPalette::Window));
+#endif
+
     // test image
-    QImage _image = QImage(":/glmixer/images/glmixer_splash.png");
+    _image = QImage(":/glmixer/icons/glmixer_64x64.png");
     _img_ar = (float) _image.width() / (float)_image.height();
 
     // standard texture
@@ -48,13 +54,14 @@ void glTestWidget::initializeGL() {
             // release pointer to mapping buffer
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
         }
-        // copy pixels from PBO to texture object
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
+//        // copy pixels from PBO to texture object
+//        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
         // done
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     }
 
+    glPointSize(10);
 }
 
 void glTestWidget::resizeGL(int w, int h)
@@ -77,18 +84,37 @@ void glTestWidget::paintGL()
     if (!isEnabled() || !_fbo)
         return;
 
-    // draw in white
-    glColor4ub(255, 255, 255, 255);
 
     // render image in FBO
     if (_fbo->bind())
     {
         glClear(GL_COLOR_BUFFER_BIT);
         glLoadIdentity();
+
+        glBegin(GL_POINTS);
+        glColor4ub(_use_blit ? 0 :250, _use_blit ? 250 : 0,0,250);
+        glVertex2f(0.85, 0.3);
+        glColor4ub(_use_pbo ? 0 :250, _use_pbo ? 250 : 0,0,250);
+        glVertex2f(0.85, 0.8);
+        glEnd();
+
+        // respect aspect ratio
         glScaled( 1.0 / aspectRatio, 1.0, 1.0);
 
-        if (_use_pbo)
+        // draw in white
+        glColor4ub(255, 255, 255, 255);
+
+        if (_use_pbo) {
+            // bind PBO to read pixels
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _pbo);
+
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
             drawTexture(QRectF(-_img_ar, -1.0, 2.0 * _img_ar, 2.0), _pbo_texture );
+        }
         else
             drawTexture(QRectF(-_img_ar, -1.0, 2.0 * _img_ar, 2.0), _texture );
 
@@ -109,5 +135,7 @@ void glTestWidget::paintGL()
         glLoadIdentity();
         drawTexture(QRectF(-1.0, 1.0, 2.0, -2.0), _fbo->texture() );
     }
+
+
 
 }
