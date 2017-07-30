@@ -81,7 +81,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="dragDropMode">
-          <enum>QAbstractItemView::NoDragDrop</enum>
+          <enum>QAbstractItemView::DragDrop</enum>
          </property>
          <property name="alternatingRowColors">
           <bool>false</bool>
@@ -729,34 +729,38 @@ p, li { white-space: pre-wrap; }
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_11">
                 <item>
-                 <spacer name="horizontalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                 <widget class="glTestWidget" name="previewOutput" native="true">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
                   </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Maximum</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
+                 </widget>
                 </item>
                 <item>
-                 <layout class="QGridLayout" name="gridLayout">
-                  <item row="0" column="0">
-                   <widget class="QCheckBox" name="disableFiltering">
+                 <layout class="QGridLayout" name="gridLayoutOptions">
+                  <item row="3" column="1">
+                   <widget class="QCheckBox" name="disableOutputRecording">
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable all filters (necessary if the rendering is too slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide the output window when recording (useful if rendering is slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>Disable all filters </string>
+                     <string>Disable output when recording</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="0">
+                  <item row="0" column="1">
+                   <widget class="QCheckBox" name="disablePixelBufferObject">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable Pixel Buffer Objects (useful if your graphics hardware does not support it).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>Disable Pixel Buffer Objects</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
                    <widget class="QCheckBox" name="disableBlitFrameBuffer">
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not use the hardware blit to output window (necessary on some hardware, e.g. if the window is black).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -769,23 +773,13 @@ p, li { white-space: pre-wrap; }
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="1">
-                   <widget class="QCheckBox" name="disablePixelBufferObject">
+                  <item row="2" column="1">
+                   <widget class="QCheckBox" name="disableFiltering">
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable Pixel Buffer Objects (useful if your graphics hardware does not support it).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable all filters (necessary if the rendering is too slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>Disable Pixel Buffer Objects</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QCheckBox" name="disableOutputRecording">
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide the output window when recording (useful if rendering is slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>Disable outputs when recording</string>
+                     <string>Disable filters </string>
                     </property>
                    </widget>
                   </item>
@@ -2025,7 +2019,7 @@ font: 75;</string>
   <customwidget>
    <class>SourcePropertyBrowser</class>
    <extends>QWidget</extends>
-   <header location="global">SourcePropertyBrowser.h</header>
+   <header>SourcePropertyBrowser.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -2048,6 +2042,12 @@ font: 75;</string>
     <slot>setSpeed(int)</slot>
     <slot>setCentered(bool)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>glTestWidget</class>
+   <extends>QWidget</extends>
+   <header>glTestWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

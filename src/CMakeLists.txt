@@ -28,6 +28,7 @@ include(${QT_USE_FILE})
 SET(GLMIXER_SRCS
     common.cpp
     glRenderWidget.cpp
+    glTestWidget.cpp
     VideoFileDialogPreview.cpp
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp

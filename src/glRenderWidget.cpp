@@ -46,32 +46,32 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 : QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
-	static bool testDone = false;
+    static bool testDone = false;
     if (!testDone) {
         if (!glRenderWidgetFormat.rgba())
           qFatal( "%s", qPrintable( QObject::tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
-		if (!glRenderWidgetFormat.directRendering())
+        if (!glRenderWidgetFormat.directRendering())
           qCritical() << QObject::tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
-		if (!glRenderWidgetFormat.doubleBuffer())
+        if (!glRenderWidgetFormat.doubleBuffer())
           qCritical() << QObject::tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
         // disable VSYNC
         glRenderWidgetFormat.setSwapInterval(0);
         if (glRenderWidgetFormat.swapInterval() > 0)
           qCritical() << QObject::tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
         testDone = true;
-	}
+    }
 
     if (glRenderWidget::timer == 0) {
         glRenderWidget::timer = new QTimer();
         glRenderWidget::timer->setInterval(20);
-	}
+    }
     connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(repaint()), Qt::DirectConnection);
 }
 
 void glRenderWidget::setAntiAliasing(bool on)
 {
-	antialiasing = on;
-	makeCurrent();
+    antialiasing = on;
+    makeCurrent();
 
     // OPENGL ANTIALIASING
     if (antialiasing) {
@@ -90,17 +90,17 @@ void glRenderWidget::initializeGL()
     // Set flat color shading without dithering
     glShadeModel(GL_FLAT);
     glDisable(GL_DITHER);
-	glDisable(GL_POLYGON_SMOOTH);
+    glDisable(GL_POLYGON_SMOOTH);
 
     // disable depth and lighting by default
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-	glDepthMask(GL_FALSE);
+    glDepthMask(GL_FALSE);
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
 
     // Enables texturing
-	glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
 
     // default texture parameters
@@ -110,15 +110,15 @@ void glRenderWidget::initializeGL()
 
     // ensure alpha channel is modulated ; otherwise the source is not mixed by its alpha channel
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 
     // Turn blending on
     glEnable(GL_BLEND);
 
     // Blending Function For transparency Based On Source Alpha Value
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -128,6 +128,7 @@ void glRenderWidget::initializeGL()
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);
 
+    setAntiAliasing(antialiasing);
 }
 
 
@@ -140,7 +141,7 @@ void glRenderWidget::setBackgroundColor(const QColor &c){
 void glRenderWidget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-	aspectRatio = (float) w / (float) h;
+    aspectRatio = (float) w / (float) h;
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
@@ -148,7 +149,7 @@ void glRenderWidget::resizeGL(int w, int h)
     gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
-	
+
 }
 
 void glRenderWidget::paintGL()
@@ -159,9 +160,9 @@ void glRenderWidget::paintGL()
 
 void glRenderWidget::setUpdatePeriod(int miliseconds) {
 
-	if (miliseconds > 11)
+    if (miliseconds > 11)
         glRenderWidget::timer->start(miliseconds);
-	else
+    else
         glRenderWidget::timer->start();
 }
 
@@ -179,9 +180,9 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 
     openglExtensionsDialog = new QDialog(0);
     if (!iconfile.isEmpty()){
-		QIcon icon;
-		icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
-		openglExtensionsDialog->setWindowIcon(icon);
+        QIcon icon;
+        icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
+        openglExtensionsDialog->setWindowIcon(icon);
     }
     openglExtensionsDialog->setWindowTitle(QObject::tr("About OpenGL"));
     openglExtensionsDialog->resize(450, 400);

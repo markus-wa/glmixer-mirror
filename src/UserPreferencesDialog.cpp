@@ -55,6 +55,9 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), 
     recordingFolderLine->setProperty("exists", true);
     QObject::connect(recordingFolderLine, SIGNAL(textChanged(const QString &)), this, SLOT(recordingFolderPathChanged(const QString &)));
 
+    // connect to output preview
+    QObject::connect(disablePixelBufferObject, SIGNAL(toggled(bool)), previewOutput, SLOT(disablePBO(bool)));
+    QObject::connect(disableBlitFrameBuffer, SIGNAL(toggled(bool)), previewOutput, SLOT(disableBlitFBO(bool)));
 
     // TODO fill in the list of available languages
 
