@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>624</width>
-    <height>590</height>
+    <width>662</width>
+    <height>583</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1533,7 +1533,26 @@ the user to select a file name</string>
               <item>
                <widget class="QLabel" name="instructions2">
                 <property name="text">
-                 <string>corresponding box  and clic using the mouse button(s) you want:</string>
+                 <string>corresponding box and clic using the mouse button(s) you want:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="TestButtonFrame" name="ButtonTestFrame" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="cursor">
+                 <cursorShape>CrossCursor</cursorShape>
                 </property>
                </widget>
               </item>
@@ -1546,10 +1565,6 @@ the user to select a file name</string>
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">background-color: palette(midlight);
-font: 75;</string>
                   </property>
                   <property name="frameShape">
                    <enum>QFrame::StyledPanel</enum>
@@ -1586,25 +1601,6 @@ font: 75;</string>
                  </widget>
                 </item>
                </layout>
-              </item>
-              <item>
-               <widget class="TestButtonFrame" name="ButtonTestFrame" native="true">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>50</height>
-                 </size>
-                </property>
-                <property name="cursor">
-                 <cursorShape>CrossCursor</cursorShape>
-                </property>
-               </widget>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_7">

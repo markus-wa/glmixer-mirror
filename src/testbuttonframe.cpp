@@ -11,9 +11,9 @@ TestButtonFrame::TestButtonFrame(QWidget * parent, Qt::WindowFlags f):QWidget(pa
     setMouseTracking ( true );
 
     assignedBrushColor = palette().color(QPalette::Highlight);
-    assignedPenColor = palette().color(QPalette::Highlight);
+    assignedPenColor = palette().color(QPalette::Highlight).darker(130);
     unassignedBrushColor = palette().color(QPalette::Button);
-    unassignedPenColor = palette().color(QPalette::Mid);
+    unassignedPenColor = palette().color(QPalette::Button).darker(130);
 
     reset();
 }
@@ -113,7 +113,12 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
+#ifdef Q_OS_MAC
+    painter.fillRect(event->rect(), palette().color(QPalette::Window).darker(105) );
+#else
     painter.fillRect(event->rect(), palette().window());
+#endif
 
     QFont f = font();
     f.setPixelSize(12);
@@ -138,10 +143,10 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
 
         painter.setBrush(QBrush(colorbrush));
         qareamap[(View::UserInput) b].setRect( w * b / View::INPUT_NONE + b, 1, w / View::INPUT_NONE - View::INPUT_NONE, event->rect().height() -1 );
-        painter.drawRoundRect(qareamap[(View::UserInput) b], 20, 20);
+        painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(1, 1, -1, -1), 20, 20);
 
         if (b == View::INPUT_SELECT )
-            painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(4, 4, -4, -4), 20, 20);
+            painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(5, 5, -5, -5), 20, 20);
 
         painter.setPen(colortext);
         painter.drawText(qareamap[(View::UserInput) b], Qt::AlignCenter, View::userInputLabel((View::UserInput) b));
