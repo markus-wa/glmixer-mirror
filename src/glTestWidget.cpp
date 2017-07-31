@@ -21,7 +21,7 @@ void glTestWidget::initializeGL() {
     glRenderWidget::initializeGL();
 
 #ifdef Q_OS_MAC
-    setBackgroundColor(Qt::black);
+    setBackgroundColor( palette().color(QPalette::Window).darker(105) );
 #else
     setBackgroundColor(palette().color(QPalette::Window));
 #endif

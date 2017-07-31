@@ -64,7 +64,7 @@ void OutputRenderWidget::initializeGL() {
     glDisable(GL_BLEND);
 
 #ifdef Q_OS_MAC
-    setBackgroundColor(Qt::black);
+    setBackgroundColor(palette().color(QPalette::Window));
 #else
     setBackgroundColor(palette().color(QPalette::Window));
 #endif
