@@ -24,7 +24,7 @@ private:
     GLuint _texture;
     QGLFramebufferObject *_fbo;
     GLuint _pbo, _pbo_texture;
-    float _img_ar;
+    float _img_ar, _angle;
     QImage _image;
 };
 

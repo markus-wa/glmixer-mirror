@@ -189,5 +189,6 @@
         <file>icons/media-playback-playstop.png</file>
         <file>icons/media-playback-playpause.png</file>
         <file>icons/workspace_3_on.png</file>
+        <file>icons/glmixer_256x256.png</file>
     </qresource>
 </RCC>

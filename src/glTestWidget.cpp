@@ -27,7 +27,8 @@ void glTestWidget::initializeGL() {
 #endif
 
     // test image
-    _image = QImage(":/glmixer/icons/glmixer_64x64.png");
+//    _image = QImage(":/glmixer/images/glmixer_splash.png");
+    _image = QImage(":/glmixer/icons/glmixer_256x256.png");
     _img_ar = (float) _image.width() / (float)_image.height();
 
     // standard texture
@@ -36,8 +37,7 @@ void glTestWidget::initializeGL() {
     // PBO
     if ( glewIsSupported("GL_ARB_pixel_buffer_object") ) {
 
-//        _image = QImage(":/glmixer/images/blend_custom.png");
-        // pbo texture
+        // create pbo texture
         _pbo_texture = bindTexture(_image, GL_TEXTURE_2D, GL_RGBA,  QGLContext::LinearFilteringBindOption);
 
         // create 2 pixel buffer objects,
@@ -54,8 +54,8 @@ void glTestWidget::initializeGL() {
             // release pointer to mapping buffer
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
         }
-//        // copy pixels from PBO to texture object
-//        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
+        // copy pixels from PBO to texture object
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
         // done
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
@@ -99,18 +99,19 @@ void glTestWidget::paintGL()
         glEnd();
 
         // respect aspect ratio
-        glScaled( 1.0 / aspectRatio, 1.0, 1.0);
+        glScaled( 0.93 / aspectRatio, 0.93, 1.0);
+
+        // animate logo
+        _angle = fmod(_angle + 3601.0, 360.0);
+        glRotatef( _angle, 0.0, 0.0, 1.0);
 
         // draw in white
         glColor4ub(255, 255, 255, 255);
 
         if (_use_pbo) {
-            // bind PBO to read pixels
+            // stress test of PBO by replacing texture each frame
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _pbo);
-
-            // copy pixels from PBO to texture object
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _image.width(), _image.height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
-
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
             drawTexture(QRectF(-_img_ar, -1.0, 2.0 * _img_ar, 2.0), _pbo_texture );
