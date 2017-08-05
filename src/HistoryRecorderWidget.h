@@ -29,7 +29,7 @@ public slots:
 private:
     Ui::HistoryRecorderWidget *ui;
 
-    HistoryManagerWidget *_editor;
+//    class HistoryManagerWidget *_editor;
     HistoryRecorder *_recorder;
     HistoryPlayer *_player;
 };

@@ -86,6 +86,7 @@ SET(GLMIXER_SRCS
     SizeSelectionWidget.cpp
     WorkspaceManager.cpp
     TimelineSlider.cpp
+    BasketSource.cpp
 )
 
 

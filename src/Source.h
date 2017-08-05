@@ -94,7 +94,8 @@ public:
         FFGL_SOURCE,
         WEB_SOURCE,
         SPOUT_SOURCE,
-        STREAM_SOURCE
+        STREAM_SOURCE,
+        BASKET_SOURCE
     } RTTI;
     virtual RTTI rtti() const { return type; }
 

@@ -96,6 +96,7 @@ void CatalogView::setVisible(bool on){
 
 void CatalogView::clear() {
 
+    // TODO : better texture atlas to avoid this limitation
     // Check limits of the openGL texture
     GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
 

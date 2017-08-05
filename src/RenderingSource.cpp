@@ -31,21 +31,30 @@ GLuint RenderingSource::getTextureIndex() const {
     QGLFramebufferObject *fbo = _sfbo;
     if (_recursive || !fbo )
         fbo = RenderingManager::getInstance()->previousframe_fbo;
-    return fbo->texture();
+    if (fbo)
+        return fbo->texture();
+    else
+        return Source::getTextureIndex();
 }
 
 int RenderingSource::getFrameWidth() const {
     QGLFramebufferObject *fbo = _sfbo;
     if (_recursive || !fbo )
         fbo = RenderingManager::getInstance()->previousframe_fbo;
-    return fbo->width();
+    if (fbo)
+        return fbo->width();
+    else
+        return Source::getFrameWidth();
 }
 
 int RenderingSource::getFrameHeight() const {
     QGLFramebufferObject *fbo = _sfbo;
     if (_recursive || !fbo )
         fbo = RenderingManager::getInstance()->previousframe_fbo;
-    return fbo->height();
+    if (fbo)
+        return fbo->height();
+    else
+        return Source::getFrameHeight();
 }
 
 double RenderingSource::getFrameRate() const {

@@ -1320,6 +1320,23 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 }
 
 
+void GLMixer::on_actionBasketSource_triggered(){
+
+    bool generatePowerOfTwoRequested = false;
+    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+
+    if (!fileNames.empty()) {
+
+        Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, 1024, 768, 120);
+        if (s) {
+
+            RenderingManager::getInstance()->addSourceToBasket(s);
+        } else
+            qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
+    }
+
+}
+
 void GLMixer::sessionChanged() {
 
     maybeSave = true;

@@ -11,7 +11,8 @@
 //#define DEBUG_HISTORY
 
 HistoryPlayer::HistoryPlayer(History history, QObject *parent) : QObject(parent),
-    _history(history), _direction(History::FORWARD), _play(false), _loop(true), _reverse(true), _maximumSize(10000)
+    _history(history), _direction(History::FORWARD), _play(false), _loop(true), _reverse(true)
+//  , _maximumSize(10000)
 {
     _current = _history.begin();
     _currentTime = _current.key();
@@ -143,7 +144,7 @@ void HistoryPlayer::setCursorNextPositionForward()
     }
 
     // inform that history changed
-    emit changed();
+//    emit changed();
 }
 
 void HistoryPlayer::setCursorNextPositionBackward()
@@ -164,7 +165,7 @@ void HistoryPlayer::setCursorNextPositionBackward()
         _current--;
     }
     // inform that history changed
-    emit changed();
+//    emit changed();
 }
 
 void HistoryPlayer::setCursorNextPosition(History::Direction dir)

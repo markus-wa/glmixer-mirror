@@ -35,6 +35,7 @@
 #include "SvgSource.h"
 #include "WebSource.h"
 #include "VideoStreamSource.h"
+#include "BasketSource.h"
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
@@ -304,6 +305,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA texture resolution: ") << maxtexturewidth << "x" << maxtextureheight;
 
+        // TODO : better texture atlas to avoid this limitation
         // setup the maximum texture count accordingly
         maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Maximum number of sources: ") << maxSourceCount;
@@ -1123,6 +1125,28 @@ Source *RenderingManager::newStreamSource(VideoStream *vs, double depth) {
 }
 
 
+Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p, double depth){
+
+    _renderwidget->makeCurrent();
+
+    BasketSource *s = 0;
+    try {
+        // create a source appropriate
+        s = new BasketSource(files, getAvailableDepthFrom(depth), w, h, (qint64) p);
+        s->setName(_defaultSource->getName() + "Basket");
+
+//        // connect to error
+//        QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
+
+    } catch (AllocationException &e){
+        qWarning() << "Cannot create Basket source; " << e.message();
+        // return an invalid pointer
+        s = 0;
+    }
+
+    return ( (Source *) s );
+}
+
 
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
@@ -1855,6 +1879,10 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             RenderingSource *rs = dynamic_cast<RenderingSource *> (*its);
             sourceElem = rs->getConfiguration(doc, current);
         }
+        else if ((*its)->rtti() == Source::BASKET_SOURCE) {
+            BasketSource *rs = dynamic_cast<BasketSource *> (*its);
+            sourceElem = rs->getConfiguration(doc, current);
+        }
         else
             sourceElem = (*its)->getConfiguration(doc, current);
 
@@ -2235,6 +2263,32 @@ int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, Q
         } else
             qDebug() << child.attribute("name")<< QChar(124).toLatin1()
                      << tr("Video Stream source created (") << str.text() << ").";
+    }
+    else if ( type == Source::BASKET_SOURCE)
+    {
+        QDomElement basket = t.firstChildElement("Images");
+
+        QStringList fileNames;
+        QDomElement child = basket.firstChildElement("Filename");
+        while (!child.isNull()) {
+
+            // first reads with the absolute file name
+            QString fileNameToOpen = child.text();
+            // if there is no such file, try generate a file name from the relative file name
+            if (!QFileInfo(fileNameToOpen).exists())
+                fileNameToOpen = current.absoluteFilePath( child.attribute("Relative", "") );
+            // if there is such a file
+            if (QFileInfo(fileNameToOpen).exists())
+                fileNames.append(fileNameToOpen);
+
+            child = child.nextSiblingElement("Filename");
+        }
+
+        QDomElement Frame = t.firstChildElement("Frame");
+        QDomElement Update = t.firstChildElement("Update");
+
+        newsource = RenderingManager::_instance->newBasketSource(fileNames, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), Update.attribute("Periodicity", "0").toInt(), depth);
+
     }
     else if ( type == Source::CLONE_SOURCE)
     {

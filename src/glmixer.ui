@@ -725,8 +725,8 @@ border-bottom-left-radius: 5px;
            </property>
            <property name="minimumSize">
             <size>
-             <width>52</width>
-             <height>36</height>
+             <width>50</width>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1639,7 +1639,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1468</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -1786,6 +1786,7 @@ Uncheck to display the restart frame when stopped.</string>
     </widget>
     <addaction name="actionNewSource"/>
     <addaction name="actionMediaSource"/>
+    <addaction name="actionBasketSource"/>
     <addaction name="actionCameraSource"/>
     <addaction name="actionFreeframeSource"/>
     <addaction name="actionAlgorithmSource"/>
@@ -1931,6 +1932,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <addaction name="actionNewSource"/>
    <addaction name="actionMediaSource"/>
+   <addaction name="actionBasketSource"/>
    <addaction name="actionCameraSource"/>
    <addaction name="actionFreeframeSource"/>
    <addaction name="actionAlgorithmSource"/>
@@ -3183,7 +3185,7 @@ Uncheck to display the restart frame when stopped.</string>
           <x>0</x>
           <y>0</y>
           <width>238</width>
-          <height>80</height>
+          <height>86</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -5120,6 +5122,18 @@ Shortcut:                         Ctrl + Tab</string>
     <string>Ctrl+0</string>
    </property>
   </action>
+  <action name="actionBasketSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/basketsource.png</normaloff>:/glmixer/icons/basketsource.png</iconset>
+   </property>
+   <property name="text">
+    <string>New source &amp;basket</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a source from a basket of images</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -5145,8 +5159,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>
