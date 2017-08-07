@@ -56,6 +56,7 @@ class BasketSource : public Source
 
     friend class RenderingManager;
     friend class OutputRenderWidget;
+    friend class BasketSelectionDialog;
 
 public:
 
@@ -69,17 +70,26 @@ public:
     double getFrameRate() const ;
     void update();
 
+    bool isBidirectional() const;
+    bool isShuffle() const;
+    qint64 getPeriod() const;
+    QStringList getImageFileList() const;
+
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 public slots:
+
     void play(bool on);
+
+    void setBidirectional(bool on);
+    void setShuffle(bool on);
+    void setPeriod(qint64 p);
+    void appendImages(QStringList files);
 
 protected:
 
     BasketSource(QStringList files, double d, int w = 1024, int h = 768,  qint64 p = 25);
     ~BasketSource();
-
-    void appendImages(QStringList files);
 
     static RTTI type;
     static bool playable;
@@ -91,10 +101,11 @@ private:
     // source info
     int width, height;
     qint64 period;
+    bool bidirectional;
+    bool shuffle;
 
     // timer
     QElapsedTimer _timer;
-//    qint64 _elapsedtime;
     bool _pause;
 
     // Frame buffer objetsB

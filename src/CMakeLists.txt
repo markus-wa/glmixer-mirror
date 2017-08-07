@@ -87,6 +87,7 @@ SET(GLMIXER_SRCS
     WorkspaceManager.cpp
     TimelineSlider.cpp
     BasketSource.cpp
+    BasketSelectionDialog.cpp
 )
 
 
@@ -122,6 +123,7 @@ SET(GLMIXER_UIS
     NewSourceDialog.ui
     WebSourceCreationDialog.ui
     VideoStreamDialog.ui
+    BasketSelectionDialog.ui
     SizeSelectionWidget.ui
 )
 

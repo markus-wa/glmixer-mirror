@@ -6,7 +6,7 @@
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;
 bool BasketSource::playable = true;
 
-BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false), _indexPlaylist(0)
+BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false), _indexPlaylist(0)
 {
 
     // allocate the FBO for rendering
@@ -76,6 +76,48 @@ bool BasketSource::isPlaying() const {
     return !_pause;
 }
 
+bool BasketSource::isBidirectional() const {
+
+    return bidirectional;
+}
+
+void BasketSource::setBidirectional(bool on) {
+
+    bidirectional = on;
+}
+
+bool BasketSource::isShuffle() const {
+
+    return shuffle;
+}
+
+void BasketSource::setShuffle(bool on) {
+
+    shuffle = on;
+}
+
+qint64 BasketSource::getPeriod() const {
+
+    return period;
+}
+
+void BasketSource::setPeriod(qint64 p){
+
+    period = p;
+}
+
+
+QStringList BasketSource::getImageFileList() const {
+
+    QStringList list;
+
+    foreach (BasketImage img, _atlasImages) {
+        QString completefilename = QFileInfo( img.fileName() ).absoluteFilePath();
+        list.append(completefilename);
+    }
+
+    return list;
+}
 
 void BasketSource::update() {
 

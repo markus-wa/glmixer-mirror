@@ -66,6 +66,8 @@
 #include "CodecManager.h"
 #include "WorkspaceManager.h"
 #include "OpenSoundControlTranslator.h"
+#include "BasketSelectionDialog.h"
+
 
 #define GLM_OSC
 #ifdef GLM_OSC
@@ -1322,19 +1324,34 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 void GLMixer::on_actionBasketSource_triggered(){
 
-    bool generatePowerOfTwoRequested = false;
-    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
 
-    if (!fileNames.empty()) {
+    // popup a dialog to select the stream
+    static BasketSelectionDialog *bsd = 0;
+    if (!bsd)
+        bsd = new BasketSelectionDialog(this, &settings);
 
-        Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, 1024, 768, 120);
-        if (s) {
 
-            RenderingManager::getInstance()->addSourceToBasket(s);
-        } else
-            qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
+    if (bsd->exec() == QDialog::Accepted) {
+
+//        bool generatePowerOfTwoRequested = false;
+//        QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+
+        int w = bsd->getSelectedWidth();
+        int h = bsd->getSelectedHeight();
+        int p = bsd->getSelectedPeriod();
+
+        QStringList fileNames = bsd->getSelectedFiles();
+
+        if (!fileNames.empty()) {
+
+            Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p);
+            if (s) {
+
+                RenderingManager::getInstance()->addSourceToBasket(s);
+            } else
+                qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
+        }
     }
-
 }
 
 void GLMixer::sessionChanged() {
