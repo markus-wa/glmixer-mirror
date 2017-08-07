@@ -299,6 +299,8 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     pluginBrowser = new FFGLPluginBrowser(Plugin);
 
     pluginBrowserLayout->insertWidget(2, pluginBrowser);
+    QObject::connect(pluginBrowser, SIGNAL(currentItemChanged(bool)), removePlugin, SLOT(setEnabled(bool)) );
+    QObject::connect(removePlugin, SIGNAL(clicked(bool)), pluginBrowser, SLOT(removePlugin()) );
     QObject::connect(pluginBrowser, SIGNAL(pluginChanged()), this, SLOT(changed()) );
     QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), parent, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 #else

@@ -51,6 +51,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     propertyTreeEditor->setContextMenuPolicy(Qt::CustomContextMenu);
     propertyTreeEditor->setResizeMode(QtTreePropertyBrowser::Interactive);
     connect(propertyTreeEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuTree(const QPoint &)));
+    connect(propertyTreeEditor, SIGNAL(currentItemChanged(QtBrowserItem *)), this, SLOT(onCurrentItemChanged(QtBrowserItem *)) );
 
     // TODO ; read default from application config
     propertyTreeEditor->setVisible(true);
@@ -125,8 +126,8 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     // Actions of the Tree Context Menu
     menuTree.addAction(defaultValueAction);
     menuTree.addAction(resetAction);
-    menuTree.addAction(openUrlAction);
     menuTree.addAction(copyClipboardAction);
+    menuTree.addAction(openUrlAction);
 
     // TODO : expand and collapse with another mean than context menu
 //    menuTree.addSeparator();
@@ -222,7 +223,10 @@ void PropertyBrowser::disconnectManagers()
 
 }
 
-
+void PropertyBrowser::onCurrentItemChanged(QtBrowserItem *item)
+{
+    emit currentItemChanged( item != 0 );
+}
 
 void PropertyBrowser::addProperty(QtProperty *property)
 {

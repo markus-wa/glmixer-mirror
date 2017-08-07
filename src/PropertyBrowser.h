@@ -51,6 +51,7 @@ public slots:
     void setReferenceURL(QUrl u = QUrl());
     void showReferenceURL();
     void copyPropertyText();
+    void onCurrentItemChanged(QtBrowserItem *item);
 
     // Context menu actions
     virtual void ctxMenuTree(const QPoint &);
@@ -69,6 +70,7 @@ signals:
     void propertyChanged(QString, int);
     void propertyChanged(QString, double);
     void propertyChanged(QString, const QColor &);
+    void currentItemChanged(bool);
 
 protected:
 

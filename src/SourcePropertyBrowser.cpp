@@ -63,6 +63,7 @@
 #include "SvgSource.h"
 #include "WebSource.h"
 #include "VideoStreamSource.h"
+#include "BasketSource.h"
 #include "glmixer.h"
 #include "glmixerdialogs.h"
 #ifdef GLM_OPENCV
@@ -1368,6 +1369,69 @@ private:
 };
 
 
+
+class BasketSourcePropertyBrowser : public PropertyBrowser {
+
+public:
+    BasketSourcePropertyBrowser(BasketSource *source, QWidget *parent = 0):PropertyBrowser(parent), bs(source)
+    {
+        // Identifier
+        QtProperty *property;
+        property = infoManager->addProperty( QLatin1String("Type") );
+        property->setToolTip("Type of the source");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
+        infoManager->setValue(idToProperty["Type"], "Basket" );
+        addProperty(idToProperty["Type"]);
+
+        idToProperty["Files"] = infoManager->addProperty( QLatin1String("Files") );
+        // options
+        idToProperty["Bidirectional"] = boolManager->addProperty("Bidirectional");
+        idToProperty["Shuffle"] = boolManager->addProperty("Shuffle");
+        // Periodicity
+        idToProperty["Frequency"] = intManager->addProperty( QLatin1String("Update frequency") );
+        idToProperty["Frequency"]->setToolTip("Frequency of update (Hz).");
+        intManager->setRange(idToProperty["Frequency"], 1, 60);
+
+        // Set values
+        infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(",") );
+        boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());
+        boolManager->setValue(idToProperty["Shuffle"], bs->isShuffle());
+        intManager->setValue(idToProperty["Frequency"], (int) ( 1000.0 / double(bs->getPeriod()) ) );
+
+        //  show Properties
+        addProperty(idToProperty["Files"]);
+        addProperty(idToProperty["Bidirectional"]);
+        addProperty(idToProperty["Shuffle"]);
+        addProperty(idToProperty["Frequency"]);
+
+        connectManagers();
+    }
+
+public slots:
+
+    void valueChanged(QtProperty *property, bool value)
+    {
+        if ( property == idToProperty["Bidirectional"] )
+            bs->setBidirectional(!value);
+        else if ( property == idToProperty["Shuffle"] )
+            bs->setShuffle(!value);
+
+    }
+    void valueChanged(QtProperty *property, int value)
+    {
+        if ( property == idToProperty["Frequency"] )
+            bs->setPeriod( (unsigned long) ( 1000.0 / double(value) ) );
+
+    }
+
+private:
+
+    BasketSource *bs;
+
+};
+
+
 PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
@@ -1449,6 +1513,11 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
         VideoStreamSource *vs = dynamic_cast<VideoStreamSource *>(s);
         if (vs != 0)
             pb = new VideoStreamSourcePropertyBrowser(vs, parent);
+    }
+    else if ( s->rtti() == Source::BASKET_SOURCE ) {
+        BasketSource *bs = dynamic_cast<BasketSource *>(s);
+        if (bs != 0)
+            pb = new BasketSourcePropertyBrowser(bs, parent);
     }
     else
         pb = new PropertyBrowser(parent);

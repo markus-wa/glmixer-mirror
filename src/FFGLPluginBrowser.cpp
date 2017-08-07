@@ -48,6 +48,7 @@
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
 #include <QFileInfo>
+#include <QShortcut>
 
 #include "common.h"
 #include "FFGLPluginSource.h"
@@ -56,13 +57,14 @@
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
-    menuTree.addSeparator();
 
     // create edit action
     editAction = new QAction(tr("Edit"), this);
     QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
     // insert edit action on top
     menuTree.addAction(editAction);
+
+    menuTree.addSeparator();
 
     // create edit action
     enableAction = new QAction(tr("Enable"), this);
@@ -83,7 +85,11 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
         menuTree.addAction(moveDownAction);
         removeAction = new QAction(tr("Remove"), this);
         QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin()) );
+        QIcon icon2;
+        icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
+        removeAction->setIcon(icon2);
         menuTree.addAction(removeAction);
+        new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(removePlugin()));
     }
     else {
         removeAction = NULL;
@@ -94,6 +100,7 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"%1\";\n"
         "}").arg(getMonospaceFont()));
+
 }
 
 
@@ -104,8 +111,8 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
     // create the entry for this plugin
     QFileInfo pluginfile(plugin->fileName());
     // root in the tree view with a basic name
-    QtProperty *pluginroot = groupManager->addProperty( pluginfile.baseName());
-    pluginroot->setItalics(true);
+    QtProperty *pluginroot = boolManager->addProperty( pluginfile.baseName());
+    boolManager->setValue(pluginroot, plugin->isEnabled());
 
     // keep correspondance between property and plugin
     propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, QString>(plugin, QString::null);
@@ -224,8 +231,15 @@ bool FFGLPluginBrowser::canChange()
 void FFGLPluginBrowser::valueChanged(QtProperty *property, bool value)
 {
     if ( propertyToPluginParameter.contains(property) ) {
-        propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, QVariant(value));
+
+        // enable / disable if property is
+        if (propertyToPluginParameter[property].second.isNull())
+            propertyToPluginParameter[property].first->enable(value);
+        // else set option
+        else
+            propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, QVariant(value));
     }
+
 }
 
 void FFGLPluginBrowser::valueChanged(QtProperty *property, int value)
@@ -268,17 +282,19 @@ void FFGLPluginBrowser::defaultValue()
 {
     if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        if ( propertyToPluginParameter.contains(property) &&
-             propertyToPluginParameter[property].second > 0) {
+        if ( propertyToPluginParameter.contains(property) ) {
+            if( propertyToPluginParameter[property].second.isNull()) {
+                // enable by default
+                propertyToPluginParameter[property].first->enable(true);
+            }
+            else {
+                // read default value
+                QVariant val = propertyToPluginParameter[property].first->getParametersDefaults()[property->propertyName()];
 
-            // read default value
-            QVariant val = propertyToPluginParameter[property].first->getParametersDefaults()[property->propertyName()];
-
-            propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, val);
-
+                propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, val);
+            }
         }
     }
-
     // refresh display
     showProperties(currentStack);
 }
@@ -342,8 +358,10 @@ void FFGLPluginBrowser::enablePlugin(bool on)
 {
     if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        if ( propertyToPluginParameter.contains(property) )
+        if ( propertyToPluginParameter.contains(property) ) {
             propertyToPluginParameter[property].first->enable(on);
+            boolManager->setValue(property, on);
+        }
     }
 }
 
