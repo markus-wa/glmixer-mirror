@@ -85,6 +85,7 @@ public slots:
     void setShuffle(bool on);
     void setPeriod(qint64 p);
     void appendImages(QStringList files);
+    void setPlaylist(QList<int> playlist);
 
 protected:
 
@@ -97,6 +98,7 @@ protected:
 private:
 
     QSize allocateAtlas(int n);
+    void generateExecutionPlaylist();
 
     // source info
     int width, height;
@@ -116,7 +118,7 @@ private:
 
     // playing order
     QList<int> _playlist;
-    int _indexPlaylist;
+    QList<int> _executionList;
 
 };
 

@@ -1,12 +1,14 @@
 #include "BasketSource.moc"
 
 #include "ViewRenderWidget.h"
+
 #include <QImage>
+#include <algorithm>
 
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;
 bool BasketSource::playable = true;
 
-BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false), _indexPlaylist(0)
+BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false)
 {
 
     // allocate the FBO for rendering
@@ -15,11 +17,6 @@ BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) 
 
     // fill in the atlas
     appendImages(files);
-
-    // set a default playlist
-    for (int i = 0; i < _atlasImages.size(); ++i) {
-        _playlist.append(i);
-    }
 
     // if invalid period given, set to default 40Hz
     if (period <= 10)
@@ -107,6 +104,36 @@ void BasketSource::setPeriod(qint64 p){
 }
 
 
+void BasketSource::setPlaylist(QList<int> playlist){
+    // copy the given playlist
+    // only with a validation check for validity of the indices
+    foreach (int index, playlist) {
+        if (index > -1 && index<_atlasImages.count())
+            _playlist.append(index);
+    }
+}
+
+
+void BasketSource::generateExecutionPlaylist(){
+    // take the playlist and apply execution options
+    _executionList = _playlist;
+
+    if (shuffle) {
+        std::random_shuffle(_executionList.begin(), _executionList.end());
+        qDebug() << "shuffling" << _executionList;
+    }
+    if (bidirectional) {
+        QList<int> reverse;
+        reverse.reserve( _executionList.size() ); // reserve is new in Qt 4.7
+        std::reverse_copy( _executionList.begin(), _executionList.end(), std::back_inserter( reverse ) );
+        reverse.takeFirst();
+        reverse.takeLast();
+        _executionList += reverse;
+        qDebug() << "reversing" << reverse;
+    }
+//    qDebug() << _playlist << _executionList;
+}
+
 QStringList BasketSource::getImageFileList() const {
 
     QStringList list;
@@ -126,11 +153,12 @@ void BasketSource::update() {
         if (_timer.elapsed() > period)
         {
 
-            // select BasketImage index from playlist
-            _indexPlaylist = (_indexPlaylist+1)%(_playlist.size()); // ordered increment
-            QRect r = _atlasImages[_playlist[_indexPlaylist]].coordinates();
+            if (_executionList.isEmpty())
+                generateExecutionPlaylist();
 
-            //        qDebug()<< "update basket" << r << _indexPlaylist;
+            // select BasketImage index from execution playlist
+            int index = _executionList.takeFirst();
+            QRect r = _atlasImages[_playlist[index]].coordinates();
 
             // blit part of atlas to render FBO
             // use the accelerated GL_EXT_framebuffer_blit if available
@@ -143,7 +171,7 @@ void BasketSource::update() {
                                   GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             }
-            // TODO : non blit render
+            // TODO : else non-blit render
 
             _timer.restart();
         }
@@ -151,7 +179,6 @@ void BasketSource::update() {
     }
 
     // TODO : smart refill of atlas if necessary (not _initialized)
-
     // if not filled, fill in the BasketImage in the atlas
 //    if (_atlasFBO->bind()) {
 //        _atlasFBO->release();
@@ -173,6 +200,13 @@ void BasketSource::appendImages(QStringList files){
     foreach (QString file, files) {
         _atlasImages.append(BasketImage(file));
     }
+
+    // set a default playlist
+    QList<int> defaultlist;
+    for (int i = 0; i < _atlasImages.size(); ++i) {
+        defaultlist.append(i);
+    }
+    setPlaylist(defaultlist);
 
     // allocate the FBO for the atlas
     QSize array = allocateAtlas(_atlasImages.size());
@@ -219,6 +253,9 @@ void BasketSource::appendImages(QStringList files){
 
             // render image in FBO
             QImage image(_atlasImages[i].fileName());
+            if (image.format() != QImage::Format_ARGB32_Premultiplied)
+                image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+
 #if QT_VERSION >= 0x040700
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  image.width(), image. height(),
                           0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, image.constBits() );
@@ -305,6 +342,15 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
     x.setAttribute("Periodicity", QString::number(period) );
     specific.appendChild(x);
 
+    QDomElement pl = doc.createElement("Playlist");
+    QStringList list;
+    foreach(int i, _playlist)
+        list.append(QString::number(i));
+    pl.appendChild( doc.createTextNode( list.join(",") ) );
+    pl.setAttribute("Bidirectional", bidirectional );
+    pl.setAttribute("Shuffle", shuffle );
+    specific.appendChild(pl);
+
     // list of files in basket
     QDomElement basket = doc.createElement("Images");
     foreach (BasketImage img, _atlasImages) {
@@ -313,8 +359,7 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
         QString completefilename = QFileInfo( img.fileName() ).absoluteFilePath();
         if (current.isReadable())
             f.setAttribute("Relative", current.relativeFilePath( completefilename ) );
-        QDomText filename = doc.createTextNode( completefilename );
-        f.appendChild(filename);
+        f.appendChild( doc.createTextNode( completefilename ));
         basket.appendChild(f);
     }
     specific.appendChild(basket);

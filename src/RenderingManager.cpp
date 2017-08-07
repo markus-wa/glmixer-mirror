@@ -1125,7 +1125,7 @@ Source *RenderingManager::newStreamSource(VideoStream *vs, double depth) {
 }
 
 
-Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p, double depth){
+Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QStringList playlist, double depth){
 
     _renderwidget->makeCurrent();
 
@@ -1135,8 +1135,15 @@ Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p
         s = new BasketSource(files, getAvailableDepthFrom(depth), w, h, (qint64) p);
         s->setName(_defaultSource->getName() + "Basket");
 
-//        // connect to error
-//        QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
+        // set playlist
+        if (!playlist.isEmpty()) {
+            QList<int> pl;
+            foreach(QString i, playlist)
+                pl.append(i.toInt());
+            s->setPlaylist(pl);
+        }
+        s->setBidirectional(bidir);
+        s->setShuffle(shuf);
 
     } catch (AllocationException &e){
         qWarning() << "Cannot create Basket source; " << e.message();
@@ -2286,8 +2293,15 @@ int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, Q
 
         QDomElement Frame = t.firstChildElement("Frame");
         QDomElement Update = t.firstChildElement("Update");
+        qint64 period = Update.attribute("Periodicity", "0").toInt();
 
-        newsource = RenderingManager::_instance->newBasketSource(fileNames, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), Update.attribute("Periodicity", "0").toInt(), depth);
+        QDomElement Playlist = t.firstChildElement("Playlist");
+        bool bidir = Playlist.attribute("Bidirectional", "0").toInt() > 0;
+        bool shuf = Playlist.attribute("Shuffle", "0").toInt() > 0;
+        QStringList pl = Playlist.text().split(",");
+
+        newsource = RenderingManager::_instance->newBasketSource(fileNames, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), period, bidir, shuf, pl, depth);
+
 
     }
     else if ( type == Source::CLONE_SOURCE)

@@ -1413,9 +1413,9 @@ public slots:
     void valueChanged(QtProperty *property, bool value)
     {
         if ( property == idToProperty["Bidirectional"] )
-            bs->setBidirectional(!value);
+            bs->setBidirectional(value);
         else if ( property == idToProperty["Shuffle"] )
-            bs->setShuffle(!value);
+            bs->setShuffle(value);
 
     }
     void valueChanged(QtProperty *property, int value)

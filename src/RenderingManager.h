@@ -114,7 +114,7 @@ public:
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
-    Source *newBasketSource(QStringList files,int w, int h, int p, double depth = -1.0);
+    Source *newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QStringList playlist = QStringList (), double depth = -1.0);
 
     // insert & remove sources into the scene
     bool insertSource(Source *s);

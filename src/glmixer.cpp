@@ -1324,34 +1324,39 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 void GLMixer::on_actionBasketSource_triggered(){
 
+    // DEBUG HACK
+    bool generatePowerOfTwoRequested = false;
+    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+    Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, 640, 480, 50, false, false);
+    RenderingManager::getInstance()->addSourceToBasket(s);
 
-    // popup a dialog to select the stream
-    static BasketSelectionDialog *bsd = 0;
-    if (!bsd)
-        bsd = new BasketSelectionDialog(this, &settings);
+//    // popup a dialog to select the stream
+//    static BasketSelectionDialog *bsd = 0;
+//    if (!bsd)
+//        bsd = new BasketSelectionDialog(this, &settings);
 
 
-    if (bsd->exec() == QDialog::Accepted) {
+//    if (bsd->exec() == QDialog::Accepted) {
 
-//        bool generatePowerOfTwoRequested = false;
-//        QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+////        bool generatePowerOfTwoRequested = false;
+////        QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
 
-        int w = bsd->getSelectedWidth();
-        int h = bsd->getSelectedHeight();
-        int p = bsd->getSelectedPeriod();
+//        int w = bsd->getSelectedWidth();
+//        int h = bsd->getSelectedHeight();
+//        int p = bsd->getSelectedPeriod();
 
-        QStringList fileNames = bsd->getSelectedFiles();
+//        QStringList fileNames = bsd->getSelectedFiles();
 
-        if (!fileNames.empty()) {
+//        if (!fileNames.empty()) {
 
-            Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p);
-            if (s) {
+//            Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p);
+//            if (s) {
 
-                RenderingManager::getInstance()->addSourceToBasket(s);
-            } else
-                qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
-        }
-    }
+//                RenderingManager::getInstance()->addSourceToBasket(s);
+//            } else
+//                qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
+//        }
+//    }
 }
 
 void GLMixer::sessionChanged() {
