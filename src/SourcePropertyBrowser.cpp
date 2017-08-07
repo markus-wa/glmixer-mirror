@@ -941,7 +941,7 @@ public:
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
 
-            infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
+            infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("ON") : QObject::tr("OFF") );
             addProperty(idToProperty["Interlaced"]);
 
             if (vf->hasAlphaChannel()) {
