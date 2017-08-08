@@ -1337,7 +1337,6 @@ void GLMixer::on_actionBasketSource_triggered(){
        int w = bsd->getSelectedWidth();
        int h = bsd->getSelectedHeight();
        int p = bsd->getSelectedPeriod();
-
        bool b = bsd->getSelectedBidirectional();
        bool s = bsd->getSelectedShuffle();
 

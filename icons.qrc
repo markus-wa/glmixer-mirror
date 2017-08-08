@@ -191,5 +191,6 @@
         <file>icons/workspace_3_on.png</file>
         <file>icons/glmixer_256x256.png</file>
         <file>icons/basketsource.png</file>
+        <file>icons/orderalpha.png</file>
     </qresource>
 </RCC>

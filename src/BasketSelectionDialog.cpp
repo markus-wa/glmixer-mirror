@@ -20,13 +20,12 @@ ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
     setUniformItemSizes(true);
     setWordWrap(true);
     setSelectionRectVisible(true);
-//    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     dropHintItem = new QListWidgetItem(this);
     dropHintItem->setText("Drop Files here...");
     dropHintItem->setFlags(dropHintItem->flags() & ~(Qt::ItemIsDropEnabled));
-    insertItem(0, dropHintItem);
+//    insertItem(0, dropHintItem);
 
     new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteSelectedItems()));
 }
@@ -110,34 +109,39 @@ void ImageFilesList::dropEvent(QDropEvent *event)
 
 void ImageFilesList::deleteSelectedItems()
 {
-    foreach (QListWidgetItem *item, selectedItems())
-        delete item;
+    foreach (QListWidgetItem *it, selectedItems())
+        if (it == dropHintItem)
+            takeItem(0);
+        else
+            delete it;
 
     // inform
     emit countChanged( count() );
 
     // show hint
-    if (count()<1)
+    if (count() < 1)
         insertItem(0, dropHintItem);
 }
 
 void ImageFilesList::deleteAllItems()
 {
-    clear();
+    selectAll();
+    deleteSelectedItems();
+}
 
-    // inform
-    emit countChanged( count() );
-
-    // show hint
-    insertItem(0, dropHintItem);
+void ImageFilesList::sortAlphabetical()
+{
+    sortItems();
 }
 
 QStringList ImageFilesList::getFilesList()
 {
     QStringList list;
 
-    for (int i = 0; i < count(); ++i) {
-        list.append( item(i)->data(Qt::UserRole).toString() );
+    if (item(0) != dropHintItem) {
+        for (int i = 0; i < count(); ++i) {
+            list.append( item(i)->data(Qt::UserRole).toString() );
+        }
     }
 
     return list;
@@ -172,6 +176,7 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     // Actions from GUI buttons
     connect(ui->clearBasket, SIGNAL(pressed()), basket, SLOT(deleteAllItems()));
     connect(ui->removeCurrentImage, SIGNAL(pressed()), basket, SLOT(deleteSelectedItems()));
+    connect(ui->orderAlphanumeric, SIGNAL(pressed()), basket, SLOT(sortAlphabetical()));
 
 }
 
@@ -233,7 +238,6 @@ void BasketSelectionDialog::done(int r){
     // remove source from preview
     ui->preview->setSource(0);
 
-    // delete previous
     if(s) {
         // delete the source:
         delete s;
@@ -278,22 +282,28 @@ bool BasketSelectionDialog::getSelectedShuffle(){
 
 
 void BasketSelectionDialog::on_frequencySlider_valueChanged(int v){
+
     if (s)
         s->setPeriod(getSelectedPeriod());
 }
 
 void BasketSelectionDialog::on_bidirectional_toggled(bool on){
+
     if (s)
         s->setBidirectional(on);
 }
 
 void BasketSelectionDialog::on_shuffle_toggled(bool on){
+
     if (s)
         s->setShuffle(on);
 }
 
 void BasketSelectionDialog::displayCount(int v){
 
-    ui->informationLabel->setText(tr("%1 images in basket.").arg(v));
-    ui->removeCurrentImage->setEnabled(v > 0);
+    ui->informationLabel->setText(tr("%1 images in basket.").arg( v ));
+
+    ui->removeCurrentImage->setEnabled( v > 0 );
+    ui->orderAlphanumeric->setEnabled( v > 0 );
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled( v > 0 );
 }

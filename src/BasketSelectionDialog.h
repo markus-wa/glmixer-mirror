@@ -27,6 +27,7 @@ signals:
 public slots:
     void deleteSelectedItems();
     void deleteAllItems();
+    void sortAlphabetical();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
