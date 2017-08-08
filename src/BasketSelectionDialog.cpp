@@ -3,6 +3,7 @@
 
 #include "glmixer.h"
 #include "BasketSource.h"
+#include "common.h"
 
 
 ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
@@ -57,58 +58,15 @@ void ImageFilesList::dropEvent(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
 
-    qDebug() << "ImageFilesList Dropped";
-
     // browse the list of urls dropped
     if (mimeData->hasUrls()) {
-        // deal with the urls dropped
-        event->acceptProposedAction();
+
+        // deal with all the urls dropped
         QList<QUrl> urlList = mimeData->urls();
         for (int i = 0; i < urlList.size(); ++i) {
 
-#ifdef Q_OS_MAC
-
-      QString localFileQString = urlList.at(i).toLocalFile();
-      // [pzion 20150805] Work around
-      // https://bugreports.qt.io/browse/QTBUG-40449
-      if ( localFileQString.startsWith("/.file/id=") )
-      {
-        CFStringRef relCFStringRef = CFStringCreateWithCString( kCFAllocatorDefault,
-            localFileQString.toUtf8().constData(),
-            kCFStringEncodingUTF8 );
-        CFURLRef relCFURL = CFURLCreateWithFileSystemPath( kCFAllocatorDefault,
-            relCFStringRef,
-            kCFURLPOSIXPathStyle,
-            false );
-        CFErrorRef error = 0;
-        CFURLRef absCFURL = CFURLCreateFilePathURL( kCFAllocatorDefault,
-            relCFURL, &error );
-        if ( !error )
-        {
-          static const CFIndex maxAbsPathCStrBufLen = 4096;
-          char absPathCStr[maxAbsPathCStrBufLen];
-          if ( CFURLGetFileSystemRepresentation(
-            absCFURL,
-            true, // resolveAgainstBase
-            reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
-            maxAbsPathCStrBufLen
-            ) )
-          {
-            localFileQString = QString( absPathCStr );
-          }
-        }
-        CFRelease( absCFURL );
-        CFRelease( relCFURL );
-        CFRelease( relCFStringRef );
-      }
-
-      QFileInfo urlname(localFileQString);
-
-#else
-
-            QFileInfo urlname(urlList.at(i).toLocalFile());
-#endif
-
+            // Make sure the file exists and is readable
+            QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
                 // try to make an image: accept if not null
@@ -122,14 +80,14 @@ void ImageFilesList::dropEvent(QDropEvent *event)
                     if ( item(0) == dropHintItem)
                         takeItem(0);
 
-                    // create a new igem with the file information
+                    // create a new item with the file information
                     QListWidgetItem *newitem = new QListWidgetItem(this);
                     newitem->setText(urlname.baseName());
                     newitem->setIcon(newimage.scaledToHeight(64));
                     newitem->setData(Qt::UserRole, urlname.absoluteFilePath());
                     newitem->setToolTip(urlname.absoluteFilePath());
 
-                    // add the image
+                    // add the item
                     addItem(newitem);
 
                     // inform
@@ -138,7 +96,7 @@ void ImageFilesList::dropEvent(QDropEvent *event)
             }
         }
     }
-
+    // default management of Drop Event
     QListWidget::dropEvent(event);
 }
 
@@ -189,7 +147,6 @@ BasketSelectionDialog::~BasketSelectionDialog()
 
 
 void BasketSelectionDialog::done(int r){
-
 
     // remove source from preview: this deletes the texture in the preview
 //    ui->preview->setSource(0);

@@ -1230,6 +1230,8 @@ bool RenderingManager::_insertSource(Source *s)
 
 void RenderingManager::addSourceToBasket(Source *s)
 {
+    if (!s) return;
+
     // add the source into the basket
     dropBasket.insert(s);
 

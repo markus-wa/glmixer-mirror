@@ -109,11 +109,6 @@
 #include "GLSLCodeEditorWidget.h"
 #endif
 
-#ifdef Q_OS_MAC
-#include <CoreFoundation/CFString.h>
-#include <CoreFoundation/CFUrl.h>
-#endif
-
 #include "glmixerdialogs.h"
 #include "glmixer.moc"
 
@@ -1324,39 +1319,36 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 void GLMixer::on_actionBasketSource_triggered(){
 
-    // DEBUG HACK
-    bool generatePowerOfTwoRequested = false;
-    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
-    Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, 640, 480, 50, false, false);
-    RenderingManager::getInstance()->addSourceToBasket(s);
+    // // DEBUG HACK
+    // bool generatePowerOfTwoRequested = false;
+    // QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+    // Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, 640, 480, 50, false, false);
+    // RenderingManager::getInstance()->addSourceToBasket(s);
 
-//    // popup a dialog to select the stream
-//    static BasketSelectionDialog *bsd = 0;
-//    if (!bsd)
-//        bsd = new BasketSelectionDialog(this, &settings);
+   // popup a dialog to select the stream
+   static BasketSelectionDialog *bsd = 0;
+   if (!bsd)
+       bsd = new BasketSelectionDialog(this, &settings);
 
 
-//    if (bsd->exec() == QDialog::Accepted) {
+   if (bsd->exec() == QDialog::Accepted) {
 
-////        bool generatePowerOfTwoRequested = false;
-////        QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+       int w = bsd->getSelectedWidth();
+       int h = bsd->getSelectedHeight();
+       int p = bsd->getSelectedPeriod();
 
-//        int w = bsd->getSelectedWidth();
-//        int h = bsd->getSelectedHeight();
-//        int p = bsd->getSelectedPeriod();
+       QStringList fileNames = bsd->getSelectedFiles();
 
-//        QStringList fileNames = bsd->getSelectedFiles();
+       if (!fileNames.empty()) {
 
-//        if (!fileNames.empty()) {
+           Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p, false, false);
+           if (s) {
 
-//            Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p);
-//            if (s) {
-
-//                RenderingManager::getInstance()->addSourceToBasket(s);
-//            } else
-//                qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
-//        }
-//    }
+               RenderingManager::getInstance()->addSourceToBasket(s);
+           } else
+               qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
+       }
+   }
 }
 
 void GLMixer::sessionChanged() {
@@ -2490,49 +2482,7 @@ void GLMixer::drop(QDropEvent *event)
         int max = qMin(urlList.size(), RenderingManager::getInstance()->getAvailableSourceCount() );
         for (int i = 0; i < max; ++i) {
 
-#ifdef Q_OS_MAC
-
-      QString localFileQString = urlList.at(i).toLocalFile();
-      // [pzion 20150805] Work around
-      // https://bugreports.qt.io/browse/QTBUG-40449
-      if ( localFileQString.startsWith("/.file/id=") )
-      {
-        CFStringRef relCFStringRef = CFStringCreateWithCString( kCFAllocatorDefault,
-            localFileQString.toUtf8().constData(),
-            kCFStringEncodingUTF8 );
-        CFURLRef relCFURL = CFURLCreateWithFileSystemPath( kCFAllocatorDefault,
-            relCFStringRef,
-            kCFURLPOSIXPathStyle,
-            false );
-        CFErrorRef error = 0;
-        CFURLRef absCFURL = CFURLCreateFilePathURL( kCFAllocatorDefault,
-            relCFURL, &error );
-        if ( !error )
-        {
-          static const CFIndex maxAbsPathCStrBufLen = 4096;
-          char absPathCStr[maxAbsPathCStrBufLen];
-          if ( CFURLGetFileSystemRepresentation(
-            absCFURL,
-            true, // resolveAgainstBase
-            reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
-            maxAbsPathCStrBufLen
-            ) )
-          {
-            localFileQString = QString( absPathCStr );
-          }
-        }
-        CFRelease( absCFURL );
-        CFRelease( relCFURL );
-        CFRelease( relCFStringRef );
-      }
-
-      QFileInfo urlname(localFileQString);
-
-#else
-
-            QFileInfo urlname(urlList.at(i).toLocalFile());
-#endif
-
+            QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
                 if ( urlname.suffix() == "glm") {

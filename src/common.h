@@ -52,6 +52,7 @@
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 #include <QGLPixelBuffer>
+#include <QUrl>
 
 void initListOfExtension();
 QStringList glSupportedExtensions();
@@ -70,5 +71,7 @@ QString getByteSizeString(double numbytes);
 
 void initApplicationFonts();
 QString getMonospaceFont();
+
+QFileInfo getFileInfoFromURL(QUrl url);
 
 #endif /*  COMMON_H_ */

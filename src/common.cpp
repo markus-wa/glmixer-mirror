@@ -221,3 +221,54 @@ QString getMonospaceFont()
 {
     return monospaceFont;
 }
+
+
+#ifdef Q_OS_MAC
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFUrl.h>
+
+QFileInfo getFileInfoFromURL(QUrl url) 
+{
+    QString localFileQString = url.toLocalFile();
+    // [pzion 20150805] Work around
+    // https://bugreports.qt.io/browse/QTBUG-40449
+    if ( localFileQString.startsWith("/.file/id=") )
+    {
+        CFStringRef relCFStringRef = CFStringCreateWithCString( kCFAllocatorDefault,
+            localFileQString.toUtf8().constData(),
+            kCFStringEncodingUTF8 );
+        CFURLRef relCFURL = CFURLCreateWithFileSystemPath( kCFAllocatorDefault,
+            relCFStringRef,
+            kCFURLPOSIXPathStyle,
+            false );
+        CFErrorRef error = 0;
+        CFURLRef absCFURL = CFURLCreateFilePathURL( kCFAllocatorDefault,
+            relCFURL, &error );
+        if ( !error ) {
+            static const CFIndex maxAbsPathCStrBufLen = 4096;
+            char absPathCStr[maxAbsPathCStrBufLen];
+            if ( CFURLGetFileSystemRepresentation(
+                absCFURL,
+                true, // resolveAgainstBase
+                reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
+                maxAbsPathCStrBufLen
+                ) )
+            {
+                localFileQString = QString( absPathCStr );
+            }
+        }
+        CFRelease( absCFURL );
+        CFRelease( relCFURL );
+        CFRelease( relCFStringRef );
+    }
+
+    return QFileInfo (localFileQString);
+}
+
+#else
+
+QFileInfo getFileInfoFromURL(QUrl url) 
+{
+    return QFileInfo(url.toLocalFile());
+}
+#endif
