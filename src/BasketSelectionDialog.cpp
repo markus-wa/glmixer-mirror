@@ -1,6 +1,8 @@
 #include "BasketSelectionDialog.moc"
 #include "ui_BasketSelectionDialog.h"
 
+#include <QApplication>
+
 #include "glmixer.h"
 #include "BasketSource.h"
 #include "common.h"
@@ -18,7 +20,7 @@ ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
     setUniformItemSizes(true);
     setWordWrap(true);
     setSelectionRectVisible(true);
-    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+//    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     dropHintItem = new QListWidgetItem(this);
@@ -26,7 +28,7 @@ ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
     dropHintItem->setFlags(dropHintItem->flags() & ~(Qt::ItemIsDropEnabled));
     insertItem(0, dropHintItem);
 
-    new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteSelectedItem()));
+    new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteSelectedItems()));
 }
 
 void ImageFilesList::dragEnterEvent(QDragEnterEvent *event)
@@ -69,6 +71,9 @@ void ImageFilesList::dropEvent(QDropEvent *event)
             QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
+                setEnabled(false);
+                QCoreApplication::processEvents();
+
                 // try to make an image: accept if not null
                 QPixmap newimage(urlname.absoluteFilePath());
                 if (!newimage.isNull()) {
@@ -85,33 +90,55 @@ void ImageFilesList::dropEvent(QDropEvent *event)
                     newitem->setText(urlname.baseName());
                     newitem->setIcon(newimage.scaledToHeight(64));
                     newitem->setData(Qt::UserRole, urlname.absoluteFilePath());
-                    newitem->setToolTip(urlname.absoluteFilePath());
+                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(newimage.width()).arg(newimage.height()));
 
                     // add the item
                     addItem(newitem);
+                    setCurrentItem(newitem, QItemSelectionModel::ClearAndSelect);
 
                     // inform
                     emit countChanged( count() );
                 }
             }
         }
+        setEnabled(true);
+        QCoreApplication::processEvents();
     }
     // default management of Drop Event
     QListWidget::dropEvent(event);
 }
 
-void ImageFilesList::deleteSelectedItem()
+void ImageFilesList::deleteSelectedItems()
 {
     foreach (QListWidgetItem *item, selectedItems())
         delete item;
 
     // inform
     emit countChanged( count() );
+
+    // show hint
+    if (count()<1)
+        insertItem(0, dropHintItem);
+}
+
+void ImageFilesList::deleteAllItems()
+{
+    clear();
+
+    // inform
+    emit countChanged( count() );
+
+    // show hint
+    insertItem(0, dropHintItem);
 }
 
 QStringList ImageFilesList::getFilesList()
 {
     QStringList list;
+
+    for (int i = 0; i < count(); ++i) {
+        list.append( item(i)->data(Qt::UserRole).toString() );
+    }
 
     return list;
 }
@@ -124,10 +151,10 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     ui->setupUi(this);
 
     // create basket list
-    ImageFilesList *basket = new ImageFilesList(ui->leftFrame);
+    basket = new ImageFilesList(ui->leftFrame);
     connect(basket, SIGNAL(countChanged(int)), SLOT(displayCount(int)));
 
-    // insert into ui
+    // insert basket into ui
     delete (ui->basket);
     ui->basket = (QListWidget *) basket;
     ui->basket->setObjectName(QString::fromUtf8("basket"));
@@ -138,6 +165,14 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     ui->basket->setSizePolicy(sizePolicy);
     ui->leftLayout->insertWidget(1, ui->basket);
 
+    // refresh of preview source
+    connect(ui->basket, SIGNAL(countChanged(int)), SLOT(updateSourcePreview()));
+    connect(ui->sizeselection, SIGNAL(sizeChanged()), SLOT(updateSourcePreview()));
+
+    // Actions from GUI buttons
+    connect(ui->clearBasket, SIGNAL(pressed()), basket, SLOT(deleteAllItems()));
+    connect(ui->removeCurrentImage, SIGNAL(pressed()), basket, SLOT(deleteSelectedItems()));
+
 }
 
 BasketSelectionDialog::~BasketSelectionDialog()
@@ -146,10 +181,57 @@ BasketSelectionDialog::~BasketSelectionDialog()
 }
 
 
+void BasketSelectionDialog::updateSourcePreview(){
+
+    if(s) {
+        // remove source from preview: this deletes the texture in the preview
+        ui->preview->setSource(0);
+        // delete the source:
+        delete s;
+        s = 0;
+    }
+
+    QStringList files = basket->getFilesList();
+    if (files.count() < 1)
+        return;
+
+    try {
+         s = new BasketSource(files, 0,
+                              ui->sizeselection->getWidth(),
+                              ui->sizeselection->getHeight(),
+                              (qint64) getSelectedPeriod());
+
+         s->setBidirectional(ui->bidirectional->isChecked());
+         s->setShuffle(ui->shuffle->isChecked());
+
+    } catch (AllocationException &e){
+        qCritical() << tr("Error creating Basket source; ") << e.message();
+        // return an invalid pointer
+        s = 0;
+    }
+
+    // apply the source to the preview
+    ui->preview->setSource(s);
+    ui->preview->playSource(true);
+}
+
+
+void BasketSelectionDialog::showEvent(QShowEvent *e){
+
+    // clear
+    basket->deleteAllItems();
+
+    // show no source
+    updateSourcePreview();
+
+    QWidget::showEvent(e);
+}
+
+
 void BasketSelectionDialog::done(int r){
 
-    // remove source from preview: this deletes the texture in the preview
-//    ui->preview->setSource(0);
+    // remove source from preview
+    ui->preview->setSource(0);
 
     // delete previous
     if(s) {
@@ -175,21 +257,43 @@ int  BasketSelectionDialog::getSelectedHeight(){
 
 int BasketSelectionDialog::getSelectedPeriod() {
 
-    return 25;
+    return qRound( 1000.0 / (double) ui->frequencySlider->value()) ;
 }
 
 QStringList BasketSelectionDialog::getSelectedFiles() {
 
-    return QStringList();
+    return basket->getFilesList();
 }
+
+
+bool BasketSelectionDialog::getSelectedBidirectional(){
+
+    return ui->bidirectional->isChecked();
+}
+
+bool BasketSelectionDialog::getSelectedShuffle(){
+
+    return ui->shuffle->isChecked();
+}
+
 
 void BasketSelectionDialog::on_frequencySlider_valueChanged(int v){
-//    if (s)
-//        s->setPeriodicity(getUpdatePeriod());
+    if (s)
+        s->setPeriod(getSelectedPeriod());
 }
 
+void BasketSelectionDialog::on_bidirectional_toggled(bool on){
+    if (s)
+        s->setBidirectional(on);
+}
+
+void BasketSelectionDialog::on_shuffle_toggled(bool on){
+    if (s)
+        s->setShuffle(on);
+}
 
 void BasketSelectionDialog::displayCount(int v){
 
     ui->informationLabel->setText(tr("%1 images in basket.").arg(v));
+    ui->removeCurrentImage->setEnabled(v > 0);
 }

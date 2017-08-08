@@ -686,7 +686,7 @@ Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
         s->setName( _defaultSource->getName() + "Render");
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Rendering source; " << e.message();
+        qWarning() << tr("Cannot create Rendering source; ") << e.message();
         // return an invalid pointer
         s = 0;
     }
@@ -729,7 +729,7 @@ Source *RenderingManager::newSvgSource(QByteArray content, double depth){
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create SVG source; " << e.message();
+        qWarning() << tr("Cannot create SVG source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -764,7 +764,7 @@ Source *RenderingManager::newWebSource(QUrl web, int w, int h, int height, int s
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Web source; " << e.message();
+        qWarning() << tr("Cannot create Web source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -798,7 +798,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Capture source; " << e.message();
+        qWarning() << tr("Cannot create Capture source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -832,7 +832,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Media source; " << e.message();
+        qWarning() << tr("Cannot create Media source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -871,7 +871,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, int mode, double dept
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create OpenCV source; " << e.message();
+        qWarning() << tr("Cannot create OpenCV source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -1023,7 +1023,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Algorithm source; " << e.message();
+        qWarning() << tr("Cannot create Algorithm source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -1114,7 +1114,7 @@ Source *RenderingManager::newStreamSource(VideoStream *vs, double depth) {
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Network Stream source; " << e.message();
+        qWarning() << tr("Cannot create Network Stream source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -1146,7 +1146,7 @@ Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p
         s->setShuffle(shuf);
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot create Basket source; " << e.message();
+        qWarning() << tr("Cannot create Basket source; ") << e.message();
         // return an invalid pointer
         s = 0;
     }
@@ -1174,7 +1174,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
 
     } catch (AllocationException &e){
-        qWarning() << "Cannot clone source; " << e.message();
+        qWarning() << tr("Cannot clone source; ") << e.message();
         // return an invalid pointer
         s = 0;
     }
@@ -1185,6 +1185,8 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
 bool RenderingManager::insertSource(Source *s)
 {
+    if (!s) return false;
+
     // set Workspace
     s->setWorkspace( WorkspaceManager::getInstance()->current() );
 
@@ -1889,8 +1891,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             sourceElem = rs->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::BASKET_SOURCE) {
-            BasketSource *rs = dynamic_cast<BasketSource *> (*its);
-            sourceElem = rs->getConfiguration(doc, current);
+            BasketSource *bs = dynamic_cast<BasketSource *> (*its);
+            sourceElem = bs->getConfiguration(doc, current);
         }
         else
             sourceElem = (*its)->getConfiguration(doc, current);

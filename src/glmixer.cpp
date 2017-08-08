@@ -1333,18 +1333,19 @@ void GLMixer::on_actionBasketSource_triggered(){
 
    if (bsd->exec() == QDialog::Accepted) {
 
+       QStringList fileNames = bsd->getSelectedFiles();
        int w = bsd->getSelectedWidth();
        int h = bsd->getSelectedHeight();
        int p = bsd->getSelectedPeriod();
 
-       QStringList fileNames = bsd->getSelectedFiles();
+       bool b = bsd->getSelectedBidirectional();
+       bool s = bsd->getSelectedShuffle();
 
        if (!fileNames.empty()) {
 
-           Source *s = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p, false, false);
-           if (s) {
-
-               RenderingManager::getInstance()->addSourceToBasket(s);
+           Source *bs = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p, b, s);
+           if (bs) {
+               RenderingManager::getInstance()->addSourceToBasket(bs);
            } else
                qCritical() << tr("Could not create Basket Source (%1 files).").arg(fileNames.size());
        }

@@ -105,8 +105,12 @@ void BasketSource::setPeriod(qint64 p){
 
 
 void BasketSource::setPlaylist(QList<int> playlist){
+
+    _playlist.clear();
+    _executionList.clear();
+
     // copy the given playlist
-    // only with a validation check for validity of the indices
+    // but with a validation check for validity of the indices
     foreach (int index, playlist) {
         if (index > -1 && index<_atlasImages.count())
             _playlist.append(index);
@@ -115,13 +119,14 @@ void BasketSource::setPlaylist(QList<int> playlist){
 
 
 void BasketSource::generateExecutionPlaylist(){
+
     // take the playlist and apply execution options
     _executionList = _playlist;
 
     if (shuffle) {
         std::random_shuffle(_executionList.begin(), _executionList.end());
-        qDebug() << "shuffling" << _executionList;
     }
+
     if (bidirectional) {
         QList<int> reverse;
         reverse.reserve( _executionList.size() ); // reserve is new in Qt 4.7
@@ -129,9 +134,7 @@ void BasketSource::generateExecutionPlaylist(){
         reverse.takeFirst();
         reverse.takeLast();
         _executionList += reverse;
-        qDebug() << "reversing" << reverse;
     }
-//    qDebug() << _playlist << _executionList;
 }
 
 QStringList BasketSource::getImageFileList() const {
@@ -367,3 +370,5 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
     sourceElem.appendChild(specific);
     return sourceElem;
 }
+
+
