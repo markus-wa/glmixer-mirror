@@ -35,7 +35,8 @@ void ImageFilesList::dragEnterEvent(QDragEnterEvent *event)
     if (event->mimeData()->hasUrls())
     {
         event->acceptProposedAction();
-    } else {
+    } else
+    {
         QListWidget::dragEnterEvent(event);
     }
 }
@@ -45,7 +46,9 @@ void ImageFilesList::dragMoveEvent(QDragMoveEvent *event)
     if (event->mimeData()->hasUrls())
     {
         event->acceptProposedAction();
-    } else {
+
+    } else
+    {
         QListWidget::dragMoveEvent(event);
     }
 }
@@ -59,7 +62,7 @@ void ImageFilesList::dropEvent(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
 
-    // browse the list of urls dropped
+    // an external file has been dropped
     if (mimeData->hasUrls()) {
 
         // deal with all the urls dropped
@@ -70,50 +73,95 @@ void ImageFilesList::dropEvent(QDropEvent *event)
             QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
+                // accept the drop action
+                event->acceptProposedAction();
                 setEnabled(false);
                 QCoreApplication::processEvents();
 
-                // try to make an image: accept if not null
-                QPixmap newimage(urlname.absoluteFilePath());
-                if (!newimage.isNull()) {
+                QListWidgetItem *newitem = 0;
 
-                    // accept the drop action
-                    event->acceptProposedAction();
+                // try to find the file in the list
+                int index = _fileNames.indexOf(urlname.absoluteFilePath());
+                if (index < 0) {
+
+                    // try to make an image: accept if not null
+                    QPixmap image(urlname.absoluteFilePath());
+                    if (image.isNull())
+                        continue;
 
                     // no more need for drop hint
                     if ( item(0) == dropHintItem)
                         takeItem(0);
 
-                    // create a new item with the file information
-                    QListWidgetItem *newitem = new QListWidgetItem(this);
+                    // if it is an image not in the list
+                    // add it to the list
+                    index = _fileNames.size();
+                    _fileNames.insert( index, urlname.absoluteFilePath() );
+
+                    // create a new item with the image file information
+                    newitem = new QListWidgetItem(this);
                     newitem->setText(urlname.baseName());
-                    newitem->setIcon(newimage.scaledToHeight(64));
-                    newitem->setData(Qt::UserRole, urlname.absoluteFilePath());
-                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(newimage.width()).arg(newimage.height()));
+                    newitem->setIcon(image.scaledToHeight(64));
+                    newitem->setData(Qt::UserRole, index);
+//                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
+                    newitem->setToolTip(QString("%1").arg(index));  // DEBUG
 
-                    // add the item
-                    addItem(newitem);
-                    setCurrentItem(newitem, QItemSelectionModel::ClearAndSelect);
+                    _referenceItems.insert( index, newitem );
 
-                    // inform
-                    emit countChanged( count() );
                 }
+                // already in the list : clone the item
+                else {
+                    // clone item
+                    newitem = new QListWidgetItem( *_referenceItems[index]);
+
+                }
+
+                // add the item
+                addItem(newitem);
+                setCurrentItem(newitem, QItemSelectionModel::ClearAndSelect);
+
             }
         }
+
+        // done
         setEnabled(true);
         QCoreApplication::processEvents();
+
     }
+    // an internal item has been moved
+    else {
+
+        qDebug() << "drag move " << getPlayList();
+        // update source preview with new playlist
+
+    }
+
+    // inform & update source preview
+    emit countChanged( count() );
+
     // default management of Drop Event
     QListWidget::dropEvent(event);
 }
 
 void ImageFilesList::deleteSelectedItems()
 {
-    foreach (QListWidgetItem *it, selectedItems())
+    // loop over all items selected
+    foreach (QListWidgetItem *it, selectedItems()) {
         if (it == dropHintItem)
+            // do not remove, just take the drop hint item
             takeItem(0);
-        else
+        else {
+            // try to find the item in the reference list
+            int index = _referenceItems.indexOf(it);
+            if (index > -1) {
+                // remove found element from the list of files
+                _referenceItems.removeAt(index);
+                _fileNames.removeAt(index);
+            }
+            // delete item
             delete it;
+        }
+    }
 
     // inform
     emit countChanged( count() );
@@ -132,15 +180,26 @@ void ImageFilesList::deleteAllItems()
 void ImageFilesList::sortAlphabetical()
 {
     sortItems();
+    // inform // TODO emit orderChanged( getPlayList() );
+    emit countChanged( count() );
 }
+
 
 QStringList ImageFilesList::getFilesList()
 {
-    QStringList list;
+    return _fileNames;
+}
 
+QList<int> ImageFilesList::getPlayList()
+{
+    QList<int>  list;
+
+    // if the widget is not empty
     if (item(0) != dropHintItem) {
+        // loop over rows of QListWidget
         for (int i = 0; i < count(); ++i) {
-            list.append( item(i)->data(Qt::UserRole).toString() );
+            list.append( item(i)->data(Qt::UserRole).toInt() );
+            qDebug() << "row " << i << " index " <<  item(i)->data(Qt::UserRole).toInt() << _fileNames[item(i)->data(Qt::UserRole).toInt()];
         }
     }
 
@@ -206,6 +265,7 @@ void BasketSelectionDialog::updateSourcePreview(){
                               ui->sizeselection->getHeight(),
                               (qint64) getSelectedPeriod());
 
+         s->setPlaylist(basket->getPlayList());
          s->setBidirectional(ui->bidirectional->isChecked());
          s->setShuffle(ui->shuffle->isChecked());
 

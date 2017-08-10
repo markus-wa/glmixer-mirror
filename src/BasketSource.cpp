@@ -115,6 +115,8 @@ void BasketSource::setPlaylist(QList<int> playlist){
         if (index > -1 && index<_atlasImages.count())
             _playlist.append(index);
     }
+
+    qDebug()<<"Playlist "<<_playlist;
 }
 
 
@@ -161,7 +163,7 @@ void BasketSource::update() {
 
             // select BasketImage index from execution playlist
             int index = _executionList.takeFirst();
-            QRect r = _atlasImages[_playlist[index]].coordinates();
+            QRect r = _atlasImages[index].coordinates();
 
             // blit part of atlas to render FBO
             // use the accelerated GL_EXT_framebuffer_blit if available
@@ -317,6 +319,9 @@ QSize BasketSource::allocateAtlas(int n) {
     array.setWidth( n / array.height() );
 
 //    qDebug()<< "Atlas dimensions " << n << array << array.width() * width << array.height() * height;
+
+    // TODO : manage if not enough space in one atlas (create another)
+
 
     // reallocate FBO Atlas
     if (_atlasFBO)

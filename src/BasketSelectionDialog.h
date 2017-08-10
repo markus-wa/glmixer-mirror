@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QSettings>
 #include <QListWidget>
+#include <QMap>
 #include <QLabel>
 
 namespace Ui {
@@ -20,6 +21,7 @@ public:
     explicit ImageFilesList(QWidget *parent = 0);
 
     QStringList getFilesList();
+    QList<int> getPlayList();
 
 signals:
     void countChanged(int);
@@ -36,6 +38,8 @@ protected:
     void dropEvent(QDropEvent * event);
 
     QListWidgetItem *dropHintItem;
+    QStringList _fileNames;
+    QList<QListWidgetItem *> _referenceItems;
 };
 
 class BasketSelectionDialog : public QDialog
