@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1468</width>
-    <height>1008</height>
+    <height>1006</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,16 +31,7 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -195,16 +186,7 @@ QToolButton:hover {
           <property name="spacing">
            <number>2</number>
           </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
          </layout>
@@ -416,31 +398,13 @@ border-bottom-left-radius: 5px;
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
        </layout>
@@ -635,16 +599,7 @@ border-bottom-left-radius: 5px;
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -1026,16 +981,7 @@ border-bottom-left-radius: 5px;
                <property name="spacing">
                 <number>3</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1183,16 +1129,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -2380,16 +2317,7 @@ Uncheck to display the restart frame when stopped.</string>
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -2596,16 +2524,7 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -2875,16 +2794,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -2912,211 +2822,6 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionRecord"/>
    <addaction name="actionPause_recording"/>
    <addaction name="actionSave_snapshot"/>
-  </widget>
-  <widget class="QDockWidget" name="logDockWidget">
-   <property name="windowIcon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
-   </property>
-   <property name="toolTip">
-    <string>Execution logs </string>
-   </property>
-   <property name="floating">
-    <bool>true</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::AllDockWidgetFeatures</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::NoDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>&amp;Logs</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>4</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_12">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
-      <number>6</number>
-     </property>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_16">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QToolButton" name="saveLogsToFile">
-         <property name="toolTip">
-          <string>Save Logs to file</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/textsave.png</normaloff>:/glmixer/icons/textsave.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="openLogsFolder">
-         <property name="toolTip">
-          <string>Show location of temporary log files in the system.</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/textopen.png</normaloff>:/glmixer/icons/textopen.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="copyLogsToClipboard">
-         <property name="toolTip">
-          <string>Copy to clipboard</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/textcopy.png</normaloff>:/glmixer/icons/textcopy.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonClearLogs">
-         <property name="toolTip">
-          <string>Clear</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QTreeWidget" name="logTexts">
-       <property name="toolTip">
-        <string>Logs of GLMixer events.</string>
-       </property>
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-       <property name="showDropIndicator" stdset="0">
-        <bool>false</bool>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::NoSelection</enum>
-       </property>
-       <property name="textElideMode">
-        <enum>Qt::ElideMiddle</enum>
-       </property>
-       <property name="rootIsDecorated">
-        <bool>false</bool>
-       </property>
-       <property name="uniformRowHeights">
-        <bool>true</bool>
-       </property>
-       <property name="itemsExpandable">
-        <bool>false</bool>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-       <property name="headerHidden">
-        <bool>false</bool>
-       </property>
-       <property name="expandsOnDoubleClick">
-        <bool>false</bool>
-       </property>
-       <attribute name="headerVisible">
-        <bool>true</bool>
-       </attribute>
-       <column>
-        <property name="text">
-         <string>Message</string>
-        </property>
-        <property name="toolTip">
-         <string notr="true"/>
-        </property>
-        <property name="statusTip">
-         <string notr="true"/>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Origin</string>
-        </property>
-        <property name="toolTip">
-         <string notr="true"/>
-        </property>
-        <property name="statusTip">
-         <string notr="true"/>
-        </property>
-       </column>
-      </widget>
-     </item>
-    </layout>
-   </widget>
   </widget>
   <widget class="QToolBar" name="sourceControlToolBar">
    <property name="enabled">
@@ -3159,16 +2864,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="layoutDockWidgetContent">
     <layout class="QVBoxLayout" name="verticalLayout_6">
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
@@ -3184,21 +2880,12 @@ Uncheck to display the restart frame when stopped.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>238</width>
-          <height>86</height>
+          <width>244</width>
+          <height>129</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
         </layout>
@@ -3258,16 +2945,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="blocnoteDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_5">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -5208,22 +4886,6 @@ Shortcut:                         Ctrl + Tab</string>
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonClearLogs</sender>
-   <signal>clicked()</signal>
-   <receiver>logTexts</receiver>
-   <slot>clear()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>267</x>
-     <y>380</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>195</x>
-     <y>554</y>
     </hint>
    </hints>
   </connection>

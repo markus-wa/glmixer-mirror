@@ -54,6 +54,7 @@ protected:
     CloneSource(SourceSet::iterator sit,  double d);
     ~CloneSource();
 
+    void setOriginal(Source *s);
     void setOriginal(SourceSet::iterator sit);
 
 private:

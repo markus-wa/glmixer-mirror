@@ -6,7 +6,7 @@
 #ifdef GLM_FFGL
 #include "FFGLPluginBrowser.h"
 #endif
-
+ 
 int CaptureDialog::getWidth()
 {
     return presetsSizeComboBox->itemData(presetsSizeComboBox->currentIndex()).toInt();
@@ -166,6 +166,7 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
 #ifdef GLM_FFGL
     if (s->getFreeframeGLPluginStack()->empty()) {
+        pluginBrowser = 0;
         verticalLayout->addWidget(specificSourcePropertyBrowser);
     }
     else {
@@ -180,11 +181,11 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
         tabs->addTab(new QWidget(), "Source");
         tabs->addTab(new QWidget(), "Plugins");
         verticalLayout->addWidget(tabs);
-        QVBoxLayout *tabLayout = new QVBoxLayout(this);
-        tabLayout = new QVBoxLayout(this);
+        QVBoxLayout *tabLayout;
+        tabLayout = new QVBoxLayout(tabs);
         tabLayout->addWidget(specificSourcePropertyBrowser);
         tabs->widget(0)->setLayout(tabLayout);
-        tabLayout = new QVBoxLayout(this);
+        tabLayout = new QVBoxLayout(tabs);
         tabLayout->addWidget(pluginBrowser);
         tabs->widget(1)->setLayout(tabLayout);
     }
@@ -194,7 +195,7 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     DecisionButtonBox = new QDialogButtonBox(this);
     DecisionButtonBox->addButton("Done", QDialogButtonBox::AcceptRole);
-    DecisionButtonBox->addButton("Replace by another source", QDialogButtonBox::RejectRole);
+    DecisionButtonBox->addButton("Re-create", QDialogButtonBox::RejectRole);
     verticalLayout->addWidget(DecisionButtonBox);
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -206,7 +207,8 @@ SourceFileEditDialog::~SourceFileEditDialog() {
     delete specificSourcePropertyBrowser;
     delete sourcedisplay;
 #ifdef GLM_FFGL
-    delete pluginBrowser;
+    if (pluginBrowser)
+        delete pluginBrowser;
 #endif
 }
 
@@ -414,3 +416,222 @@ void TimeInputDialog::validateFrameInput(const QString &s)
     }
 
 }
+
+
+
+
+#ifdef GLM_LOGS
+
+void LoggingWidget::on_openLogsFolder_clicked() {
+
+    QDesktopServices::openUrl( QUrl::fromLocalFile(QDir::tempPath()) );
+}
+
+void LoggingWidget::on_copyLogsToClipboard_clicked() {
+
+    if (logTexts->topLevelItemCount() > 0) {
+        QString logs;
+        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+        while (*it) {
+            logs.append( QString("%2: %1\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+            ++it;
+        }
+        QApplication::clipboard()->setText(logs);
+    }
+}
+
+void LoggingWidget::on_saveLogsToFile_clicked() {
+
+    emit saveLogs();
+}
+
+
+void LoggingWidget::on_logTexts_doubleClicked() {
+
+    QString origin = logTexts->currentItem()->text(1);
+    QFileInfo file(origin);
+    if (file.exists())
+        QDesktopServices::openUrl( QUrl::fromLocalFile(file.absolutePath()) );
+}
+
+
+void LoggingWidget::closeEvent ( QCloseEvent * event ) {
+
+    emit isVisible(false);
+    QWidget::closeEvent(event);
+}
+
+void LoggingWidget::Log(int type, QString msg)
+{
+    // create log entry
+    QTreeWidgetItem *item  = new QTreeWidgetItem();
+    logTexts->addTopLevelItem( item );
+
+    // reads the text passed and split into object|message
+    QStringList message = msg.split(QChar(124), QString::SkipEmptyParts);
+    if (message.count() > 1 ) {
+        message[0] = message[0].simplified();
+        message[1] = message[1].simplified();
+        item->setText(0, message[1]);
+        item->setToolTip(0, message[1]);
+        if (message[1].endsWith("!"))
+            item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+        item->setText(1, message[0]);
+    } else if (message.count() > 0 ) {
+        message[0] = message[0].simplified();
+        item->setText(0, message[0]);
+        item->setToolTip(0, message[0]);
+        item->setText(1, QApplication::applicationName());
+    } else {
+        item->setText(0, msg);
+        item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+        item->setText(1, "");
+    }
+    // adjust color and show dialog according to message type
+    switch ( (QtMsgType) type) {
+    case QtWarningMsg:
+         item->setBackgroundColor(0, QColor(50, 180, 220, 50));
+         item->setBackgroundColor(1, QColor(50, 180, 220, 50));
+         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+         break;
+    case QtCriticalMsg:
+        item->setBackgroundColor(0, QColor(220, 90, 50, 50));
+        item->setBackgroundColor(1, QColor(220, 90, 50, 50));
+        item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
+        break;
+    default:
+        break;
+    }
+    // auto scroll to new item
+    logTexts->setCurrentItem( item );
+}
+
+LoggingWidget::LoggingWidget(QWidget *parent) : QWidget(parent) {
+
+    // Window title
+    setObjectName(QString::fromUtf8("LoggingWindow"));
+    QIcon icon; 
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
+    setWindowIcon(icon);
+    setWindowTitle(tr("GLMixer - Logs"));
+    // style
+    QFile file(":/style/default");
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(file.readAll());
+    setStyleSheet(styleSheet);
+    // window content
+    setupui();
+    // signals & slots
+    QMetaObject::connectSlotsByName(this);
+    QObject::connect(toolButtonClearLogs, SIGNAL(clicked()), logTexts, SLOT(clear()));
+}
+
+void LoggingWidget::setupui() {
+
+    logsVerticalLayout = new QVBoxLayout(this);
+    logsVerticalLayout->setSpacing(3);
+    logsVerticalLayout->setContentsMargins(6, 6, 6, 6);
+    logsVerticalLayout->setObjectName(QString::fromUtf8("logsVerticalLayout"));
+    logsHorizontalLayout = new QHBoxLayout();
+    logsHorizontalLayout->setSpacing(3);
+    logsHorizontalLayout->setObjectName(QString::fromUtf8("logsHorizontalLayout"));
+    logsHorizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    logsHorizontalLayout->addItem(logsHorizontalSpacer);
+
+    saveLogsToFile = new QToolButton(this);
+    saveLogsToFile->setObjectName(QString::fromUtf8("saveLogsToFile"));
+    QIcon icon103;
+    icon103.addFile(QString::fromUtf8(":/glmixer/icons/textsave.png"), QSize(), QIcon::Normal, QIcon::Off);
+    saveLogsToFile->setIcon(icon103);
+    saveLogsToFile->setIconSize(QSize(24, 24));
+
+    logsHorizontalLayout->addWidget(saveLogsToFile);
+
+    openLogsFolder = new QToolButton(this);
+    openLogsFolder->setObjectName(QString::fromUtf8("openLogsFolder"));
+    QIcon icon104;
+    icon104.addFile(QString::fromUtf8(":/glmixer/icons/textopen.png"), QSize(), QIcon::Normal, QIcon::Off);
+    openLogsFolder->setIcon(icon104);
+    openLogsFolder->setIconSize(QSize(24, 24));
+
+    logsHorizontalLayout->addWidget(openLogsFolder);
+
+    copyLogsToClipboard = new QToolButton(this);
+    copyLogsToClipboard->setObjectName(QString::fromUtf8("copyLogsToClipboard"));
+    QIcon icon105;
+    icon105.addFile(QString::fromUtf8(":/glmixer/icons/textcopy.png"), QSize(), QIcon::Normal, QIcon::Off);
+    copyLogsToClipboard->setIcon(icon105);
+    copyLogsToClipboard->setIconSize(QSize(24, 24));
+
+    logsHorizontalLayout->addWidget(copyLogsToClipboard);
+
+    toolButtonClearLogs = new QToolButton(this);
+    toolButtonClearLogs->setObjectName(QString::fromUtf8("toolButtonClearLogs"));
+    QIcon icon90;
+    icon90.addFile(QString::fromUtf8(":/glmixer/icons/clean.png"), QSize(), QIcon::Normal, QIcon::Off);
+    toolButtonClearLogs->setIcon(icon90);
+    toolButtonClearLogs->setIconSize(QSize(24, 24));
+
+    logsHorizontalLayout->addWidget(toolButtonClearLogs);
+
+    logsVerticalLayout->addLayout(logsHorizontalLayout);
+
+    logTexts = new QTreeWidget(this);
+    logTexts->setObjectName(QString::fromUtf8("logTexts"));
+    logTexts->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    logTexts->setProperty("showDropIndicator", QVariant(false));
+    logTexts->setAlternatingRowColors(true);
+    logTexts->setSelectionMode(QAbstractItemView::NoSelection);
+    logTexts->setTextElideMode(Qt::ElideMiddle);
+    logTexts->setRootIsDecorated(false);
+    logTexts->setUniformRowHeights(true);
+    logTexts->setItemsExpandable(false);
+    logTexts->setWordWrap(true);
+    logTexts->setHeaderHidden(false);
+    logTexts->setExpandsOnDoubleClick(false);
+    logTexts->header()->setVisible(true);
+    // Use fixed size font
+#ifdef Q_OS_WIN32
+    logTexts->setFont(QFont(getMonospaceFont(), QApplication::font().pointSize() + 1));
+#else
+    logTexts->setFont(QFont(getMonospaceFont(), QApplication::font().pointSize() - 1));
+#endif
+
+    logsVerticalLayout->addWidget(logTexts);
+
+    QTreeWidgetItem *___qtreewidgetitem = logTexts->headerItem();
+    ___qtreewidgetitem->setText(1, tr("Origin"));
+    ___qtreewidgetitem->setText(0, tr("Message"));
+}
+
+
+QByteArray LoggingWidget::saveState() const {
+    QByteArray ba;
+    QDataStream stream(&ba, QIODevice::WriteOnly);
+
+    // get settings
+    stream << saveGeometry();
+    stream << logTexts->columnWidth(0);
+
+    return ba;
+}
+
+
+bool LoggingWidget::restoreState(const QByteArray &state) {
+
+    QByteArray sd = state;
+    QDataStream stream(&sd, QIODevice::ReadOnly);
+
+    // restore settings
+    QByteArray geom;
+    stream >> geom;
+    restoreGeometry(geom);
+    int w = 300;
+    stream >> w;
+    logTexts->setColumnWidth(0, w);
+
+    return true;
+}
+
+#endif

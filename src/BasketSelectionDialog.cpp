@@ -201,6 +201,14 @@ QList<int> ImageFilesList::getPlayList()
             list.append( item(i)->data(Qt::UserRole).toInt() );
             qDebug() << "row " << i << " index " <<  item(i)->data(Qt::UserRole).toInt() << _fileNames[item(i)->data(Qt::UserRole).toInt()];
         }
+
+    //  foreach (const QModelIndex &index, indexes) {
+    //      if (index.isValid()) {
+    //          QString text = data(index, Qt::DisplayRole).toString();
+    //          stream << text;
+    //      }
+    //  }
+
     }
 
     return list;

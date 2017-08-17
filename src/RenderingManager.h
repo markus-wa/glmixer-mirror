@@ -120,6 +120,7 @@ public:
     bool insertSource(Source *s);
     int removeSource(SourceSet::iterator itsource);
     void replaceSource(GLuint oldsource, GLuint newsource);
+    void dropReplaceSource(SourceSet::iterator oldsource);
     void addSourceToBasket(Source *s);
     int getSourceBasketSize() const;
     Source *getSourceBasketTop() const;

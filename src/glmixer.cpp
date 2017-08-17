@@ -117,6 +117,7 @@ GLMixer *GLMixer::_instance = 0;
 #ifdef GLM_LOGS
 QFile *GLMixer::logFile = 0;
 QTextStream GLMixer::logStream;
+LoggingWidget *GLMixer::logsWidget = 0;
 #endif
 
 QByteArray static_windowstate =
@@ -178,10 +179,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifdef GLM_LOGS
     // The log widget
-    QAction *showlog = logDockWidget->toggleViewAction();
+    if (!logsWidget)
+        logsWidget = new LoggingWidget();
+    connect(logsWidget, SIGNAL(saveLogs()), SLOT(saveLogsToFile()));
+
+    QAction *showlog = new QAction(QIcon(":/icons/history.png"), tr("Show Logs"), this);
     showlog->setShortcut(QKeySequence("Ctrl+L"));
-    toolBarsMenu->addAction(showlog);
+    showlog->setStatusTip(tr("Show the application logs"));
+    showlog->setCheckable(true);
     showlog->setChecked(false);
+    toolBarsMenu->addAction(showlog);
+    connect(showlog, SIGNAL(toggled(bool)), logsWidget, SLOT(setVisible(bool)));
+    connect(logsWidget, SIGNAL(isVisible(bool)), showlog, SLOT(setChecked(bool)));
 #endif
 
     // add the show/hide menu items for the dock widgets
@@ -719,25 +728,7 @@ void GLMixer::on_timeLineEdit_clicked() {
 
 #ifdef GLM_LOGS
 
-void GLMixer::on_openLogsFolder_clicked() {
-
-    QDesktopServices::openUrl( QUrl::fromLocalFile(QDir::tempPath()) );
-}
-
-void GLMixer::on_copyLogsToClipboard_clicked() {
-
-    if (logTexts->topLevelItemCount() > 0) {
-        QString logs;
-        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-        while (*it) {
-            logs.append( QString("%2: %1\n").arg((*it)->text(0)).arg((*it)->text(1)) );
-            ++it;
-        }
-        QApplication::clipboard()->setText(logs);
-    }
-}
-
-void GLMixer::on_saveLogsToFile_clicked() {
+void GLMixer::saveLogsToFile() {
 
     if (GLMixer::logFile) {
 
@@ -771,15 +762,6 @@ void GLMixer::on_saveLogsToFile_clicked() {
             }
         }
     }
-}
-
-
-void GLMixer::on_logTexts_doubleClicked() {
-
-    QString origin = logTexts->currentItem()->text(1);
-    QFileInfo file(origin);
-    if (file.isFile())
-        QDesktopServices::openUrl( QUrl::fromLocalFile(file.absoluteFilePath()) );
 }
 
 void GLMixer::exitHandler() {
@@ -835,7 +817,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         GLMixer::logStream << "Critical| " << txt << "\n";
 
         static bool ignore = false;
-        if ( !_instance->logDockWidget->isVisible() && !ignore) {
+        if ( GLMixer::logsWidget && !ignore) {
 
             // create message box
             QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
@@ -852,7 +834,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
             QPushButton *ignoreButton = NULL;
             ignoreButton = msgBox.addButton(tr("Ignore warnings"), QMessageBox::ActionRole);
             QPushButton *logButton = NULL;
-            if (_instance)
+            if (GLMixer::logsWidget)
                 logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
 
             // exec message box
@@ -861,10 +843,13 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
             msgBox.exec();
 
             // show logs if required
-            if ( _instance && msgBox.clickedButton() == logButton )
-                _instance->logDockWidget->show();
+            if (GLMixer::logsWidget && msgBox.clickedButton() == logButton ){
+                GLMixer::logsWidget->show();
+                GLMixer::logsWidget->raise();
+                GLMixer::logsWidget->setFocus();
+            }
             // set ignore if required
-            if ( _instance && msgBox.clickedButton() == ignoreButton )
+            if ( msgBox.clickedButton() == ignoreButton )
                 ignore = true;
 
         }
@@ -909,58 +894,13 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     }
 
     // forward message to logger
-    if (_instance) {
+    if (GLMixer::logsWidget) {
         // invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
-        static int methodIndex = _instance->metaObject()->indexOfSlot("Log(int,QString)");
-        static QMetaMethod method = _instance->metaObject()->method(methodIndex);
-        method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
+        static int methodIndex = GLMixer::logsWidget->metaObject()->indexOfSlot("Log(int,QString)");
+        static QMetaMethod method = GLMixer::logsWidget->metaObject()->method(methodIndex);
+        method.invoke(GLMixer::logsWidget, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
     }
 
-}
-
-void GLMixer::Log(int type, QString msg)
-{
-    // create log entry
-    QTreeWidgetItem *item  = new QTreeWidgetItem();
-    logTexts->addTopLevelItem( item );
-
-    // reads the text passed and split into object|message
-    QStringList message = msg.split(QChar(124), QString::SkipEmptyParts);
-    if (message.count() > 1 ) {
-        message[0] = message[0].simplified();
-        message[1] = message[1].simplified();
-        item->setText(0, message[1]);
-        item->setToolTip(0, message[1]);
-        if (message[1].endsWith("!"))
-            item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
-        item->setText(1, message[0]);
-    } else if (message.count() > 0 ) {
-        message[0] = message[0].simplified();
-        item->setText(0, message[0]);
-        item->setToolTip(0, message[0]);
-        item->setText(1, QApplication::applicationName());
-    } else {
-        item->setText(0, msg);
-        item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
-        item->setText(1, "");
-    }
-    // adjust color and show dialog according to message type
-    switch ( (QtMsgType) type) {
-    case QtWarningMsg:
-         item->setBackgroundColor(0, QColor(50, 180, 220, 50));
-         item->setBackgroundColor(1, QColor(50, 180, 220, 50));
-         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
-         break;
-    case QtCriticalMsg:
-        item->setBackgroundColor(0, QColor(220, 90, 50, 50));
-        item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-        item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
-        break;
-    default:
-        break;
-    }
-    // auto scroll to new item
-    logTexts->setCurrentItem( item );
 }
 
 #endif
@@ -1026,49 +966,53 @@ void GLMixer::on_actionNewSource_triggered(){
     static NewSourceDialog *nsd = new NewSourceDialog(this);
 
     if (nsd->exec() == QDialog::Accepted) {
+        newSource(nsd->selectedType());
+    }
+}
 
-        switch (nsd->selectedType()) {
-        case Source::VIDEO_SOURCE:
-            actionMediaSource->trigger();
-            break;
+void GLMixer::newSource(Source::RTTI type) {
+
+    switch (type) {
+    case Source::VIDEO_SOURCE:
+        on_actionMediaSource_triggered();
+        break;
 #ifdef GLM_OPENCV
-        case Source::CAMERA_SOURCE:
-            actionCameraSource->trigger();
-            break;
+    case Source::CAMERA_SOURCE:
+        on_actionCameraSource_triggered();
+        break;
 #endif
-        case Source::ALGORITHM_SOURCE:
-            actionAlgorithmSource->trigger();
-            break;
-        case Source::RENDERING_SOURCE:
-            actionRenderingSource->trigger();
-            break;
-        case Source::CAPTURE_SOURCE:
-            actionCaptureSource->trigger();
-            break;
-        case Source::SVG_SOURCE:
-            actionSvgSource->trigger();
-            break;
+    case Source::ALGORITHM_SOURCE:
+        on_actionAlgorithmSource_triggered();
+        break;
+    case Source::RENDERING_SOURCE:
+        on_actionRenderingSource_triggered();
+        break;
+    case Source::CAPTURE_SOURCE:
+        on_actionCaptureSource_triggered();
+        break;
+    case Source::SVG_SOURCE:
+        on_actionSvgSource_triggered();
+        break;
 #ifdef GLM_SHM
-        case Source::SHM_SOURCE:
-            actionShmSource->trigger();
-            break;
+    case Source::SHM_SOURCE:
+        on_actionShmSource_triggered();
+        break;
 #endif
 #ifdef GLM_FFGL
-        case Source::FFGL_SOURCE:
-            actionFreeframeSource->trigger();
-            break;
+    case Source::FFGL_SOURCE:
+        on_actionFreeframeSource_triggered();
+        break;
 #endif
-        case Source::WEB_SOURCE:
-            actionWebSource->trigger();
-            break;
-        case Source::STREAM_SOURCE:
-            actionStreamSource->trigger();
-            break;
-        default:
-            break;
-        }
-
+    case Source::WEB_SOURCE:
+        on_actionWebSource_triggered();
+        break;
+    case Source::STREAM_SOURCE:
+        on_actionStreamSource_triggered();
+        break;
+    default:
+        break;
     }
+
 }
 
 
@@ -1753,24 +1697,35 @@ void GLMixer::on_actionEditSource_triggered()
 
 void GLMixer::replaceCurrentSource()
 {
+    // BHBN OLD IMPLEMENTATION : CRASHED
     // if the current source is valid
+    // SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    // if ( RenderingManager::getInstance()->isValid(cs) ) {
+
+    //     // remember identifier of current source
+    //     GLuint previoussource = (*cs)->getId();
+
+    //     // show gui to select the type of source to create instead
+    //     on_actionNewSource_triggered();
+
+    //     // drop the source and make new source current
+    //     RenderingManager::getInstance()->dropSource();
+
+    //     SourceSet::iterator newsource = RenderingManager::getInstance()->getCurrentSource();
+    //     if ( RenderingManager::getInstance()->isValid(newsource) ) {
+
+    //         RenderingManager::getInstance()->replaceSource(previoussource, (*newsource)->getId());
+    //     }
+    // }
+
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs) ) {
 
-        // remember identifier of current source
-        GLuint previoussource = (*cs)->getId();
-
-        // show gui to select the type of source to create instead
-        on_actionNewSource_triggered();
+        // show gui to re-create a source of same type
+        newSource( (*cs)->rtti() );
 
         // drop the source and make new source current
-        RenderingManager::getInstance()->dropSource();
-
-        SourceSet::iterator newsource = RenderingManager::getInstance()->getCurrentSource();
-        if ( RenderingManager::getInstance()->isValid(newsource) ) {
-
-            RenderingManager::getInstance()->replaceSource(previoussource, (*newsource)->getId());
-        }
+        RenderingManager::getInstance()->dropReplaceSource(cs);
     }
 }
 
@@ -2637,10 +2592,11 @@ void GLMixer::readSettings( QString pathtobin )
         sfd->setSidebarUrls( getExtendedSidebarUrls( sfd->sidebarUrls()) );
 
     }
-    if (settings.contains("logTextColumnWidth")) {
-        logTexts->setColumnWidth(0, settings.value("logTextColumnWidth").toInt());
+#ifdef GLM_LOGS
+    if (settings.contains("logsWidget")) {
+        logsWidget->restoreState( settings.value("logsWidget").toByteArray() );
     }
-
+#endif
     // Cursor status
     if (settings.contains("CursorMode")) {
         switch((ViewRenderWidget::cursorMode) settings.value("CursorMode").toInt()) {
@@ -2714,7 +2670,7 @@ void GLMixer::readSettings( QString pathtobin )
     switcherSession->restoreSettings();
 #endif
 
-    qDebug() << QApplication::applicationName()  << QChar(124).toLatin1() << tr("Settings restored (") << settings.fileName() << ").";
+    qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings restored.");
 }
 
 void GLMixer::saveSettings()
@@ -2733,8 +2689,9 @@ void GLMixer::saveSettings()
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
-    settings.setValue("logTextColumnWidth", logTexts->columnWidth(0));
-
+#ifdef GLM_LOGS
+    settings.setValue("logsWidget", logsWidget->saveState());
+#endif
     // Cursor status
     settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
     settings.setValue("CursorSpringMass", cursorSpringMass->value() );
@@ -2802,10 +2759,6 @@ void GLMixer::on_actionResetToolbars_triggered()
 #ifdef GLM_HISTORY
     restoreDockWidget(actionHistoryDockWidget);
 #endif
-
-    // hide logs by default
-    logDockWidget->hide();
-    logDockWidget->setGeometry(0,0,800,300);
 
     qDebug() << QApplication::applicationName()  << QChar(124).toLatin1()  << tr("Default layout restored.");
 }

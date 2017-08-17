@@ -10,7 +10,6 @@ bool BasketSource::playable = true;
 
 BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false)
 {
-
     // allocate the FBO for rendering
     _renderFBO = new QGLFramebufferObject(width, height);
     CHECK_PTR_EXCEPTION(_renderFBO);

@@ -131,17 +131,14 @@ public slots:
     void sessionChanged();
 
     void openSessionFile();
+    void newSource(Source::RTTI type);
     void newSession();
     void closeSession();
     void saveSession(bool close = false, bool quit = false);
     void postSaveSession();
 
 #ifdef GLM_LOGS
-    void Log(int, QString);
-    void on_copyLogsToClipboard_clicked();
-    void on_saveLogsToFile_clicked();
-    void on_openLogsFolder_clicked();
-    void on_logTexts_doubleClicked();
+    void saveLogsToFile();
 #endif
 
     void readSettings(QString pathtobin = QString::null);
@@ -213,6 +210,7 @@ private:
 #ifdef GLM_LOGS
     static QFile *logFile;
     static QTextStream logStream;
+    static class LoggingWidget *logsWidget;
 #endif
 };
 

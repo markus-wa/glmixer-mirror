@@ -87,5 +87,53 @@ private:
     double _t, _min, _max, _fps;
 };
 
+
+#ifdef GLM_LOGS
+
+class LoggingWidget: public QWidget {
+
+    Q_OBJECT
+
+public:
+
+    LoggingWidget(QWidget *parent = 0);
+
+    QSize sizeHint() const {
+        return QSize(600, 250);
+    }
+    virtual void closeEvent ( QCloseEvent * event );
+    
+    QByteArray saveState() const;
+    bool restoreState(const QByteArray &state);    
+
+signals:
+    void saveLogs();
+    void isVisible(bool);
+
+public slots:
+
+    void Log(int, QString);
+    void on_copyLogsToClipboard_clicked();
+    void on_saveLogsToFile_clicked();
+    void on_openLogsFolder_clicked();
+    void on_logTexts_doubleClicked();
+
+private:
+
+    void setupui();
+    
+    QVBoxLayout *logsVerticalLayout;
+    QHBoxLayout *logsHorizontalLayout;
+    QSpacerItem *logsHorizontalSpacer;
+    QToolButton *saveLogsToFile;
+    QToolButton *openLogsFolder;
+    QToolButton *copyLogsToClipboard;
+    QToolButton *toolButtonClearLogs;
+    QTreeWidget *logTexts;
+
+};
+#endif  // GLM_LOGS
+
+
 #endif // GLMIXERDIALOGS_H
 

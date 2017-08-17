@@ -1401,8 +1401,6 @@ void RenderingManager::dropSourceWithDepth(double depth){
 
 void RenderingManager::dropSource(){
 
-    unsetCurrentSource();
-
     // something to drop ?
     if (!dropBasket.empty()) {
         // get the pointer to the source at the top of the list
@@ -1422,6 +1420,64 @@ void RenderingManager::dropSource(){
             delete top;
     }
 }
+
+
+void RenderingManager::dropReplaceSource(SourceSet::iterator itoldsource) {
+
+    unsetCurrentSource();
+
+    // something to drop ? something to replace ?
+    if (!dropBasket.empty() && RenderingManager::getInstance()->isValid(itoldsource)) {
+
+        // get the pointer to the source at the top of the drop basket
+        Source *newsource = *dropBasket.begin();
+        // remove from the basket
+        dropBasket.erase(newsource);
+        // get the pointer the the source to remove
+        Source *oldsource = *itoldsource;
+        // inform undo manager
+        emit methodCalled(QString("_dropReplaceSource(%1)").arg(oldsource->getId()));
+
+        // CLONE ALL PROPERTIES AND OPTIONS
+        //
+        // apply all properties
+        newsource->importProperties( oldsource );
+#ifdef GLM_FFGL
+        // copy the Freeframe plugin stack
+        newsource->reproduceFreeframeGLPluginStack( oldsource );
+#endif
+        // change all clones of old source to clone the new source
+        for (SourceList::iterator clone = oldsource->getClones()->begin(); clone != oldsource->getClones()->end(); clone = oldsource->getClones()->begin()) {
+            CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
+            if (tmp) {
+                // change original of clone (this removes it from list of old source clones)
+                tmp->setOriginal(newsource);
+                tmp->_setName(newsource->getName() + tr("Clone"));
+            }
+        }
+        //
+        // DONE CLONE PROPERTIES
+
+        // set the depth already; will be used when inserting the source
+        newsource->setDepth(oldsource->getDepth());
+        // delete old source (and eventual plugins)
+        QString name_oldsource = oldsource->getName();
+        bool play = oldsource->isPlaying();
+        _removeSource(itoldsource);
+        // insert the source (will use the depth of the source)
+        if ( _insertSource(newsource) ) {
+            // start playing (according to previous state)
+            newsource->play(play);
+            // make it current
+            setCurrentSource(newsource->getId());
+            // log
+            qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg(newsource->getName());
+        }
+        else
+            delete newsource;
+    }
+}
+
 
 void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 

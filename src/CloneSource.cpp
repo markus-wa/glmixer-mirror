@@ -50,13 +50,18 @@ CloneSource::~CloneSource() {
 
 void CloneSource::setOriginal(SourceSet::iterator sit) {
 
+    setOriginal( (Source *)(*sit));
+}
+
+void CloneSource::setOriginal(Source *s) {
+
     // remove this clone from the list of previous original
     if (original) {
         original->getClones()->erase((Source*) this);
     }
 
     // set the original
-    original = *sit;
+    original = s;
 
     // when cloning a clone, get back to the original ;
     CloneSource *tmp = dynamic_cast<CloneSource *>(original);
