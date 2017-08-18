@@ -524,6 +524,7 @@ LoggingWidget::LoggingWidget(QWidget *parent) : QWidget(parent) {
     // signals & slots
     QMetaObject::connectSlotsByName(this);
     QObject::connect(toolButtonClearLogs, SIGNAL(clicked()), logTexts, SLOT(clear()));
+
 }
 
 void LoggingWidget::setupui() {
@@ -539,17 +540,9 @@ void LoggingWidget::setupui() {
 
     logsHorizontalLayout->addItem(logsHorizontalSpacer);
 
-    saveLogsToFile = new QToolButton(this);
-    saveLogsToFile->setObjectName(QString::fromUtf8("saveLogsToFile"));
-    QIcon icon103;
-    icon103.addFile(QString::fromUtf8(":/glmixer/icons/textsave.png"), QSize(), QIcon::Normal, QIcon::Off);
-    saveLogsToFile->setIcon(icon103);
-    saveLogsToFile->setIconSize(QSize(24, 24));
-
-    logsHorizontalLayout->addWidget(saveLogsToFile);
-
     openLogsFolder = new QToolButton(this);
     openLogsFolder->setObjectName(QString::fromUtf8("openLogsFolder"));
+    openLogsFolder->setToolTip(tr("Show location of log file in the system."));
     QIcon icon104;
     icon104.addFile(QString::fromUtf8(":/glmixer/icons/textopen.png"), QSize(), QIcon::Normal, QIcon::Off);
     openLogsFolder->setIcon(icon104);
@@ -557,8 +550,19 @@ void LoggingWidget::setupui() {
 
     logsHorizontalLayout->addWidget(openLogsFolder);
 
+    saveLogsToFile = new QToolButton(this);
+    saveLogsToFile->setObjectName(QString::fromUtf8("saveLogsToFile"));
+    saveLogsToFile->setToolTip(tr("Save this log to text file."));
+    QIcon icon103;
+    icon103.addFile(QString::fromUtf8(":/glmixer/icons/textsave.png"), QSize(), QIcon::Normal, QIcon::Off);
+    saveLogsToFile->setIcon(icon103);
+    saveLogsToFile->setIconSize(QSize(24, 24));
+
+    logsHorizontalLayout->addWidget(saveLogsToFile);
+
     copyLogsToClipboard = new QToolButton(this);
     copyLogsToClipboard->setObjectName(QString::fromUtf8("copyLogsToClipboard"));
+    copyLogsToClipboard->setToolTip(tr("Copy log to clipboard."));
     QIcon icon105;
     icon105.addFile(QString::fromUtf8(":/glmixer/icons/textcopy.png"), QSize(), QIcon::Normal, QIcon::Off);
     copyLogsToClipboard->setIcon(icon105);
@@ -568,6 +572,7 @@ void LoggingWidget::setupui() {
 
     toolButtonClearLogs = new QToolButton(this);
     toolButtonClearLogs->setObjectName(QString::fromUtf8("toolButtonClearLogs"));
+    toolButtonClearLogs->setToolTip(tr("Clear logs."));
     QIcon icon90;
     icon90.addFile(QString::fromUtf8(":/glmixer/icons/clean.png"), QSize(), QIcon::Normal, QIcon::Off);
     toolButtonClearLogs->setIcon(icon90);

@@ -162,7 +162,10 @@ int main(int argc, char **argv)
 #endif
 
     // The output rendering window ; the rendering manager widget has to be existing
-    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("Output Window"));
+    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("GLMixer - Output"));
+    QIcon icon; 
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
+    OutputRenderWindow::getInstance()->setWindowIcon(icon);
     OutputRenderWindow::getInstance()->show();
     a.processEvents();
 
