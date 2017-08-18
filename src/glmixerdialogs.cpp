@@ -6,7 +6,7 @@
 #ifdef GLM_FFGL
 #include "FFGLPluginBrowser.h"
 #endif
- 
+
 int CaptureDialog::getWidth()
 {
     return presetsSizeComboBox->itemData(presetsSizeComboBox->currentIndex()).toInt();
@@ -195,7 +195,8 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     DecisionButtonBox = new QDialogButtonBox(this);
     DecisionButtonBox->addButton("Done", QDialogButtonBox::AcceptRole);
-    DecisionButtonBox->addButton("Re-create", QDialogButtonBox::RejectRole);
+    if (source->rtti() != Source::CLONE_SOURCE)
+        DecisionButtonBox->addButton("Re-create", QDialogButtonBox::RejectRole);
     verticalLayout->addWidget(DecisionButtonBox);
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -473,14 +474,14 @@ void LoggingWidget::Log(int type, QString msg)
         message[0] = message[0].simplified();
         message[1] = message[1].simplified();
         item->setText(0, message[1]);
-        item->setToolTip(0, message[1]);
         if (message[1].endsWith("!"))
             item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
         item->setText(1, message[0]);
+        if (QFileInfo(message[0]).exists())
+            item->setToolTip(1, tr("Double clic to open folder."));
     } else if (message.count() > 0 ) {
         message[0] = message[0].simplified();
         item->setText(0, message[0]);
-        item->setToolTip(0, message[0]);
         item->setText(1, QApplication::applicationName());
     } else {
         item->setText(0, msg);
@@ -510,7 +511,7 @@ LoggingWidget::LoggingWidget(QWidget *parent) : QWidget(parent) {
 
     // Window title
     setObjectName(QString::fromUtf8("LoggingWindow"));
-    QIcon icon; 
+    QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
     setWindowIcon(icon);
     setWindowTitle(tr("GLMixer - Logs"));

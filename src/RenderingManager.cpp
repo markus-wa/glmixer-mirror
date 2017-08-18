@@ -1433,6 +1433,14 @@ void RenderingManager::dropReplaceSource(SourceSet::iterator itoldsource) {
         Source *newsource = *dropBasket.begin();
         // remove from the basket
         dropBasket.erase(newsource);
+
+        // prevent re-creation of clone source (which is useless
+        // and provokes recursive self referencing)
+        if (newsource->rtti() == Source::CLONE_SOURCE) {
+            delete newsource;
+            return;
+        }
+
         // get the pointer the the source to remove
         Source *oldsource = *itoldsource;
         // inform undo manager
