@@ -49,13 +49,13 @@ public:
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
+    void setOriginal(Source *s);
+    void setOriginal(SourceSet::iterator sit);
+
     // only RenderingManager can create a source
 protected:
     CloneSource(SourceSet::iterator sit,  double d);
     ~CloneSource();
-
-    void setOriginal(Source *s);
-    void setOriginal(SourceSet::iterator sit);
 
 private:
     Source *original;

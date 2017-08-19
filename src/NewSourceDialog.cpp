@@ -22,7 +22,7 @@ NewSourceDialog::NewSourceDialog(QWidget *parent) :
             continue;
         }
 #endif
-#ifndef FFGL
+#ifndef GLM_FFGL
         if ( ui->SourceTypeToolBox->itemText(i).contains("Plugin") ) {
             ui->SourceTypeToolBox->removeItem(i);
             delete w;

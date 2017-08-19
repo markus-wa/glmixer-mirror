@@ -25,7 +25,7 @@
 
 #include "CloneSource.h"
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLPluginSource.h"
 #endif
 
@@ -78,7 +78,7 @@ void CloneSource::setOriginal(Source *s) {
         SourceConstructorException().raise();
 
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // redo the stack of plugins adapted to the new original
     // because resolution changed and fbos must be recreated
 

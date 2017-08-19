@@ -140,6 +140,7 @@ public:
 
     inline bool empty() const { return _front_sources.empty(); }
     inline SourceSet getCopy() { return SourceSet (_front_sources); }
+    QStringList getSourceNameList() const;
 
     // current source
     bool isCurrentSource(const Source *s);

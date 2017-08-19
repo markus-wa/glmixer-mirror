@@ -1189,20 +1189,36 @@ public:
         infoManager->setValue(idToProperty["Type"], "Clone" );
         addProperty(idToProperty["Type"]);
 
-        property = infoManager->addProperty( QLatin1String("Source") );
-        property->setToolTip("Name of the source cloned.");
-        property->setItalics(true);
+        property = enumManager->addProperty( QLatin1String("Source") );
+        property->setToolTip("Select the source to clone.");
+        // show the list of sources, minus the source itself
+        sourcelist = RenderingManager::getInstance()->getSourceNameList();
+        sourcelist.removeAt( sourcelist.indexOf(cs->getName())) ;
+        enumManager->setEnumNames(property, sourcelist);
         idToProperty[property->propertyName()] = property;
-
-        infoManager->setValue(idToProperty["Source"], cs->getOriginalName() );
-
+        // select the index corresponding to the source cloned
+        enumManager->setValue(idToProperty["Source"], sourcelist.indexOf(cs->getOriginalName()));
         addProperty(idToProperty["Source"]);
+
+        connectManagers();
+    }
+
+public slots:
+
+    void enumChanged(QtProperty *property, int value)
+    {
+        if ( property == idToProperty["Source"] ) {
+            QString name = sourcelist.at(value);
+            SourceSet::iterator sit = RenderingManager::getInstance()->getByName(name);
+            if (RenderingManager::getInstance()->isValid(sit))
+                cs->setOriginal( sit );
+        }
     }
 
 private:
 
     CloneSource *cs;
-
+    QStringList sourcelist;
 };
 
 

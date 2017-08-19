@@ -1636,6 +1636,12 @@ bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
         return false;
 }
 
+QStringList RenderingManager::getSourceNameList() const {
+    QStringList list;
+    for(SourceList::iterator  its = getBegin(); its != getEnd(); its++)
+        list << (*its)->getName();
+    return list;
+}
 
 bool RenderingManager::isCurrentSource(const Source *s){
 

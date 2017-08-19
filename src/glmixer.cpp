@@ -698,11 +698,8 @@ void GLMixer::on_addDateToNotes_clicked() {
 
 void GLMixer::on_addListToNotes_clicked() {
 
-    QString list;
-    for(SourceList::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-        list.append(QString("-  %1\n").arg( (*its)->getName() ));
-
-    blocNoteEdit->append(list);
+    QStringList list = RenderingManager::getInstance()->getSourceNameList();
+    blocNoteEdit->append(list.join("\n"));
 }
 
 
