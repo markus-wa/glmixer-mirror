@@ -541,6 +541,7 @@ void Source::setStandby(bool on) {
     // else (not standby), replay if previous state was to play
     play( standby == NOT_STANDBY && previous == PLAY_STANDBY );
 
+    emit standingby(standby);
 }
 
 void Source::play(bool on) {

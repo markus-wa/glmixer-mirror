@@ -178,7 +178,8 @@ private:
 
     QString currentSessionFileName;
     bool usesystemdialogs, maybeSave;
-    class VideoFile *selectedSourceVideoFile;
+    Source *previousSource;
+    class VideoFile *previousSourceVideoFile;
     class QFileDialog *sfd;
     class VideoFileDialog *mfd;
     class OutputRenderWidget *outputpreview;

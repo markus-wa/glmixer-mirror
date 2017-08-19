@@ -286,6 +286,8 @@ signals:
     void playing(bool);
     // on failure
     void failed();
+    // on standby
+    void standingby(bool);
 
 protected:
     /*
