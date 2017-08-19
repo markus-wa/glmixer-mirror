@@ -1119,17 +1119,18 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         previousSourceVideoFile = NULL;
     }
 
+    if (previousSource) {
+        previousSource->disconnect(startButton);
+        previousSource = NULL;
+    }
+    QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
+
     // in any case uncheck pause and loop buttons
     pauseButton->setChecked( false );
     videoLoopButton->setChecked( false );
 
     // if we are given a valid iterator, we have a source to control
     if ( RenderingManager::getInstance()->isValid(csi) ) {
-
-        if (previousSource) {
-            previousSource->disconnect(startButton);
-            previousSource = NULL;
-        }
 
         // display source preview
         sourcePreview->setSource(*csi);
@@ -1167,6 +1168,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         WorkspaceManager::getInstance()->getSourceActions()[(*csi)->getWorkspace()]->setChecked(true);
 
         startButton->setEnabled(false);
+        startButton->setChecked( false );
 
         // Among playable sources, there is the particular case of video sources :
         if ((*csi)->isPlayable()) {
@@ -1178,6 +1180,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
             startButton->setChecked( (*csi)->isPlaying() );
             QObject::connect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
 
+            // status of start button is associated to stanby mode
             startButton->setEnabled(!(*csi)->isStandby());
             QObject::connect((*csi), SIGNAL(standingby(bool)), startButton, SLOT(setDisabled(bool)));
 
@@ -1247,11 +1250,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
     }
     else {  // it is not a valid source
 
-        previousSource = NULL;
-
         // disable control panel widgets
         vcontrolDockWidgetContents->setEnabled(false);
         vcontrolOptionSplitter->setEnabled( false );
+        startButton->setEnabled(false);
         startButton->setChecked( false );
 
         // disable source related toolboxes

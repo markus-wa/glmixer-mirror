@@ -226,7 +226,7 @@ void MixerView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (larger if active)
-            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor());
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->isStandby() ? s->getTag()->getColor().darker() : s->getTag()->getColor());
             if (RenderingManager::getInstance()->isCurrentSource(s))
                 glCallList(ViewRenderWidget::border_large_shadow);
             else

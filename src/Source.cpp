@@ -524,11 +524,6 @@ void Source::setStandby(bool on) {
     if ( on == isStandby() )
         return;
 
-    // ignore if there are clones relying on its update
-    // TODO  : check dependency of clones : are they in standy ?
-    if (isCloned())
-        return;
-
     StandbyMode previous = standby;
 
     if (!isPlayable())
@@ -541,16 +536,16 @@ void Source::setStandby(bool on) {
     // else (not standby), replay if previous state was to play
     play( standby == NOT_STANDBY && previous == PLAY_STANDBY );
 
+#ifdef GLM_FFGL
+    // play the plugins if not standby
+    if (! _ffgl_plugins.isEmpty())
+        _ffgl_plugins.play( standby == NOT_STANDBY );
+#endif
+
     emit standingby(standby);
 }
 
 void Source::play(bool on) {
-
-#ifdef GLM_FFGL
-    // play the plugins only if not standby
-    if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.play( isPlayable() ? on : standby == NOT_STANDBY );
-#endif
 
     emit playing(on);
 }
