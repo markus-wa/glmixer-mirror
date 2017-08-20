@@ -652,6 +652,9 @@ p, li { white-space: pre-wrap; }
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="toolTip">
+                   <string>Refresh frequency of the rendering</string>
+                  </property>
                   <property name="text">
                    <string>Fra&amp;me rate</string>
                   </property>
@@ -1377,7 +1380,7 @@ the user to select a file name</string>
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>The rendering loop-back source shows the frame rendered N frame(s) before; </string>
+                 <string>Frame rate for the loop-back (skipping some frames if lower than rendering)</string>
                 </property>
                 <property name="text">
                  <string>Recursive fra&amp;me rate</string>

@@ -19,7 +19,7 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption): 
     QDialogButtonBox *DecisionButtonBox;
 
     setObjectName(QString::fromUtf8("CaptureDialog"));
-    setWindowTitle(tr( "GLMixer - Frame capture"));
+    setWindowTitle(tr( "GLMixer - Pixmap"));
     verticalLayout = new QVBoxLayout(this);
     verticalLayout->setSpacing(9);
 

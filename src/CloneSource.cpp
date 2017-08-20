@@ -38,7 +38,7 @@ CloneSource::CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->ge
     setOriginal(sit);
 
     // clone the properties
-    importProperties(*sit, true);
+//    importProperties(*sit, true);
 }
 
 CloneSource::~CloneSource() {

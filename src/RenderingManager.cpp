@@ -798,7 +798,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
 
     } catch (AllocationException &e){
-        qWarning() << tr("Cannot create Capture source; ") << e.message();
+        qWarning() << tr("Cannot create Pixmap source; ") << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
@@ -1156,10 +1156,6 @@ Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p
 
 
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
-
-#ifndef NDEBUG
-    qDebug() << tr("RenderingManager::newCloneSource ")<< depth;
-#endif
 
     CloneSource *s = 0;
     try{
@@ -1895,86 +1891,91 @@ SourceSet::const_iterator RenderingManager::getByName(const QString name) const 
 /**
  * save and load configuration
  */
+
+QDomElement RenderingManager::getSourceConfiguration(SourceSet::iterator its, QDomDocument &doc, QDir current) {
+
+    QDomElement sourceElem;
+
+    // type specific settings
+    if ((*its)->rtti() == Source::VIDEO_SOURCE) {
+        VideoSource *vs = dynamic_cast<VideoSource *> (*its);
+        sourceElem = vs->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
+        AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
+        sourceElem = as->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
+        CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
+        sourceElem = cs->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::CLONE_SOURCE) {
+        CloneSource *cs = dynamic_cast<CloneSource *> (*its);
+        sourceElem = cs->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::SVG_SOURCE) {
+        SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
+        sourceElem = svgs->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::WEB_SOURCE) {
+        WebSource *ws = dynamic_cast<WebSource *> (*its);
+        sourceElem = ws->getConfiguration(doc, current);
+    }
+#ifdef GLM_OPENCV
+    else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
+        OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
+        sourceElem = cs->getConfiguration(doc, current);
+    }
+#endif
+#ifdef GLM_SHM
+    else if ((*its)->rtti() == Source::SHM_SOURCE) {
+        SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
+        sourceElem = shms->getConfiguration(doc, current);
+    }
+#endif
+#ifdef GLM_SPOUT
+    else if ((*its)->rtti() == Source::SPOUT_SOURCE) {
+        SpoutSource *spouts = dynamic_cast<SpoutSource *> (*its);
+        sourceElem = spouts->getConfiguration(doc, current);
+    }
+#endif
+#ifdef GLM_FFGL
+    else if ((*its)->rtti() == Source::FFGL_SOURCE) {
+        FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
+        sourceElem = ffs->getConfiguration(doc, current);
+    }
+#endif
+    else if ((*its)->rtti() == Source::STREAM_SOURCE) {
+        VideoStreamSource *sts = dynamic_cast<VideoStreamSource *> (*its);
+        sourceElem = sts->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::RENDERING_SOURCE) {
+        RenderingSource *rs = dynamic_cast<RenderingSource *> (*its);
+        sourceElem = rs->getConfiguration(doc, current);
+    }
+    else if ((*its)->rtti() == Source::BASKET_SOURCE) {
+        BasketSource *bs = dynamic_cast<BasketSource *> (*its);
+        sourceElem = bs->getConfiguration(doc, current);
+    }
+    else
+        sourceElem = (*its)->getConfiguration(doc, current);
+
+    return sourceElem;
+}
+
 QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) {
 
     QDomElement config = doc.createElement("SourceList");
 
     for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
-
-        QDomElement sourceElem;
-
-        // type specific settings
-        if ((*its)->rtti() == Source::VIDEO_SOURCE) {
-            VideoSource *vs = dynamic_cast<VideoSource *> (*its);
-            sourceElem = vs->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
-            AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
-            sourceElem = as->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
-            CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
-            sourceElem = cs->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::CLONE_SOURCE) {
-            CloneSource *cs = dynamic_cast<CloneSource *> (*its);
-            sourceElem = cs->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::SVG_SOURCE) {
-            SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
-            sourceElem = svgs->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::WEB_SOURCE) {
-            WebSource *ws = dynamic_cast<WebSource *> (*its);
-            sourceElem = ws->getConfiguration(doc, current);
-        }
-#ifdef GLM_OPENCV
-        else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
-            OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
-            sourceElem = cs->getConfiguration(doc, current);
-        }
-#endif
-#ifdef GLM_SHM
-        else if ((*its)->rtti() == Source::SHM_SOURCE) {
-            SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
-            sourceElem = shms->getConfiguration(doc, current);
-        }
-#endif
-#ifdef GLM_SPOUT
-        else if ((*its)->rtti() == Source::SPOUT_SOURCE) {
-            SpoutSource *spouts = dynamic_cast<SpoutSource *> (*its);
-            sourceElem = spouts->getConfiguration(doc, current);
-        }
-#endif
-#ifdef GLM_FFGL
-        else if ((*its)->rtti() == Source::FFGL_SOURCE) {
-            FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
-            sourceElem = ffs->getConfiguration(doc, current);
-        }
-#endif
-        else if ((*its)->rtti() == Source::STREAM_SOURCE) {
-            VideoStreamSource *sts = dynamic_cast<VideoStreamSource *> (*its);
-            sourceElem = sts->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::RENDERING_SOURCE) {
-            RenderingSource *rs = dynamic_cast<RenderingSource *> (*its);
-            sourceElem = rs->getConfiguration(doc, current);
-        }
-        else if ((*its)->rtti() == Source::BASKET_SOURCE) {
-            BasketSource *bs = dynamic_cast<BasketSource *> (*its);
-            sourceElem = bs->getConfiguration(doc, current);
-        }
-        else
-            sourceElem = (*its)->getConfiguration(doc, current);
-
-        config.appendChild(sourceElem);
+        config.appendChild( getSourceConfiguration(its, doc, current));
     }
 
     return config;
 }
 
 
-int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, QString version)
+int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QString version)
 {
     // counter of errors
     int errors = 0;
@@ -2199,11 +2200,11 @@ int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, Q
 
         if (!newsource) {
             qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                       << tr("Could not create capture source; invalid picture in session file.");
+                       << tr("Could not create Pixmap source; invalid picture in session file.");
             errors++;
         } else
             qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                     << tr("Capture source created (") <<newsource->getFrameWidth()
+                     << tr("Pixmap source created (") <<newsource->getFrameWidth()
                      <<"x"<<newsource->getFrameHeight() << ").";
     }
     else if ( type == Source::SVG_SOURCE)
@@ -2460,7 +2461,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 clones.push_back(child);
             // create the source of known type
             else
-                errors += _addSourceConfiguration(child, current, version);
+                errors += addSourceConfiguration(child, current, version);
         }
 
         child = child.nextSiblingElement("Source");
@@ -2473,7 +2474,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     while (it.hasNext()) {
         QDomElement c = it.next();
 
-        errors += _addSourceConfiguration(c, current, version);
+        errors += addSourceConfiguration(c, current, version);
     }
 
     // set current source to none (end of list)

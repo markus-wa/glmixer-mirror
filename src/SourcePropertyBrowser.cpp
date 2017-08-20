@@ -1057,23 +1057,23 @@ public:
         property->setToolTip("Type of the source");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
-        infoManager->setValue(idToProperty["Type"], "Capture frame" );
+        infoManager->setValue(idToProperty["Type"], "Pixmap" );
         addProperty(idToProperty["Type"]);
 
 
-        property = infoManager->addProperty( QLatin1String("Captured image") );
-        property->setToolTip("Size of the image stored in session file.");
+        property = infoManager->addProperty( QLatin1String("Bytecount") );
+        property->setToolTip("Number of bytes occupied by the pixmap.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         property = infoManager->addProperty( QLatin1String("Color depth") );
-        property->setToolTip("Bytes per pixel.");
+        property->setToolTip("Number of bytes per pixel.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
-        infoManager->setValue(idToProperty["Captured image"], getByteSizeString(cs->image().byteCount() ) );
+        infoManager->setValue(idToProperty["Bytecount"], getByteSizeString(cs->image().byteCount() ) );
         infoManager->setValue(idToProperty["Color depth"], QString::number(cs->image().depth()) + " bpp" );
 
-        addProperty(idToProperty["Captured image"]);
+        addProperty(idToProperty["Bytecount"]);
         addProperty(idToProperty["Color depth"]);
     }
 

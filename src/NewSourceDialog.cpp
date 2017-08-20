@@ -3,6 +3,8 @@
 #include "NewSourceDialog.moc"
 #include "ui_NewSourceDialog.h"
 
+#include <QClipboard>
+
 NewSourceDialog::NewSourceDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::NewSourceDialog)
@@ -46,6 +48,17 @@ NewSourceDialog::~NewSourceDialog()
     delete ui;
 }
 
+
+void NewSourceDialog::showEvent(QShowEvent *e){
+
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+
+    int i = ui->SourceTypeToolBox->indexOf(ui->capture);
+    ui->SourceTypeToolBox->setItemEnabled(i, mimeData->hasImage() );
+
+    QWidget::showEvent(e);
+}
+
 Source::RTTI NewSourceDialog::selectedType()
 {
     Source::RTTI t = Source::SIMPLE_SOURCE;
@@ -58,7 +71,7 @@ Source::RTTI NewSourceDialog::selectedType()
         t = Source::CAMERA_SOURCE;
     else if ( text.contains("Loop"))
         t = Source::RENDERING_SOURCE;
-    else if ( text.contains("Capture"))
+    else if ( text.contains("Pixmap"))
         t = Source::CAPTURE_SOURCE;
     else if ( text.contains("Algo"))
         t = Source::ALGORITHM_SOURCE;

@@ -215,8 +215,10 @@ public:
     /**
      * save and load configuration
      */
+    QDomElement getSourceConfiguration(SourceSet::iterator its, QDomDocument &doc, QDir current = QDir());
     QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
+    int addSourceConfiguration(QDomElement child, QDir current = QDir(), QString version = XML_GLM_VERSION);
 
     inline Source *defaultSource() { return _defaultSource; }
     inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
@@ -279,7 +281,6 @@ protected:
     bool _insertSource(Source *s);
     int _removeSource(SourceSet::iterator itsource);
     int _removeSource(const GLuint idsource);
-    int _addSourceConfiguration(QDomElement child, QDir current = QDir(), QString version = XML_GLM_VERSION);
 
     // frame buffer
     void setFrameBufferResolution(QSize size);

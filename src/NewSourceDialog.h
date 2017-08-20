@@ -18,6 +18,9 @@ public:
 
     Source::RTTI selectedType();
 
+protected:
+    void showEvent(QShowEvent *);
+
 private:
     Ui::NewSourceDialog *ui;
 };

@@ -154,7 +154,7 @@ void UndoManager::restore(long int i)
 #ifdef DEBUG_UNDO
                     fprintf(stderr, " +  Create %s \n", qPrintable(sourcename));
 #endif
-                    if ( RenderingManager::getInstance()->_addSourceConfiguration(child) > 0)
+                    if ( RenderingManager::getInstance()->addSourceConfiguration(child) > 0)
                         qDebug() << "failed to Undo new source";
 
                 }

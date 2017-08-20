@@ -594,6 +594,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     currentSessionFileName = QString::null;
     confirmSessionFileName();
 
+    // activate clipboard
+    connect(QApplication::clipboard(), SIGNAL(dataChanged()), SLOT(on_Cliboard_dataChanged()));
+    on_Cliboard_dataChanged();
+
 }
 
 GLMixer::~GLMixer()
@@ -1589,10 +1593,10 @@ void GLMixer::on_actionCloneSource_triggered(){
         if ( s ) {
             QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 
-#ifdef GLM_FFGL
-            // copy the Freeframe plugin stack
-            s->reproduceFreeframeGLPluginStack( (*original) );
-#endif
+//#ifdef GLM_FFGL
+//            // copy the Freeframe plugin stack
+//            s->reproduceFreeframeGLPluginStack( (*original) );
+//#endif
 
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
@@ -1607,25 +1611,31 @@ void GLMixer::on_actionCloneSource_triggered(){
 
 void GLMixer::on_actionCaptureSource_triggered(){
 
-    // capture screen
-    QImage capture = RenderingManager::getInstance()->captureFrameBuffer(QImage::Format_RGB32);
+    // get pixmap
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
-    // display and request action with this capture
-    CaptureDialog cd(this, capture, tr("Create a source with this image ?"));
+    if (mimeData->hasImage()) {
 
-    if (cd.exec() == QDialog::Accepted) {
+        // accept paste of image to create captureSource
+        QImage capture = qvariant_cast<QImage>(mimeData->imageData());
 
-        int width = cd.getWidth();
-        if (width)
-            capture = capture.scaledToWidth(width);
+        // display and request action with this capture
+        CaptureDialog cd(this, capture, tr("Create a Pixmap source with this image ?"));
 
-        Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
-        if ( s ){
-            RenderingManager::getInstance()->addSourceToBasket(s);
-            qDebug() << s->getName()<< QChar(124).toLatin1() << tr("New capture source created.");
+        if (cd.exec() == QDialog::Accepted) {
+
+            int width = cd.getWidth();
+            if (width)
+                capture = capture.scaledToWidth(width);
+
+            Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
+            if ( s ){
+                RenderingManager::getInstance()->addSourceToBasket(s);
+                qDebug() << s->getName()<< QChar(124).toLatin1() << tr("New Pixmap source created.");
+            }
+            else
+                qCritical() << tr("Could not create Pixmap source.");
         }
-        else
-            qCritical() << tr("Could not create capture source.");
     }
 }
 
@@ -3126,10 +3136,13 @@ void GLMixer::on_output_alpha_valueChanged(int v){
 void GLMixer::updateStatusControlActions() {
 
     bool playEnabled = false, controlsEnabled = false;
+    bool clipboardEnabled = false;
 
     // get current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs)) {
+        // enable copy current source
+        clipboardEnabled = true;
         // test if the current source is playable ; if yes, enable action start/stop
         if ( (*cs)->isPlayable() ) {
             playEnabled = true;
@@ -3150,6 +3163,8 @@ void GLMixer::updateStatusControlActions() {
                 // enable actions for media control (and return)
                 controlsEnabled = true;
         }
+        // enable copy selected sources
+        clipboardEnabled = true;
     }
 
     sourceControlMenu->setEnabled( playEnabled );
@@ -3158,6 +3173,8 @@ void GLMixer::updateStatusControlActions() {
     actionSourceSeekBackward->setEnabled( controlsEnabled );
     actionSourcePause->setEnabled( controlsEnabled );
     actionSourceSeekForward->setEnabled( controlsEnabled );
+
+    actionCopy->setEnabled(clipboardEnabled);
  }
 
 bool GLMixer::useSystemDialogs()
@@ -3253,6 +3270,133 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
             if ( vf )
                 vf->seekForward();
         }
+}
+
+
+void GLMixer::on_actionCopy_triggered() {
+
+    // copy description of the current source (if valid)
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if (RenderingManager::getInstance()->isValid(cs) || SelectionManager::getInstance()->hasSelection() ) {
+
+        // generate XML text
+        QDomDocument doc;
+        QDomProcessingInstruction instr = doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+        doc.appendChild(instr);
+
+
+        QDomElement sourcelist = doc.createElement("SourceList");
+
+        if ( SelectionManager::getInstance()->hasSelection() ) {
+            // copy description of the selected sources
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+
+                QDomElement sourceelem = RenderingManager::getInstance()->getSourceConfiguration(its, doc);
+                sourcelist.appendChild(sourceelem);
+            }
+        }
+        else {
+            // copy description of the current source
+            QDomElement sourceelem = RenderingManager::getInstance()->getSourceConfiguration(cs, doc);
+            sourcelist.appendChild(sourceelem);
+        }
+
+        doc.appendChild(sourcelist);
+
+        // copy the XML into the clipboard
+        QApplication::clipboard()->setText(doc.toString());
+
+        qDebug() << tr("%1 source(s) copied to clipboard").arg(sourcelist.childNodes().count());
+    }
+}
+
+void GLMixer::on_actionPaste_triggered() {
+
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+
+    if (mimeData->hasText()) {
+
+        // create an XML doc from clipboard text
+        QDomDocument doc;
+        if (doc.setContent(mimeData->text())) {
+
+            // get the list of sources
+            QDomElement sourcelist = doc.firstChildElement("SourceList");
+            if ( !sourcelist.isNull()) {
+                int c = 0, n = 0;
+                // browse the list of sources
+                QDomElement child = sourcelist.firstChildElement("Source");
+                while (!child.isNull()) {
+
+                    QString name = child.attribute("name");
+
+                    // try to find the source in list of existing
+                    SourceSet::iterator sit = RenderingManager::getInstance()->getByName(name);
+                    if (RenderingManager::getInstance()->isValid(sit)) {
+                        Source *s = RenderingManager::getInstance()->newCloneSource(sit);
+                        if ( s ) {
+                            // duplicate properties & plugins
+                            s->setConfiguration(child);
+                            // drop
+                            RenderingManager::getInstance()->addSourceToBasket(s);
+                            c++;
+                        }
+                    }
+                    // that name is not in the list
+                    else {
+                        n++;
+                        // create a new source from this description
+                        n -= RenderingManager::getInstance()->addSourceConfiguration(child);
+                    }
+
+                    // read next source
+                    child = child.nextSiblingElement("Source");
+                }
+
+                qDebug() << tr("%1 source(s) cloned and %2 newly created from clipboard (%3/%4)").arg(c).arg(n).arg(c+n).arg(sourcelist.childNodes().count());
+            }
+        }
+    }
+    else if (mimeData->hasImage()) {
+
+        // accept paste of image to create captureSource
+        on_actionCaptureSource_triggered();
+    }
+}
+
+void GLMixer::on_Cliboard_dataChanged() {
+
+    // by default, clipboard cannot be pasted
+    actionPaste->setEnabled(false);
+    // Pixmap Capture source cannot be created
+    actionCaptureSource->setEnabled(false);
+
+    // Check if there is something that can be pasted
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    if (mimeData->hasText()) {
+
+        QDomDocument doc;
+        if (doc.setContent(mimeData->text())) {
+
+            // is there a list of source ?
+            QDomElement sourcelist = doc.firstChildElement("SourceList");
+            if ( !sourcelist.isNull()) {
+
+                // yes, there is something wich can be pasted
+                actionPaste->setEnabled(true);
+            }
+        }
+    }
+
+    if (mimeData->hasImage()) {
+
+        // yes, there is something wich can be pasted
+        actionPaste->setEnabled(true);
+
+        // also, the Pixmap Capture source can be created
+        actionCaptureSource->setEnabled(true);
+    }
+
 }
 
 

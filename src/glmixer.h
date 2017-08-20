@@ -106,6 +106,11 @@ public slots:
     void on_actionSourcePause_triggered();
     void on_actionSourceSeekForward_triggered();
 
+    // Clipboard
+    void on_actionCopy_triggered();
+    void on_actionPaste_triggered();
+    void on_Cliboard_dataChanged();
+
     // GUI interaction
     void setView(QAction *a);
     void setTool(QAction *a);
