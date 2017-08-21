@@ -1246,6 +1246,8 @@ void RenderingManager::addSourceToBasket(Source *s)
 
 void RenderingManager::clearBasket()
 {
+    qDebug() << tr("Canceled drop of %1 source(s).").arg(dropBasket.size());
+
     for (SourceList::iterator sit = dropBasket.begin(); sit != dropBasket.end(); sit = dropBasket.begin()) {
         dropBasket.erase(sit);
         delete (*sit);

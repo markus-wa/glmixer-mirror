@@ -3324,6 +3324,7 @@ void GLMixer::on_actionPaste_triggered() {
             QDomElement sourcelist = doc.firstChildElement("SourceList");
             if ( !sourcelist.isNull()) {
                 int c = 0, n = 0;
+
                 // browse the list of sources
                 QDomElement child = sourcelist.firstChildElement("Source");
                 while (!child.isNull()) {
@@ -3344,9 +3345,10 @@ void GLMixer::on_actionPaste_triggered() {
                     }
                     // that name is not in the list
                     else {
-                        n++;
+                        // inform undo manager
+                        UndoManager::getInstance()->store();
                         // create a new source from this description
-                        n -= RenderingManager::getInstance()->addSourceConfiguration(child);
+                        n += 1 - RenderingManager::getInstance()->addSourceConfiguration(child);
                     }
 
                     // read next source
