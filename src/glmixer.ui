@@ -3601,10 +3601,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>New source Pixmap</string>
    </property>
    <property name="toolTip">
-    <string>Create a source with the content of theimage in clipboard.</string>
+    <string>Create a source with the content of the image in clipboard.</string>
    </property>
    <property name="statusTip">
-    <string>Create a source with the content of theimage in clipboard.</string>
+    <string>Create a source with the content of the image in clipboard.</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -4556,7 +4556,7 @@ Shortcut:                         Ctrl + Tab</string>
      <normaloff>:/glmixer/icons/plugin-source.png</normaloff>:/glmixer/icons/plugin-source.png</iconset>
    </property>
    <property name="text">
-    <string>N&amp;ew source Plugin</string>
+    <string>N&amp;ew source GPU Plugin</string>
    </property>
    <property name="toolTip">
     <string>Create a source with GPU generated graphics</string>

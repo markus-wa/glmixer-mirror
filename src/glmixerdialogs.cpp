@@ -179,7 +179,7 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
         // show two tabs
         tabs = new QTabWidget(this);
         tabs->addTab(new QWidget(), "Source");
-        tabs->addTab(new QWidget(), "Plugins");
+        tabs->addTab(new QWidget(), "GPU Plugins");
         verticalLayout->addWidget(tabs);
         QVBoxLayout *tabLayout;
         tabLayout = new QVBoxLayout(tabs);

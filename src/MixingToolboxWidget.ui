@@ -2025,7 +2025,7 @@ border:0px
             <string notr="true">font: bold;</string>
            </property>
            <property name="text">
-            <string>Plugins</string>
+            <string>GPU Plugins</string>
            </property>
            <property name="margin">
             <number>2</number>

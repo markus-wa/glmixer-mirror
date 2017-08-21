@@ -1490,8 +1490,8 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 if (st) {
 
                     // shadertoy info
-                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy plugin source created.");
-                    statusbar->showMessage( tr("Shadertoy plugin source %1 created.").arg( s->getName() ), 3000 );
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy GPU plugin source created.");
+                    statusbar->showMessage( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
 
                     // connect the signal from the rendering manager to
                     // show the code editor after drop
@@ -1500,15 +1500,15 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 // if it is a Freeframe plugin
                 else {
                     // freeframe info (filename)
-                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Freeframe plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
-                    statusbar->showMessage( tr("Freeframe plugin source %1 created.").arg( s->getName() ), 3000 );
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Freeframe GPU plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
+                    statusbar->showMessage( tr("Freeframe GPU plugin source %1 created.").arg( s->getName() ), 3000 );
                 }
 
                 // add source
                 RenderingManager::getInstance()->addSourceToBasket(s);
             }
             else
-                qCritical() << config.tagName() <<  QChar(124).toLatin1() << tr("Could not create plugin source.");
+                qCritical() << config.tagName() <<  QChar(124).toLatin1() << tr("Could not create GPU plugin source.");
         }
     }
 

@@ -937,7 +937,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                     }
                 }
                 catch (...)  {
-                    qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Could no create plugin source.");
+                    qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Could no create GPU plugin source.");
                     // free the OpenGL texture
                     glDeleteTextures(1, &textureIndex);
                     // return an invalid pointer
@@ -982,7 +982,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                 }
             }
             catch (...)  {
-                qCritical() << "shadertoy" << QChar(124).toLatin1() << tr("Could no create plugin source.");
+                qCritical() << "shadertoy" << QChar(124).toLatin1() << tr("Could no create GPU plugin source.");
                 // free the OpenGL texture
                 glDeleteTextures(1, &textureIndex);
                 // return an invalid pointer

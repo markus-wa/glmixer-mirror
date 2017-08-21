@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLMixer - New plugin source</string>
+   <string>GLMixer - New GPU plugin source</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
@@ -142,7 +142,7 @@
       <item>
        <widget class="QRadioButton" name="freeframeFilePlugin">
         <property name="text">
-         <string>Other Freeframe plugin</string>
+         <string>Open Freeframe plugin</string>
         </property>
        </widget>
       </item>
