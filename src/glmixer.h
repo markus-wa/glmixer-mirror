@@ -108,6 +108,7 @@ public slots:
 
     // Clipboard
     void on_actionCopy_triggered();
+    void on_actionCut_triggered();
     void on_actionPaste_triggered();
     void on_Cliboard_dataChanged();
 

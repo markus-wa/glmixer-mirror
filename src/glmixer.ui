@@ -1894,6 +1894,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
+    <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
@@ -3598,7 +3599,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>New source Pixmap</string>
+    <string>New s&amp;ource Pixmap</string>
    </property>
    <property name="toolTip">
     <string>Create a source with the content of the image in clipboard.</string>
@@ -4737,6 +4738,10 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/undo.png</normaloff>:/glmixer/icons/undo.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Undo</string>
    </property>
@@ -4745,6 +4750,10 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
   </action>
   <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/redo.png</normaloff>:/glmixer/icons/redo.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Redo</string>
    </property>
@@ -4936,6 +4945,10 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/edit-copy.png</normaloff>:/glmixer/icons/edit-copy.png</iconset>
+   </property>
    <property name="text">
     <string>Cop&amp;y</string>
    </property>
@@ -4947,11 +4960,30 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/edit-paste.png</normaloff>:/glmixer/icons/edit-paste.png</iconset>
+   </property>
    <property name="text">
     <string>Paste</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/edit-cut.png</normaloff>:/glmixer/icons/edit-cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
   </action>
  </widget>

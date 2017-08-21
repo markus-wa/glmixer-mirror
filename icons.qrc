@@ -192,5 +192,8 @@
         <file>icons/glmixer_256x256.png</file>
         <file>icons/basketsource.png</file>
         <file>icons/orderalpha.png</file>
+        <file>icons/redo.png</file>
+        <file>icons/undo.png</file>
+        <file>icons/edit-paste.png</file>
     </qresource>
 </RCC>

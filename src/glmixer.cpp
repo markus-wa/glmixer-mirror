@@ -3175,6 +3175,7 @@ void GLMixer::updateStatusControlActions() {
     actionSourceSeekForward->setEnabled( controlsEnabled );
 
     actionCopy->setEnabled(clipboardEnabled);
+    actionCut->setEnabled(clipboardEnabled);
  }
 
 bool GLMixer::useSystemDialogs()
@@ -3292,12 +3293,14 @@ void GLMixer::on_actionCopy_triggered() {
             for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 
                 QDomElement sourceelem = RenderingManager::getInstance()->getSourceConfiguration(its, doc);
+                // add source to list
                 sourcelist.appendChild(sourceelem);
             }
         }
         else {
             // copy description of the current source
             QDomElement sourceelem = RenderingManager::getInstance()->getSourceConfiguration(cs, doc);
+            // add source to list
             sourcelist.appendChild(sourceelem);
         }
 
@@ -3308,6 +3311,13 @@ void GLMixer::on_actionCopy_triggered() {
 
         qDebug() << tr("%1 source(s) copied to clipboard").arg(sourcelist.childNodes().count());
     }
+}
+
+void GLMixer::on_actionCut_triggered() {
+
+    // cut means copy and delete
+    on_actionCopy_triggered();
+    on_actionDeleteSource_triggered();
 }
 
 void GLMixer::on_actionPaste_triggered() {
@@ -3330,6 +3340,8 @@ void GLMixer::on_actionPaste_triggered() {
                 while (!child.isNull()) {
 
                     QString name = child.attribute("name");
+                    // paste into current workspace
+                    child.setAttribute("workspace", WorkspaceManager::getInstance()->current());
 
                     // try to find the source in list of existing
                     SourceSet::iterator sit = RenderingManager::getInstance()->getByName(name);
