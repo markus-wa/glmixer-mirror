@@ -3484,7 +3484,7 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
         static QDir dir(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
-        fileNames = QFileDialog::getOpenFileNames(this, tr("GLMixer - New media source"), dir.absolutePath(), tr(VIDEOFILE_DIALOG_FORMATS) );
+        fileNames = QFileDialog::getOpenFileNames(this, tr("GLMixer - Open videos or Pictures"), dir.absolutePath(), VIDEOFILE_DIALOG_FORMATS );
         if (!fileNames.isEmpty())
             dir = QFileInfo(fileNames.front()).absoluteDir();
     } else if (mfd->exec()) {

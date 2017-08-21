@@ -31,7 +31,7 @@
 
 VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, const QString & directory, const QString & filter) : QFileDialog(parent, caption, directory, filter) {
 
-    setFilter(tr(VIDEOFILE_DIALOG_FORMATS));
+    setNameFilter(VIDEOFILE_DIALOG_FORMATS);
     setOption(QFileDialog::DontUseNativeDialog, true);
     setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
     setFilter(QDir::NoDotAndDotDot);
