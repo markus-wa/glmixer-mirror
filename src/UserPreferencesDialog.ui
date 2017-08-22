@@ -123,7 +123,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>0</number>
+          <number>-1</number>
          </property>
          <item>
           <property name="text">
@@ -133,7 +133,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -151,7 +151,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -169,11 +169,11 @@ p, li { white-space: pre-wrap; }
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/edit-cut.png</normaloff>:/glmixer/icons/edit-cut.png</iconset>
+            <normaloff>:/glmixer/icons/edit-modifiable-toggle.png</normaloff>:/glmixer/icons/edit-modifiable-toggle.png</iconset>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -187,7 +187,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -205,7 +205,7 @@ p, li { white-space: pre-wrap; }
            <string>System and user preference</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
