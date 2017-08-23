@@ -154,7 +154,8 @@ QString FFGLPluginSourceShadertoy::getHeaders()
 }
 
 void FFGLPluginSourceShadertoy::setCode(QString code)
-{    //
+{
+    //
     // Pre-analyse the code to check for potential sources of errors
     // and generate internal warnings
     //
@@ -255,13 +256,13 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 
 void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
 {
-    double s = xml.attribute("speed", "0.5").toDouble();
-    if (_plugin)
-        _plugin->SetFloatParameter(0, s);
-
     setName( xml.firstChildElement("Name").text() );
     setAbout( xml.firstChildElement("About").text() );
     setDescription( xml.firstChildElement("Description").text() );
     setCode( xml.firstChildElement("Code").text() );
+
+    double s = xml.attribute("speed", "0.5").toDouble();
+    if (_plugin)
+        _plugin->SetFloatParameter(0, s);
 
 }
