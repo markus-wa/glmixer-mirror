@@ -349,7 +349,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     // start loop of plugins to load
     int id = 0;
     QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
-    while (!p.isNull() && ret != false) {
+    while (!p.isNull() /*&& ret != false*/) {
 #ifdef GLM_FFGL
         QDomElement Filename = p.firstChildElement("Filename");
 
@@ -784,8 +784,9 @@ void Source::reproduceFreeframeGLPluginStack(Source *s)
 
         FFGLPluginSource *plugin = addFreeframeGLPlugin( (*it)->fileName() );
         // set configuration
-        if (plugin)
+        if (plugin) {
             plugin->setConfiguration( (*it)->getConfiguration() );
+        }
     }
 }
 

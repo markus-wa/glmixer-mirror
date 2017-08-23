@@ -32,20 +32,15 @@
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 
 
-CloneSource::CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(NULL){
+CloneSource::CloneSource(SourceSet::iterator sit,  double d): Source(0, d), original(NULL){
 
     // initialize
-    setOriginal(sit);
-
-    // clone the properties
-//    importProperties(*sit, true);
+    setOriginal(*sit);
 }
 
 CloneSource::~CloneSource() {
     // remove myself from the list of clones or my original
     original->getClones()->erase((Source*) this);
-    // avoid deleting the texture of the original
-    textureIndex = 0;
 }
 
 void CloneSource::setOriginal(SourceSet::iterator sit) {
@@ -54,6 +49,9 @@ void CloneSource::setOriginal(SourceSet::iterator sit) {
 }
 
 void CloneSource::setOriginal(Source *s) {
+
+    if (!s)
+        SourceCloneException().raise();
 
     // remove this clone from the list of previous original
     if (original) {
@@ -68,41 +66,11 @@ void CloneSource::setOriginal(Source *s) {
     if (tmp)
         original = tmp->original;
 
-    // set Texture index to the texture index of the source to clone
-    textureIndex = original->getTextureIndex();
-
     // add this clone to the list of clones into the original source
     std::pair<SourceList::iterator,bool> ret;
     ret = original->getClones()->insert((Source *) this);
     if (!ret.second)
-        SourceConstructorException().raise();
-
-
-#ifdef GLM_FFGL
-    // redo the stack of plugins adapted to the new original
-    // because resolution changed and fbos must be recreated
-
-    // remember the Freeframe plugin stack
-    QMap<QString, QDomElement> plugins_configuration;
-    for (FFGLPluginSourceStack::const_iterator it = getFreeframeGLPluginStack()->begin(); it != getFreeframeGLPluginStack()->end(); ++it) {
-
-        plugins_configuration[(*it)->fileName()] = (*it)->getConfiguration();
-    }
-
-    // remove plugins
-    clearFreeframeGLPlugin();
-
-    // reproduce plugin stack based on configuration
-    QMapIterator<QString, QDomElement> i(plugins_configuration);
-    i.toBack();
-    while (i.hasPrevious()) {
-        i.previous();
-        FFGLPluginSource *plugin = addFreeframeGLPlugin(i.key());
-        // set configuration
-        if (plugin)
-            plugin->setConfiguration( i.value() );
-    }
-#endif
+        SourceCloneException().raise();
 
 }
 

@@ -1210,8 +1210,12 @@ public slots:
         if ( property == idToProperty["Source"] ) {
             QString name = sourcelist.at(value);
             SourceSet::iterator sit = RenderingManager::getInstance()->getByName(name);
-            if (RenderingManager::getInstance()->isValid(sit))
-                cs->setOriginal( sit );
+            try {
+                if (RenderingManager::getInstance()->isValid(sit))
+                    cs->setOriginal( sit );
+            } catch (AllocationException &e){
+                qWarning() << tr("Cannot clone source; ") << e.message();
+            }
         }
     }
 

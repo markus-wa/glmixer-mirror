@@ -28,6 +28,14 @@
 
 #include "SourceSet.h"
 
+
+class SourceCloneException : public AllocationException {
+public:
+    virtual QString message() { return "Invalid original source given."; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new SourceCloneException(*this); }
+};
+
 class CloneSource: public Source {
 
     friend class RenderingManager;
@@ -42,6 +50,8 @@ public:
 
     inline QString getOriginalName() { return original->getName(); }
     inline GLuint getOriginalId() { return original->getId(); }
+
+    GLuint getTextureIndex() const { return original->getTextureIndex(); }
     int getFrameWidth() const { return original->getFrameWidth(); }
     int getFrameHeight() const { return original->getFrameHeight(); }
     double getFrameRate() const { return original->getFrameRate(); }
@@ -52,7 +62,7 @@ public:
     void setOriginal(Source *s);
     void setOriginal(SourceSet::iterator sit);
 
-    // only RenderingManager can create a source
+    // only RenderingManager & FFGLEffectSelectionDialog can create a source
 protected:
     CloneSource(SourceSet::iterator sit,  double d);
     ~CloneSource();

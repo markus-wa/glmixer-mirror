@@ -3348,15 +3348,17 @@ void GLMixer::on_actionPaste_triggered() {
                     if (RenderingManager::getInstance()->isValid(sit)) {
                         Source *s = RenderingManager::getInstance()->newCloneSource(sit);
                         if ( s ) {
-                            // duplicate properties & plugins
-                            s->setConfiguration(child);
                             // drop
                             RenderingManager::getInstance()->addSourceToBasket(s);
                             c++;
+                            // duplicate properties & plugins
+//                            s->reproduceFreeframeGLPluginStack(*sit);
+                            s->setConfiguration(child);
                         }
                     }
                     // that name is not in the list
-                    else {
+                    else
+                    {
                         // inform undo manager
                         UndoManager::getInstance()->store();
                         // create a new source from this description

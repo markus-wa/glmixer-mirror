@@ -1233,12 +1233,10 @@ void RenderingManager::addSourceToBasket(Source *s)
     // add the source into the basket
     dropBasket.insert(s);
 
-    if (s->rtti() != Source::CLONE_SOURCE) {
-        // apply default parameters
-        s->importProperties(_defaultSource);
-        // scale the source to match the preferences
-        s->resetScale(_scalingMode);
-    }
+    // apply default parameters
+    s->importProperties(_defaultSource);
+    // scale the source to match the preferences
+    s->resetScale(_scalingMode);
 
     // select no source
     unsetCurrentSource();
@@ -1453,14 +1451,19 @@ void RenderingManager::dropReplaceSource(SourceSet::iterator itoldsource) {
         newsource->reproduceFreeframeGLPluginStack( oldsource );
 #endif
         // change all clones of old source to clone the new source
-        for (SourceList::iterator clone = oldsource->getClones()->begin(); clone != oldsource->getClones()->end(); clone = oldsource->getClones()->begin()) {
-            CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
-            if (tmp) {
-                // change original of clone (this removes it from list of old source clones)
-                tmp->setOriginal(newsource);
-                tmp->_setName(newsource->getName() + tr("Clone"));
+        try{
+            for (SourceList::iterator clone = oldsource->getClones()->begin(); clone != oldsource->getClones()->end(); clone = oldsource->getClones()->begin()) {
+                CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
+                if (tmp) {
+                    // change original of clone (this removes it from list of old source clones)
+                    tmp->setOriginal(newsource);
+                    tmp->_setName(newsource->getName() + tr("Clone"));
+                }
             }
+        } catch (AllocationException &e){
+            qWarning() << tr("Cannot clone source; ") << e.message();
         }
+
         //
         // DONE CLONE PROPERTIES
 
@@ -1507,12 +1510,16 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
         (*it_newsource)->importProperties(*it_oldsource);
 
         // change all clones of old source to clone the new source
-        for (SourceList::iterator clone = (*it_oldsource)->getClones()->begin(); clone != (*it_oldsource)->getClones()->end(); clone = (*it_oldsource)->getClones()->begin()) {
-            CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
-            if (tmp) {
-                // change original of clone (this removes it from list of old source clones)
-                tmp->setOriginal(it_newsource);
+        try {
+            for (SourceList::iterator clone = (*it_oldsource)->getClones()->begin(); clone != (*it_oldsource)->getClones()->end(); clone = (*it_oldsource)->getClones()->begin()) {
+                CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
+                if (tmp) {
+                    // change original of clone (this removes it from list of old source clones)
+                    tmp->setOriginal(it_newsource);
+                }
             }
+        } catch (AllocationException &e){
+            qWarning() << tr("Cannot clone source; ") << e.message();
         }
 
 #ifdef GLM_FFGL

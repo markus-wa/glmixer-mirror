@@ -6,11 +6,11 @@ const char *fragmentDeclarationCode = "vec4 texture(in sampler2D c, in vec2 uv) 
         "} "
         "vec4 texture(in sampler2D c, in vec2 uv, in float bias) {"
         "return texture2D(c, uv * vec2(1.0, -1.0), bias);"
-        "}\0";
+        "}\n";
 
 const char *fragmentMainCode = "\nvoid main(void){\n"
         "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
-        "}\0";
+        "}\n";
 
 const char *emptyString = " \0";
 
@@ -56,12 +56,14 @@ FreeFrameShadertoy::FreeFrameShadertoy()
 
 void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
 {
+    // free  previous string
+    if (fragmentShaderCode) {
+        free(fragmentShaderCode);
+        fragmentShaderCode = NULL;
+    }
+
     if (code == NULL || strlen(code) == 0)
         return;
-
-    // free  previous string
-    if (fragmentShaderCode)
-        free(fragmentShaderCode);
 
     // allocate, fill and terminate string
     fragmentShaderCode = (char *) malloc(sizeof(char)*(strlen(code)+1));
