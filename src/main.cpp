@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
     QSplashScreen splash(pixmap);
 #ifdef GLMIXER_REVISION
-    splash.showMessage(QString("r%1").arg(GLMIXER_REVISION));
+    splash.showMessage(QString("r%1         (%2)").arg(GLMIXER_REVISION).arg(COMPILE_YEAR));
 #endif
     splash.show();
     a.processEvents();
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
 
     // The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("GLMixer - Output"));
-    QIcon icon; 
+    QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
     OutputRenderWindow::getInstance()->setWindowIcon(icon);
     OutputRenderWindow::getInstance()->show();

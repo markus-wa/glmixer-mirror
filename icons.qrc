@@ -195,5 +195,6 @@
         <file>icons/redo.png</file>
         <file>icons/undo.png</file>
         <file>icons/edit-paste.png</file>
+        <file>icons/opengl.png</file>
     </qresource>
 </RCC>

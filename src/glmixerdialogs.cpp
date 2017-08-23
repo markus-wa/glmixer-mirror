@@ -216,12 +216,17 @@ SourceFileEditDialog::~SourceFileEditDialog() {
 
 void setupAboutDialog(QDialog *AboutGLMixer)
 {
+    QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
+    QSplashScreen *splash = new QSplashScreen(pixmap);
     AboutGLMixer->resize(420, 270);
     AboutGLMixer->setWindowTitle("About GLMixer");
     QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-    QLabel *Icon = new QLabel(AboutGLMixer);
-    Icon->setPixmap(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_64x64.png")));
+    QToolButton *Icon = new QToolButton(AboutGLMixer);
+    Icon->setIcon(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_256x256.png")));
+    Icon->setStyleSheet("QToolButton { border: 0px; icon-size: 128px; }");
+    QObject::connect(Icon, SIGNAL(pressed()), splash, SLOT(show()));
+    QObject::connect(Icon, SIGNAL(released()), splash, SLOT(hide()));
     QLabel *Title = new QLabel(AboutGLMixer);
     Title->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
     QLabel *VERSION = new QLabel(AboutGLMixer);
@@ -252,13 +257,13 @@ void setupAboutDialog(QDialog *AboutGLMixer)
     "<p>Author:	Bruno Herbelin<br>\n"
     "Contact:	bruno.herbelin@gmail.com<br>\n"
     "License: 	GNU GPL version 3</p>\n"
-    "<p>Copyright 2009-2014 Bruno Herbelin</p>\n"
+    "<p>Copyright 2009-%1 Bruno Herbelin</p>\n"
     "<p>Updates and source code at: <br>\n"
     "   	<a href=\"http://sourceforge.net/projects/glmixer//\"><span style=\" text-decoration: underline; color:#7d400a;\">http://sourceforge.net/projects/glmixer/</span>"
     "</a></p>"
     "<p>GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.</p>"
     "<p>GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).</p>"
-    "</body></html>"));
+    "</body></html>").arg(COMPILE_YEAR));
 
     VERSION->setText( QString("%1").arg(QCoreApplication::applicationVersion()) );
 
