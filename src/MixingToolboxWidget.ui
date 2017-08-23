@@ -1799,7 +1799,7 @@ border:0px
      <widget class="QWidget" name="Presets">
       <attribute name="icon">
        <iconset resource="../icons.qrc">
-        <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
+        <normaloff>:/glmixer/icons/gear.png</normaloff>:/glmixer/icons/gear.png</iconset>
       </attribute>
       <attribute name="title">
        <string notr="true"/>

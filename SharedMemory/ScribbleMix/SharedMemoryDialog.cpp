@@ -36,7 +36,7 @@ void fillModel(QStandardItemModel *model, QMap<qint64, QVariantMap> map)
 		if (variant.isValid())
 			icon = variant.value<QPixmap>();
 		else
-                        icon = QPixmap(":/icons/gear.png");
+                        icon = QPixmap(":/icons/glmixer.png");
 
 		// create list item
 		QStandardItem  *item = new QStandardItem(QIcon(icon), i.value()["program"].toString());

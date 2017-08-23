@@ -54,7 +54,7 @@ SharedMemoryManager::SharedMemoryManager() {
     processInformation["format"] = 0;
     processInformation["opengl"] = true;
     processInformation["info"] = "dummy information string";
-	QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/gear.png"));
+	QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/preferences.png"));
 	processInformation["icon"] = variant;
 
     for (qint64 i = 0; i < MAX_NUM_SHM; ++i)

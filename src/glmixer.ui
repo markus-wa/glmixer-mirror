@@ -3981,7 +3981,7 @@ Shortcut:                         Ctrl + Tab</string>
   <action name="actionPreferences">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/gear.png</normaloff>:/glmixer/icons/gear.png</iconset>
+     <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Preferences</string>
