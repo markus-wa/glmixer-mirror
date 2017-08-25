@@ -331,13 +331,17 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
         // (re)activate the HOST fbo as render target
         glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
-
         glClear(GL_COLOR_BUFFER_BIT);
+
         // render the fbo2 texture texture on a quad
         drawQuad( viewport, tex_fbo2 );
     }
     else
     {
+        // (re)activate the HOST fbo as render target
+        glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         // render the input texture on a quad in the host fbo
         drawQuad( viewport, Texture );
     }
