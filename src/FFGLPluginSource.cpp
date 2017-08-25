@@ -52,12 +52,12 @@ void FFGLPluginSource::load(QString filename)
     // instanciate if needed
     if ( !_plugin ) {
         _plugin =  FFGLPluginInstanceFreeframe::New();
-        qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("Plugin instanciated");
+        qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU Plugin instanciated");
     }
 
     // check validity of plugin
     if (!_plugin){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
@@ -143,15 +143,20 @@ FFGLPluginSource::~FFGLPluginSource()
 }
 
 
-void FFGLPluginSource::resize(int w, int h)
+void FFGLPluginSource::reset()
 {
     if (_fbo) {
-        _fboSize.setWidth(w);
-        _fboSize.setHeight(h);
         delete _fbo;
         _fbo = 0;
         _initialized = false;
     }
+}
+
+void FFGLPluginSource::resize(int w, int h)
+{
+    reset();
+    _fboSize.setWidth(w);
+    _fboSize.setHeight(h);
 }
 
 FFGLTextureStruct FFGLPluginSource::getOutputTextureStruct(){
@@ -305,7 +310,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not process OpenGL.");
+            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("GPU plugin could not process OpenGL.");
             FFGLPluginException().raise();
         }
         else

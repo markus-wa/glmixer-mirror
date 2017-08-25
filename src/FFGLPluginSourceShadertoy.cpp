@@ -29,17 +29,12 @@ FFGLPluginSource::RTTI FFGLPluginSourceShadertoy::type = FFGLPluginSource::SHADE
 
 FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int h, FFGLTextureStruct inputTexture) : FFGLPluginSource(w, h, inputTexture)
 {
-    if (_plugin){
-        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Plugin already instanciated");
-        FFGLPluginException().raise();
-    }
-
     // instanciate a FFGLPluginInstanceShadertoy plugin instead
     _plugin =  FFGLPluginInstanceShadertoy::New();
 
     // check validity of plugin
     if (!_plugin){
-        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Plugin could not be instanciated");
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("GPU Plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
@@ -52,11 +47,11 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int
     // perform declaration of extra functions for Shadertoy
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( !p ){
-        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Cannot create plugin.");
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Cannot create GPU plugin.");
         FFGLPluginException().raise();
     }
     if ( !p->declareShadertoyFunctions() ){
-        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Invalid plugin.");
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Invalid GPU plugin.");
         FFGLPluginException().raise();
     }
 
@@ -182,7 +177,6 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
-
         // not initialized yet ?
         if ( initialize() )
             p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.trimmed().toLatin1().data() );

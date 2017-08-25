@@ -337,7 +337,8 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     bool ret = ProtoSource::setConfiguration(xmlconfig);
 
     // set workspace
-    setWorkspace(xmlconfig.attribute("workspace", "0").toInt());
+    if (xmlconfig.hasAttribute("workspace"))
+        setWorkspace(xmlconfig.attribute("workspace").toInt());
     // compatibility with old version of glm file
     if ( xmlconfig.hasAttribute("modifiable") ) {
         int modifiable = xmlconfig.attribute("modifiable", "1").toInt();
@@ -345,125 +346,132 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         setWorkspace( modifiable > 0 ? 0 : 1);
     }
 
-    // apply FreeFrame plugins configuration
-    // start loop of plugins to load
-    int id = 0;
-    QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
-    while (!p.isNull() /*&& ret != false*/) {
+    // apply FreeFrame plugins configuration if provided
+    if ( !xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
+        // change the plugins for the new list; start by removing the existing one
+        clearFreeframeGLPlugin();
+        // start loop of plugins to load
+        int id = 0;
+        QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
+        while (!p.isNull() /*&& ret != false*/) {
+            // ignore empty node
+            if (p.hasChildNodes()) {
 #ifdef GLM_FFGL
-        QDomElement Filename = p.firstChildElement("Filename");
+                QDomElement Filename = p.firstChildElement("Filename");
 
-        // for FreeFrame plugins using a DLL
-        if (!Filename.isNull()) {
+                // for FreeFrame plugins using a DLL
+                if (!Filename.isNull()) {
 
-            // first reads with the absolute file name
-            QString fileNameToOpen = Filename.text();
-            // if there is no such file, try generate a file name from the relative file name
-            if (!QFileInfo(fileNameToOpen).exists())
-                fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
-            // if there is no such file, try generate a file name from the generic basename
-            if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
-                fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
-            // if there is such a file
-            if (QFileInfo(fileNameToOpen).exists()) {
+                    // first reads with the absolute file name
+                    QString fileNameToOpen = Filename.text();
+                    // if there is no such file, try generate a file name from the relative file name
+                    if (!QFileInfo(fileNameToOpen).exists())
+                        fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+                    // if there is no such file, try generate a file name from the generic basename
+                    if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
+                        fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
+                    // if there is such a file
+                    if (QFileInfo(fileNameToOpen).exists()) {
 
-                try {
-                    FFGLPluginSource *plugin = NULL;
-                    // is this the same plugin than in the current stack ?
-                    if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->fileName() == fileNameToOpen ) {
-                        // can keep this plugin as it is the same as in the config
-                        plugin = _ffgl_plugins.at(id);
-                    }
-                    else {
-                        // cannot keep the rest of the plugin stack as it is not identical as config
-                        for ( ; id < _ffgl_plugins.size(); id++)
-                            _ffgl_plugins.remove(id);
-                        // create and push the plugin to the source
-                        plugin = addFreeframeGLPlugin( fileNameToOpen );
-                        qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                                 << tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
-                    }
+                        try {
+                            FFGLPluginSource *plugin = NULL;
+                            // is this the same plugin than in the current stack ?
+                            if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->fileName() == fileNameToOpen ) {
+                                // can keep this plugin as it is the same as in the config
+                                plugin = _ffgl_plugins.at(id);
+                            }
+                            else {
+                                // cannot keep the rest of the plugin stack as it is not identical as config
+                                for ( ; id < _ffgl_plugins.size(); id++)
+                                    _ffgl_plugins.remove(id);
+                                // create and push the plugin to the source
+                                plugin = addFreeframeGLPlugin( fileNameToOpen );
+                                qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                                         << tr("GPU plugin %1 added.").arg(QFileInfo(fileNameToOpen).baseName());
+                            }
 
-                    // apply the configuration
-                    if (plugin) {
-                        plugin->setConfiguration(p);
+                            // apply the configuration
+                            if (plugin) {
+                                plugin->setConfiguration(p);
+                            }
+                            else {
+                                ret = false;
+                                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                                           << tr("GPU plugin %1 failed.").arg(QFileInfo(fileNameToOpen).baseName());
+                            }
+                        }
+                        catch (FFGLPluginException &e)  {
+                            ret = false;
+                            qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()<< e.message() << tr("\nGPU Plugin not added.");
+                        }
+
                     }
                     else {
                         ret = false;
                         qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                                   << tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
+                                   << tr("No GPU plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
                     }
+
                 }
-                catch (FFGLPluginException &e)  {
-                    ret = false;
-                    qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()<< e.message() << tr("\nPlugin not added.");
-                }
-
-            }
-            else {
-                ret = false;
-                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                           << tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
-            }
-
-        }
-        // No filename?  this is certainly a FreeFrame plugin
-        else {
-
-            try {
-
-                // create and push the plugin to the source
-                FFGLPluginSource *plugin = NULL;
-
-                // is this the same plugin than in the current stack ?
-                if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN ) {
-                    // can keep this plugin as it is the same as in the config
-                    plugin = _ffgl_plugins.at(id);
-                }
+                // No filename?  this is certainly a FreeFrame plugin
                 else {
-                    // cannot keep the rest of the plugin stack as it is not identical as config
-                    for ( ; id < _ffgl_plugins.size(); id++)
-                        _ffgl_plugins.remove(id);
-                    // create and push the plugin to the source
-                    plugin = addFreeframeGLPlugin();
-                    qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                             << tr("Shadertoy plugin added.");
-                }
 
-                // apply the code
-                if (plugin) {
+                    try {
 
-                    FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+                        // create and push the plugin to the source
+                        FFGLPluginSource *plugin = NULL;
 
-                    if (stp) {
-                        // necessary to update the fbo (Bug of inverion of clone source)
-                        stp->update();
-                        // set the plugin config and code
-                        stp->setConfiguration(p);
+                        // is this the same plugin than in the current stack ?
+                        if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN ) {
+                            // can keep this plugin as it is the same as in the config
+                            plugin = _ffgl_plugins.at(id);
+                        }
+                        else {
+                            // cannot keep the rest of the plugin stack as it is not identical as config
+                            for ( ; id < _ffgl_plugins.size(); id++)
+                                _ffgl_plugins.remove(id);
+                            // create and push the plugin to the source
+                            plugin = addFreeframeGLPlugin();
+                            qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                                     << tr("Shadertoy plugin added.");
+                        }
+
+                        // apply the code
+                        if (plugin) {
+
+                            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+
+                            if (stp) {
+                                // necessary to update the fbo (Bug of inverion of clone source)
+//                                stp->update();
+                                // set the plugin config and code
+                                stp->setConfiguration(p);
+                            }
+                            else {
+                                ret = false;
+                                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                                           << QObject::tr("Failed to create Shadertoy plugin.");
+                            }
+
+                        }
                     }
-                    else {
+                    catch (FFGLPluginException &e)  {
                         ret = false;
-                        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                                   << QObject::tr("Failed to create Shadertoy plugin.");
+                        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()<< e.message() << tr("\nPlugin not added.");
                     }
 
                 }
-            }
-            catch (FFGLPluginException &e)  {
-                ret = false;
-                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()<< e.message() << tr("\nPlugin not added.");
-            }
-
-        }
 
 #else
-        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
-        ret = false;
+                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
+                ret = false;
 #endif
-        // next plugin in configuration
-        p = p.nextSiblingElement("FreeFramePlugin");
-        // next plugin in stack
-        id++;
+            }
+            // next plugin in configuration
+            p = p.nextSiblingElement("FreeFramePlugin");
+            // next plugin in stack
+            id++;
+        }
     }
 
     return ret;

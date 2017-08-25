@@ -332,63 +332,86 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
 {
     QDomElement tmp;
 
-    _setName( xmlconfig.attribute("name") );
-    _setFixedAspectRatio( xmlconfig.attribute("fixedAR", "0").toInt() );
+    if (xmlconfig.hasAttribute("name"))
+        _setName( xmlconfig.attribute("name") );
 
-    double x = xmlconfig.firstChildElement("Position").attribute("X", "0").toDouble();
-    double y = xmlconfig.firstChildElement("Position").attribute("Y", "0").toDouble();
-    double sx = xmlconfig.firstChildElement("Scale").attribute("X", "1").toDouble();
-    double sy = xmlconfig.firstChildElement("Scale").attribute("Y", "1").toDouble();
-    double rx = xmlconfig.firstChildElement("Center").attribute("X", "0").toDouble();
-    double ry = xmlconfig.firstChildElement("Center").attribute("Y", "0").toDouble();
-    double a = xmlconfig.firstChildElement("Angle").attribute("A", "0").toDouble();
-    _setGeometry(x, y, sx, sy, rx, ry, a);
+    if (xmlconfig.hasAttribute("fixedAR"))
+        _setFixedAspectRatio( xmlconfig.attribute("fixedAR", "0").toInt() );
 
-    tmp = xmlconfig.firstChildElement("Alpha");
-    _setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
+    if ( !xmlconfig.firstChildElement("Position").isNull()) {
+        double x = xmlconfig.firstChildElement("Position").attribute("X", "0").toDouble();
+        double y = xmlconfig.firstChildElement("Position").attribute("Y", "0").toDouble();
+        double sx = xmlconfig.firstChildElement("Scale").attribute("X", "1").toDouble();
+        double sy = xmlconfig.firstChildElement("Scale").attribute("Y", "1").toDouble();
+        double rx = xmlconfig.firstChildElement("Center").attribute("X", "0").toDouble();
+        double ry = xmlconfig.firstChildElement("Center").attribute("Y", "0").toDouble();
+        double a = xmlconfig.firstChildElement("Angle").attribute("A", "0").toDouble();
+        _setGeometry(x, y, sx, sy, rx, ry, a);
+    }
 
-    tmp = xmlconfig.firstChildElement("Color");
-    _setColor( QColor( tmp.attribute("R", "255").toInt(),
-                       tmp.attribute("G", "255").toInt(),
-                       tmp.attribute("B", "255").toInt() ) );
+    if ( !xmlconfig.firstChildElement("Alpha").isNull()) {
+        tmp = xmlconfig.firstChildElement("Alpha");
+        _setAlphaCoordinates( tmp.attribute("X", "0").toDouble(),
+                              tmp.attribute("Y", "0").toDouble() );
+    }
 
-    tmp = xmlconfig.firstChildElement("Crop");
-    _setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(),
-                                    tmp.attribute("Y", "0").toDouble(),
-                                    tmp.attribute("W", "1").toDouble(),
-                                    tmp.attribute("H", "1").toDouble() ) );
+    if ( !xmlconfig.firstChildElement("Crop").isNull()) {
+        tmp = xmlconfig.firstChildElement("Crop");
+        _setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(),
+                                        tmp.attribute("Y", "0").toDouble(),
+                                        tmp.attribute("W", "1").toDouble(),
+                                        tmp.attribute("H", "1").toDouble() ) );
+    }
 
-    tmp = xmlconfig.firstChildElement("Blending");
-    _setBlending( (uint) GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
-                                (uint) tmp.attribute("Equation", "32774").toInt());
-    _setMask( tmp.attribute("Mask", "0").toInt() );
+    if ( !xmlconfig.firstChildElement("Color").isNull()) {
+        tmp = xmlconfig.firstChildElement("Color");
+        _setColor( QColor( tmp.attribute("R", "255").toInt(),
+                           tmp.attribute("G", "255").toInt(),
+                           tmp.attribute("B", "255").toInt() ) );
+    }
 
-    tmp = xmlconfig.firstChildElement("Filter");
-    _setPixelated( tmp.attribute("Pixelated", "0").toInt() );
-    _setInvertMode( (ProtoSource::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
-    _setFilter( (ProtoSource::filterType) tmp.attribute("Filter", "0").toInt() );
+    if ( !xmlconfig.firstChildElement("Blending").isNull()) {
+        tmp = xmlconfig.firstChildElement("Blending");
+        _setBlending( (uint) GL_SRC_ALPHA,
+                      (uint) tmp.attribute("Function", "1").toInt(),
+                      (uint) tmp.attribute("Equation", "32774").toInt());
+        _setMask( tmp.attribute("Mask", "0").toInt() );
+    }
 
-    tmp = xmlconfig.firstChildElement("Coloring");
-    _setBrightness( tmp.attribute("Brightness", "0").toInt() );
-    _setContrast( tmp.attribute("Contrast", "0").toInt() );
-    _setSaturation( tmp.attribute("Saturation", "0").toInt() );
-    _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
-    _setThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
-    _setPosterized( tmp.attribute("numberOfColors", "0").toInt() );
+    if ( !xmlconfig.firstChildElement("Filter").isNull()) {
+        tmp = xmlconfig.firstChildElement("Filter");
+        _setPixelated( tmp.attribute("Pixelated", "0").toInt() );
+        _setInvertMode( (ProtoSource::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
+        _setFilter( (ProtoSource::filterType) tmp.attribute("Filter", "0").toInt() );
+    }
 
-    tmp = xmlconfig.firstChildElement("Chromakey");
-    _setChromaKey( tmp.attribute("on", "0").toInt() );
-    _setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),
-                                tmp.attribute("G", "0").toInt(),
-                                tmp.attribute("B", "0").toInt() ) );
-    _setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
+    if ( !xmlconfig.firstChildElement("Coloring").isNull()) {
+        tmp = xmlconfig.firstChildElement("Coloring");
+        _setBrightness( tmp.attribute("Brightness", "0").toInt() );
+        _setContrast( tmp.attribute("Contrast", "0").toInt() );
+        _setSaturation( tmp.attribute("Saturation", "0").toInt() );
+        _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
+        _setThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+        _setPosterized( tmp.attribute("numberOfColors", "0").toInt() );
+    }
 
-    tmp = xmlconfig.firstChildElement("Gamma");
-    _setGamma( tmp.attribute("value", "1").toDouble(),
-               tmp.attribute("minInput", "0").toDouble(),
-               tmp.attribute("maxInput", "1").toDouble(),
-               tmp.attribute("minOutput", "0").toDouble(),
-               tmp.attribute("maxOutput", "1").toDouble());
+    if ( !xmlconfig.firstChildElement("Chromakey").isNull()) {
+        tmp = xmlconfig.firstChildElement("Chromakey");
+        _setChromaKey( tmp.attribute("on", "0").toInt() );
+        _setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),
+                                    tmp.attribute("G", "0").toInt(),
+                                    tmp.attribute("B", "0").toInt() ) );
+        _setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
+    }
+
+    if ( !xmlconfig.firstChildElement("Gamma").isNull()) {
+        tmp = xmlconfig.firstChildElement("Gamma");
+        _setGamma( tmp.attribute("value", "1").toDouble(),
+                   tmp.attribute("minInput", "0").toDouble(),
+                   tmp.attribute("maxInput", "1").toDouble(),
+                   tmp.attribute("minOutput", "0").toDouble(),
+                   tmp.attribute("maxOutput", "1").toDouble());
+    }
 
     return true;
 }

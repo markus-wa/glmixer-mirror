@@ -173,7 +173,6 @@ void FFGLPluginSourceStack::moveUp(FFGLPluginSource *p)
         insert(id -1, p);
     }
 
-    qDebug() << namesList();
 }
 
 void FFGLPluginSourceStack::moveDown(FFGLPluginSource *p)
@@ -207,12 +206,11 @@ void FFGLPluginSourceStack::moveDown(FFGLPluginSource *p)
         insert(id+1, p);
     }
 
-    qDebug() << namesList();
 }
 
 void FFGLPluginSourceStack::clear(){
     while (!isEmpty())
-        delete pop();
+        removePlugin( top() );
     QStack<FFGLPluginSource *>::clear();
 }
 

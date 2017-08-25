@@ -108,8 +108,6 @@ private:
     class GammaLevelsWidget *gammaAdjust;
     Source *source;
 
-    QMap<QListWidgetItem *, Source *> _defaultPresets;
-    QMap<QListWidgetItem *, Source *> _userPresets;
     QSettings *appSettings;
 
 #ifdef GLM_FFGL

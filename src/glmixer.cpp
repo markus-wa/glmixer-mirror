@@ -3352,7 +3352,6 @@ void GLMixer::on_actionPaste_triggered() {
                             RenderingManager::getInstance()->addSourceToBasket(s);
                             c++;
                             // duplicate properties & plugins
-//                            s->reproduceFreeframeGLPluginStack(*sit);
                             s->setConfiguration(child);
                         }
                     }

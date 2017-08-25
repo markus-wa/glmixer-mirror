@@ -32,118 +32,85 @@
 #include "MixingToolboxWidget.moc"
 
 // some presets as a string of Hex values: to get from console on program exit
-QByteArray static_presets =
-QByteArray::fromHex(
-            "00000001000000000000000000000000000000000000000000000000000000000000000000000000"
-            "000000003ff00000000000000000000100008006000000000000000000000000000000003ff00000"
-            "000000003ff000000000000001ffffffffd7d7fcfc0000010000000f000000000000000000000000"
-            "00000000000000643ff60702e00000003fdf4bf4c00000003fe73573600000003fc9b50580000000"
-            "3ff0000000000000000000b300000000000000080001ffff0000ffff000000000000000a01000000"
-            "001600500073007900630068006500640065006c0069006300000001000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000003ff000000000000000000001"
-            "00008006000000000000000000000000000000003ff00000000000003ff000000000000001ffffff"
-            "ffffffffff0000000000000a00000000000000000000001400000032ffffff9c3ff0000000000000"
-            "00000000000000003ff000000000000000000000000000003ff00000000000000000000000000000"
-            "000000050001ffff0000ffff000000000000000a01000000001600470072006500790020006c0065"
-            "00760065006c00730000000100000000000000000000000000000000000000000000000000000000"
-            "0000000000000000000000003ff00000000000000000000100008006000000000000000000000000"
-            "000000003ff00000000000003ff000000000000001ffff9a9a838368680000000000000200000000"
-            "0000000d0000001900000014ffffff9c3fedf3b6400000003fb99999a00000003fecccccc0000000"
-            "00000000000000003ff00000000000000000000000000000000000000001ffff0000ffff00000000"
-            "0000000a01000000002200500068006f0074006f0067007200610070006800790020005300650070"
-            "00690061000000010000000000000000000000000000000000000000000000000000000000000000"
-            "00000000000000003ff0000000000000000000010000800600000000000000000000000000000000"
-            "3ff00000000000003ff000000000000001ffffffffffffffff000000000000010000000200000013"
-            "0000000000000000ffffff9c3ffca7e3200000003fbe9488400000003febd98e600000003fb1a180"
-            "000000003fec0876800000000000000000000041000000000001ffff0000ffff000000000000000a"
-            "01000000001600440072006100770069006e006700200049006e006b000000010000000000000000"
-            "00000000000000000000000000000000000000000000000000000000000000003ff0000000000000"
-            "0000000100008006000000000000000000000000000000003ff00000000000003ff0000000000000"
-            "01ffffffffffffffff0000000000000000000000000000000000000000000000ffffff9c3ff00000"
-            "0000000000000000000000003ff000000000000000000000000000003ff000000000000000000000"
-            "00000000000000000001ffff0000ffff000000000000000a01000000001600440065007300610074"
-            "00750072006100740065006400000001000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000003ff000000000000000000001000080060000000000000000"
-            "00000000000000003ff00000000000003ff000000000000001ffffffffffffffff00000000000000"
-            "00000000000000000000000000000000000000643ff8b67d800000003fc02d02e00000003ff00000"
-            "0000000000000000000000003ff00000000000000000000000000000000000000001ffff0000ffff"
-            "000000000000000a01000000001c0048007900700065007200730061007400750072006100740065"
-            "00640000000100000000000000000000000000000000000000000000000000000000000000000000"
-            "0000000000003ff00000000000000000000100008006000000000000000000000000000000003ff0"
-            "0000000000003ff000000000000001ffffffffffffffff0000010000000c000000000000000c0000"
-            "0000fffffff6000000323ffc491de00000003fbe9488400000003feaf9e240000000000000000000"
-            "00003ff00000000000000000000000000000000000000001ffff0000ffff000000000000000a0100"
-            "0000001a0049006d007000720065007300730069006f006e00690073007400000001000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000003ff000000000"
-            "00000000000100008006000000000000000000000000000000003ff00000000000003ff000000000"
-            "000001ffffffffffffffff00000000000000000000000000001200000000ffffffeb000000004011"
-            "95b0400000003fd5b1e5c00000003fe94f8b600000003fb99999a00000003feba2e8000000000000"
-            "000300000000000000000001ffff0000ffff000000000000000a01000000000a0044006900610070"
-            "006f0000000100000000000000000000000000000000000000000000000000000000000000000000"
-            "0000000000003ff00000000000000000000100008006000000000000000000000000000000003ff0"
-            "0000000000003ff000000000000001ffffbcbcddddffff00000100000000000000000000000e0000"
-            "000000000000000000004001306f6000000000000000000000003ff00000000000003f829e400000"
-            "00003ff00000000000000000000000000000000000000001ffff0000ffff000000000000000a0100"
-            "0000001400540065006c00650076006900730069006f006e00000001000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000003ff000000000000000000001"
-            "00008006000000000000000000000000000000003ff00000000000003ff000000000000001ffffff"
-            "ffffffffff00000000000004000000020000000f0000000000000000ffffff9c3ff883cca0000000"
-            "3fc49021000000003fe876d3800000003fd0658dc00000003ff00000000000000000000000000028"
-            "000000000001ffff0000ffff000000000000000a01000000001c00440072006100770069006e0067"
-            "00200043007200610079006f006e0000000100000000000000000000000000000000000000000000"
-            "0000000000000000000000000000000000003ff00000000000000000000100008006000000000000"
-            "000000000000000000003ff00000000000003ff000000000000001ffffffffffffffff0000000000"
-            "000000000000000000110000000000000014ffffff9c3ff2ccccc000000000000000000000003ff0"
-            "00000000000000000000000000003ff00000000000000000000000000000000000000001ffff0000"
-            "ffff000000000000000a01000000001e00500068006f0074006f0067007200610070006800790020"
-            "00420026005700000001000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000003ff000000000000000000001000080060000000000000000000000000000"
-            "00003ff00000000000003ff000000000000001ffffffffffffffff00000000000001000000000000"
-            "00000000000000000000000000643ffa8141200000003fb6b77b400000003fdf3c49600000000000"
-            "0000000000003ff00000000000000000000000000000000000030001ffff0000ffff000000000000"
-            "000a010000000018005100750061006400720069006300680072006f006d0079"
-            "0000000100000000000000000000000000000000000000000000000000000000000000000000000"
-            "0000000003ff00000000000000000000100008006000000000000000000000000000000003ff0000"
-            "0000000003ff000000000000001ffffffffffffffff0000000000000000000000000000000000000"
-            "000000000000000003ff000000000000000000000000000003ff0000000000000000000000000000"
-            "03ff00000000000000000000000000000000000000001ffff0000ffff000000000000000a0100000"
-            "000120052006500730065007400200061006c006c"
-);
+QByteArray static_presets = QByteArray(
+"<PresetsList>\n <Source preset=\"Reset all\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"0\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.00000000\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"1.00000000\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Quadrichromy\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"1\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"3\" Brightness=\"0\" Saturation=\"100\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.08873720\" maxOutput=\"1.00000000\" maxInput=\"0.48805460\" value=\"1.65655625\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Photography B&amp;W\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"17\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"-100\" Contrast=\"20\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.00000000\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"1.17499995\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Drawing Crayon\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"15\" Function=\"1\"/>\n  <Filter InvertMode=\"2\" Filter=\"4\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"-100\" Contrast=\"0\" luminanceThreshold=\"40\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.16064847\" maxOutput=\"1.00000000\" maxInput=\"0.76450515\" value=\"1.53217757\" minOutput=\"0.25619835\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Television\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"221\" R=\"188\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"14\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"1\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"0\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.00000000\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"2.14864993\" minOutput=\"0.00909090\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Diapo\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"18\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"3\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"0\" Contrast=\"-21\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.33898300\" maxOutput=\"0.86363602\" maxInput=\"0.79096001\" value=\"4.39618015\" minOutput=\"0.10000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Impressionist\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"12\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"12\" Pixelated=\"1\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"50\" Contrast=\"-10\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.11945392\" maxOutput=\"1.00000000\" maxInput=\"0.84300339\" value=\"1.76785076\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Hypersaturated\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"100\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.12637363\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"1.54455328\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Desaturated\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"0\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"-100\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.00000000\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"1.00000000\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Drawing Ink\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"19\" Function=\"1\"/>\n  <Filter InvertMode=\"2\" Filter=\"1\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"0\" Saturation=\"-100\" Contrast=\"0\" luminanceThreshold=\"65\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.11945392\" maxOutput=\"0.87603307\" maxInput=\"0.87030715\" value=\"1.79098809\" minOutput=\"0.06887054\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Photography Sepia\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"131\" R=\"154\" B=\"104\"/>\n  <Blending Equation=\"32774\" Mask=\"13\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"2\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"0\" Brightness=\"25\" Saturation=\"-100\" Contrast=\"20\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.10000000\" maxOutput=\"1.00000000\" maxInput=\"0.89999998\" value=\"0.93599999\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Grey levels\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"255\" R=\"255\" B=\"255\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"10\" Pixelated=\"0\"/>\n  <Coloring Hueshift=\"0\" numberOfColors=\"5\" Brightness=\"20\" Saturation=\"-100\" Contrast=\"50\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.00000000\" maxOutput=\"1.00000000\" maxInput=\"1.00000000\" value=\"1.00000000\" minOutput=\"0.00000000\"/>\n  <FreeFramePlugin/>\n </Source>\n <Source preset=\"Psychedelic\">\n  <Depth Z=\"40.00000000\"/>\n  <Color G=\"215\" R=\"255\" B=\"252\"/>\n  <Blending Equation=\"32774\" Mask=\"0\" Function=\"1\"/>\n  <Filter InvertMode=\"0\" Filter=\"15\" Pixelated=\"1\"/>\n  <Coloring Hueshift=\"179\" numberOfColors=\"8\" Brightness=\"0\" Saturation=\"100\" Contrast=\"0\" luminanceThreshold=\"0\"/>\n  <Chromakey Tolerance=\"10\" G=\"255\" R=\"0\" B=\"0\" on=\"0\"/>\n  <Gamma minInput=\"0.48901099\" maxOutput=\"1.00000000\" maxInput=\"0.72527474\" value=\"1.37671173\" minOutput=\"0.20083684\"/>\n  <FreeFramePlugin/>\n </Source>\n</PresetsList>\n" );
 
-void setPresetItemTooltip(QListWidgetItem *item, Source *source)
+
+void setItemTooltip(QListWidgetItem *item, QDomElement xmlconfig)
 {
+    QDomElement tmp;
     QStringList tooltip;
-    tooltip << QString("Preset '%1'\n").arg(source->getName());
-    tooltip << QString("Blending  \t%1").arg( namePresetFromInt(intFromBlendingPreset( source->getBlendFuncDestination(), source->getBlendEquation() ) )  );
+    tooltip << QString("Preset '%1'\n").arg(xmlconfig.attribute("preset"));
 
-    if ( source->isPixelated() )
+    tmp = xmlconfig.firstChildElement("Blending");
+    tooltip << QString("Blending  \t%1").arg( namePresetFromInt(intFromBlendingPreset( (uint) tmp.attribute("Function", "1").toInt(), (uint) tmp.attribute("Equation", "32774").toInt() ) )  );
+
+    if ( tmp.attribute("Mask", "0").toInt() != 0 )
+        tooltip << QString("Mask    \t%1").arg(ViewRenderWidget::getMaskDecription()[tmp.attribute("Mask", "0").toInt()].first  );
+
+    tmp = xmlconfig.firstChildElement("Color");
+    QColor color( tmp.attribute("R", "255").toInt(),
+                  tmp.attribute("G", "255").toInt(),
+                  tmp.attribute("B", "255").toInt() );
+    if ( color != QColor(255, 255, 255, 255)  )
+        tooltip << QString("Color   \t(%1,%2,%3)").arg(color.red()).arg(color.green()).arg(color.blue());
+
+    tmp = xmlconfig.firstChildElement("Filter");
+    if ( tmp.attribute("Pixelated", "0").toInt() )
         tooltip << QString("Pixelated\tON");
-    if ( source->getColor() != QColor(255, 255, 255, 255)  )
-        tooltip << QString("Color   \t(%1,%2,%3)").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
-    if ( source->getMask() != 0 )
-        tooltip << QString("Mask    \t%1").arg(ViewRenderWidget::getMaskDecription()[source->getMask()].first  );
-    if ( source->getInvertMode() == Source::INVERT_COLOR )
+    if ( tmp.attribute("InvertMode", "0").toInt() == (int) Source::INVERT_COLOR )
         tooltip << QString("Inversion \tRGB");
-    else if ( source->getInvertMode() == Source::INVERT_LUMINANCE )
+    else if ( tmp.attribute("InvertMode", "0").toInt() == (int) Source::INVERT_LUMINANCE )
         tooltip << QString("Inversion \tLuminance");
-    if ( qAbs(source->getGamma() - 1.0) > 0.001  )
-        tooltip << QString("Gamma     \t%1").arg(source->getGamma());
-    if ( source->getSaturation() != 0 )
-        tooltip << QString("Saturation\t%1").arg(source->getSaturation());
-    if ( source->getBrightness() != 0 )
-        tooltip << QString("Brightness\t%1").arg(source->getBrightness());
-    if ( source->getContrast() != 0 )
-        tooltip << QString("Contrast  \t%1").arg(source->getContrast());
-    if ( source->getHueShift() != 0 )
-        tooltip << QString("HueShift  \t%1").arg(source->getHueShift());
-    if ( source->getThreshold() != 0 )
-        tooltip << QString("Threshold \t%1").arg(source->getThreshold());
-    if ( source->getPosterized() != 0 )
-        tooltip << QString("Posterized\t%1").arg(source->getPosterized());
-    if ( source->getFilter() != Source::FILTER_NONE )
-        tooltip << QString("Filter    \t%1").arg(Source::getFilterNames()[source->getFilter()] );
-    if ( source->getChromaKey() )
-        tooltip << QString("Chromakey \t(%1,%2,%3)").arg(source->getChromaKeyColor().red()).arg(source->getChromaKeyColor().green()).arg(source->getChromaKeyColor().blue());
+    if ( tmp.attribute("Filter", "0").toInt() != 0 )
+        tooltip << QString("Filter    \t%1").arg(Source::getFilterNames()[tmp.attribute("Filter").toInt()] );
+
+    tmp = xmlconfig.firstChildElement("Coloring");
+    if ( tmp.attribute("Brightness", "0").toInt() != 0 )
+        tooltip << QString("Brightness\t%1").arg(tmp.attribute("Brightness").toInt());
+    if ( tmp.attribute("Contrast", "0").toInt() != 0 )
+        tooltip << QString("Contrast  \t%1").arg(tmp.attribute("Contrast").toInt());
+    if ( tmp.attribute("Saturation", "0").toInt() != 0 )
+        tooltip << QString("Saturation\t%1").arg(tmp.attribute("Saturation").toInt() );
+    if ( tmp.attribute("Hueshift", "0").toInt()  != 0 )
+        tooltip << QString("HueShift  \t%1").arg(tmp.attribute("Hueshift").toInt() );
+    if ( tmp.attribute("luminanceThreshold", "0").toInt() != 0 )
+        tooltip << QString("Threshold \t%1").arg(tmp.attribute("luminanceThreshold").toInt());
+    if ( tmp.attribute("numberOfColors", "0").toInt() != 0 )
+        tooltip << QString("Posterized\t%1").arg(tmp.attribute("numberOfColors").toInt());
+
+    tmp = xmlconfig.firstChildElement("Gamma");
+    if ( qAbs(tmp.attribute("value", "1").toDouble() - 1.0) > 0.001  )
+        tooltip << QString("Gamma     \t%1").arg(tmp.attribute("value").toDouble());
+
+    tmp = xmlconfig.firstChildElement("Chromakey");
+    if ( tmp.attribute("on", "0").toInt() ) {
+        QColor color( tmp.attribute("R", "255").toInt(),
+                      tmp.attribute("G", "255").toInt(),
+                      tmp.attribute("B", "255").toInt() );
+        tooltip << QString("Chromakey \t(%1,%2,%3)").arg(color.red()).arg(color.green()).arg(color.blue());
+    }
+
+#ifdef GLM_FFGL
+    QStringList plugins;
+    tmp = xmlconfig.firstChildElement("FreeFramePlugin");
+    while (!tmp.isNull()) {
+
+        QDomElement p = tmp.firstChildElement("Filename");
+        if (!p.isNull())
+            plugins << QString(" - %1").arg( p.attribute("Basename") ); // freeframe
+        else {
+            p = tmp.firstChildElement("Name");
+            if (!p.isNull())
+                plugins << QString(" - %1").arg( p.text() );  // shadertoy
+        }
+
+        // next plugin in configuration
+        tmp = tmp.nextSiblingElement("FreeFramePlugin");
+    }
+    if (plugins.count())
+        tooltip << "Plugins:" << plugins.join("\n");
+#endif
 
     item->setToolTip(tooltip.join("\n"));
 }
@@ -308,17 +275,36 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
 #endif
 
     // create default presets
-    QByteArray ba = static_presets;
-    QDataStream stream(&ba, QIODevice::ReadOnly);
-    while(! stream.atEnd()) {
-        Source *s = new Source();
-        stream >> s;
-        presetsList->insertItem(0, s->getName());
-        _defaultPresets[presetsList->item(0)] = s;
-        setPresetItemTooltip(presetsList->item(0), s);
-        QFont f = presetsList->item(0)->font();
-        f.setItalic(true);
-        presetsList->item(0)->setFont( f );
+    QDomDocument doc;
+    doc.setContent(static_presets, false);
+    QDomElement presetsconfig = doc.firstChildElement("PresetsList");
+    if ( !presetsconfig.isNull() ) {
+
+        // start loop of presets to create
+        QDomElement child = presetsconfig.lastChildElement("Source");
+        while (!child.isNull()) {
+
+            // create item
+            presetsList->insertItem(0, child.attribute("preset"));
+            presetsList->item(0)->setFlags( Qt::ItemIsEnabled );
+
+            // set string of config as user data
+            QString xmlchild;
+            QTextStream xmlstream(&xmlchild);
+            child.save(xmlstream, 0);
+            presetsList->item(0)->setData(Qt::UserRole, xmlchild);
+
+            // set tooltip
+            setItemTooltip(presetsList->item(0), child);
+
+            // differenciate default presets with italic
+            QFont f = presetsList->item(0)->font();
+            f.setItalic(true);
+            presetsList->item(0)->setFont( f );
+
+            // loop
+            child = child.previousSiblingElement("Source");
+        }
     }
 
     // restore settings
@@ -337,13 +323,6 @@ MixingToolboxWidget::~MixingToolboxWidget()
         // Mixing presets
         appSettings->setValue("MixingPresets", saveState());
     }
-
-    // clean presets list
-    foreach (Source *s, _defaultPresets)
-        delete s;
-
-    foreach (Source *s, _userPresets)
-        delete s;
 
     blendingMaskList->clear();
 
@@ -596,20 +575,52 @@ void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item
 void MixingToolboxWidget::on_presetApply_pressed()
 {
     if (source) {
-        if (_defaultPresets.contains(presetsList->currentItem()) )
-            source->importProperties( _defaultPresets[presetsList->currentItem()], false );
-        else if ( _userPresets.contains(presetsList->currentItem()) )
-            source->importProperties( _userPresets[presetsList->currentItem()], false );
-
+        QDomDocument doc;
+        if (doc.setContent( presetsList->currentItem()->data(Qt::UserRole).toString() )) {
+            QDomElement child = doc.firstChildElement("Source");
+            if (!child.isNull()) {
+                source->Source::setConfiguration(child, QDir());
+            }
+        }
         changed();
     }
 }
 
 void MixingToolboxWidget::on_presetReApply_pressed()
 {
-    if (source) {
-        _userPresets[ presetsList->currentItem() ]->importProperties(source, false);
-        setPresetItemTooltip(presetsList->currentItem(), source);
+    if (source && presetsList->currentItem()->flags() & Qt::ItemIsEditable) {
+
+        QDomDocument doc;
+        QDomElement xmlconfig = source->getConfiguration(doc, QDir());
+
+        // rename
+        xmlconfig.setAttribute("preset", presetsList->currentItem()->text());
+
+        // remove attributes that we do not want to keep in presets
+        xmlconfig.removeAttribute("name");
+        xmlconfig.removeAttribute("fixedAR");
+        xmlconfig.removeAttribute("workspace");
+        xmlconfig.removeAttribute("stanbyMode");
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Position"));
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Scale"));
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Center"));
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Angle"));
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Alpha"));
+        xmlconfig.removeChild(xmlconfig.firstChildElement("Crop"));
+
+        // if no FreeFrame Plugin is given, explicitely set an empty one
+        if ( xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
+            // an empty FreeFramePlugin node forces to clear the list
+            // in source SetConfiguration (otherwise, it is ignored)
+            QDomElement p = doc.createElement("FreeFramePlugin");
+            xmlconfig.appendChild( p );
+        }
+
+        // set the XML config to the document
+        doc.appendChild(xmlconfig);
+        presetsList->currentItem()->setData(Qt::UserRole, doc.toString());
+
+        setItemTooltip(presetsList->currentItem(), xmlconfig);
     }
 }
 
@@ -624,9 +635,6 @@ void MixingToolboxWidget::on_presetAdd_pressed()
         presetsList->setCurrentItem(presetsList->item(0));
         presetsList->editItem(presetsList->currentItem());
 
-        // create a new source for this preset
-        _userPresets[ presetsList->currentItem() ] = new Source();
-
         // associate the properties of a source imported from the current source
         on_presetReApply_pressed();
 
@@ -639,14 +647,9 @@ void MixingToolboxWidget::on_presetAdd_pressed()
 void MixingToolboxWidget::on_presetRemove_pressed()
 {
     // take the element out of the list
-    QListWidgetItem *it = presetsList->takeItem( presetsList->currentRow() );
-
-    QMap<QListWidgetItem *, Source *>::iterator i = _userPresets.find(it);
-    if ( i != _userPresets.end() ) {
-        // free the source
-        delete _userPresets[it];
-        // remove element
-        _userPresets.erase(i);
+    if ( presetsList->item( presetsList->currentRow() )->flags() & Qt::ItemIsEditable ) {
+        QListWidgetItem *it = presetsList->takeItem( presetsList->currentRow() );
+        delete it;
     }
 }
 
@@ -655,11 +658,14 @@ void MixingToolboxWidget::on_presetsList_itemChanged(QListWidgetItem *item){
     if ( presetsList->findItems( item->text(), Qt::MatchFixedString ).length() > 1 )
         item->setText( item->text() + "_bis" );
 
-    if ( _userPresets.contains(item) ) {
-        // associate label to preset source name
-        _userPresets[item]->setName(item->text());
-        // update tooltip
-        setPresetItemTooltip(item, _userPresets[item]);
+    // Rename in xml
+    QDomDocument doc;
+    if (doc.setContent( item->data(Qt::UserRole).toString() )) {
+        QDomElement child = doc.firstChildElement("Source");
+        if (!child.isNull()) {
+            child.setAttribute("preset", item->text());
+            item->setData(Qt::UserRole, doc.toString());
+        }
     }
 }
 
@@ -669,14 +675,16 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
     if (item) {
         presetApply->setEnabled(true);
 
-        if ( _userPresets.contains(item) ) {
+        if ( item->flags() & Qt::ItemIsEditable  ) {
             presetRemove->setEnabled(true);
             presetReApply->setEnabled(true);
-        } else {
+        }
+        else {
             presetRemove->setEnabled(false);
             presetReApply->setEnabled(false);
         }
-    } else {
+    }
+    else {
         presetApply->setEnabled(false);
         presetRemove->setEnabled(false);
         presetReApply->setEnabled(false);
@@ -684,39 +692,67 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
 }
 
 QByteArray MixingToolboxWidget::saveState() const {
-    QByteArray ba;
-    QDataStream stream(&ba, QIODevice::WriteOnly);
 
-    // store all user preset sources
-    QMapIterator<QListWidgetItem *, Source *> i(_userPresets);
-    while (i.hasNext()) {
-        i.next();
-        stream << i.value();
+    int count = 0;
+    QDomDocument config;
+    QDomElement xmllist = config.createElement("PresetsList");
+
+    for (int i = 0; i < presetsList->count(); ++i) {
+        // do not save items from preset
+        if ( presetsList->item(i)->flags() & Qt::ItemIsEditable ) {
+            // get user data and append an xml element
+            QDomDocument doc;
+            if (doc.setContent( presetsList->item(i)->data(Qt::UserRole).toString() )) {
+                QDomElement child = doc.firstChildElement("Source");
+                if (!child.isNull()) {
+                    ++count;
+                    xmllist.appendChild( child.cloneNode() );
+                }
+            }
+        }
     }
-    // for copy paste of user presets into Hex of default presets
-//    qDebug() << "User presets" << ba.toHex();
+    config.appendChild(xmllist);
+    qDebug() << "SAVE User presets" << config.toByteArray();
 
-    return ba;
+    qDebug() << tr("Mixing presets saved (") << count << QObject::tr(" user presets)");
+    return config.toByteArray();
 }
 
 
 bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 
-    QByteArray sd = state;
-//    sd = static_presets;
-    QDataStream stream(&sd, QIODevice::ReadOnly);
+    int count = 0;
+    QDomDocument config;
+    config.setContent(state, false);
 
-    // read all source stored and add to user presets
-    while(! stream.atEnd()) {
-        Source *s = new Source();
-        stream >> s;
-        presetsList->insertItem(0, s->getName());
-        presetsList->item(0)->setFlags( Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable );
-        _userPresets[presetsList->item(0)] = s;
-        setPresetItemTooltip(presetsList->item(0), s);
+//    qDebug() << "LOAD User presets" << config.toString();
+
+    QDomElement presetsconfig = config.firstChildElement("PresetsList");
+    if ( !presetsconfig.isNull() ) {
+
+        // start loop of presets to create
+        QDomElement child = presetsconfig.lastChildElement("Source");
+        while (!child.isNull()) {
+
+            // create item
+            presetsList->insertItem(0, child.attribute("preset"));
+            presetsList->item(0)->setFlags( Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable );
+
+            // set string of config as user data
+            QString xmlchild;
+            QTextStream xmlstream(&xmlchild);
+            child.save(xmlstream, 0);
+            presetsList->item(0)->setData(Qt::UserRole, xmlchild);
+
+            // set tooltip
+            setItemTooltip(presetsList->item(0), child);
+
+            ++count;
+            child = child.previousSiblingElement("Source");
+        }
     }
 
-    qDebug() << tr("Mixing presets restored (") << _userPresets.count() << QObject::tr(" user presets)");
+    qDebug() << tr("Mixing presets restored (") << count << QObject::tr(" user presets)");
     return true;
 }
 
@@ -753,14 +789,13 @@ void MixingToolboxWidget::on_resetFilter_pressed()
 
 void MixingToolboxWidget::on_resetPresets_pressed()
 {
-    QMap<QListWidgetItem *, Source *>::iterator i = _userPresets.begin();
-    while ( i!= _userPresets.end()) {
-        // free source
-        delete i.value();
-        // remove item
-        delete i.key();
-        // remove element
-        i = _userPresets.erase(i);
+    for (int i = 0; i < presetsList->count(); ++i) {
+        // do not remove items from preset
+        if ( presetsList->item(i)->flags() & Qt::ItemIsEditable ) {
+            // remove this preset
+            QListWidgetItem *it = presetsList->takeItem( i );
+            delete it;
+        }
     }
 }
 

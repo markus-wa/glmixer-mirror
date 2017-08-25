@@ -112,6 +112,7 @@ protected:
     class FFGLPluginInstance *_plugin;
 
     // initialization should be called from inside
+    void reset();
     bool initialize();
 
     // self management
