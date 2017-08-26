@@ -274,6 +274,33 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
 #endif
 
+
+    presetsList->setContextMenuPolicy(Qt::ActionsContextMenu);
+
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/gear.png"), QSize(), QIcon::Normal, QIcon::Off);
+    applyAction = new QAction(icon, tr("Apply"), presetsList);
+    presetsList->insertAction(0, applyAction);
+    QObject::connect(applyAction, SIGNAL(triggered()), this, SLOT(on_presetApply_pressed()) );
+
+    QIcon icon2;
+    icon2.addFile(QString::fromUtf8(":/glmixer/icons/re-apply.png"), QSize(), QIcon::Normal, QIcon::Off);
+    reapplyAction = new QAction(icon2, tr("Update"), presetsList);
+    presetsList->insertAction(0, reapplyAction);
+    QObject::connect(reapplyAction, SIGNAL(triggered()), this, SLOT(on_presetReApply_pressed()) );
+
+    QIcon icon3;
+    icon3.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
+    removeAction = new QAction(icon3, tr("Delete"), presetsList);
+    presetsList->insertAction(0, removeAction);
+    QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(on_presetRemove_pressed()) );
+
+    QIcon icon4;
+    icon4.addFile(QString::fromUtf8(":/glmixer/icons/clean.png"), QSize(), QIcon::Normal, QIcon::Off);
+    clearAction = new QAction(icon4, tr("Delete all user presets"), presetsList);
+    presetsList->insertAction(0, clearAction);
+    QObject::connect(clearAction, SIGNAL(triggered()), this, SLOT(on_resetPresets_pressed()) );
+
     // create default presets
     QDomDocument doc;
     doc.setContent(static_presets, false);
@@ -678,10 +705,15 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
         if ( item->flags() & Qt::ItemIsEditable  ) {
             presetRemove->setEnabled(true);
             presetReApply->setEnabled(true);
+            reapplyAction->setEnabled(true);
+            removeAction->setEnabled(true);
+
         }
         else {
             presetRemove->setEnabled(false);
             presetReApply->setEnabled(false);
+            reapplyAction->setEnabled(false);
+            removeAction->setEnabled(false);
         }
     }
     else {
@@ -789,14 +821,11 @@ void MixingToolboxWidget::on_resetFilter_pressed()
 
 void MixingToolboxWidget::on_resetPresets_pressed()
 {
-    for (int i = 0; i < presetsList->count(); ++i) {
-        // do not remove items from preset
-        if ( presetsList->item(i)->flags() & Qt::ItemIsEditable ) {
-            // remove this preset
-            QListWidgetItem *it = presetsList->takeItem( i );
-            delete it;
-        }
+    while (presetsList->item(0)->flags() & Qt::ItemIsEditable ) {
+        QListWidgetItem *it = presetsList->takeItem( 0 );
+        delete it;
     }
+
 }
 
 void MixingToolboxWidget::on_resetPlugins_pressed()
