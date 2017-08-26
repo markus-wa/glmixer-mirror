@@ -310,8 +310,8 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     // restore settings
     if (appSettings) {
         // Mixing presets
-        if (appSettings->contains("MixingPresets"))
-            restoreState(appSettings->value("MixingPresets").toByteArray());
+        if (appSettings->contains("MixingUserPresets"))
+            restoreState(appSettings->value("MixingUserPresets").toByteArray());
     }
 }
 
@@ -321,7 +321,7 @@ MixingToolboxWidget::~MixingToolboxWidget()
     // save settings
     if (appSettings) {
         // Mixing presets
-        appSettings->setValue("MixingPresets", saveState());
+        appSettings->setValue("MixingUserPresets", saveState());
     }
 
     blendingMaskList->clear();
