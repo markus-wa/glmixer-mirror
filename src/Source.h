@@ -301,7 +301,6 @@ protected:
     static bool playable;
 
     // identity
-    static GLuint lastid;
     GLuint id;
 
     // standby mode
@@ -327,6 +326,10 @@ protected:
     // freeframe plugin
     FFGLPluginSourceStack _ffgl_plugins;
 #endif
+
+private:
+    // identity counter
+    static GLuint lastid;
 
 };
 

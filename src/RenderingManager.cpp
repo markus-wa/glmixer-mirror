@@ -1609,9 +1609,6 @@ void RenderingManager::clearSourceSet() {
         for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its = _front_sources.begin())
             num_sources_deleted += _removeSource(its);
 
-        // reset the id counter
-        Source::lastid = 1;
-
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
     }
 
@@ -2425,13 +2422,12 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         // Insert the source in the scene
         if ( _insertSource(newsource) )  {
             // ok ! source is configured, we can start it !
-            if (newsource->isPlayable()) {
-                // Play the source if playing attributes says so (and not standby)
-                // NB: if no attribute, then play by default.
-                newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
-                if (!newsource->isStandby())
-                    newsource->play( child.attribute("playing", "1").toInt() );
-            }
+
+            // Play the source if playing attributes says so
+            // NB: if no attribute, then play by default.
+            newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+            if (!newsource->isStandby())
+                newsource->play( child.attribute("playing", "1").toInt() );
 
         }
         else {
