@@ -98,7 +98,15 @@ QPushButton:default {
     border-color: palette(midlight);
 }
 
-QListWidget {
+QListWidget#filterList {
+    font-size: 11px;
+}
+
+QListWidget#colorList {
+    font-size: 11px;
+}
+
+QListWidget#blendingMaskList {
     font-size: 11px;
 }
 

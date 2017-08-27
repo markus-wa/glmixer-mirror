@@ -52,7 +52,7 @@ QToolButton {
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <property name="iconSize">
       <size>
@@ -1271,7 +1271,7 @@ border:0px
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="listWidget">
+        <widget class="QListWidget" name="colorList">
          <property name="toolTip">
           <string>Adjust the color filters</string>
          </property>
@@ -1968,16 +1968,27 @@ border:0px
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="resetPresets">
+          <widget class="QLabel" name="label_7">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
-            <string>Clear all</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Presets remember all mixing options, allowing to apply blending, filters, etc., in one clic.&lt;/p&gt;&lt;p&gt;Use buttons (&lt;img src=&quot;:/glmixer/icons/apply.png&quot;/&gt;Apply, &lt;img src=&quot;:/glmixer/icons/plus_source.png&quot;/&gt; New, &lt;img src=&quot;:/glmixer/icons/re-apply.png&quot;/&gt; Update) to manipulate presets in the list (or context menu). Default presets (&lt;span style=&quot; font-style:italic;&quot;&gt;in italic&lt;/span&gt;) cannot be edited.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>...</string>
+            <string/>
            </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           <property name="textFormat">
+            <enum>Qt::PlainText</enum>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -1985,6 +1996,9 @@ border:0px
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
          <item>
           <widget class="QToolButton" name="presetApply">
            <property name="enabled">
@@ -2097,12 +2111,6 @@ border:0px
        </item>
        <item>
         <widget class="QListWidget" name="presetsList">
-         <property name="baseSize">
-          <size>
-           <width>2</width>
-           <height>0</height>
-          </size>
-         </property>
          <property name="toolTip">
           <string>Double clic on a preset to apply it to the selected source(s).</string>
          </property>
@@ -2136,12 +2144,12 @@ border:0px
   </layout>
  </widget>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>listWidget</sender>
+   <sender>colorList</sender>
    <signal>currentRowChanged(int)</signal>
    <receiver>stackedWidget</receiver>
    <slot>setCurrentIndex(int)</slot>

@@ -222,7 +222,7 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Bottom-up", ":/glmixer/textures/mask_linear_top.png");
     createMask("Horizontal", ":/glmixer/textures/mask_linear_horizontal.png");
     createMask("Vertical", ":/glmixer/textures/mask_linear_vertical.png");
-    createMask("Smooth", ":/glmixer/textures/mask_antialiasing.png");
+    createMask("1 pixel", ":/glmixer/textures/mask_antialiasing.png");
     createMask("Scratch", ":/glmixer/textures/mask_scratch.png"); // 12
     createMask("Dirty", ":/glmixer/textures/mask_dirty.png");
     createMask("TV", ":/glmixer/textures/mask_tv.png");

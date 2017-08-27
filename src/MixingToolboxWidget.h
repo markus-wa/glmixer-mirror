@@ -79,7 +79,6 @@ public slots:
     void on_resetGamma_pressed();
     void on_resetColor_pressed();
     void on_resetFilter_pressed();
-    void on_resetPresets_pressed();
     void on_resetPlugins_pressed();
 
 #ifdef GLM_FFGL
@@ -87,6 +86,9 @@ public slots:
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
 #endif
+
+    void removeAllUserPresets();
+    void renamePreset();
 
     // state restoration
     QByteArray saveState() const;
@@ -109,6 +111,13 @@ private:
     Source *source;
 
     QSettings *appSettings;
+
+    QAction *applyAction;
+    QAction *reapplyAction;
+    QAction *removeAction;
+    QAction *renameAction;
+    QAction *clearAction;
+
 
 #ifdef GLM_FFGL
     class FFGLPluginBrowser *pluginBrowser;

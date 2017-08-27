@@ -3305,6 +3305,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="statusTip">
     <string>Display the list of video codecs that can be read.</string>
    </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
+   </property>
   </action>
   <action name="actionOpenGL_extensions">
    <property name="icon">
@@ -3316,6 +3319,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="statusTip">
     <string>Display the list of OpenGL extensions that your system supports.</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionFullscreen">
@@ -4908,6 +4914,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Op&amp;en Sound Control</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionWorkspaceExclusive">

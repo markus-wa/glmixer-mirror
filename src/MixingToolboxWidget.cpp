@@ -213,9 +213,8 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     setEnabled(false);
 
     // Tooltip font
-    presetsList->setStyleSheet(QString::fromUtf8("QToolTip {\n"
-        "	font: 8pt \"%1\";\n"
-        "}").arg(getMonospaceFont()));
+    presetsList->setStyleSheet(QString::fromUtf8("QToolTip{ font: 8pt \"%1\";}\n")
+                               .arg(getMonospaceFont()));
 
     // fill the list of masks
     QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::getMaskDecription());
@@ -291,15 +290,19 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
 
     QIcon icon3;
     icon3.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
-    removeAction = new QAction(icon3, tr("Delete"), presetsList);
+    removeAction = new QAction(icon3, tr("Remove"), presetsList);
     presetsList->insertAction(0, removeAction);
     QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(on_presetRemove_pressed()) );
 
+    renameAction = new QAction(tr("Rename"), presetsList);
+    presetsList->insertAction(0, renameAction);
+    QObject::connect(renameAction, SIGNAL(triggered()), this, SLOT(renamePreset()) );
+
     QIcon icon4;
     icon4.addFile(QString::fromUtf8(":/glmixer/icons/clean.png"), QSize(), QIcon::Normal, QIcon::Off);
-    clearAction = new QAction(icon4, tr("Delete all user presets"), presetsList);
+    clearAction = new QAction(icon4, tr("Remove all user presets"), presetsList);
     presetsList->insertAction(0, clearAction);
-    QObject::connect(clearAction, SIGNAL(triggered()), this, SLOT(on_resetPresets_pressed()) );
+    QObject::connect(clearAction, SIGNAL(triggered()), this, SLOT(removeAllUserPresets()) );
 
     // create default presets
     QDomDocument doc;
@@ -647,7 +650,6 @@ void MixingToolboxWidget::on_presetReApply_pressed()
         doc.appendChild(xmlconfig);
         presetsList->currentItem()->setData(Qt::UserRole, doc.toString());
 
-        setItemTooltip(presetsList->currentItem(), xmlconfig);
     }
 }
 
@@ -668,6 +670,14 @@ void MixingToolboxWidget::on_presetAdd_pressed()
         // ready GUI
         presetRemove->setEnabled(true);
         presetReApply->setEnabled(true);
+    }
+}
+
+void MixingToolboxWidget::renamePreset()
+{
+    if (source) {
+
+        presetsList->editItem(presetsList->currentItem());
     }
 }
 
@@ -692,6 +702,9 @@ void MixingToolboxWidget::on_presetsList_itemChanged(QListWidgetItem *item){
         if (!child.isNull()) {
             child.setAttribute("preset", item->text());
             item->setData(Qt::UserRole, doc.toString());
+
+            // validate item and set its tooltip
+            setItemTooltip(item, child);
         }
     }
 }
@@ -707,6 +720,7 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
             presetReApply->setEnabled(true);
             reapplyAction->setEnabled(true);
             removeAction->setEnabled(true);
+            renameAction->setEnabled(true);
 
         }
         else {
@@ -714,12 +728,16 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
             presetReApply->setEnabled(false);
             reapplyAction->setEnabled(false);
             removeAction->setEnabled(false);
+            renameAction->setEnabled(false);
         }
     }
     else {
         presetApply->setEnabled(false);
         presetRemove->setEnabled(false);
         presetReApply->setEnabled(false);
+        reapplyAction->setEnabled(false);
+        removeAction->setEnabled(false);
+        renameAction->setEnabled(false);
     }
 }
 
@@ -819,7 +837,7 @@ void MixingToolboxWidget::on_resetFilter_pressed()
     filterList->setCurrentRow(0);
 }
 
-void MixingToolboxWidget::on_resetPresets_pressed()
+void MixingToolboxWidget::removeAllUserPresets()
 {
     while (presetsList->item(0)->flags() & Qt::ItemIsEditable ) {
         QListWidgetItem *it = presetsList->takeItem( 0 );
