@@ -52,7 +52,7 @@ QToolButton {
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <property name="iconSize">
       <size>
