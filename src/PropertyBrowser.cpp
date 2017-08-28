@@ -347,11 +347,13 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
     defaultValueAction->setVisible(false);
     defaultValueAction->setEnabled(true);
     resetAction->setVisible(true);
+    copyClipboardAction->setVisible(false);
 
     if (propertyTreeEditor->currentItem()) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         if ( property->hasValue() ) {
-            defaultValueAction->setVisible( true );
+            defaultValueAction->setVisible(true);
+            copyClipboardAction->setVisible(true);
             resetAction->setVisible(false);
 
             if ( !property->isEnabled() || property->isItalics()) {

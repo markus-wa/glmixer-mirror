@@ -1404,7 +1404,12 @@ public:
         infoManager->setValue(idToProperty["Type"], "Basket" );
         addProperty(idToProperty["Type"]);
 
-        idToProperty["Files"] = infoManager->addProperty( QLatin1String("Files") );
+        // list of files
+        property = infoManager->addProperty( QLatin1String("Files") );
+        property->setToolTip("List of files in the basket");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
+
         // options
         idToProperty["Bidirectional"] = boolManager->addProperty("Bidirectional");
         idToProperty["Shuffle"] = boolManager->addProperty("Shuffle");
@@ -1414,7 +1419,7 @@ public:
         intManager->setRange(idToProperty["Frequency"], 1, 60);
 
         // Set values
-        infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(",") );
+        infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(" ") );
         boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());
         boolManager->setValue(idToProperty["Shuffle"], bs->isShuffle());
         intManager->setValue(idToProperty["Frequency"], (int) ( 1000.0 / double(bs->getPeriod()) ) );

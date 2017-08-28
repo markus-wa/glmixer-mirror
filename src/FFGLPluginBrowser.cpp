@@ -57,22 +57,22 @@
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
-
-    // create edit action
-    editAction = new QAction(tr("Edit"), this);
-    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
-    // insert edit action on top
-    menuTree.addAction(editAction);
-
-    menuTree.addSeparator();
-
-    // create edit action
+    // create edit Enable
     enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
     enableAction->setChecked(true);
     QObject::connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(enablePlugin(bool)) );
     // insert edit action on top
-    menuTree.addAction(enableAction);
+    menuTree.insertAction(resetAction, enableAction);
+
+    // create edit action (appened to the end of menu)
+    editAction = new QAction(tr("Edit"), this);
+    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
+    // insert edit action on top
+    menuTree.addAction(editAction);
+
+    // Bellow separator are menu actions to change list
+    menuTree.addSeparator();
 
     // append remove action if allowed
     if (allowRemove) {
@@ -368,11 +368,17 @@ void FFGLPluginBrowser::enablePlugin(bool on)
 
 void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 {
+
+    // DEFAULT : consider all custom actions are hidden
+
+    // no reference url
     setReferenceURL();
     // edit is disabled by default
     editAction->setVisible(false);
     // enable is disabled by default
     enableAction->setVisible(false);
+    // ignore the copy text action in this context menu
+    copyClipboardAction->setVisible(false);
     // remove is disabled by default
     if(removeAction) removeAction->setVisible(false);
     if(moveUpAction) moveUpAction->setVisible(false);
@@ -380,7 +386,7 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 
     if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        // ok, a plugin is selected
+        // a plugin is selected
         if ( propertyToPluginParameter.contains(property) &&
              propertyTreeEditor->topLevelItem(property) != 0) {
             // allow to remove it if there is a remove action
@@ -399,12 +405,25 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
             // enable the edit action for shadertoy plugins only
             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
                 editAction->setVisible(true);
-            } else {
-                // allow context menu openUrlAction
-                setReferenceURL( QUrl::fromLocalFile( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath()) );
             }
+            else {
+                // allow context menu openUrlAction for freeframe plugins
+                setReferenceURL( QUrl::fromLocalFile( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath()) );
+
+            }
+
+            // manage the standard context menu actions in a custom way
+            defaultValueAction->setVisible(false);
+            resetAction->setVisible(true);
+            openUrlAction->setVisible( referenceURL.isValid() );
+
+            menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
+        }
+        // else, a parameter is selected
+        else {
+            // show the standard context menu
+            PropertyBrowser::ctxMenuTree(pos);
         }
     }
 
-    PropertyBrowser::ctxMenuTree(pos);
 }
