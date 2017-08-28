@@ -218,7 +218,7 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 {
     QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
     QSplashScreen *splash = new QSplashScreen(pixmap);
-    AboutGLMixer->resize(420, 270);
+    AboutGLMixer->resize(420, 320);
     AboutGLMixer->setWindowTitle("About GLMixer");
     QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
