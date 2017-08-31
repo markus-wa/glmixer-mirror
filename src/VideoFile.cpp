@@ -442,9 +442,8 @@ void VideoFile::stop()
             emit timeChanged( current_frame_pts );
         }
 
-        if (stop_to_black) {
+        if (stop_to_black)
             emit frameReady( blackPicture );
-        }
 
         ptimer->stop();
 
@@ -1029,6 +1028,8 @@ void VideoFile::setOptionRevertToBlackWhenStop(bool on)
 {
     stop_to_black = on;
 
+    if (quit && stop_to_black)
+        emit frameReady( blackPicture );
 }
 
 
