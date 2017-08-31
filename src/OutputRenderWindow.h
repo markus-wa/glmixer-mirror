@@ -41,6 +41,8 @@ public:
     virtual void paintGL();
     virtual void resizeGL(int w = 0, int h = 0);
 
+    virtual void mouseDoubleClickEvent(QMouseEvent *);
+
     float getAspectRatio() const;
     inline bool freeAspectRatio() const { return !useAspectRatio; }
     void useFreeAspectRatio(bool on);

@@ -205,6 +205,14 @@ void OutputRenderWidget::paintGL()
 }
 
 
+void OutputRenderWidget::mouseDoubleClickEvent(QMouseEvent *) {
+
+    // toggle fullscreen / window on double clic
+    OutputRenderWindow::getInstance()->raise();
+
+}
+
+
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint  )
 {
     // this is not a windet, but a window
