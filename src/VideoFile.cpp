@@ -225,7 +225,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     img_convert_ctx = NULL;
     firstPicture = NULL;
     blackPicture = NULL;
-    resetPicture = NULL;
     pictq_max_count = 0;
     duration = 0.0;
     frame_rate = 0.0;
@@ -255,6 +254,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     first_picture_changed = true; // no mark_in set
     loop_video = true; // loop by default
     restart_where_stopped = true; // by default restart where stopped
+    stop_to_black = false;
     ignoreAlpha = false; // by default ignore alpha channel
     interlaced = false;  // TODO: detect and deinterlace
 
@@ -371,7 +371,6 @@ void VideoFile::close()
     video_st = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
-    resetPicture = NULL;
 
     qDebug() << filename << QChar(124).toLatin1() << tr("Media closed.");
 }
@@ -439,8 +438,12 @@ void VideoFile::stop()
             else
                 current_frame_pts = fff->getValue();
 
-            // display firstPicture or black picture
-            emit frameReady( resetPicture );
+            emit frameReady( firstPicture );
+            emit timeChanged( current_frame_pts );
+        }
+
+        if (stop_to_black) {
+            emit frameReady( blackPicture );
         }
 
         ptimer->stop();
@@ -546,11 +549,6 @@ double VideoFile::getPlaySpeed()
     return _videoClock.speed();
 }
 
-
-VideoPicture *VideoFile::getResetPicture() const
-{
-    return (resetPicture);
-}
 
 int VideoFile::getNumFrames() const {
     if (video_st) return nb_frames;
@@ -733,11 +731,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (1 %1 frame).").arg(pfn);
     }
 
-    // use first picture as reset picture
-    resetPicture = firstPicture;
-
     // display a firstPicture frame ; this shows that the video is open
-    emit frameReady( resetPicture );
+    emit frameReady( firstPicture );
 
     // say we are not running
     emit running(false);
@@ -758,9 +753,6 @@ double VideoFile::fill_first_frame(bool seek)
 {
     if (!first_picture_changed)
         return mark_in;
-
-    if (resetPicture == firstPicture)
-        resetPicture = NULL;
 
     if (firstPicture)
         delete firstPicture;
@@ -858,16 +850,12 @@ double VideoFile::fill_first_frame(bool seek)
         // we can now fill in the first picture with this frame
         firstPicture->fill(tmpframe, pts);
 
-        if (resetPicture == NULL)
-            resetPicture = firstPicture;
-
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1()<< tr("First frame updated.");
 #endif
     }
     else {
         qDebug() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
-        resetPicture = blackPicture;
     }
 
     // cleanup decoding buffers
@@ -1037,16 +1025,17 @@ double VideoFile::getFrameDuration() const
     return 0.0;
 }
 
-void VideoFile::setOptionRevertToBlackWhenStop(bool black)
+void VideoFile::setOptionRevertToBlackWhenStop(bool on)
 {
-    if (black || !firstPicture)
-        resetPicture = blackPicture;
-    else
-        resetPicture = firstPicture;
+    stop_to_black = on;
 
-    // if the option is toggled while being stopped, then we should show the good frame now!
-    if (quit)
-        emit frameReady( resetPicture );
+}
+
+
+void VideoFile::setOptionRestartToMarkIn(bool on)
+{
+    restart_where_stopped = !on;
+
 }
 
 void VideoFile::seekToPosition(double t)

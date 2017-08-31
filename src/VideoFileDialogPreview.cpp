@@ -115,7 +115,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             setEnabled(true);
             // activate preview
             previewWidget->setVideo(is);
-            previewWidget->updateFrame(is->getResetPicture());
+            previewWidget->updateFrame(is->getFirstFrame());
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
             endLineEdit->setText( getStringFromTime(is->getEnd()) );

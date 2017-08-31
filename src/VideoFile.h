@@ -167,28 +167,8 @@ public:
      * Automatically calls stop() and waits for the threads to end before clearing memory.
      */
     virtual ~VideoFile();
-    /**
-     * Get a VideoPicture from the internal queue of pictures.
-     *
-     * Calling getPictureAtIndex with a valid index (typically given by a frameReady(int) event) returns the current picture
-     * of the movie to display. The index of the pictures which can be obtained with this function are in the range [0 .. VIDEO_PICTURE_QUEUE_SIZE ].
-     *
-     * Calling  getPictureAtIndex with an invalid index (e.g. -1) returns the special VideoPicture previously pre-loaded.
-     * This special VideoPicture can be:
-     *
-     * -  the only frame of a picture VideoFile or the first frame of the movie (just after loading the file).
-     *
-     * -  the frame at the Mark IN  after having stopped the video if setOptionRestartToMarkIn() is active.
-     *
-     * -  a back frame if the setOptionRevertToBlackWhenStop() is active.
-     *
-     *
-     * It returns a const pointer to make sure you don't mess with it! You can only use the public methods of VideoPicture to read the picture.
-     *
-     * @param index Index of the picture to read; this should be used when recieving a frameReady(int) event and using the given index.
-     * @return Const pointer to a VideoPicture; you cannot and should not modify the content of the VideoPicture. Just use it to read the buffer.
-     */
-    VideoPicture *getResetPicture() const;
+
+    VideoPicture *getFirstFrame() { return firstPicture;}
 
     int getNumFrames() const ;
 
@@ -605,9 +585,7 @@ public slots:
      *
      * @param on true to activate the option.
      */
-    inline void setOptionRestartToMarkIn(bool on) {
-        restart_where_stopped = !on;
-    }
+    void setOptionRestartToMarkIn(bool on);
     /**
      * Gets the "restart to Mark IN" option.
      *
@@ -625,14 +603,15 @@ public slots:
      *
      * @param black true to activate the option.
      */
-    void setOptionRevertToBlackWhenStop(bool black);
+    void setOptionRevertToBlackWhenStop(bool on);
+
     /**
      * Gets the "revert to black" option.
      *
      * @return true if the option is active.
      */
     inline bool getOptionRevertToBlackWhenStop() {
-        return (resetPicture == blackPicture);
+        return stop_to_black;
     }
 
 
@@ -677,7 +656,6 @@ protected:
     int targetWidth, targetHeight;
     int conversionAlgorithm;
     VideoPicture *firstPicture, *blackPicture;
-    VideoPicture *resetPicture;
     bool rgba_palette;
     double duration;
     int64_t nb_frames;
@@ -752,6 +730,7 @@ protected:
     bool quit;
     bool loop_video;
     bool restart_where_stopped;
+    bool stop_to_black;
 
 };
 

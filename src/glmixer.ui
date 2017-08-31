@@ -1433,14 +1433,14 @@ QToolButton:hover {
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to go to begin position when pressing stop.&lt;/p&gt;&lt;p&gt;Uncheck to stay on the same frame when pressing stop.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>Replay at begin</string>
+            <string>Rewind when stopped</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QWidget" name="widget_2" native="true">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1462,23 +1462,10 @@ QToolButton:hover {
              <number>0</number>
             </property>
             <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Preferred</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>8</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QCheckBox" name="resetToBlackCheckBox">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -1490,7 +1477,7 @@ QToolButton:hover {
 Uncheck to display the restart frame when stopped.</string>
               </property>
               <property name="text">
-               <string>Stop to black</string>
+               <string>Black when stopped</string>
               </property>
               <property name="tristate">
                <bool>false</bool>
@@ -4907,22 +4894,6 @@ Shortcut:                         Ctrl + Tab</string>
   <include location="../images.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>restartWhereStoppedCheckBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>widget_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1414</x>
-     <y>864</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1414</x>
-     <y>889</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>pauseButton</sender>
    <signal>toggled(bool)</signal>

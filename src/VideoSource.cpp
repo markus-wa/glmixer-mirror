@@ -54,7 +54,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     QObject::connect(is, SIGNAL(running(bool)), this, SIGNAL(playing(bool)) );
 
     // fills in the first frame
-    VideoPicture *_vp = is->getResetPicture();
+    VideoPicture *_vp = is->getFirstFrame();
     if (!setVideoFormat(_vp))
         SourceConstructorException().raise();
 
