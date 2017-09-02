@@ -177,9 +177,7 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
-        // not initialized yet ?
-        if ( initialize() )
-            p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.trimmed().toLatin1().data() );
+        p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.trimmed().toLatin1().data() );
 
     }
 
@@ -190,10 +188,7 @@ void FFGLPluginSourceShadertoy::setKey(int key, bool status)
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
-        // not initialized yet ?
-        if ( initialize() )
-            p->setKeyboard(key, status);
-
+        p->setKeyboard(key, status);
     }
 }
 
@@ -221,6 +216,7 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 {
     QDomDocument root;
     QDomElement p = root.createElement("FreeFramePlugin");
+    // parameter zero is the speed
     p.setAttribute("speed", QString::number(_plugin->GetFloatParameter(0),'f',PROPERTY_DECIMALS) );
 
     // save info as XML nodes
@@ -250,13 +246,16 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 
 void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
 {
-    setName( xml.firstChildElement("Name").text() );
-    setAbout( xml.firstChildElement("About").text() );
-    setDescription( xml.firstChildElement("Description").text() );
-    setCode( xml.firstChildElement("Code").text() );
+    // make sure its initialized
+    if (initialize()) {
 
-    double s = xml.attribute("speed", "0.5").toDouble();
-    if (_plugin)
-        _plugin->SetFloatParameter(0, s);
+        // parameter zero is the speed
+        setParameter( 0, QVariant(xml.attribute("speed", "0.5").toDouble()) );
 
+        // set specific elements
+        setName( xml.firstChildElement("Name").text() );
+        setAbout( xml.firstChildElement("About").text() );
+        setDescription( xml.firstChildElement("Description").text() );
+        setCode( xml.firstChildElement("Code").text() );
+    }
 }

@@ -55,7 +55,7 @@ void FFGLPluginSource::load(QString filename)
         qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU Plugin instanciated");
     }
 
-    // check validity of plugin
+    // check validity of plugin§
     if (!_plugin){
         qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU plugin could not be instanciated");
         FFGLPluginException().raise();
@@ -154,7 +154,8 @@ void FFGLPluginSource::reset()
 
 void FFGLPluginSource::resize(int w, int h)
 {
-    reset();
+    if (_initialized && (_fboSize.width() != w || _fboSize.height() != h ))
+        reset();
     _fboSize.setWidth(w);
     _fboSize.setHeight(h);
 }
@@ -461,15 +462,16 @@ QDomElement FFGLPluginSource::getConfiguration( QDir current )
 
 void FFGLPluginSource::setConfiguration(QDomElement xml)
 {
-    initialize();
-
-    // start loop of parameters to read
-    QDomElement p = xml.firstChildElement("Parameter");
-    while (!p.isNull()) {
-        // read and apply parameter
-        setParameter( p.attribute("name"), QVariant(p.text()) );
-        // loop
-        p = p.nextSiblingElement("Parameter");
+    // make sure its initialized
+    if (initialize()) {
+        // start loop of parameters to read
+        QDomElement p = xml.firstChildElement("Parameter");
+        while (!p.isNull()) {
+            // read and apply parameter
+            setParameter( p.attribute("name"), QVariant(p.text()) );
+            // loop
+            p = p.nextSiblingElement("Parameter");
+        }
     }
 }
 
@@ -485,7 +487,7 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName, bool install)
 #endif
 
     if (install) {
-      // replace the plugin file in temporary location
+      // replace the plugin file in temporary location (necessary to update it):
       // copy the file if
       // either it does not exist yet
       // or it does exist AND we could remove it

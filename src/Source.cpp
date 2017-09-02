@@ -442,8 +442,6 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                             FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
 
                             if (stp) {
-                                // necessary to update the fbo (Bug of inverion of clone source)
-//                                stp->update();
                                 // set the plugin config and code
                                 stp->setConfiguration(p);
                             }

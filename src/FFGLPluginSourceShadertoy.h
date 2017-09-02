@@ -37,8 +37,8 @@ public:
     RTTI rtti() const { return FFGLPluginSourceShadertoy::type; }
 
     // FFGLPluginSource XML config
-    QDomElement getConfiguration(QDir current = QDir());
-    void setConfiguration(QDomElement xml);
+    virtual QDomElement getConfiguration(QDir current = QDir());
+    virtual void setConfiguration(QDomElement xml);
 
     // get and set of GLSL Shadertoy code
     QString getCode();

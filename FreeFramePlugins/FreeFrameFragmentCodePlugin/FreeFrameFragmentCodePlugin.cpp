@@ -14,6 +14,7 @@ const char *fragmentMainCode = "\nvoid main(void){\n"
 
 const char *emptyString = " \0";
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,12 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     : CFreeFrameGLPlugin()
 {
     // clean start
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = 0;
+    viewport.height = 0;
+    textureFrameBufferObject.Width = 0;
+    textureFrameBufferObject.Height = 0;
     textureFrameBufferObject.Handle = 0;
     frameBufferObject = 0;
     shaderProgram = 0;
@@ -35,6 +42,7 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     m_curTime = 0.0;
     g_curTime = 0.0;
     displayList = 0;
+    infologLength = 0;
 
     for (int k=0; k<10; ++k) keyboard[k] = 0;
 
@@ -133,8 +141,6 @@ DWORD   FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
-    viewport.x = 0;
-    viewport.y = 0;
     viewport.width = vp->width;
     viewport.height = vp->height;
 
@@ -186,6 +192,7 @@ FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
         //lower right
         glTexCoord2d(1.0, 1.0);
         glVertex2f(1,-1);
+
         glEnd();
     glEndList();
 

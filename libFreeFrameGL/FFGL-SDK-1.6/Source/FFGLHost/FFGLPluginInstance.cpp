@@ -250,6 +250,7 @@ FFResult FFGLPluginInstance::InstantiateGL(const FFGLViewportStruct *viewport)
         //already instantiated
         return FF_SUCCESS;
     }
+
     FFMixed arg;
     arg.PointerValue = (void *)viewport;
     //instantiate 1 of the plugins

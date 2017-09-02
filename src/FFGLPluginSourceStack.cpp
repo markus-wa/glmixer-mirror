@@ -20,6 +20,7 @@
  *
  */
 
+#include "RenderingManager.h"
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginSourceStack.h"
@@ -57,10 +58,7 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(QString filename, int wid
     try {
 
         // create new plugin with this file
-        ffgl_plugin = new FFGLPluginSource(width, height, it);
-
-        // load dll
-        ffgl_plugin->load(filename);
+        ffgl_plugin = RenderingManager::getInstance()->newFreeframeGLPlugin(width, height, it, filename);
 
         // in case of success, add it to the stack
         this->push(ffgl_plugin);
@@ -100,7 +98,7 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(int width, int height, un
     try {
 
         // create new plugin with this file
-        ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(FF_EFFECT, width, height, it);
+        ffgl_plugin = RenderingManager::getInstance()->newFreeframeGLPlugin(width, height, it);
 
         // in case of success, add it to the stack
         this->push(ffgl_plugin);

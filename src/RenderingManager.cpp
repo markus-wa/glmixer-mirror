@@ -62,7 +62,6 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #endif
 
 #ifdef GLM_FFGL
-#include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSource.h"
 #endif
@@ -883,6 +882,32 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, int mode, double dept
 #endif
 
 #ifdef GLM_FFGL
+
+FFGLPluginSource *RenderingManager::newFreeframeGLPlugin(int width, int height, FFGLTextureStruct it, QString filename)
+{
+    FFGLPluginSource *ffgl_plugin = NULL;
+
+    // enable current opengl context
+    _renderwidget->makeCurrent();
+
+    // Shadertoy (no filename given)
+    if (filename.isEmpty()) {
+
+        ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(FF_EFFECT, width, height, it);
+    }
+    // FreeFrame (from file)
+    else {
+
+        // create new plugin with this file
+        ffgl_plugin = new FFGLPluginSource(width, height, it);
+
+        // load dll
+        ffgl_plugin->load(filename);
+    }
+
+    return ffgl_plugin;
+}
+
 Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w, int h, double depth) {
 
     FFGLSource *s = 0;
@@ -2047,8 +2072,6 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
                 }
 
                 // can we open this existing file ?
-                _renderwidget->makeCurrent();
-
                 // try to open until success (or maximum 3 tentatives)
                 int tentative = 0;
                 bool success = false;
@@ -2517,7 +2540,6 @@ void RenderingManager::pause(bool on){
     // setup status
     paused = on;
 
-    //qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
 }
 
 void RenderingManager::onSourceFailure() {

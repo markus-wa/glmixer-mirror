@@ -29,6 +29,10 @@
 #include "SourceSet.h"
 #include "WorkspaceManager.h"
 
+#ifdef GLM_FFGL
+#include "FFGLPluginSource.h"
+#endif
+
 typedef enum {
     QUALITY_VGA = 0,
     QUALITY_PAL,
@@ -112,6 +116,7 @@ public:
 #endif
 #ifdef GLM_FFGL
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
+    FFGLPluginSource *newFreeframeGLPlugin(int width, int height, FFGLTextureStruct it, QString filename = QString());
 #endif
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
     Source *newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QStringList playlist = QStringList (), double depth = -1.0);

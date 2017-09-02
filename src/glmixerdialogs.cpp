@@ -1,5 +1,6 @@
 #include "glmixerdialogs.moc"
 
+#include "glmixer.h"
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
 #include "SourceDisplayWidget.h"
@@ -188,6 +189,10 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
         tabLayout = new QVBoxLayout(tabs);
         tabLayout->addWidget(pluginBrowser);
         tabs->widget(1)->setLayout(tabLayout);
+
+        // enable the button for openning the shadertoy code
+        QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(accept()));
+        QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), GLMixer::getInstance(), SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
     }
 #else
     verticalLayout->addWidget(specificSourcePropertyBrowser);

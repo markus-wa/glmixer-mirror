@@ -165,7 +165,7 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
 
         property = buttonManager->addProperty( "Code" );
         idToProperty[property->propertyName()] = property;
-        buttonManager->setLabel(property, "Open editor");
+        buttonManager->setLabel(property, "Open in editor");
         buttonManager->setValue(property, tr("%1 lines").arg(numlines));
         pluginroot->addSubProperty(property);
         // keep correspondance between property and plugin
@@ -278,12 +278,9 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 
         // special case of code : open editor
         if(property == idToProperty["Code"] ) {
-            // Button clic (special case of value change)
+            // Button clic (special case of value change for ButtonPropertyManager)
             if (value.isNull())
                 emit edit(propertyToPluginParameter[property].first);
-//            else {
-//                // change value ?
-//            }
         }
         // general case: change the string
         else
