@@ -81,7 +81,7 @@ void CloneSource::setOriginal(Source *s) {
         it.Height = getFrameHeight();
         it.HardwareWidth = getFrameWidth();
         it.HardwareHeight = getFrameHeight();
-        _ffgl_plugins.top()->setInputTextureStruct(it);
+        _ffgl_plugins.first()->setInputTextureStruct(it);
     }
 #endif
 }
