@@ -277,7 +277,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     presetsList->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     QIcon icon;
-    icon.addFile(QString::fromUtf8(":/glmixer/icons/gear.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/paint.png"), QSize(), QIcon::Normal, QIcon::Off);
     applyAction = new QAction(icon, tr("Apply"), presetsList);
     presetsList->insertAction(0, applyAction);
     QObject::connect(applyAction, SIGNAL(triggered()), this, SLOT(on_presetApply_pressed()) );

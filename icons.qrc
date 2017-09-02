@@ -196,5 +196,6 @@
         <file>icons/undo.png</file>
         <file>icons/edit-paste.png</file>
         <file>icons/opengl.png</file>
+        <file>icons/paint.png</file>
     </qresource>
 </RCC>
