@@ -25,6 +25,7 @@
 #include <QtCheckBoxFactory>
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
+#include <ButtonEditorFactory.h>
 
 
 PropertyBrowser::PropertyBrowser(QWidget *parent) :
@@ -67,6 +68,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     enumManager = new QtEnumPropertyManager(this);
     boolManager = new QtBoolPropertyManager(this);
     rectManager = new QtRectFPropertyManager(this);
+    buttonManager = new ButtonPropertyManager(this);
 
     connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
                 this, SLOT(propertyValueChanged(QtProperty *, const QColor &)));
@@ -91,6 +93,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     QtLineEditFactory *lineEditFactory = new QtLineEditFactory(this);					// for text
     QtEnumEditorFactory *comboBoxFactory = new QtEnumEditorFactory(this);				// for enum
     QtColorEditorFactory *colorFactory = new QtColorEditorFactory(this);				// for color
+    ButtonEditorFactory *buttonFactory = new ButtonEditorFactory(this);
 
     propertyTreeEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
     propertyTreeEditor->setFactoryForManager(intManager, spinBoxFactory);
@@ -100,6 +103,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     propertyTreeEditor->setFactoryForManager(enumManager, comboBoxFactory);
     propertyTreeEditor->setFactoryForManager(boolManager, checkBoxFactory);
     propertyTreeEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
+    propertyTreeEditor->setFactoryForManager(buttonManager, buttonFactory);
 
     propertyGroupEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
     propertyGroupEditor->setFactoryForManager(intManager, sliderFactory);
@@ -109,6 +113,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     propertyGroupEditor->setFactoryForManager(enumManager, comboBoxFactory);
     propertyGroupEditor->setFactoryForManager(boolManager, checkBoxFactory);
     propertyGroupEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
+    propertyGroupEditor->setFactoryForManager(buttonManager, buttonFactory);
 
     // actions of context menus
     defaultValueAction = new QAction(QObject::tr("Default value"), this);
@@ -200,6 +205,8 @@ void PropertyBrowser::connectManagers()
                 this, SLOT(valueChanged(QtProperty *, bool)));
     connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
                 this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+    connect(buttonManager, SIGNAL(valueChanged(QtProperty *, const QString&)),
+                this, SLOT(valueChanged(QtProperty *, const QString&)));
 }
 
 void PropertyBrowser::disconnectManagers()
@@ -220,7 +227,8 @@ void PropertyBrowser::disconnectManagers()
                 this, SLOT(valueChanged(QtProperty *, bool)));
     disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
                 this, SLOT(valueChanged(QtProperty *, const QRectF &)));
-
+    disconnect(buttonManager, SIGNAL(valueChanged(QtProperty *, const QString&)),
+                this, SLOT(valueChanged(QtProperty *, const QString&)));
 }
 
 void PropertyBrowser::onCurrentItemChanged(QtBrowserItem *item)

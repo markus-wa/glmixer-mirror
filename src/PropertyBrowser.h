@@ -30,6 +30,7 @@ public slots:
     virtual void valueChanged(QtProperty *property, double value){}
     virtual void valueChanged(QtProperty *property, const QString &value){}
     virtual void valueChanged(QtProperty *property, const QRectF &value){}
+    virtual void valueChanged(QtProperty *property){}
 
     // access by property name
     void valueChanged(QString propertyName, bool value);
@@ -105,6 +106,7 @@ protected:
     class QtEnumPropertyManager *enumManager;
     class QtBoolPropertyManager *boolManager;
     class QtRectFPropertyManager *rectManager;
+    class ButtonPropertyManager *buttonManager;
 
     // context menus
     QUrl referenceURL;

@@ -47,12 +47,13 @@
 #include <QtCheckBoxFactory>
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
+#include <ButtonEditorFactory.h>
 #include <QFileInfo>
 #include <QShortcut>
 
 #include "common.h"
 #include "FFGLPluginSource.h"
-
+#include "FFGLPluginSourceShadertoy.h"
 
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
@@ -154,6 +155,21 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
         // keep correspondance between property and plugin
         propertyToPluginParameter[property] = QPair<FFGLPluginSource *, QString>(plugin, i.key());
 
+    }
+
+    if (plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+
+        FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+        QString code = stp->getCode();
+        int numlines = code.count( QChar('\n') ) + 1;
+
+        property = buttonManager->addProperty( "Code" );
+        idToProperty[property->propertyName()] = property;
+        buttonManager->setLabel(property, "Open editor");
+        buttonManager->setValue(property, tr("%1 lines").arg(numlines));
+        pluginroot->addSubProperty(property);
+        // keep correspondance between property and plugin
+        propertyToPluginParameter[property] = QPair<FFGLPluginSource *, QString>(plugin, property->propertyName());
     }
 
     // Get the informations on this plugin into a string list
@@ -259,7 +275,19 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, double value)
 void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 {
     if ( propertyToPluginParameter.contains(property) ) {
-        propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, QVariant(value));
+
+        // special case of code : open editor
+        if(property == idToProperty["Code"] ) {
+            // Button clic (special case of value change)
+            if (value.isNull())
+                emit edit(propertyToPluginParameter[property].first);
+//            else {
+//                // change value ?
+//            }
+        }
+        // general case: change the string
+        else
+            propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, QVariant(value));
     }
 }
 

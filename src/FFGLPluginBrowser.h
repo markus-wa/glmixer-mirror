@@ -76,6 +76,7 @@ private:
     QAction *removeAction;
     QAction *moveUpAction, *moveDownAction;
     QAction *editAction, *enableAction;
+
 };
 
 #endif // FFGLPLUGINBROWSER_H
