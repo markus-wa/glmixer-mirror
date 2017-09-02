@@ -72,6 +72,18 @@ void CloneSource::setOriginal(Source *s) {
     if (!ret.second)
         SourceCloneException().raise();
 
+#ifdef GLM_FFGL
+    // re-connect texture to freeframe gl plugin
+    if (! _ffgl_plugins.isEmpty()) {
+        FFGLTextureStruct it;
+        it.Handle = (GLuint) getTextureIndex();
+        it.Width = getFrameWidth();
+        it.Height = getFrameHeight();
+        it.HardwareWidth = getFrameWidth();
+        it.HardwareHeight = getFrameHeight();
+        _ffgl_plugins.top()->setInputTextureStruct(it);
+    }
+#endif
 }
 
 
