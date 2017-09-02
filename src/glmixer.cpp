@@ -1708,6 +1708,7 @@ void GLMixer::on_actionEditSource_triggered()
             }
         }
 #endif
+
         // for others, edit mean show the dialog to change source
         SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 
@@ -1720,29 +1721,20 @@ void GLMixer::on_actionEditSource_triggered()
 
 void GLMixer::replaceCurrentSource()
 {
-    // BHBN OLD IMPLEMENTATION : CRASHED
-    // if the current source is valid
-    // SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-    // if ( RenderingManager::getInstance()->isValid(cs) ) {
-
-    //     // remember identifier of current source
-    //     GLuint previoussource = (*cs)->getId();
-
-    //     // show gui to select the type of source to create instead
-    //     on_actionNewSource_triggered();
-
-    //     // drop the source and make new source current
-    //     RenderingManager::getInstance()->dropSource();
-
-    //     SourceSet::iterator newsource = RenderingManager::getInstance()->getCurrentSource();
-    //     if ( RenderingManager::getInstance()->isValid(newsource) ) {
-
-    //         RenderingManager::getInstance()->replaceSource(previoussource, (*newsource)->getId());
-    //     }
-    // }
-
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs) ) {
+
+        // if we replace a video source, help user by showing the same directory
+        if ( (*cs)->rtti() == Source::VIDEO_SOURCE ) {
+            VideoSource *vs = dynamic_cast<VideoSource *>(*cs);
+            if (vs) {
+                VideoFile *vf = vs->getVideoFile();
+                if (vf) {
+                    QFileInfo fi( vf->getFileName() );
+                    mfd->setDirectory( fi.dir() );
+                }
+            }
+        }
 
         // show gui to re-create a source of same type
         newSource( (*cs)->rtti() );
