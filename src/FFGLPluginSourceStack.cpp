@@ -116,6 +116,11 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(int width, int height, un
 }
 
 
+void FFGLPluginSourceStack::removePlugin(int id)
+{
+    removePlugin(at(id));
+}
+
 void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
 {
     // finds the index of the plugin in the list
@@ -204,6 +209,11 @@ void FFGLPluginSourceStack::moveDown(FFGLPluginSource *p)
         insert(id+1, p);
     }
 
+}
+
+void FFGLPluginSourceStack::clearAfterIndex(int id) {
+    while ( id < size() )
+        removePlugin(id);
 }
 
 void FFGLPluginSourceStack::clear(){

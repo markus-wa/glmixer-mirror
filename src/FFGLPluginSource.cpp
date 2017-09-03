@@ -496,7 +496,7 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName, bool install)
 
           if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
               QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
-              qDebug() << plugindll.absoluteFilePath()  << QChar(124).toLatin1() << QObject::tr("Created temporary plugin file.");
+              qDebug() << plugindll.absoluteFilePath()  << QChar(124).toLatin1() << QObject::tr("GPU Plugin instanciated.");
           } else
               qCritical() << plugindll.absoluteFilePath()  << QChar(124).toLatin1() << QObject::tr("Error creating temporary plugin file.");
       }

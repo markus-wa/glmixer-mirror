@@ -346,10 +346,12 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         setWorkspace( modifiable > 0 ? 0 : 1);
     }
 
-    // apply FreeFrame plugins configuration if provided
-    if ( !xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
-        // change the plugins for the new list; start by removing the existing one
+    // clear the plugin list if none provided
+    if ( xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
         clearFreeframeGLPlugin();
+    }
+    // apply FreeFrame plugins configuration if provided
+    else {
         // start loop of plugins to load
         int id = 0;
         QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
@@ -376,14 +378,15 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                         try {
                             FFGLPluginSource *plugin = NULL;
                             // is this the same plugin than in the current stack ?
-                            if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->fileName() == fileNameToOpen ) {
+                            if ( id < _ffgl_plugins.size()
+                                 && _ffgl_plugins.at(id)->fileName() == fileNameToOpen ) {
                                 // can keep this plugin as it is the same as in the config
                                 plugin = _ffgl_plugins.at(id);
                             }
                             else {
-                                // cannot keep the rest of the plugin stack as it is not identical as config
-                                for ( ; id < _ffgl_plugins.size(); id++)
-                                    _ffgl_plugins.remove(id);
+                                // cannot keep the rest of the stack as it is different from config
+                                _ffgl_plugins.clearAfterIndex(id);
+
                                 // create and push the plugin to the source
                                 plugin = addFreeframeGLPlugin( fileNameToOpen );
                                 qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
@@ -396,7 +399,8 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                             }
                             else {
                                 ret = false;
-                                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                                qWarning() << xmlconfig.attribute("name")
+                                           << QChar(124).toLatin1()
                                            << tr("GPU plugin %1 failed.").arg(QFileInfo(fileNameToOpen).baseName());
                             }
                         }
@@ -427,13 +431,13 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                             plugin = _ffgl_plugins.at(id);
                         }
                         else {
-                            // cannot keep the rest of the plugin stack as it is not identical as config
-                            for ( ; id < _ffgl_plugins.size(); id++)
-                                _ffgl_plugins.remove(id);
+                            // cannot keep the rest of the stack as it is different from config
+                            _ffgl_plugins.clearAfterIndex(id);
+
                             // create and push the plugin to the source
                             plugin = addFreeframeGLPlugin();
                             qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                                     << tr("Shadertoy plugin added.");
+                                     << tr("GPU plugin Shadertoy added.");
                         }
 
                         // apply the code
@@ -470,6 +474,9 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
             // next plugin in stack
             id++;
         }
+
+        // remove the rest of the stack as it is not part of config
+        _ffgl_plugins.clearAfterIndex(id);
     }
 
     return ret;

@@ -3517,6 +3517,9 @@ void GLMixer::undoChanged(bool undo, bool redo)
 {
     actionUndo->setEnabled(undo);
     actionRedo->setEnabled(redo);
+
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void GLMixer::updateWorkspaceActions()
