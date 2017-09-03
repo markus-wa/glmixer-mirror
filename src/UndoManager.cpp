@@ -57,6 +57,7 @@ void UndoManager::clear()
 
     _previousSender = QString();
     _previousSignature = QString();
+    _lastSignature = QString();
 
     if (_status > DISABLED)
         _status = READY;
@@ -114,7 +115,7 @@ void UndoManager::restore(long int i)
     _currentIndex = qBound(_firstIndex, i, _lastIndex);
 
 #ifdef DEBUG_UNDO
-    fprintf(stderr, " restoring %ld [%ld %ld] :\n", _currentIndex, _firstIndex, _lastIndex);
+    fprintf(stderr, " yes: restoring %ld [%ld %ld] :\n", _currentIndex, _firstIndex, _lastIndex);
 #endif
 
     // get status of sources at index in history
@@ -139,7 +140,7 @@ void UndoManager::restore(long int i)
                     fprintf(stderr, "    Update %s \n", qPrintable(sourcename));
 #endif
                     // apply configuration
-                    if ( !(*sit)->setConfiguration(child) )
+                    if ( ! (*sit)->setConfiguration(child) )
                         qDebug() << "failed to set configuration";
 
                     // apply change of depth
@@ -270,11 +271,16 @@ void UndoManager::store(QString signature)
     QObject *sender_object = sender();
     if (sender_object) {
 
+        // break the active mode
+        if (_status == ACTIVE) {
+            _status = READY;
+        }
+
         // if no previous sender or no previous signature
         if (_previousSender.isEmpty() || _previousSignature.isEmpty()) {
 
 #ifdef DEBUG_UNDO
-            fprintf(stderr, "> catch %s %s  {%d} ", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
+            fprintf(stderr, "> catch %s %s  {%d} \n", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
 #endif
             // its a new event!
             store();
@@ -287,7 +293,7 @@ void UndoManager::store(QString signature)
                     || signature != _previousSignature ) {
 
 #ifdef DEBUG_UNDO
-                fprintf(stderr, "  catch %s %s  {%d} ", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
+                fprintf(stderr, "  catch %s %s  {%d} \n", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
 #endif
                 // this event is different from previous
                 store();
@@ -325,7 +331,10 @@ void UndoManager::addHistory(long int index)
     if (!renderConfig.isNull()) {
         QDomElement root = _history.createElement( QString("%1").arg(index));
         root.setAttribute("label", undolabel);
+
+        // add the whole config to the undo element
         root.appendChild(renderConfig);
+
         _history.appendChild(root);
     }
 
