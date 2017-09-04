@@ -2242,6 +2242,7 @@ void GLMixer::openSessionFile()
 
     // suspend display
     RenderingManager::getInstance()->pause(true);
+    RenderingManager::getRenderingWidget()->setFaded(true);
     QCoreApplication::processEvents();
 
     // clear sources
@@ -2342,7 +2343,9 @@ void GLMixer::openSessionFile()
     blocNoteEdit->setPlainText(text);
 
     // unsuspend display
+    RenderingManager::getRenderingWidget()->setFaded(false);
     RenderingManager::getInstance()->pause(false);
+    QCoreApplication::processEvents();
 
     // broadcast that the session is loaded
     emit sessionLoaded();
@@ -3552,7 +3555,7 @@ void GLMixer::setBusy(bool busy)
     timer->stop();
 
     if (busy)
-        timer->start(100);
+        timer->start(150);
     else {
         RenderingManager::getRenderingWidget()->setBusy(false);
         setDisabled(false);
