@@ -1410,6 +1410,12 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
+        // list of files
+        property = infoManager->addProperty( QLatin1String("Playlist") );
+        property->setToolTip("Playing order");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
+
         // options
         idToProperty["Bidirectional"] = boolManager->addProperty("Bidirectional");
         idToProperty["Shuffle"] = boolManager->addProperty("Shuffle");
@@ -1420,12 +1426,18 @@ public:
 
         // Set values
         infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(" ") );
+        QString plist;
+        foreach (int in, bs->getPlaylist()) {
+            plist.append(QString::number(in) + ", ");
+        }
+        infoManager->setValue(idToProperty["Playlist"], QString(plist) );
         boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());
         boolManager->setValue(idToProperty["Shuffle"], bs->isShuffle());
         intManager->setValue(idToProperty["Frequency"], (int) ( 1000.0 / double(bs->getPeriod()) ) );
 
         //  show Properties
         addProperty(idToProperty["Files"]);
+        addProperty(idToProperty["Playlist"]);
         addProperty(idToProperty["Bidirectional"]);
         addProperty(idToProperty["Shuffle"]);
         addProperty(idToProperty["Frequency"]);

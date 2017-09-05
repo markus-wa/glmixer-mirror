@@ -334,6 +334,7 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
 
 bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 {
+    // apply proto configuration
     bool ret = ProtoSource::setConfiguration(xmlconfig);
 
     // set workspace

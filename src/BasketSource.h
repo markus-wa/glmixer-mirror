@@ -74,6 +74,7 @@ public:
     bool isShuffle() const;
     qint64 getPeriod() const;
     QStringList getImageFileList() const;
+    QList<int> getPlaylist() const;
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 

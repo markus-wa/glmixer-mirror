@@ -60,6 +60,10 @@ void ImageFilesList::dragLeaveEvent(QDragLeaveEvent *event)
 
 void ImageFilesList::dropEvent(QDropEvent *event)
 {
+    // default management of Drop Event
+    QListWidget::dropEvent(event);
+
+    // react according to event data
     const QMimeData *mimeData = event->mimeData();
 
     // an external file has been dropped
@@ -73,6 +77,9 @@ void ImageFilesList::dropEvent(QDropEvent *event)
             QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
+
+                QString filename = urlname.absoluteFilePath();
+
                 // accept the drop action
                 event->acceptProposedAction();
                 setEnabled(false);
@@ -81,11 +88,13 @@ void ImageFilesList::dropEvent(QDropEvent *event)
                 QListWidgetItem *newitem = 0;
 
                 // try to find the file in the list
-                int index = _fileNames.indexOf(urlname.absoluteFilePath());
-                if (index < 0) {
+                QList<QListWidgetItem *> previousitems = findItemsData( filename );
+
+                // the image not in the list
+                if (previousitems.size() == 0) {
 
                     // try to make an image: accept if not null
-                    QPixmap image(urlname.absoluteFilePath());
+                    QPixmap image(filename);
                     if (image.isNull())
                         continue;
 
@@ -93,26 +102,21 @@ void ImageFilesList::dropEvent(QDropEvent *event)
                     if ( item(0) == dropHintItem)
                         takeItem(0);
 
-                    // if it is an image not in the list
                     // add it to the list
-                    index = _fileNames.size();
-                    _fileNames.insert( index, urlname.absoluteFilePath() );
+                    _fileNames.append( filename );
 
                     // create a new item with the image file information
                     newitem = new QListWidgetItem(this);
                     newitem->setText(urlname.baseName());
                     newitem->setIcon(image.scaledToHeight(64));
-                    newitem->setData(Qt::UserRole, index);
-//                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
-                    newitem->setToolTip(QString("%1").arg(index));  // DEBUG
-
-                    _referenceItems.insert( index, newitem );
+                    newitem->setData(Qt::UserRole, filename);
+                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
 
                 }
                 // already in the list : clone the item
                 else {
                     // clone item
-                    newitem = new QListWidgetItem( *_referenceItems[index]);
+                    newitem = new QListWidgetItem( *(previousitems.first()) );
 
                 }
 
@@ -131,16 +135,28 @@ void ImageFilesList::dropEvent(QDropEvent *event)
     // an internal item has been moved
     else {
 
-        qDebug() << "drag move " << getPlayList();
+//        qDebug() << "drag move " << getPlayList();
         // update source preview with new playlist
 
     }
 
     // inform & update source preview
-    emit countChanged( count() );
+    emit changed( count() );
 
-    // default management of Drop Event
-    QListWidget::dropEvent(event);
+}
+
+
+QList<QListWidgetItem *> ImageFilesList::findItemsData(QString filename)
+{
+    QList<QListWidgetItem *> list;
+
+    // loop over rows of QListWidget
+    for (int i = 0; i < count(); ++i) {
+        if ( item(i)->data(Qt::UserRole).toString().compare(filename) == 0)
+            list.append(item(i));
+    }
+
+    return list;
 }
 
 void ImageFilesList::deleteSelectedItems()
@@ -151,20 +167,20 @@ void ImageFilesList::deleteSelectedItems()
             // do not remove, just take the drop hint item
             takeItem(0);
         else {
-            // try to find the item in the reference list
-            int index = _referenceItems.indexOf(it);
-            if (index > -1) {
-                // remove found element from the list of files
-                _referenceItems.removeAt(index);
-                _fileNames.removeAt(index);
-            }
+            // what file is referenced by this item ?
+            QString filename = it->data(Qt::UserRole).toString();
+            // if only one item reference this filename, remove it
+            QList<QListWidgetItem *> items = findItemsData( filename );
+            if (items.size() < 2)
+                _fileNames.removeAll( filename );
+
             // delete item
             delete it;
         }
     }
 
     // inform
-    emit countChanged( count() );
+    emit changed( count() );
 
     // show hint
     if (count() < 1)
@@ -180,8 +196,9 @@ void ImageFilesList::deleteAllItems()
 void ImageFilesList::sortAlphabetical()
 {
     sortItems();
-    // inform // TODO emit orderChanged( getPlayList() );
-    emit countChanged( count() );
+
+    // inform
+    emit changed( count() );
 }
 
 
@@ -198,17 +215,14 @@ QList<int> ImageFilesList::getPlayList()
     if (item(0) != dropHintItem) {
         // loop over rows of QListWidget
         for (int i = 0; i < count(); ++i) {
-            list.append( item(i)->data(Qt::UserRole).toInt() );
-            qDebug() << "row " << i << " index " <<  item(i)->data(Qt::UserRole).toInt() << _fileNames[item(i)->data(Qt::UserRole).toInt()];
+
+            // try to find the item in the reference list
+            int index = _fileNames.indexOf(item(i)->data(Qt::UserRole).toString());
+            // the item is in the list
+            if (index > -1) {
+                list.append( index );
+            }
         }
-
-    //  foreach (const QModelIndex &index, indexes) {
-    //      if (index.isValid()) {
-    //          QString text = data(index, Qt::DisplayRole).toString();
-    //          stream << text;
-    //      }
-    //  }
-
     }
 
     return list;
@@ -223,7 +237,7 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
 
     // create basket list
     basket = new ImageFilesList(ui->leftFrame);
-    connect(basket, SIGNAL(countChanged(int)), SLOT(displayCount(int)));
+    connect(basket, SIGNAL(changed(int)), SLOT(displayCount(int)));
 
     // insert basket into ui
     delete (ui->basket);
@@ -237,7 +251,7 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     ui->leftLayout->insertWidget(1, ui->basket);
 
     // refresh of preview source
-    connect(ui->basket, SIGNAL(countChanged(int)), SLOT(updateSourcePreview()));
+    connect(ui->basket, SIGNAL(changed(int)), SLOT(updateSourcePreview()));
     connect(ui->sizeselection, SIGNAL(sizeChanged()), SLOT(updateSourcePreview()));
 
     // Actions from GUI buttons
@@ -337,6 +351,15 @@ QStringList BasketSelectionDialog::getSelectedFiles() {
     return basket->getFilesList();
 }
 
+
+QStringList BasketSelectionDialog::getSelectedPlayList() {
+
+    QStringList pl;
+    foreach (int i, basket->getPlayList()) {
+        pl.append(QString::number(i));
+    }
+    return pl;
+}
 
 bool BasketSelectionDialog::getSelectedBidirectional(){
 

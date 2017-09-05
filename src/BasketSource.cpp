@@ -105,6 +105,8 @@ void BasketSource::setPeriod(qint64 p){
 
 void BasketSource::setPlaylist(QList<int> playlist){
 
+    qDebug() << "Set Playlist " << playlist;
+
     _playlist.clear();
     _executionList.clear();
 
@@ -115,7 +117,6 @@ void BasketSource::setPlaylist(QList<int> playlist){
             _playlist.append(index);
     }
 
-    qDebug()<<"Playlist "<<_playlist;
 }
 
 
@@ -143,12 +144,19 @@ QStringList BasketSource::getImageFileList() const {
     QStringList list;
 
     foreach (BasketImage img, _atlasImages) {
-        QString completefilename = QFileInfo( img.fileName() ).absoluteFilePath();
+        QString completefilename = QFileInfo( img.fileName() ).fileName();
         list.append(completefilename);
     }
 
     return list;
 }
+
+
+QList<int> BasketSource::getPlaylist() const {
+
+    return _playlist;
+}
+
 
 void BasketSource::update() {
 

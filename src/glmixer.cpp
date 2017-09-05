@@ -1300,10 +1300,11 @@ void GLMixer::on_actionBasketSource_triggered(){
        int p = bsd->getSelectedPeriod();
        bool b = bsd->getSelectedBidirectional();
        bool s = bsd->getSelectedShuffle();
+       QStringList pl = bsd->getSelectedPlayList();
 
        if (!fileNames.empty()) {
 
-           Source *bs = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p, b, s);
+           Source *bs = RenderingManager::getInstance()->newBasketSource(fileNames, w, h, p, b, s, pl);
            if (bs) {
                RenderingManager::getInstance()->addSourceToBasket(bs);
            } else

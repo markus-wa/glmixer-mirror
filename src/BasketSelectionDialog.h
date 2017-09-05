@@ -24,7 +24,7 @@ public:
     QList<int> getPlayList();
 
 signals:
-    void countChanged(int);
+    void changed(int);
 
 public slots:
     void deleteSelectedItems();
@@ -37,9 +37,12 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent * event);
 
+    QList<QListWidgetItem *> findItemsData(QString filename);
+
     QListWidgetItem *dropHintItem;
     QStringList _fileNames;
-    QList<QListWidgetItem *> _referenceItems;
+//    QList<int> _playlist;
+//    QList<QListWidgetItem *> _referenceItems;
 };
 
 class BasketSelectionDialog : public QDialog
@@ -54,6 +57,7 @@ public:
     int getSelectedHeight();
     int getSelectedPeriod();
     QStringList getSelectedFiles();
+    QStringList getSelectedPlayList();
     bool getSelectedBidirectional();
     bool getSelectedShuffle();
 
