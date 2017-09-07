@@ -1,6 +1,6 @@
 #include "SizeSelectionWidget.moc"
 #include "ui_SizeSelectionWidget.h"
-
+#include "common.h"
 
 SizeSelectionWidget::SizeSelectionWidget(QWidget *parent) :
     QWidget(parent),
@@ -15,6 +15,20 @@ SizeSelectionWidget::SizeSelectionWidget(QWidget *parent) :
     QObject::connect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SIGNAL(sizeChanged()));
     QObject::connect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SIGNAL(sizeChanged()));
 
+    // remove selections above hardware capabilities
+    GLint max = glMaximumTextureWidth();
+    if (max<2048) {
+        ui->presetsSizeComboBox->removeItem(19);
+        ui->presetsSizeComboBox->removeItem(18);
+    }
+    if (max<1920) {
+        ui->presetsSizeComboBox->removeItem(17);
+    }
+    if (max<1600) {
+        ui->presetsSizeComboBox->removeItem(16);
+    }
+
+    // default size 1024x768
     setSizePreset(14);
 }
 
@@ -114,6 +128,14 @@ void SizeSelectionWidget::setSizePreset(int preset){
         case 17:
             ui->widthSpinBox->setValue(1920);
             ui->heightSpinBox->setValue(1080);
+            break;
+        case 18:
+            ui->widthSpinBox->setValue(2048);
+            ui->heightSpinBox->setValue(1152);
+            break;
+        case 19:
+            ui->widthSpinBox->setValue(2048);
+            ui->heightSpinBox->setValue(1152);
             break;
         }
 

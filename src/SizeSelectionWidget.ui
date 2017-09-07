@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>290</width>
+    <width>307</width>
     <height>133</height>
    </rect>
   </property>
@@ -159,12 +159,12 @@
         </item>
         <item>
          <property name="text">
-          <string>2048 x 1536 (QXGA)</string>
+          <string>2048 x 1152 (QWXGA)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>2048 x 1152 (QWXGA)</string>
+          <string>2048 x 1536 (QXGA)</string>
          </property>
         </item>
        </widget>
@@ -172,7 +172,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Width x Height </string>
+         <string>Width &amp;x Height </string>
         </property>
         <property name="buddy">
          <cstring>presetsSizeComboBox</cstring>
