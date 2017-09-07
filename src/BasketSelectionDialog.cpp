@@ -8,6 +8,18 @@
 #include "common.h"
 
 
+bool listWidgetItemLessThan(const QListWidgetItem *i1, const QListWidgetItem *i2)
+{
+    QListWidget *lw = i1->listWidget();
+    return lw->row(i1) < lw->row(i2);
+}
+
+bool listWidgetItemMoreThan(const QListWidgetItem *i1, const QListWidgetItem *i2)
+{
+    QListWidget *lw = i1->listWidget();
+    return lw->row(i1) > lw->row(i2);
+}
+
 ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
 {
     setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -27,7 +39,7 @@ ImageFilesList::ImageFilesList(QWidget *parent) : QListWidget(parent)
     dropHintItem->setFlags(dropHintItem->flags() & ~(Qt::ItemIsDropEnabled));
 //    insertItem(0, dropHintItem);
 
-    new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteSelectedItems()));
+    new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteSelectedImages()));
 }
 
 void ImageFilesList::dragEnterEvent(QDragEnterEvent *event)
@@ -58,6 +70,82 @@ void ImageFilesList::dragLeaveEvent(QDragLeaveEvent *event)
     event->ignore();
 }
 
+
+QList<QListWidgetItem*> ImageFilesList::selectedImages()
+{
+    QList<QListWidgetItem*> selection = selectedItems();
+
+    if (!selection.empty()) {
+        qSort(selection.begin(), selection.end(), listWidgetItemLessThan);
+
+        if (selection.first() == dropHintItem)
+            selection.clear();
+    }
+
+    return selection;
+}
+
+void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
+{
+    int c = count();
+
+    for (int i = 0; i < urlList.size(); ++i) {
+
+        // Make sure the file exists and is readable
+        QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
+        if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
+
+            // get filename
+            QString filename = urlname.absoluteFilePath();
+
+            // prepare to create a new item
+            QListWidgetItem *newitem = 0;
+
+            // try to find the filename in the list
+            QList<QListWidgetItem *> previousitems = findItemsData( filename );
+
+            // the image not in the list
+            if (previousitems.size() == 0) {
+
+                // try to make an image: accept if not null
+                QPixmap image(filename);
+                if (image.isNull())
+                    continue;
+
+                // no more need for drop hint
+                if ( item(0) == dropHintItem)
+                    takeItem(0);
+
+                // add it to the list
+                _fileNames.append( filename );
+
+                // create a new item with the image file information
+                newitem = new QListWidgetItem(this);
+                newitem->setText(urlname.baseName());
+                newitem->setIcon(image.scaledToHeight(64));
+                newitem->setData(Qt::UserRole, filename);
+                newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
+
+            }
+            // already in the list : clone the item
+            else {
+                // clone item
+                newitem = new QListWidgetItem( *(previousitems.first()) );
+
+            }
+
+            // add the item
+            addItem(newitem);
+            setCurrentItem(newitem, QItemSelectionModel::ClearAndSelect);
+
+        }
+    }
+
+    // inform & update source preview
+    if ( count() != c )
+        emit changed( count() );
+}
+
 void ImageFilesList::dropEvent(QDropEvent *event)
 {
     // default management of Drop Event
@@ -69,63 +157,13 @@ void ImageFilesList::dropEvent(QDropEvent *event)
     // an external file has been dropped
     if (mimeData->hasUrls()) {
 
+        // accept the drop action
+        event->acceptProposedAction();
+        setEnabled(false);
+        QCoreApplication::processEvents();
+
         // deal with all the urls dropped
-        QList<QUrl> urlList = mimeData->urls();
-        for (int i = 0; i < urlList.size(); ++i) {
-
-            // Make sure the file exists and is readable
-            QFileInfo urlname = getFileInfoFromURL(urlList.at(i));
-            if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
-
-
-                QString filename = urlname.absoluteFilePath();
-
-                // accept the drop action
-                event->acceptProposedAction();
-                setEnabled(false);
-                QCoreApplication::processEvents();
-
-                QListWidgetItem *newitem = 0;
-
-                // try to find the file in the list
-                QList<QListWidgetItem *> previousitems = findItemsData( filename );
-
-                // the image not in the list
-                if (previousitems.size() == 0) {
-
-                    // try to make an image: accept if not null
-                    QPixmap image(filename);
-                    if (image.isNull())
-                        continue;
-
-                    // no more need for drop hint
-                    if ( item(0) == dropHintItem)
-                        takeItem(0);
-
-                    // add it to the list
-                    _fileNames.append( filename );
-
-                    // create a new item with the image file information
-                    newitem = new QListWidgetItem(this);
-                    newitem->setText(urlname.baseName());
-                    newitem->setIcon(image.scaledToHeight(64));
-                    newitem->setData(Qt::UserRole, filename);
-                    newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
-
-                }
-                // already in the list : clone the item
-                else {
-                    // clone item
-                    newitem = new QListWidgetItem( *(previousitems.first()) );
-
-                }
-
-                // add the item
-                addItem(newitem);
-                setCurrentItem(newitem, QItemSelectionModel::ClearAndSelect);
-
-            }
-        }
+        appendImageFiles(mimeData->urls());
 
         // done
         setEnabled(true);
@@ -135,13 +173,11 @@ void ImageFilesList::dropEvent(QDropEvent *event)
     // an internal item has been moved
     else {
 
-//        qDebug() << "drag move " << getPlayList();
-        // update source preview with new playlist
+        // nothind to do, just
+        // inform & update source preview
+        emit changed( count() );
 
     }
-
-    // inform & update source preview
-    emit changed( count() );
 
 }
 
@@ -159,7 +195,7 @@ QList<QListWidgetItem *> ImageFilesList::findItemsData(QString filename)
     return list;
 }
 
-void ImageFilesList::deleteSelectedItems()
+void ImageFilesList::deleteSelectedImages()
 {
     // loop over all items selected
     foreach (QListWidgetItem *it, selectedItems()) {
@@ -187,13 +223,38 @@ void ImageFilesList::deleteSelectedItems()
         insertItem(0, dropHintItem);
 }
 
-void ImageFilesList::deleteAllItems()
+
+void ImageFilesList::duplicateSelectedImages()
 {
-    selectAll();
-    deleteSelectedItems();
+    QList<QListWidgetItem*> items = selectedItems();
+    qSort(items.begin(), items.end(), listWidgetItemMoreThan);
+
+    // clear selection
+    setCurrentRow(-1);
+
+    // where to insert
+    int r = row(items.last());
+
+    // prepare to create a new item
+    QListWidgetItem *newitem = 0;
+    foreach (QListWidgetItem *it, items) {
+
+        newitem = new QListWidgetItem( *it );
+        insertItem(r, newitem);
+        setCurrentItem(newitem, QItemSelectionModel::Select);
+    }
+
+    // inform
+    emit changed( count() );
 }
 
-void ImageFilesList::sortAlphabetical()
+void ImageFilesList::deleteAllImages()
+{
+    selectAll();
+    deleteSelectedImages();
+}
+
+void ImageFilesList::sortAlphabetically()
 {
     sortItems();
 
@@ -202,7 +263,47 @@ void ImageFilesList::sortAlphabetical()
 }
 
 
-QStringList ImageFilesList::getFilesList()
+void ImageFilesList::moveSelectionUp(){
+
+    // NB : not checking for validity of the action :
+    // the button is enable only if the action is possible in updateActions()
+    QList<QListWidgetItem*> items = selectedItems();
+    qSort(items.begin(), items.end(), listWidgetItemLessThan);
+
+    // moving up is decrementing row of selected items, starting from the first
+    int r = -1;
+    foreach (QListWidgetItem *it, items) {
+        r = row(it);
+        takeItem(r);
+        insertItem(--r,it);
+        setCurrentRow(r, QItemSelectionModel::Select);
+    }
+
+    // inform
+    emit changed( count() );
+}
+
+void ImageFilesList::moveSelectionDown(){
+
+    // NB : not checking for validity of the action :
+    // the button is enable only if the action is possible in updateActions()
+    QList<QListWidgetItem*> items = selectedItems();
+    qSort(items.begin(), items.end(), listWidgetItemMoreThan);
+
+    // moving down is incrementing row of selected items, starting from the last
+    int r = -1;
+    foreach (QListWidgetItem *it, items) {
+        r = row(it);
+        takeItem(r);
+        insertItem(++r,it);
+        setCurrentRow(r, QItemSelectionModel::Select);
+    }
+
+    // inform
+    emit changed( count() );
+}
+
+QStringList ImageFilesList::getFiles()
 {
     return _fileNames;
 }
@@ -251,14 +352,17 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     ui->leftLayout->insertWidget(1, ui->basket);
 
     // refresh of preview source
-    connect(ui->basket, SIGNAL(changed(int)), SLOT(updateSourcePreview()));
+    connect(basket, SIGNAL(changed(int)), SLOT(updateSourcePreview()));
     connect(ui->sizeselection, SIGNAL(sizeChanged()), SLOT(updateSourcePreview()));
 
     // Actions from GUI buttons
-    connect(ui->clearBasket, SIGNAL(pressed()), basket, SLOT(deleteAllItems()));
-    connect(ui->removeCurrentImage, SIGNAL(pressed()), basket, SLOT(deleteSelectedItems()));
-    connect(ui->orderAlphanumeric, SIGNAL(pressed()), basket, SLOT(sortAlphabetical()));
+    connect(ui->clearBasket, SIGNAL(pressed()), basket, SLOT(deleteAllImages()));
+    connect(ui->removeCurrentImage, SIGNAL(pressed()), basket, SLOT(deleteSelectedImages()));
+    connect(ui->duplicateCurrentImage, SIGNAL(pressed()), basket, SLOT(duplicateSelectedImages()));
+    connect(ui->orderAlphanumeric, SIGNAL(pressed()), basket, SLOT(sortAlphabetically()));
 
+    // enable / disable actions for selection
+    connect(basket, SIGNAL(itemSelectionChanged()), SLOT(updateActions()));
 }
 
 BasketSelectionDialog::~BasketSelectionDialog()
@@ -277,7 +381,7 @@ void BasketSelectionDialog::updateSourcePreview(){
         s = 0;
     }
 
-    QStringList files = basket->getFilesList();
+    QStringList files = basket->getFiles();
     if (files.count() < 1)
         return;
 
@@ -306,7 +410,7 @@ void BasketSelectionDialog::updateSourcePreview(){
 void BasketSelectionDialog::showEvent(QShowEvent *e){
 
     // clear
-    basket->deleteAllItems();
+    basket->deleteAllImages();
 
     // show no source
     updateSourcePreview();
@@ -348,7 +452,7 @@ int BasketSelectionDialog::getSelectedPeriod() {
 
 QStringList BasketSelectionDialog::getSelectedFiles() {
 
-    return basket->getFilesList();
+    return basket->getFiles();
 }
 
 
@@ -372,6 +476,38 @@ bool BasketSelectionDialog::getSelectedShuffle(){
 }
 
 
+void BasketSelectionDialog::on_addImages_pressed() {
+
+     bool generatePowerOfTwoRequested = false;
+     QStringList fileNames = GLMixer::getInstance()->getMediaFileNames(generatePowerOfTwoRequested);
+
+     QList<QUrl> urlList;
+     foreach (QString filename, fileNames) {
+         urlList.append(QUrl(filename));
+     }
+
+     setEnabled(false);
+     QCoreApplication::processEvents();
+
+     // deal with all the urls selected
+     basket->appendImageFiles(urlList);
+
+     // done
+     setEnabled(true);
+     QCoreApplication::processEvents();
+}
+
+
+void BasketSelectionDialog::on_moveUp_pressed() {
+
+    basket->moveSelectionUp();
+}
+
+void BasketSelectionDialog::on_moveDown_pressed(){
+
+    basket->moveSelectionDown();
+}
+
 void BasketSelectionDialog::on_frequencySlider_valueChanged(int v){
 
     if (s)
@@ -393,8 +529,28 @@ void BasketSelectionDialog::on_shuffle_toggled(bool on){
 void BasketSelectionDialog::displayCount(int v){
 
     ui->informationLabel->setText(tr("%1 images in basket.").arg( v ));
-
-    ui->removeCurrentImage->setEnabled( v > 0 );
     ui->orderAlphanumeric->setEnabled( v > 0 );
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled( v > 0 );
+}
+
+
+void BasketSelectionDialog::updateActions(){
+
+    // get a SORTED list of images (by increasing row)
+    QList<QListWidgetItem*> selection = basket->selectedImages();
+
+    // reset
+    ui->moveUp->setEnabled( true ) ;
+    ui->moveDown->setEnabled( true ) ;
+    ui->itemActions->setEnabled( false );
+
+    // if selection is not empty
+    if (!selection.empty()) {
+        // enable the buttons of actions on selection
+        ui->itemActions->setEnabled( true );
+        // update status for move up and down (min and max tests on ordered list)
+        ui->moveUp->setEnabled( basket->row(selection.first()) > 0 ) ;
+        ui->moveDown->setEnabled( basket->row(selection.last()) < basket->count() - 1 ) ;
+    }
+
 }

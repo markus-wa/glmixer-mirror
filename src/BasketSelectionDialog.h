@@ -20,16 +20,22 @@ class ImageFilesList : public QListWidget
 public:
     explicit ImageFilesList(QWidget *parent = 0);
 
-    QStringList getFilesList();
+    QStringList getFiles();
     QList<int> getPlayList();
+
+    void appendImageFiles(QList<QUrl> urlList);
+    QList<QListWidgetItem*> selectedImages();
 
 signals:
     void changed(int);
 
 public slots:
-    void deleteSelectedItems();
-    void deleteAllItems();
-    void sortAlphabetical();
+    void duplicateSelectedImages();
+    void deleteSelectedImages();
+    void deleteAllImages();
+    void sortAlphabetically();
+    void moveSelectionUp();
+    void moveSelectionDown();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
@@ -41,8 +47,6 @@ protected:
 
     QListWidgetItem *dropHintItem;
     QStringList _fileNames;
-//    QList<int> _playlist;
-//    QList<QListWidgetItem *> _referenceItems;
 };
 
 class BasketSelectionDialog : public QDialog
@@ -53,6 +57,7 @@ public:
     explicit BasketSelectionDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~BasketSelectionDialog();
 
+    // give parameters generated
     int getSelectedWidth();
     int getSelectedHeight();
     int getSelectedPeriod();
@@ -65,12 +70,18 @@ public slots:
 
     void done(int r);
 
+    // user input on parameters
     void on_frequencySlider_valueChanged(int v);
     void on_bidirectional_toggled(bool on);
     void on_shuffle_toggled(bool on);
-
+    // actions on items
+    void on_addImages_pressed();
+    void on_moveUp_pressed();
+    void on_moveDown_pressed();
+    // updates display
     void displayCount(int v);
     void updateSourcePreview();
+    void updateActions();
 
 protected:
     void showEvent(QShowEvent *);

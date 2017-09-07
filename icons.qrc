@@ -197,5 +197,6 @@
         <file>icons/edit-paste.png</file>
         <file>icons/opengl.png</file>
         <file>icons/paint.png</file>
+        <file>icons/uparrow.png</file>
     </qresource>
 </RCC>
