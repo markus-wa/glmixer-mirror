@@ -28,6 +28,7 @@
 
 #include "Source.h"
 #include "RenderingManager.h"
+#include "ImageAtlas.h"
 
 class FboRenderingException : public SourceConstructorException {
 public:
@@ -36,19 +37,6 @@ public:
     Exception *clone() const { return new FboRenderingException(*this); }
 };
 
-class BasketImage {
-public:
-    BasketImage(QString f);
-
-    QString fileName() const { return _fileName; }
-    QRect coordinates() const { return _coordinates; }
-    void setCoordinates(QRect r) { _coordinates = r; }
-
-private:
-    QString _fileName;
-    QRect _coordinates;
-    bool _filled;
-};
 
 class BasketSource : public Source
 {
@@ -98,11 +86,9 @@ protected:
 
 private:
 
-    QSize allocateAtlas(int n);
     void generateExecutionPlaylist();
 
     // source info
-    int width, height;
     qint64 period;
     bool bidirectional;
     bool shuffle;
@@ -111,11 +97,11 @@ private:
     QElapsedTimer _timer;
     bool _pause;
 
-    // Frame buffer objetsB
+    // Frame buffer objets for rendering
     class QGLFramebufferObject *_renderFBO;
-    class QGLFramebufferObject *_atlasFBO;
-    bool _atlasInitialized;
-    QList<BasketImage> _atlasImages;
+
+    // atlas of images
+    ImageAtlas _atlas;
 
     // playing order
     QList<int> _playlist;

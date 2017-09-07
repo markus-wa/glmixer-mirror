@@ -88,6 +88,7 @@ SET(GLMIXER_SRCS
     TimelineSlider.cpp
     BasketSource.cpp
     BasketSelectionDialog.cpp
+    ImageAtlas.cpp
 )
 
 

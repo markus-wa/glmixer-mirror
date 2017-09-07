@@ -595,8 +595,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     confirmSessionFileName();
 
     // activate clipboard
-    connect(QApplication::clipboard(), SIGNAL(dataChanged()), SLOT(on_Cliboard_dataChanged()));
-    on_Cliboard_dataChanged();
+    connect(QApplication::clipboard(), SIGNAL(dataChanged()), SLOT(CliboardDataChanged()));
+
+    CliboardDataChanged();
 
 }
 
@@ -3373,7 +3374,7 @@ void GLMixer::on_actionPaste_triggered() {
     }
 }
 
-void GLMixer::on_Cliboard_dataChanged() {
+void GLMixer::CliboardDataChanged() {
 
     // by default, clipboard cannot be pasted
     actionPaste->setEnabled(false);

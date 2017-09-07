@@ -53,7 +53,8 @@ class ViewRenderWidget: public glRenderWidget {
     friend class RenderingManager;
     friend class Source;
     friend class RenderingSource;
-    friend class BasketSource;
+    friend class BasketSource; // toremove
+    friend class ImageAtlas;
     friend class RenderingView;
     friend class MixerView;
     friend class GeometryView;

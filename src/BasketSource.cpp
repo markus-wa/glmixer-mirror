@@ -4,18 +4,21 @@
 
 #include <QImage>
 //#include <algorithm>
+#include "ImageAtlas.h"
 
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;
 bool BasketSource::playable = true;
 
-BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d), width(w), height(h), period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0), _atlasFBO(0), _atlasInitialized(false)
+BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d),  period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0)
 {
     // allocate the FBO for rendering
-    _renderFBO = new QGLFramebufferObject(width, height);
+    _renderFBO = new QGLFramebufferObject(w, h);
     CHECK_PTR_EXCEPTION(_renderFBO);
 
     // fill in the atlas
-    appendImages(files);
+    _atlas.setSize(w, h);
+    if (!_atlas.appendImages(files))
+         FboRenderingException().raise();
 
     // set a default playlist
     QList<int> defaultlist;
@@ -34,8 +37,7 @@ BasketSource::~BasketSource() {
 
     if(_renderFBO)
         delete _renderFBO;
-    if (_atlasFBO)
-        delete _atlasFBO;
+
 }
 
 
@@ -118,7 +120,7 @@ void BasketSource::setPlaylist(QList<int> playlist){
     // copy the given playlist
     // but with a validation check for validity of the indices
     foreach (int index, playlist) {
-        if (index > -1 && index<_atlasImages.count())
+        if (index > -1 && index < _atlas.count())
             _playlist.append(index);
     }
 
@@ -146,14 +148,7 @@ void BasketSource::generateExecutionPlaylist(){
 
 QStringList BasketSource::getImageFileList() const {
 
-    QStringList list;
-
-    foreach (BasketImage img, _atlasImages) {
-        QString completefilename = QFileInfo( img.fileName() ).fileName();
-        list.append(completefilename);
-    }
-
-    return list;
+    return _atlas.getImageList();
 }
 
 
@@ -169,22 +164,22 @@ void BasketSource::update() {
 
         if (_timer.elapsed() > period)
         {
-
             if (_executionList.isEmpty())
                 generateExecutionPlaylist();
 
             // select BasketImage index from execution playlist
             int index = _executionList.takeFirst();
-            QRect r = _atlasImages[index].coordinates();
+            QRect r = _atlas[index].coordinates();
+            QGLFramebufferObject *fbo = _atlas[index].page()->fbo();
 
             // blit part of atlas to render FBO
             // use the accelerated GL_EXT_framebuffer_blit if available
             if (RenderingManager::useFboBlitExtension())
             {
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, _atlasFBO->handle());
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->handle());
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _renderFBO->handle());
                 glBlitFramebuffer(r.x(), r.y(), r.x() + r.width(), r.y() + r.height(),
-                                  0, 0, width, height,
+                                  0, 0, _atlas.size().width(), _atlas.size().height(),
                                   GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             }
@@ -206,140 +201,11 @@ void BasketSource::update() {
     Source::update();
 }
 
-BasketImage::BasketImage(QString f) : _fileName(f), _filled(false)
-{
-
-}
 
 void BasketSource::appendImages(QStringList files){
 
-    // fill in the images basket
-    foreach (QString file, files) {
-        _atlasImages.append(BasketImage(file));
-    }
+    _atlas.appendImages(files);
 
-    // allocate the FBO for the atlas
-    QSize array = allocateAtlas(_atlasImages.size());
-
-    // create a texture for filling images to atlas
-    GLuint tex = 0;
-    glGenTextures(1, &tex);
-
-    // fill in the atlas
-    QPoint index;
-    if (_atlasFBO->bind()) {
-
-        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT | GL_VIEWPORT_BIT);
-
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glEnable(GL_TEXTURE_2D);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
-
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-
-        for (int i = 0; i < _atlasImages.size(); ++i) {
-
-            // set rendering area
-            QRect coords(index.x()*width, index.y()*height, width, height);
-            glViewport(coords.x(), coords.y(), coords.width(), coords.height() );
-
-            // remember coordinates of image in FBO
-            _atlasImages[i].setCoordinates(coords);
-
-            // render image in FBO
-            QImage image(_atlasImages[i].fileName());
-            if (image.format() != QImage::Format_ARGB32_Premultiplied)
-                image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-
-#if QT_VERSION >= 0x040700
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  image.width(), image. height(),
-                          0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, image.constBits() );
-#else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  image.width(), image. height(),
-                          0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, image.bits() );
-#endif
-            glCallList(ViewRenderWidget::quad_texured);
-
-            // next index
-            if (index.x()<array.width())
-                // next column
-                index += QPoint(1,0);
-            else
-                // retour a la ligne
-                index = QPoint(0, index.y() + 1);
-
-        }
-
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-
-        glPopAttrib();
-
-        _atlasFBO->release();
-    }
-    else
-        FboRenderingException().raise();
-
-    // remove texture
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &tex);
-
-    // TODO : smart copy of previous atlas FBO (blit)
-    // instead of reloading all
-}
-
-QSize BasketSource::allocateAtlas(int n) {
-
-    // Check limits of the openGL frame buffer dimensions
-    GLint maxwidth = 0;
-    GLint maxheight = 0;
-    if (glewIsSupported("GL_ARB_framebuffer_no_attachments")) {
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &maxwidth);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &maxheight);
-    }
-    // if cannot access this extension, use safe value
-    else {
-        maxwidth = glMaximumTextureWidth();
-        maxheight = glMaximumTextureHeight();
-    }
-
-    // compute number of lines necessary for packing n images
-    QSize array;
-    int w = width * n;
-    array.setHeight( w / maxwidth  + 1 );
-    // number of columns
-    array.setWidth( n / array.height() );
-
-    qDebug()<< "Atlas dimensions " << n << array << array.width() * width << array.height() * height;
-    qDebug()<< "MAX   dimensions " << maxwidth << maxheight;
-
-    // TODO : manage if not enough space in one atlas (create another)
-
-
-    // reallocate FBO Atlas
-    if (_atlasFBO)
-        delete _atlasFBO;
-    _atlasFBO = new QGLFramebufferObject(array.width() * width, array.height() * height);
-    CHECK_PTR_EXCEPTION(_atlasFBO);
-
-    return array;
 }
 
 
@@ -371,10 +237,9 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
 
     // list of files in basket
     QDomElement basket = doc.createElement("Images");
-    foreach (BasketImage img, _atlasImages) {
-
+    foreach (QString filename, _atlas.getImageList()) {
         QDomElement f = doc.createElement("Filename");
-        QString completefilename = QFileInfo( img.fileName() ).absoluteFilePath();
+        QString completefilename = QFileInfo( filename ).absoluteFilePath();
         if (current.isReadable())
             f.setAttribute("Relative", current.relativeFilePath( completefilename ) );
         f.appendChild( doc.createTextNode( completefilename ));
