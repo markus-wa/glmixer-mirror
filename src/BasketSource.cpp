@@ -3,7 +3,7 @@
 #include "ViewRenderWidget.h"
 
 #include <QImage>
-#include <algorithm>
+//#include <algorithm>
 
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;
 bool BasketSource::playable = true;
@@ -16,6 +16,13 @@ BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) 
 
     // fill in the atlas
     appendImages(files);
+
+    // set a default playlist
+    QList<int> defaultlist;
+    for (int i = 0; i < files.size(); ++i) {
+        defaultlist.append(i);
+    }
+    setPlaylist(defaultlist);
 
     // if invalid period given, set to default 40Hz
     if (period <= 10)
@@ -104,8 +111,6 @@ void BasketSource::setPeriod(qint64 p){
 
 
 void BasketSource::setPlaylist(QList<int> playlist){
-
-    qDebug() << "Set Playlist " << playlist;
 
     _playlist.clear();
     _executionList.clear();
@@ -213,13 +218,6 @@ void BasketSource::appendImages(QStringList files){
         _atlasImages.append(BasketImage(file));
     }
 
-    // set a default playlist
-    QList<int> defaultlist;
-    for (int i = 0; i < _atlasImages.size(); ++i) {
-        defaultlist.append(i);
-    }
-    setPlaylist(defaultlist);
-
     // allocate the FBO for the atlas
     QSize array = allocateAtlas(_atlasImages.size());
 
@@ -309,23 +307,28 @@ void BasketSource::appendImages(QStringList files){
 
 QSize BasketSource::allocateAtlas(int n) {
 
-    // Check limits of the openGL texture
-    GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
-    if (glewIsSupported("GL_ARB_internalformat_query2"))
-        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
-    else
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
-    maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
-
+    // Check limits of the openGL frame buffer dimensions
+    GLint maxwidth = 0;
+    GLint maxheight = 0;
+    if (glewIsSupported("GL_ARB_framebuffer_no_attachments")) {
+        glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &maxwidth);
+        glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &maxheight);
+    }
+    // if cannot access this extension, use safe value
+    else {
+        maxwidth = glMaximumTextureWidth();
+        maxheight = glMaximumTextureHeight();
+    }
 
     // compute number of lines necessary for packing n images
     QSize array;
     int w = width * n;
-    array.setHeight( w / maxtexturewidth  + 1 );
+    array.setHeight( w / maxwidth  + 1 );
     // number of columns
     array.setWidth( n / array.height() );
 
-//    qDebug()<< "Atlas dimensions " << n << array << array.width() * width << array.height() * height;
+    qDebug()<< "Atlas dimensions " << n << array << array.width() * width << array.height() * height;
+    qDebug()<< "MAX   dimensions " << maxwidth << maxheight;
 
     // TODO : manage if not enough space in one atlas (create another)
 

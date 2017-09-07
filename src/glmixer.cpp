@@ -2460,10 +2460,8 @@ void GLMixer::drop(QDropEvent *event)
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
                 if ( urlname.suffix() == "glm") {
-                    if (glmfile.isNull())
-                        glmfile = urlname.absoluteFilePath();
-                    else
-                        qWarning() << urlname.absoluteFilePath()<< QChar(124).toLatin1() << "[" << ++errors << "]" << tr("File ignored (already loading another session).");
+                    glmfile = urlname.absoluteFilePath();
+                    break;
                 }
                 else if ( urlname.suffix() == "svg") {
                     svgFiles.append(urlname.absoluteFilePath());

@@ -107,6 +107,12 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
             // the image not in the list
             if (previousitems.size() == 0) {
 
+// TODO : SUPPORT FOR GIF ANIM
+//                QMovie movie(filename);
+//                if (movie.isValid()) {
+//                    qDebug() << "Movie "<< filename << ": "<< movie.format() << movie.frameCount();
+//                }
+
                 // try to make an image: accept if not null
                 QPixmap image(filename);
                 if (image.isNull())

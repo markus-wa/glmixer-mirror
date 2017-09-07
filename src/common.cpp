@@ -125,6 +125,31 @@ QStringList glSupportedExtensions()
     return listofextensions;
 }
 
+
+GLint glMaximumTextureWidth()
+{
+    GLint max = 0;
+
+    if (glewIsSupported("GL_ARB_internalformat_query2"))
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &max);
+    else
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+
+    return max;
+}
+
+GLint glMaximumTextureHeight()
+{
+    GLint max = 0;
+
+    if (glewIsSupported("GL_ARB_internalformat_query2"))
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_HEIGHT, 1, &max);
+    else
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+
+    return max;
+}
+
 QPair<int, int> blendingPresetFromInt(int i)
 {
     if (presetBlending.count(i) > 0)
@@ -227,7 +252,7 @@ QString getMonospaceFont()
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFUrl.h>
 
-QFileInfo getFileInfoFromURL(QUrl url) 
+QFileInfo getFileInfoFromURL(QUrl url)
 {
     QString localFileQString = url.toLocalFile();
     // [pzion 20150805] Work around
@@ -267,7 +292,7 @@ QFileInfo getFileInfoFromURL(QUrl url)
 
 #else
 
-QFileInfo getFileInfoFromURL(QUrl url) 
+QFileInfo getFileInfoFromURL(QUrl url)
 {
     return QFileInfo(url.toLocalFile());
 }

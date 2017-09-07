@@ -388,7 +388,7 @@
             <bool>true</bool>
            </property>
            <property name="text">
-            <string notr="true">&amp;40</string>
+            <string notr="true">40</string>
            </property>
           </widget>
          </item>
@@ -398,7 +398,7 @@
             <bool>true</bool>
            </property>
            <property name="text">
-            <string notr="true">H&amp;z</string>
+            <string notr="true">Hz</string>
            </property>
           </widget>
          </item>

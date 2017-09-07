@@ -610,6 +610,9 @@ void MixingToolboxWidget::on_presetApply_pressed()
         if (doc.setContent( presetsList->currentItem()->data(Qt::UserRole).toString() )) {
             QDomElement child = doc.firstChildElement("Source");
             if (!child.isNull()) {
+                // inform undo manager
+                UndoManager::getInstance()->store();
+                // apply configuration
                 source->Source::setConfiguration(child, QDir());
             }
         }
