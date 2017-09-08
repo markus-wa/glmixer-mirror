@@ -42,6 +42,8 @@ public:
     QSize array() const { return _array; }
     QGLFramebufferObject *fbo() const { return _fbo;}
 
+    QRectF texturecoordinates(QRect rect) const;
+
 private:
     QSize _array;
     QGLFramebufferObject *_fbo;

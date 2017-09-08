@@ -150,6 +150,30 @@ GLint glMaximumTextureHeight()
     return max;
 }
 
+GLint glMaximumFramebufferWidth()
+{
+    GLint max = 0;
+
+    if (glewIsSupported("GL_ARB_framebuffer_no_attachments"))
+        glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &max);
+    else
+        max = glMaximumTextureWidth();
+
+    return max;
+}
+
+GLint glMaximumFramebufferHeight()
+{
+    GLint max = 0;
+
+    if (glewIsSupported("GL_ARB_framebuffer_no_attachments"))
+        glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &max);
+    else
+        max = glMaximumTextureHeight();
+
+    return max;
+}
+
 QPair<int, int> blendingPresetFromInt(int i)
 {
     if (presetBlending.count(i) > 0)

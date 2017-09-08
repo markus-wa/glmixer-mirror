@@ -148,21 +148,24 @@ ImageAtlasPage::~ImageAtlasPage(){
     delete _fbo;
 }
 
+QRectF ImageAtlasPage::texturecoordinates(QRect rect) const {
+    QRectF textcoords;
+
+    double w = _fbo->width();
+    double h = _fbo->height();
+    textcoords.setX( (double) rect.x() / w);
+    textcoords.setWidth( (double) rect.width() / w);
+    textcoords.setY( (double) rect.y() / h);
+    textcoords.setHeight( (double) rect.height() / h);
+
+    return textcoords;
+}
+
 ImageAtlasPage::ImageAtlasPage(QSize imagesize, int numimages){
 
     // Check limits of the openGL frame buffer dimensions
-    GLint maxwidth = 0;
-    GLint maxheight = 0;
-    if (glewIsSupported("GL_ARB_framebuffer_no_attachments")) {
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &maxwidth);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &maxheight);
-    }
-    // if cannot access this extension, use safe value
-    else
-    {
-        maxwidth = glMaximumTextureWidth();
-        maxheight = glMaximumTextureHeight();
-    }
+    GLint maxwidth = glMaximumFramebufferWidth();;
+    GLint maxheight = glMaximumFramebufferHeight();
 
     _array.setWidth( qMin( numimages, maxwidth / imagesize.width() ) );
     _array.setHeight( qMin( numimages / _array.width(), maxheight / imagesize.height() ) );

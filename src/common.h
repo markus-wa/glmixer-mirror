@@ -58,6 +58,8 @@ void initListOfExtension();
 QStringList glSupportedExtensions();
 GLint glMaximumTextureWidth();
 GLint glMaximumTextureHeight();
+GLint glMaximumFramebufferWidth();
+GLint glMaximumFramebufferHeight();
 
 GLenum blendfunctionFromInt(int);
 int intFromBlendfunction(GLenum);

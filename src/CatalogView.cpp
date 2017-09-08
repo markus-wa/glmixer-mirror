@@ -44,8 +44,8 @@ CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
     _iconSize[MEDIUM] = 80.0;
     _spacing[MEDIUM] = 14.0;
 
-    _size[LARGE] = 130.0;
-    _iconSize[LARGE] = 100.0;
+    _size[LARGE] = 128.0;
+    _iconSize[LARGE] = 96.0;
     _spacing[LARGE] = 18.0;
 
     _currentSize = MEDIUM;

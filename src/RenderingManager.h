@@ -304,7 +304,6 @@ protected:
     unsigned int output_frame_index, output_frame_period;
     unsigned int previous_frame_index, previous_frame_period;
     bool clearWhite;
-    GLint maxtexturewidth, maxtextureheight;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
 

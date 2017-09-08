@@ -170,7 +170,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
 {
     // idenfity for event
     setObjectName("RenderingManager");
@@ -288,25 +288,21 @@ void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
 
+    // Check limits of the openGL frame buffer dimensions
+    GLint maxwidth = glMaximumFramebufferWidth();;
+    GLint maxheight = glMaximumFramebufferHeight();
+
+    // init
     renderingSize = size;
 
     // Check limits based on openGL texture capabilities
     if (maxSourceCount == 0) {
-        if (glewIsSupported("GL_ARB_internalformat_query2")) {
-            glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
-            glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_HEIGHT, 1, &maxtextureheight);
-        } else {
-            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
-            maxtextureheight = maxtexturewidth;
-        }
 
-        maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
-        maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
-        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA texture resolution: ") << maxtexturewidth << "x" << maxtextureheight;
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA frame buffer resolution: ") << maxwidth << "x" << maxheight;
 
         // TODO : better texture atlas to avoid this limitation
         // setup the maximum texture count accordingly
-        maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
+        maxSourceCount = maxwidth / CATALOG_TEXTURE_HEIGHT;
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Maximum number of sources: ") << maxSourceCount;
     }
 
@@ -319,7 +315,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         glDeleteBuffers(2, pboIds);
 
     // create an fbo (with internal automatic first texture attachment)
-    _fbo = new QGLFramebufferObject( qMin(size.width(), maxtexturewidth), qMin(size.height(), maxtextureheight));
+    _fbo = new QGLFramebufferObject( qMin(size.width(), maxwidth), qMin(size.height(), maxheight));
     Q_CHECK_PTR(_fbo);
 
     if (_fbo->bind()) {
