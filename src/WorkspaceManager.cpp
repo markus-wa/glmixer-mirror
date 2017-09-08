@@ -28,7 +28,7 @@ WorkspaceManager::WorkspaceManager() : QObject(), _count(0), _actions(0), _sourc
         icon.addPixmap( getPixmap(i+1, false), QIcon::Normal, QIcon::Off);
 
         QAction *a = _actions->addAction(icon, tr("Workspace %1").arg(i+1));
-        a->setShortcut( QKeySequence( Qt::CTRL + Qt::Key_1 + i) );
+        a->setShortcut( QKeySequence( Qt::Key_1 + i) );
         a->setCheckable(true);
         a->setData(i);
 
@@ -112,6 +112,11 @@ void  WorkspaceManager::onWorkspaceAction(QAction *a)
 {
     RenderingManager::getInstance()->unsetCurrentSource();
     SelectionManager::getInstance()->clearSelection();
+
+    // in exclusive mode, select all sources in workspace
+    if (_exclusive) {
+        SelectionManager::getInstance()->selectAll();
+    }
 }
 
 void  WorkspaceManager::onSourceWorkspaceAction(QAction *a)
