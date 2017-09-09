@@ -977,6 +977,9 @@ void GLMixer::newSource(Source::RTTI type) {
     case Source::VIDEO_SOURCE:
         on_actionMediaSource_triggered();
         break;
+    case Source::BASKET_SOURCE:
+        on_actionBasketSource_triggered();
+        break;
 #ifdef GLM_OPENCV
     case Source::CAMERA_SOURCE:
         on_actionCameraSource_triggered();

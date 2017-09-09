@@ -65,8 +65,10 @@ Source::RTTI NewSourceDialog::selectedType()
 
     QString text = ui->SourceTypeToolBox->itemText(ui->SourceTypeToolBox->currentIndex());
 
-    if ( text.contains("Video"))
+    if ( text.contains("Media"))
         t = Source::VIDEO_SOURCE;
+    else if ( text.contains("Basket"))
+        t = Source::BASKET_SOURCE;
     else if ( text.contains("Device"))
         t = Source::CAMERA_SOURCE;
     else if ( text.contains("Loop"))
