@@ -26,6 +26,13 @@
 #ifndef BASKETSOURCE_H
 #define BASKETSOURCE_H
 
+#define BASKET_DEFAULT_FRAME_WIDTH 1024
+#define BASKET_DEFAULT_FRAME_HEIGHT 768
+#define BASKET_DEFAULT_PERIOD 25
+#define BASKET_DEFAULT_BIDIRECTION false
+#define BASKET_DEFAULT_SHUFFLE false
+
+
 #include "Source.h"
 #include "RenderingManager.h"
 #include "ImageAtlas.h"
@@ -80,7 +87,10 @@ public slots:
 
 protected:
 
-    BasketSource(QStringList files, double d, int w = 1024, int h = 768,  qint64 p = 25);
+    BasketSource(QStringList files, double d,
+                 int w = BASKET_DEFAULT_FRAME_WIDTH,
+                 int h = BASKET_DEFAULT_FRAME_HEIGHT,
+                 qint64 p = BASKET_DEFAULT_PERIOD);
     ~BasketSource();
 
     static RTTI type;

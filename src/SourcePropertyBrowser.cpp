@@ -789,7 +789,6 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
 }
 
 
-// TOdO
 void SourcePropertyBrowser::defaultValue()
 {
     QtBrowserItem *it = propertyTreeEditor->currentItem() ;
@@ -846,6 +845,18 @@ public:
 
 public slots:
 
+    void defaultValue() {
+        QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+        if ( it )
+        {
+            if ( it->property() == idToProperty["Transparency"])
+                boolManager->setValue(idToProperty["Transparency"],!ALGORITHM_DEFAULT_IGNOREALPHA);
+            else if ( it->property() == idToProperty["Variability"])
+                intManager->setValue(idToProperty["Variability"], (int) (ALGORITHM_DEFAULT_VARIABILITY * 100.0));
+            else if ( it->property() == idToProperty["Frequency"])
+                intManager->setValue(idToProperty["Frequency"], (int)(1000000.0 / double(ALGORITHM_DEFAULT_PERIOD) ));
+        }
+    }
     void valueChanged(QtProperty *property, bool value)
     {
         if ( property == idToProperty["Transparency"] )
@@ -858,7 +869,6 @@ public slots:
             as->setVariability( double(value) / 100.0);
         else if ( property == idToProperty["Frequency"] )
             as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
-
     }
 
 private:
@@ -990,6 +1000,14 @@ public:
 
 public slots:
 
+    void defaultValue() {
+        QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+        if ( it )
+        {
+            if ( it->property() == idToProperty["Ignore alpha"])
+                boolManager->setValue(idToProperty["Ignore alpha"], false);
+        }
+    }
     void valueChanged(QtProperty *property, bool value)
     {
         if ( property == idToProperty["Ignore alpha"] ) {
@@ -1051,6 +1069,14 @@ public:
 
 public slots:
 
+    void defaultValue() {
+        QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+        if ( it )
+        {
+            if ( it->property() == idToProperty["Recursive"])
+                boolManager->setValue(idToProperty["Recursive"], RENDERING_DEFAULT_RECURSIVE);
+        }
+    }
     void valueChanged(QtProperty *property, bool value)
     {
         if ( property == idToProperty["Recursive"] )
@@ -1176,6 +1202,18 @@ public:
 
 public slots:
 
+    void defaultValue() {
+        QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+        if ( it )
+        {
+            if ( it->property() == idToProperty["Height"])
+                intManager->setValue(idToProperty["Height"], WEB_DEFAULT_HEIGHT);
+            else if ( it->property() == idToProperty["Scroll"])
+                intManager->setValue(idToProperty["Scroll"], WEB_DEFAULT_SCROLL);
+            else if ( it->property() == idToProperty["Update"])
+                intManager->setValue(idToProperty["Update"], WEB_DEFAULT_UPDATE);
+        }
+    }
     void valueChanged(QtProperty *property, int value)
     {
         if ( property == idToProperty["Height"] )
@@ -1459,6 +1497,20 @@ public:
 
 public slots:
 
+    void defaultValue() {
+        QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+        if ( it )
+        {
+            if ( it->property() == idToProperty["Bidirectional"])
+                boolManager->setValue(idToProperty["Bidirectional"], BASKET_DEFAULT_BIDIRECTION);
+            else if ( it->property() == idToProperty["Shuffle"])
+                boolManager->setValue(idToProperty["Shuffle"], BASKET_DEFAULT_SHUFFLE);
+            else if ( it->property() == idToProperty["Frequency"])
+                intManager->setValue(idToProperty["Frequency"], (int) ( 1000.0 / double(BASKET_DEFAULT_PERIOD) ) );
+            else if ( it->property() == idToProperty["Playlist"])
+                stringManager->setValue(idToProperty["Playlist"], "" );
+        }
+    }
     void valueChanged(QtProperty *property, bool value)
     {
         if ( property == idToProperty["Bidirectional"] )

@@ -26,6 +26,12 @@
 #ifndef ALGORITHMSOURCE_H_
 #define ALGORITHMSOURCE_H_
 
+#define ALGORITHM_DEFAULT_FRAME_WIDTH 256
+#define ALGORITHM_DEFAULT_FRAME_HEIGHT 256
+#define ALGORITHM_DEFAULT_VARIABILITY 1.0
+#define ALGORITHM_DEFAULT_PERIOD 16666
+#define ALGORITHM_DEFAULT_IGNOREALPHA false
+
 #include "Source.h"
 #include "RenderingManager.h"
 
@@ -73,7 +79,12 @@ public slots:
 
     // only friends can create a source
 protected:
-    AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666, bool ia=false);
+    AlgorithmSource(int type, GLuint texture, double d,
+                    int w = ALGORITHM_DEFAULT_FRAME_WIDTH,
+                    int h = ALGORITHM_DEFAULT_FRAME_HEIGHT,
+                    double v = ALGORITHM_DEFAULT_VARIABILITY,
+                    unsigned long p = ALGORITHM_DEFAULT_PERIOD,
+                    bool ia = ALGORITHM_DEFAULT_IGNOREALPHA);
     ~AlgorithmSource();
 
     static RTTI type;

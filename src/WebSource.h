@@ -26,6 +26,12 @@
 #ifndef WEBSOURCE_H
 #define WEBSOURCE_H
 
+#define WEB_DEFAULT_FRAME_WIDTH 256
+#define WEB_DEFAULT_FRAME_HEIGHT 256
+#define WEB_DEFAULT_HEIGHT 100
+#define WEB_DEFAULT_SCROLL 0
+#define WEB_DEFAULT_UPDATE 0
+
 #include "Source.h"
 #include <QWebPage>
 #include <QWebFrame>
@@ -114,7 +120,12 @@ signals:
 protected:
 
     // only friends can create a source
-    WebSource(const QUrl url, GLuint texture, double d, int w = 256, int h = 256, int height = 100, int scroll = 0, int update = 0);
+    WebSource(const QUrl url, GLuint texture, double d,
+              int w = WEB_DEFAULT_FRAME_WIDTH,
+              int h = WEB_DEFAULT_FRAME_HEIGHT,
+              int height = WEB_DEFAULT_HEIGHT,
+              int scroll = WEB_DEFAULT_SCROLL,
+              int update = WEB_DEFAULT_UPDATE);
     ~WebSource();
     void update();
 

@@ -3,7 +3,6 @@
 #include "ViewRenderWidget.h"
 
 #include <QImage>
-//#include <algorithm>
 #include "ImageAtlas.h"
 
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;

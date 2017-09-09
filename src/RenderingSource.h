@@ -26,6 +26,8 @@
 #ifndef RENDERINGSOURCE_H_
 #define RENDERINGSOURCE_H_
 
+#define RENDERING_DEFAULT_RECURSIVE false
+
 #include "Source.h"
 #include "RenderingManager.h"
 
