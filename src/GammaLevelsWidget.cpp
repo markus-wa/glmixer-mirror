@@ -103,7 +103,7 @@ void GammaLevelsWidget::showEvent ( QShowEvent * event ){
 
 void GammaLevelsWidget::on_resetButton_clicked (){
 
-    setValues(1.f, 0.f, 1.f, 0.f, 1.f);
+    setValues(plot->gamma, 0.f, 1.f, 0.f, 1.f);
 
     updateSource();
 }

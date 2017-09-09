@@ -264,10 +264,7 @@ border-color::disabled: black;</string>
      <item row="1" column="0">
       <widget class="QPushButton" name="resetButton">
        <property name="toolTip">
-        <string>Reset</string>
-       </property>
-       <property name="statusTip">
-        <string>Reset</string>
+        <string>Reset axis</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QPushButton { 
