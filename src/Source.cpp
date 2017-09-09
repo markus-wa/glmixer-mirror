@@ -94,10 +94,13 @@ Source::~Source() {
  * */
 
 void Source::setName(QString n) {
+    // accept new name only if validated by rendering manager
     QString newname = RenderingManager::getInstance()->getAvailableNameFrom(n);
 
+    // inform undo manager
     emit methodCalled("_setName(QString)", S_ARG(name, newname));
 
+    // set actual name
     ProtoSource::_setName(newname);
 }
 

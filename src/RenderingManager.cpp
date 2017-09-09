@@ -219,7 +219,6 @@ RenderingManager::RenderingManager() :
 
 #ifdef GLM_UNDO
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
-    connect(UndoManager::getInstance(), SIGNAL(changed()), SLOT(refreshCurrentSource()));
 #endif
 }
 
@@ -1184,8 +1183,8 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
         s = new CloneSource(sit, getAvailableDepthFrom(depth));
 
         if ((*sit)->rtti() == Source::CLONE_SOURCE) {
-            CloneSource *o = dynamic_cast<CloneSource *>(*sit);
-            s->setName(o->getOriginalName() + tr("Clone"));
+            //  if its a clone already, do not add suffix clone
+            s->setName((*sit)->getName());
         } else
             s->setName((*sit)->getName() + tr("Clone"));
 
@@ -1216,8 +1215,6 @@ bool RenderingManager::insertSource(Source *s)
 bool RenderingManager::_insertSource(Source *s)
 {
     if (s) {
-        // replace the source name by another available one based on the original name
-        s->setName( getAvailableNameFrom(s->getName()) );
 
         if (_front_sources.size() < maxSourceCount) {
 

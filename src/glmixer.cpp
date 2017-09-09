@@ -482,7 +482,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // suspend the undo manager during continuous mouse mouvements in View
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(mousePressed(bool)), UndoManager::getInstance(), SLOT(suspend(bool)), Qt::UniqueConnection);
 
-
 #else
     delete actionUndo;
     delete actionRedo;
@@ -3346,7 +3345,8 @@ void GLMixer::on_actionPaste_triggered() {
                             // drop
                             RenderingManager::getInstance()->addSourceToBasket(s);
                             c++;
-                            // duplicate properties & plugins
+                            // duplicate properties & plugins (except name)
+                            child.removeAttribute("name");
                             s->setConfiguration(child);
                         }
                     }
@@ -3521,8 +3521,9 @@ void GLMixer::undoChanged(bool undo, bool redo)
     actionUndo->setEnabled(undo);
     actionRedo->setEnabled(redo);
 
-    // update GUI
-    RenderingManager::getInstance()->refreshCurrentSource();
+    // update display of source on calls of undo (i.e. redo enabled)
+    if (redo)
+        RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void GLMixer::updateWorkspaceActions()

@@ -141,7 +141,7 @@ void UndoManager::restore(long int i)
 #endif
                     // apply configuration
                     if ( ! (*sit)->setConfiguration(child) )
-                        qDebug() << "failed to set configuration";
+                        qDebug() << "UndoManager" << QChar(124).toLatin1() << "failed to set configuration";
 
                     // apply change of depth
                     double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
@@ -156,7 +156,7 @@ void UndoManager::restore(long int i)
                     fprintf(stderr, " +  Create %s \n", qPrintable(sourcename));
 #endif
                     if ( RenderingManager::getInstance()->addSourceConfiguration(child) > 0)
-                        qDebug() << "failed to Undo new source";
+                        qDebug() << "UndoManager" << QChar(124).toLatin1() << "failed to Undo new source";
 
                 }
 
@@ -177,11 +177,11 @@ void UndoManager::restore(long int i)
 
         }
         else
-            qDebug() << "sourcelists is empty";
+            qDebug() << "UndoManager" << QChar(124).toLatin1() << "sourcelists is empty";
 
     }
     else
-        qDebug() << "root is null";
+        qDebug() << "UndoManager" << QChar(124).toLatin1() << "root is null";
 
 
     // forget previous event and get ready

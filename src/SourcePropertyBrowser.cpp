@@ -77,6 +77,9 @@
 #include "FFGLPluginSource.h"
 #include "FFGLPluginBrowser.h"
 #endif
+#ifdef GLM_UNDO
+#include "UndoManager.h"
+#endif
 
 SourcePropertyTreeFiller::SourcePropertyTreeFiller(SourcePropertyBrowser *spb)
     : QThread(spb), _spb(spb)
@@ -461,8 +464,20 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
             return;
 
     if ( property == idToProperty["Name"] ) {
+        // try to set name to value
         currentItem->setName(value);
-        updatePropertyTree();
+
+        if ( currentItem->getName() != value ) {
+            // if the name was not accepted
+            disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+                       this, SLOT(valueChanged(QtProperty *, const QString &)));
+
+            // correct the name in string editor
+            stringManager->setValue(idToProperty["Name"], currentItem->getName() );
+
+            connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+                    this, SLOT(valueChanged(QtProperty *, const QString &)));
+        }
     }
 }
 
@@ -1428,7 +1443,7 @@ public:
         infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(" ") );
         QString plist;
         foreach (int in, bs->getPlaylist()) {
-            plist.append(QString::number(in) + ", ");
+            plist.append(QString::number(in) + " ");
         }
         infoManager->setValue(idToProperty["Playlist"], QString(plist) );
         boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());

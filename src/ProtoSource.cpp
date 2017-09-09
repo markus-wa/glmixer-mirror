@@ -6,14 +6,23 @@
 
 QStringList ProtoSource::getFilterNames() {
 
-    static QStringList enumNames = QStringList() << "None" << "Gaussian blur" << "Median blur"
-                                                 << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
-                                                 << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-                                                 << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
-                                                 << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7" << "Custom";
-
+    static QStringList enumNames = QStringList() << "None"
+                                                 << "Gaussian blur"
+                                                 << "Median blur"
+                                                 << "Sharpen"
+                                                 << "Sharpen more"
+                                                 << "Smooth edge detect"
+                                                 << "Medium edge detect"
+                                                 << "Hard edge detect"
+                                                 <<"Emboss"
+                                                 <<"Edge emboss"
+                                                 << "Erosion 3x3"
+                                                 << "Erosion 5x5"
+                                                 << "Erosion 7x7"
+                                                 << "Dilation 3x3"
+                                                 << "Dilation 5x5"
+                                                 << "Dilation 7x7";
     return enumNames;
-
 }
 
 ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
