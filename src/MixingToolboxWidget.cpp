@@ -812,7 +812,7 @@ void MixingToolboxWidget::on_resetBlending_pressed()
 
 void MixingToolboxWidget::on_resetGamma_pressed()
 {
-    gammaAdjust->on_resetButton_clicked();
+    gammaAdjust->resetAll();
 }
 
 void MixingToolboxWidget::on_resetColor_pressed()

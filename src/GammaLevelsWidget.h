@@ -36,6 +36,8 @@ public:
     void showEvent ( QShowEvent * event );
     void setAntialiasing(bool antialiased);
 
+    void resetAll();
+
 public slots:
 
     void connectSource(SourceSet::iterator);
