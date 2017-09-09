@@ -8,7 +8,7 @@
 Source::RTTI BasketSource::type = Source::BASKET_SOURCE;
 bool BasketSource::playable = true;
 
-BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d),  period(p), bidirectional(false), shuffle(false), _pause(false), _renderFBO(0)
+BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) : Source(0, d),  period(p), bidirectional(false), shuffle(false), _elapsed(0), _pause(false), _renderFBO(0)
 {
     // allocate the FBO for rendering
     _renderFBO = new QGLFramebufferObject(w, h);
@@ -25,7 +25,9 @@ BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) 
     // if invalid period given, set to default 40Hz
     if (period <= 10)
         period = 24;
-    _timer.start();
+
+    // initial frame
+    drawimage();
 }
 
 BasketSource::~BasketSource() {
@@ -67,6 +69,11 @@ void BasketSource::play(bool on) {
 
     _pause = !on;
 
+    if (on) {
+        _elapsed = 0;
+        _timer.start();
+    }
+
     Source::play(on);
 }
 
@@ -93,6 +100,7 @@ bool BasketSource::isShuffle() const {
 void BasketSource::setShuffle(bool on) {
 
     shuffle = on;
+    _executionList.clear();
 }
 
 qint64 BasketSource::getPeriod() const {
@@ -182,34 +190,42 @@ QString BasketSource::getPlaylistString() const {
     return plist;
 }
 
+void BasketSource::drawimage() {
+
+    if (_executionList.isEmpty())
+        generateExecutionPlaylist();
+
+    // select BasketImage index from execution playlist
+    int index = _executionList.takeFirst();
+    QRect r = _atlas[index].coordinates();
+    QGLFramebufferObject *fbo = _atlas[index].page()->fbo();
+
+    // blit part of atlas to render FBO
+    // use the accelerated GL_EXT_framebuffer_blit if available
+    if (RenderingManager::useFboBlitExtension())
+    {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->handle());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _renderFBO->handle());
+        glBlitFramebuffer(r.x(), r.y(), r.x() + r.width(), r.y() + r.height(),
+                          0, 0, _atlas.size().width(), _atlas.size().height(),
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    }
+    // TODO : else non-blit render
+}
+
 void BasketSource::update() {
 
     if (!_pause) {
 
-        if (_timer.elapsed() > period)
+        // if time passed the period for update
+        if (_timer.elapsed() - _elapsed > period)
         {
-            if (_executionList.isEmpty())
-                generateExecutionPlaylist();
+            // draw
+            drawimage();
 
-            // select BasketImage index from execution playlist
-            int index = _executionList.takeFirst();
-            QRect r = _atlas[index].coordinates();
-            QGLFramebufferObject *fbo = _atlas[index].page()->fbo();
-
-            // blit part of atlas to render FBO
-            // use the accelerated GL_EXT_framebuffer_blit if available
-            if (RenderingManager::useFboBlitExtension())
-            {
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->handle());
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _renderFBO->handle());
-                glBlitFramebuffer(r.x(), r.y(), r.x() + r.width(), r.y() + r.height(),
-                                  0, 0, _atlas.size().width(), _atlas.size().height(),
-                                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            }
-            // TODO : else non-blit render
-
-            _timer.restart();
+            // increment elapsed time
+            _elapsed += period;
         }
 
     }

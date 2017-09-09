@@ -99,6 +99,7 @@ protected:
 private:
 
     void generateExecutionPlaylist();
+    void drawimage();
 
     // source info
     qint64 period;
@@ -107,6 +108,7 @@ private:
 
     // timer
     QElapsedTimer _timer;
+    qint64 _elapsed;
     bool _pause;
 
     // Frame buffer objets for rendering
