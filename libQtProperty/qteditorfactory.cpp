@@ -80,11 +80,10 @@ class lineValidator : public QValidator
     QValidator::State validate ( QString & input, int & pos ) const {
       if( input.isEmpty() )
           return QValidator::Invalid;
-      if( input.length() < 2 )
-          return QValidator::Intermediate;
       return QValidator::Acceptable;
     }
 };
+
 
 // Set a hard coded left margin to account for the indentation
 // of the tree view icon when switching to an editor
@@ -916,7 +915,7 @@ void QtDoubleSpinBoxFactory::disconnectPropertyManager(QtDoublePropertyManager *
 
 // QtLineEditFactory
 
-class QtLineEditFactoryPrivate : public EditorFactoryPrivate<QLineEdit>
+class QtLineEditFactoryPrivate : public EditorFactoryPrivate<lazyLineEdit>
 {
     QtLineEditFactory *q_ptr;
     Q_DECLARE_PUBLIC(QtLineEditFactory)
@@ -933,9 +932,9 @@ void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty *property,
     if (!m_createdEditors.contains(property))
         return;
 
-    QListIterator<QLineEdit *> itEditor( m_createdEditors[property]);
+    QListIterator<lazyLineEdit *> itEditor( m_createdEditors[property]);
     while (itEditor.hasNext()) {
-        QLineEdit *editor = itEditor.next();
+        lazyLineEdit *editor = itEditor.next();
         if (editor->text() != value)
             editor->setText(value);
     }
@@ -951,9 +950,9 @@ void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty *property,
     if (!manager)
         return;
 
-    QListIterator<QLineEdit *> itEditor(m_createdEditors[property]);
+    QListIterator<lazyLineEdit *> itEditor(m_createdEditors[property]);
     while (itEditor.hasNext()) {
-        QLineEdit *editor = itEditor.next();
+        lazyLineEdit *editor = itEditor.next();
         editor->blockSignals(true);
         const QValidator *oldValidator = editor->validator();
         QValidator *newValidator = 0;
@@ -970,8 +969,8 @@ void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty *property,
 void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 {
     QObject *object = q_ptr->sender();
-    const QMap<QLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
-    for (QMap<QLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+    const QMap<lazyLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (QMap<lazyLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
         if (itEditor.key() == object) {
             QtProperty *property = itEditor.value();
             QtStringPropertyManager *manager = q_ptr->propertyManager(property);
@@ -985,7 +984,7 @@ void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 /*!
     \class QtLineEditFactory
 
-    \brief The QtLineEditFactory class provides QLineEdit widgets for
+    \brief The QtLineEditFactory class provides lazyLineEdit widgets for
     properties created by QtStringPropertyManager objects.
 
     \sa QtAbstractEditorFactory, QtStringPropertyManager
@@ -1033,7 +1032,7 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
         QtProperty *property, QWidget *parent)
 {
 
-    QLineEdit *editor = d_ptr->createEditor(property, parent);
+    lazyLineEdit *editor = d_ptr->createEditor(property, parent);
     QRegExp regExp = manager->regExp(property);
     if (regExp.isValid()) {
         QValidator *validator = new QRegExpValidator(regExp, editor);
@@ -1042,7 +1041,7 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
     editor->setText(manager->value(property));
     editor->setValidator(new lineValidator(parent));
 
-    connect(editor, SIGNAL(textEdited(const QString &)),
+    connect(editor, SIGNAL(textEditingFinished(const QString &)),
                 this, SLOT(slotSetValue(const QString &)));
     connect(editor, SIGNAL(destroyed(QObject *)),
                 this, SLOT(slotEditorDestroyed(QObject *)));

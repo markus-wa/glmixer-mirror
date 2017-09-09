@@ -1145,7 +1145,7 @@ Source *RenderingManager::newStreamSource(VideoStream *vs, double depth) {
 }
 
 
-Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QStringList playlist, double depth){
+Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QString playlist, double depth){
 
     _renderwidget->makeCurrent();
 
@@ -1156,12 +1156,8 @@ Source *RenderingManager::newBasketSource(QStringList files, int w, int h, int p
         s->setName(_defaultSource->getName() + "Basket");
 
         // set playlist
-        if (!playlist.isEmpty()) {
-            QList<int> pl;
-            foreach(QString i, playlist)
-                pl.append(i.toInt());
-            s->setPlaylist(pl);
-        }
+        if (!playlist.isEmpty())
+            s->setPlaylistString(playlist);
         s->setBidirectional(bidir);
         s->setShuffle(shuf);
 
@@ -2395,7 +2391,7 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         QDomElement Playlist = t.firstChildElement("Playlist");
         bool bidir = Playlist.attribute("Bidirectional", "0").toInt() > 0;
         bool shuf = Playlist.attribute("Shuffle", "0").toInt() > 0;
-        QStringList pl = Playlist.text().split(",");
+        QString pl = Playlist.text();
 
         newsource = RenderingManager::_instance->newBasketSource(fileNames, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), period, bidir, shuf, pl, depth);
 

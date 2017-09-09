@@ -374,7 +374,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
         disconnectManagers();
 
         // general properties
-        stringManager->setValue(idToProperty["Name"], s->getName() );
+//        stringManager->setValue(idToProperty["Name"], s->getName() );
         sizeManager->setValue(idToProperty["Resolution"], QSize(s->getFrameWidth(), s->getFrameHeight()) );
         infoManager->setValue(idToProperty["Frame rate"], QString::number(s->getFrameRate(),'f',2)+ QString(" fps") );
         infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
@@ -712,7 +712,9 @@ void SourcePropertyBrowser::resetAll()
 
 void SourcePropertyBrowser::updateProperty(QString name, Source *s)
 {
-    if ( name.contains("Position") )
+    if (name.contains("Name"))
+        stringManager->setValue(idToProperty["Name"], s->getName() );
+    else if ( name.contains("Position") )
         pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
     else if ( name.contains("Angle"))
         doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
@@ -1426,9 +1428,8 @@ public:
         idToProperty[property->propertyName()] = property;
 
         // list of files
-        property = infoManager->addProperty( QLatin1String("Playlist") );
-        property->setToolTip("Playing order");
-        property->setItalics(true);
+        property = stringManager->addProperty( QLatin1String("Playlist") );
+        property->setToolTip("Playing order (indices in list of files)");
         idToProperty[property->propertyName()] = property;
 
         // options
@@ -1441,11 +1442,7 @@ public:
 
         // Set values
         infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(" ") );
-        QString plist;
-        foreach (int in, bs->getPlaylist()) {
-            plist.append(QString::number(in) + " ");
-        }
-        infoManager->setValue(idToProperty["Playlist"], QString(plist) );
+        stringManager->setValue(idToProperty["Playlist"], bs->getPlaylistString() );
         boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());
         boolManager->setValue(idToProperty["Shuffle"], bs->isShuffle());
         intManager->setValue(idToProperty["Frequency"], (int) ( 1000.0 / double(bs->getPeriod()) ) );
@@ -1475,6 +1472,29 @@ public slots:
         if ( property == idToProperty["Frequency"] )
             bs->setPeriod( (unsigned long) ( 1000.0 / double(value) ) );
 
+    }
+    void valueChanged(QtProperty *property, const QString &value)
+    {
+        if ( property == idToProperty["Playlist"] ) {
+
+            // try to apply the string as playlist
+            bs->setPlaylistString(value);
+
+            // get the playlist actually corrected
+            QString currentPlayList = bs->getPlaylistString();
+            // if the playlist was corrected
+            if ( currentPlayList != value ) {
+                disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+                           this, SLOT(valueChanged(QtProperty *, const QString &)));
+
+                // correct the field in string editor
+                stringManager->setValue(idToProperty["Playlist"], currentPlayList );
+
+                connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+                        this, SLOT(valueChanged(QtProperty *, const QString &)));
+            }
+
+        }
     }
 
 private:

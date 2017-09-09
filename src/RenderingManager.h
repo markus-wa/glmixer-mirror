@@ -119,7 +119,7 @@ public:
     FFGLPluginSource *newFreeframeGLPlugin(int width, int height, FFGLTextureStruct it, QString filename = QString());
 #endif
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
-    Source *newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QStringList playlist = QStringList (), double depth = -1.0);
+    Source *newBasketSource(QStringList files, int w, int h, int p, bool bidir, bool shuf, QString playlist = QString(), double depth = -1.0);
 
     // insert & remove sources into the scene
     bool insertSource(Source *s);

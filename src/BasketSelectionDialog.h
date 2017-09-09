@@ -62,7 +62,7 @@ public:
     int getSelectedHeight();
     int getSelectedPeriod();
     QStringList getSelectedFiles();
-    QStringList getSelectedPlayList();
+    QString getSelectedPlayList();
     bool getSelectedBidirectional();
     bool getSelectedShuffle();
 

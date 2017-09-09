@@ -63,6 +63,7 @@ public:
     qint64 getPeriod() const;
     QStringList getImageFileList() const;
     QList<int> getPlaylist() const;
+    QString getPlaylistString() const;
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
@@ -75,6 +76,7 @@ public slots:
     void setPeriod(qint64 p);
     void appendImages(QStringList files);
     void setPlaylist(QList<int> playlist);
+    void setPlaylistString(QString playlist);
 
 protected:
 

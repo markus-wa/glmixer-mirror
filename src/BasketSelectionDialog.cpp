@@ -461,14 +461,14 @@ QStringList BasketSelectionDialog::getSelectedFiles() {
     return basket->getFiles();
 }
 
-
-QStringList BasketSelectionDialog::getSelectedPlayList() {
+QString BasketSelectionDialog::getSelectedPlayList() {
 
     QStringList pl;
     foreach (int i, basket->getPlayList()) {
         pl.append(QString::number(i));
     }
-    return pl;
+
+    return pl.join(" ");
 }
 
 bool BasketSelectionDialog::getSelectedBidirectional(){

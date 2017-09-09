@@ -1300,7 +1300,7 @@ void GLMixer::on_actionBasketSource_triggered(){
        int p = bsd->getSelectedPeriod();
        bool b = bsd->getSelectedBidirectional();
        bool s = bsd->getSelectedShuffle();
-       QStringList pl = bsd->getSelectedPlayList();
+       QString pl = bsd->getSelectedPlayList();
 
        if (!fileNames.empty()) {
 

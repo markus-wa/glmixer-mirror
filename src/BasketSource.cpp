@@ -21,11 +21,7 @@ BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) 
          FboRenderingException().raise();
 
     // set a default playlist
-    QList<int> defaultlist;
-    for (int i = 0; i < files.size(); ++i) {
-        defaultlist.append(i);
-    }
-    setPlaylist(defaultlist);
+    setPlaylist(QList<int>());
 
     // if invalid period given, set to default 40Hz
     if (period <= 10)
@@ -37,7 +33,6 @@ BasketSource::~BasketSource() {
 
     if(_renderFBO)
         delete _renderFBO;
-
 }
 
 
@@ -118,14 +113,35 @@ void BasketSource::setPlaylist(QList<int> playlist){
     _executionList.clear();
 
     // copy the given playlist
-    // but with a validation check for validity of the indices
+    // with a validation check for validity of the indices
     foreach (int index, playlist) {
         if (index > -1 && index < _atlas.count())
             _playlist.append(index);
     }
 
+    // rebuild default playlist if _playlist is empty
+    if (_playlist.isEmpty()) {
+        for (int i = 0; i < _atlas.count(); ++i) {
+            _playlist.append(i);
+        }
+    }
 }
 
+void BasketSource::setPlaylistString(QString playlist){
+
+    // convert string into list of integers (remove non numbers)
+    QStringList plist = playlist.split(" ");
+    QList<int> pl;
+    foreach(QString s, plist) {
+        bool ok = false;
+        int i = s.toInt(&ok);
+        if (ok)
+            pl.append(i);
+    }
+
+    // set playlist (removes invalid numbers)
+    setPlaylist(pl);
+}
 
 void BasketSource::generateExecutionPlaylist(){
 
@@ -157,6 +173,15 @@ QList<int> BasketSource::getPlaylist() const {
     return _playlist;
 }
 
+
+QString BasketSource::getPlaylistString() const {
+
+    QString plist;
+    foreach (int in, _playlist) {
+        plist.append(QString::number(in) + " ");
+    }
+    return plist;
+}
 
 void BasketSource::update() {
 
@@ -205,7 +230,6 @@ void BasketSource::update() {
 void BasketSource::appendImages(QStringList files){
 
     _atlas.appendImages(files);
-
 }
 
 
@@ -227,10 +251,7 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
     specific.appendChild(x);
 
     QDomElement pl = doc.createElement("Playlist");
-    QStringList list;
-    foreach(int i, _playlist)
-        list.append(QString::number(i));
-    pl.appendChild( doc.createTextNode( list.join(",") ) );
+    pl.appendChild( doc.createTextNode( getPlaylistString() ) );
     pl.setAttribute("Bidirectional", bidirectional );
     pl.setAttribute("Shuffle", shuffle );
     specific.appendChild(pl);
