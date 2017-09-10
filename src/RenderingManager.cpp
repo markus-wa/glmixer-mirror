@@ -2369,19 +2369,22 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         QDomElement basket = t.firstChildElement("Images");
 
         QStringList fileNames;
-        QDomElement child = basket.firstChildElement("Filename");
-        while (!child.isNull()) {
+        QDomElement Filename = basket.firstChildElement("Filename");
+        while (!Filename.isNull()) {
 
             // first reads with the absolute file name
-            QString fileNameToOpen = child.text();
+            QString fileNameToOpen = Filename.text();
             // if there is no such file, try generate a file name from the relative file name
             if (!QFileInfo(fileNameToOpen).exists())
-                fileNameToOpen = current.absoluteFilePath( child.attribute("Relative", "") );
+                fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
             // if there is such a file
-            if (QFileInfo(fileNameToOpen).exists())
+            if (QFileInfo(fileNameToOpen).exists() && QFileInfo(fileNameToOpen).isFile())
                 fileNames.append(fileNameToOpen);
+            else
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                           << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
 
-            child = child.nextSiblingElement("Filename");
+            Filename = Filename.nextSiblingElement("Filename");
         }
 
         QDomElement Frame = t.firstChildElement("Frame");

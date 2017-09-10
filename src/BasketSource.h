@@ -37,11 +37,11 @@
 #include "RenderingManager.h"
 #include "ImageAtlas.h"
 
-class FboRenderingException : public SourceConstructorException {
+class BasketAtlasException : public SourceConstructorException {
 public:
-    virtual QString message() { return "Error binding Frame Buffer Object."; }
+    virtual QString message() { return "No image could be loaded."; }
     void raise() const { throw *this; }
-    Exception *clone() const { return new FboRenderingException(*this); }
+    Exception *clone() const { return new BasketAtlasException(*this); }
 };
 
 
@@ -72,16 +72,15 @@ public:
     QList<int> getPlaylist() const;
     QString getPlaylistString() const;
 
+    bool appendImages(QStringList files);
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 public slots:
 
     void play(bool on);
-
     void setBidirectional(bool on);
     void setShuffle(bool on);
     void setPeriod(qint64 p);
-    void appendImages(QStringList files);
     void setPlaylist(QList<int> playlist);
     void setPlaylistString(QString playlist);
 

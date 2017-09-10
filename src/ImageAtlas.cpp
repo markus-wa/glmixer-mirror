@@ -38,7 +38,9 @@ bool ImageAtlas::appendImages(QStringList files)
 
     // ignore obvious
     if (files.empty())
-        return true;
+        return false;
+
+    int numElementsAtlas = _atlasElements.count();
 
     // create a temporary texture for filling images to atlas
     GLuint tex = 0;
@@ -80,6 +82,20 @@ bool ImageAtlas::appendImages(QStringList files)
             QPoint index;
             for (int i = 0; i < atlaspage->count(); ++i) {
 
+                // create atlas element with filename
+                ImageAtlasElement e(files.takeFirst());
+
+                // try to make an image: accept if not null
+                QImage image(e.fileName());
+                if (image.isNull()) {
+                    qWarning() << e.fileName() <<  QChar(124).toLatin1()
+                               << tr("Not a valid image file.");
+                    continue;
+                }
+
+                if (image.format() != QImage::Format_ARGB32_Premultiplied)
+                    image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+
                 // set rendering area
                 QRect coords(index.x()*_elementsSize.width(),
                              index.y()*_elementsSize.height(),
@@ -87,17 +103,12 @@ bool ImageAtlas::appendImages(QStringList files)
                              _elementsSize.height());
                 glViewport(coords.x(), coords.y(), coords.width(), coords.height() );
 
-                // create element with filename and coordinates of image in FBO
-                ImageAtlasElement e(files.takeFirst());
+                // set element coordinates of image in FBO and add it to list
                 e.setCoordinates(coords);
                 e.setPage(atlaspage);
                 _atlasElements.append(e);
 
                 // render image in FBO atlas page
-                QImage image(e.fileName());
-                if (image.format() != QImage::Format_ARGB32_Premultiplied)
-                    image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-
     #if QT_VERSION >= 0x040700
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                              image.width(), image. height(),
@@ -138,8 +149,8 @@ bool ImageAtlas::appendImages(QStringList files)
     glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &tex);
 
-    // success if all files were added
-    return (files.empty());
+    // ok if some files were added to the atlas
+    return (numElementsAtlas < _atlasElements.count());
 }
 
 

@@ -17,7 +17,7 @@ BasketSource::BasketSource(QStringList files, double d, int w, int h, qint64 p) 
     // fill in the atlas
     _atlas.setSize(w, h);
     if (!_atlas.appendImages(files))
-         FboRenderingException().raise();
+         BasketAtlasException().raise();
 
     // set a default playlist
     setPlaylist(QList<int>());
@@ -242,9 +242,9 @@ void BasketSource::update() {
 }
 
 
-void BasketSource::appendImages(QStringList files){
+bool BasketSource::appendImages(QStringList files){
 
-    _atlas.appendImages(files);
+    return _atlas.appendImages(files);
 }
 
 
