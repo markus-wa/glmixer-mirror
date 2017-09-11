@@ -74,6 +74,7 @@ public:
 
     bool appendImages(QStringList files);
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
+    int getFrameBufferAtlasSize() const;
 
 public slots:
 

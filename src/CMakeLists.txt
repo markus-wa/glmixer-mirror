@@ -392,7 +392,7 @@ SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
 IF(APPLE)
     set(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
-    set(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
+    set(qtplugin_dest_dir GLMixer.app/Contents/Plugins)
     set(qtconf_dest_dir GLMixer.app/Contents/Resources)
 
     set( CPACK_BINARY_DRAGNDROP ON)
@@ -488,8 +488,8 @@ IF(APPLE)
     #--------------------------------------------------------------------------------
     # Install needed Qt plugins by copying directories from the qt installation
     # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir}/plugins COMPONENT Runtime)
-
+    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime)
+    
     #--------------------------------------------------------------------------------
     # install a qt.conf file
     # this inserts some cmake code into the install script to write the file
@@ -520,7 +520,7 @@ IF(APPLE)
     # over.
     INSTALL(CODE "
         file(GLOB_RECURSE QTPLUGINS
-          \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+          \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
         " COMPONENT Runtime)

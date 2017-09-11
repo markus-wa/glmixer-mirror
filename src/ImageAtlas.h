@@ -43,6 +43,7 @@ public:
     QGLFramebufferObject *fbo() const { return _fbo;}
 
     QRectF texturecoordinates(QRect rect) const;
+    int texturesize() const;
 
 private:
     QSize _array;
@@ -92,6 +93,7 @@ public:
 
     // for GUI
     QStringList getImageList() const;
+    int texturesize() const;
 
 signals:
 

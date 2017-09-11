@@ -71,7 +71,11 @@ void FFGLPluginSource::load(QString filename)
     // if the plugin file exists, it might be accompanied by other DLLs
     // and we should add the path for the system to find them
     addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
-
+    
+#ifdef Q_OS_MAC
+    // a bundle might contain frameworks necessary for execution
+    addPathToSystemPath( QString("%1/../Frameworks").arg(pluginfile.absolutePath()).toUtf8() );
+#endif
     // load dll plugin
     char fname[4096];
     strcpy(fname, pluginfile.absoluteFilePath().toLatin1().data());

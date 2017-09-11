@@ -172,6 +172,21 @@ QRectF ImageAtlasPage::texturecoordinates(QRect rect) const {
     return textcoords;
 }
 
+int ImageAtlasPage::texturesize() const {
+
+    return _fbo->size().width() * _fbo->size().height() * 4;
+}
+
+
+int ImageAtlas::texturesize() const {
+    
+    int s = 0;
+    foreach(ImageAtlasPage *P, _atlasPages) {
+        s += P->texturesize();
+    }
+    return s;
+}
+    
 ImageAtlasPage::ImageAtlasPage(QSize imagesize, int numimages){
 
     // Check limits of the openGL frame buffer dimensions

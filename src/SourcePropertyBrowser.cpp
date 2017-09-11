@@ -1464,22 +1464,26 @@ public:
         property->setToolTip("List of files in the basket");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
-
-        // list of files
+        // VRAM
+        property = infoManager->addProperty( QLatin1String("VRAM") );
+        property->setToolTip("Amount of VRAM occupied by textures loaded in the graphic card");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
+        // Playlist
         property = stringManager->addProperty( QLatin1String("Playlist") );
         property->setToolTip("Playing order (indices in list of files)");
         idToProperty[property->propertyName()] = property;
-
         // options
         idToProperty["Bidirectional"] = boolManager->addProperty("Bidirectional");
         idToProperty["Shuffle"] = boolManager->addProperty("Shuffle");
-        // Periodicity
+        // update
         idToProperty["Frequency"] = intManager->addProperty( QLatin1String("Update frequency") );
         idToProperty["Frequency"]->setToolTip("Frequency of update (Hz).");
         intManager->setRange(idToProperty["Frequency"], 1, 60);
 
         // Set values
         infoManager->setValue(idToProperty["Files"], bs->getImageFileList().join(" ") );
+        infoManager->setValue(idToProperty["VRAM"], getByteSizeString( bs->getFrameBufferAtlasSize() ) );
         stringManager->setValue(idToProperty["Playlist"], bs->getPlaylistString() );
         boolManager->setValue(idToProperty["Bidirectional"], bs->isBidirectional());
         boolManager->setValue(idToProperty["Shuffle"], bs->isShuffle());
@@ -1487,6 +1491,7 @@ public:
 
         //  show Properties
         addProperty(idToProperty["Files"]);
+        addProperty(idToProperty["VRAM"]);
         addProperty(idToProperty["Playlist"]);
         addProperty(idToProperty["Bidirectional"]);
         addProperty(idToProperty["Shuffle"]);

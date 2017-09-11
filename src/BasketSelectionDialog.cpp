@@ -97,6 +97,7 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
 
             // get filename
             QString filename = urlname.absoluteFilePath();
+            qDebug() << "Dropped "<<filename;
 
             // prepare to create a new item
             QListWidgetItem *newitem = 0;
@@ -107,12 +108,11 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
             // the image not in the list
             if (previousitems.size() == 0) {
 
-// TODO : SUPPORT FOR GIF ANIM
-//                QMovie movie(filename);
-//                if (movie.isValid()) {
-//                    qDebug() << "Movie "<< filename << ": "<< movie.format() << movie.frameCount();
-//                }
-
+//TODO : SUPPORT FOR GIF ANIM (works in OSX bundle) : NB images are ok QMovies with 1 frame.
+            //    QMovie movie(filename);
+            //    if (movie.isValid()) {
+            //        qDebug() << "Movie "<< filename << ": "<< movie.format() << movie.frameCount() << " frames";
+            //    }
                 // try to make an image: accept if not null
                 QPixmap image(filename);
                 if (image.isNull())

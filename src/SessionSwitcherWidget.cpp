@@ -287,7 +287,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->header()->setResizeMode(QHeaderView::Interactive);
     proxyView->header()->resizeSection(1, 25);
     proxyView->header()->resizeSection(2, 35);
-    //    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
     proxyView->setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"%1\";\n"
         "}").arg(getMonospaceFont()));
@@ -630,6 +629,8 @@ void SessionSwitcherWidget::saveSettings()
         appSettings->setValue("transitionSortingColumn", proxyFolderModel->sortColumn());
         appSettings->setValue("transitionSortingOrder", (int) proxyFolderModel->sortOrder());
     }
+
+    appSettings->setValue("transitionHeader", proxyView->header()->saveState());
 }
 
 void SessionSwitcherWidget::restoreSettings()
@@ -668,6 +669,10 @@ void SessionSwitcherWidget::restoreSettings()
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
     connect(transitionDuration, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), this, SLOT(saveSettings()));
+
+    if ( appSettings->contains("transitionHeader") )
+        proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
+
 }
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()

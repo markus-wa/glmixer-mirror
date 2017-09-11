@@ -288,3 +288,7 @@ QDomElement BasketSource::getConfiguration(QDomDocument &doc, QDir current)
 }
 
 
+int BasketSource::getFrameBufferAtlasSize() const
+{
+    return _atlas.texturesize();
+}
