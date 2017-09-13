@@ -47,6 +47,13 @@ FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
 
 void FFGLPluginSource::load(QString filename)
 {
+    // check the file exists
+    QFileInfo pluginfile(filename);
+    if (!pluginfile.exists()){
+        qWarning()<< filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
+        FFGLPluginException().raise();
+    }
+
     _filename = filename;
 
     // instanciate if needed
@@ -61,14 +68,7 @@ void FFGLPluginSource::load(QString filename)
         FFGLPluginException().raise();
     }
 
-    // check the file exists
-    QFileInfo pluginfile(_filename);
-    if (!pluginfile.exists()){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
-        FFGLPluginException().raise();
-    }
-
-    // if the plugin file exists, it might be accompanied by other DLLs
+    //  the plugin might be accompanied by other DLLs
     // and we should add the path for the system to find them
     addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
     

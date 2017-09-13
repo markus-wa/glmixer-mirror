@@ -39,11 +39,6 @@ bool FFGLSource::playable = true;
 FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, int h):
     Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
-    if ( !QFileInfo(pluginFileName).isFile()) {
-        qWarning() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource given an invalid file");
-        SourceConstructorException().raise();
-    }
-
     // create new plugin with this file
     FFGLTextureStruct it;
     it.Handle = texture;
