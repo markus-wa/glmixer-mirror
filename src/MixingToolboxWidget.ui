@@ -78,7 +78,16 @@ QToolButton {
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -419,7 +428,16 @@ QToolButton {
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="gammaContentsLayout">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -464,7 +482,16 @@ QToolButton {
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -520,7 +547,16 @@ QToolButton {
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -597,7 +633,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pageBrightness">
           <layout class="QHBoxLayout" name="horizontalLayoutBrightness">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -674,7 +719,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pageContrast">
           <layout class="QHBoxLayout" name="horizontalLayoutcontrast">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -748,7 +802,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pageHue">
           <layout class="QHBoxLayout" name="horizontalLayoutHue">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -822,7 +885,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pageThreshold">
           <layout class="QHBoxLayout" name="horizontalLayoutThreshold">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -896,7 +968,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pagePosterize">
           <layout class="QHBoxLayout" name="horizontalLayoutPosterize">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -982,7 +1063,16 @@ QToolButton {
          </widget>
          <widget class="QWidget" name="pageChromakey">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -1092,7 +1182,16 @@ border:0px
          </widget>
          <widget class="QWidget" name="pageInvert">
           <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -1368,7 +1467,16 @@ border:0px
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -1697,7 +1805,16 @@ border:0px
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="pluginBrowserLayout">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -1823,7 +1940,16 @@ border:0px
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -1998,7 +2124,7 @@ border:0px
           <bool>false</bool>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::NoSelection</enum>
+          <enum>QAbstractItemView::SingleSelection</enum>
          </property>
          <property name="spacing">
           <number>1</number>
@@ -2018,8 +2144,8 @@ border:0px
   </layout>
  </widget>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -130,12 +130,12 @@ QListWidget::item:selected:hover {
 
 QListWidget::item:selected {
     background-color: palette(highlight);
-    text-color: palette(HighlightedText);
+    color: palette(HighlightedText);
 }
 
 QListWidget::item:focus {
     background-color: palette(highlight);
-    text-color: palette(HighlightedText);
+    color: palette(HighlightedText);
 }
 
 /*

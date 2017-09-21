@@ -123,18 +123,20 @@ QListWidget::item:hover {
 }
 
 QListWidget::item:selected:hover {
-    background-color: palette(midlight);
+    background-color: palette(mid);
     border-width: 1px;
     border-style: solid;
     border-color: palette(highlight);
 }
 
 QListWidget::item:selected {
-    background-color: palette(midlight);
+    background-color: palette(highlight);
+    color: palette(HighlightedText);
 }
 
 QListWidget::item:focus {
-    background-color: palette(midlight);
+    background-color: palette(highlight);
+    color: palette(HighlightedText);
 }
 
 QTreeView::item:hover {
