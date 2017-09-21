@@ -46,10 +46,10 @@ public slots:
     void valueChanged(QtProperty *property, double value);
     void valueChanged(QtProperty *property, const QString &value);
 
+    void ctxMenuTree(const QPoint &);
     void resetAll();
     void defaultValue();
-
-    void ctxMenuTree(const QPoint &);
+    void copyPropertyText();
 
     // Context menu actions
     void moveUpPlugin();

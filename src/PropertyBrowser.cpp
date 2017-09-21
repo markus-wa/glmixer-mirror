@@ -116,16 +116,16 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     propertyGroupEditor->setFactoryForManager(buttonManager, buttonFactory);
 
     // actions of context menus
-    defaultValueAction = new QAction(QObject::tr("Default value"), this);
+    defaultValueAction = new QAction( QIcon(":/glmixer/icons/clean.png"), QObject::tr("Default value"), this);
     QObject::connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValue() ) );
 
-    resetAction = new QAction(QObject::tr("Reset"), this);
+    resetAction = new QAction( QIcon(":/glmixer/icons/view-refresh.png"), QObject::tr("Reset"), this);
     QObject::connect(resetAction, SIGNAL(triggered()), this, SLOT(resetAll() ) );
 
-    openUrlAction = new QAction(QObject::tr("Show file in browser"), this);
+    openUrlAction = new QAction( QIcon(":/glmixer/icons/folderopen.png"), QObject::tr("Show file in browser"), this);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(showReferenceURL() ) );
 
-    copyClipboardAction = new QAction(QObject::tr("Copy text"), this);
+    copyClipboardAction = new QAction( QIcon(":/glmixer/icons/textcopy.png"), QObject::tr("Copy text"), this);
     QObject::connect(copyClipboardAction, SIGNAL(triggered()), this, SLOT(copyPropertyText() ) );
 
     // Actions of the Tree Context Menu
@@ -133,11 +133,6 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     menuTree.addAction(resetAction);
     menuTree.addAction(copyClipboardAction);
     menuTree.addAction(openUrlAction);
-
-    // TODO : expand and collapse with another mean than context menu
-//    menuTree.addSeparator();
-//    menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
-//    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
 }
 
@@ -172,10 +167,11 @@ void PropertyBrowser::showReferenceURL(){
 
 void PropertyBrowser::copyPropertyText(){
 
-    QtProperty *property = propertyTreeEditor->currentItem()->property();
-    if ( property->hasValue() )
-        QApplication::clipboard()->setText( property->valueText() );
-
+    if ( propertyTreeEditor->currentItem() ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( property && property->hasValue() )
+            QApplication::clipboard()->setText( property->valueText() );
+    }
 }
 
 

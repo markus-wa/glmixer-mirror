@@ -51,13 +51,13 @@ public slots:
     void setHeaderVisible(bool);
     void setReferenceURL(QUrl u = QUrl());
     void showReferenceURL();
-    void copyPropertyText();
     void onCurrentItemChanged(QtBrowserItem *item);
 
     // Context menu actions
     virtual void ctxMenuTree(const QPoint &);
     virtual void resetAll() {}
     virtual void defaultValue() {}
+    virtual void copyPropertyText();
 
     // appearance
     void setDisplayPropertyTree(bool on);

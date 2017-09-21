@@ -22,9 +22,8 @@
 
 #include "FFGLPluginBrowser.moc"
 
-#include <QVBoxLayout>
+#include <QtGui>
 
-#include <QPair>
 #include <QtTreePropertyBrowser>
 #include <QtButtonPropertyBrowser>
 #include <QtGroupBoxPropertyBrowser>
@@ -48,8 +47,6 @@
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
 #include <ButtonEditorFactory.h>
-#include <QFileInfo>
-#include <QShortcut>
 
 #include "common.h"
 #include "FFGLPluginSource.h"
@@ -322,6 +319,24 @@ void FFGLPluginBrowser::defaultValue()
     }
     // refresh display
     showProperties(currentStack);
+}
+
+void FFGLPluginBrowser::copyPropertyText(){
+
+    if ( propertyTreeEditor->currentItem() ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( property ) {
+            if ( property->propertyName() == "Code" ) {
+                FFGLPluginSource *p = propertyToPluginParameter[property].first;
+                if (p->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+                    FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(p);
+                    QApplication::clipboard()->setText( stp->getCode() );
+                }
+            }
+            else if ( property->hasValue() )
+                QApplication::clipboard()->setText( property->valueText() );
+        }
+    }
 }
 
 void FFGLPluginBrowser::removePlugin()

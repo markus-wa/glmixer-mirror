@@ -295,10 +295,10 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     QAction *reloadAction = new QAction(tr("Reload folder"), proxyView);
     proxyView->insertAction(0, reloadAction);
     QObject::connect(reloadAction, SIGNAL(triggered()), this, SLOT(reloadFolder()) );
-    QAction *openUrlAction = new QAction(tr("Show folder in browser"), proxyView);
+    QAction *openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show folder in browser"), proxyView);
     proxyView->insertAction(0, openUrlAction);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(browseFolder()) );
-    QAction *deleteSessionAction = new QAction(tr("Delete file"), proxyView);
+    QAction *deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete file"), proxyView);
     proxyView->insertAction(0, deleteSessionAction);
     QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
 
