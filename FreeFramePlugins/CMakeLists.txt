@@ -48,14 +48,14 @@ else(WIN32)
 
     if(APPLE)
 
+        add_subdirectory(blackmagicFFGLPlugin)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_osx.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
 
     else(APPLE)
-
-# Linux
+        # Linux
         add_subdirectory(video4LinuxFFGLPlugin)
-
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_linux.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
+        
     endif(APPLE)
 
 endif(WIN32)
