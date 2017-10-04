@@ -70,6 +70,7 @@ Q_OBJECT
 public:
 
     RTTI rtti() const { return type; }
+    QString getInfo() const;
     bool isPlayable() const { return playable; }
     bool isPlaying() const;
 

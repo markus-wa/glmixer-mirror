@@ -56,6 +56,7 @@ class BasketSource : public Source
 public:
 
     RTTI rtti() const { return BasketSource::type; }
+    QString getInfo() const;
     bool isPlayable() const { return BasketSource::playable; }
     bool isPlaying() const;
 

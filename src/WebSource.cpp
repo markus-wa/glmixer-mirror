@@ -159,6 +159,10 @@ WebSource::~WebSource()
     delete _webrenderer;
 }
 
+QString WebSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Web page : ") + getUrl().toString();
+}
 
 int WebSource::getFrameWidth() const
 {

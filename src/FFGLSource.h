@@ -50,6 +50,7 @@ public:
     FFGLPluginSource *freeframeGLPlugin() { return _plugin ;}
 
     RTTI rtti() const { return type; }
+    QString getInfo() const;
     bool isPlayable() const { return playable; }
     bool isPlaying() const;
 

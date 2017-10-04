@@ -43,6 +43,11 @@ CloneSource::~CloneSource() {
     original->getClones()->erase((Source*) this);
 }
 
+QString CloneSource::getInfo() const {
+
+    return Source::getInfo() + " - Clone of " + getOriginalName();
+}
+
 void CloneSource::setOriginal(SourceSet::iterator sit) {
 
     setOriginal( (Source *)(*sit));

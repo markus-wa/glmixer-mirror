@@ -107,6 +107,11 @@ VideoStreamSource::~VideoStreamSource()
 
 }
 
+QString VideoStreamSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Network stream : ") + is->getUrl();
+}
+
 bool VideoStreamSource::isPlayable() const
 {
     return ( is != NULL );

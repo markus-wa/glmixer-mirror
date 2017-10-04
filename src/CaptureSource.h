@@ -37,6 +37,7 @@ public:
 
     static RTTI type;
     RTTI rtti() const { return type; }
+    QString getInfo() const;
 
 protected:
     // only friends can create a source

@@ -27,6 +27,11 @@ RenderingSource::~RenderingSource() {
     }
 }
 
+QString RenderingSource::getInfo() const {
+
+    return Source::getInfo() + " - Loopback ";
+}
+
 GLuint RenderingSource::getTextureIndex() const {
     QGLFramebufferObject *fbo = _sfbo;
     if (_recursive || !fbo )

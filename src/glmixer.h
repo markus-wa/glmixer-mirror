@@ -183,6 +183,7 @@ private:
     static GLMixer *_instance;
 
     QString currentSessionFileName;
+    QLabel *infobar;
     bool usesystemdialogs, maybeSave;
     Source *previousSource;
     class VideoFile *previousSourceVideoFile;

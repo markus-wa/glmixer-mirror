@@ -225,6 +225,10 @@ OpencvSource::~OpencvSource() {
 
 }
 
+QString OpencvSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Capture device : ") + getOpencvCameraIndex();
+}
 
 void OpencvSource::play(bool on)
 {

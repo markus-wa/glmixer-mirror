@@ -36,6 +36,11 @@ BasketSource::~BasketSource() {
         delete _renderFBO;
 }
 
+QString BasketSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Basket of images (%1)").arg(getImageFileList().count());
+}
+
 
 GLuint BasketSource::getTextureIndex() const {
 

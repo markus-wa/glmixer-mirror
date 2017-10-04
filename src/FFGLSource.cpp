@@ -130,6 +130,18 @@ FFGLSource::~FFGLSource()
         delete _plugin;
 }
 
+QString FFGLSource::getInfo() const {
+
+    QString plugininfo;
+    if (_plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
+        plugininfo = "ShaderToy (GLSL code)";
+    else
+        plugininfo = _plugin->fileName();
+
+    return Source::getInfo() + tr(" - GPU Plugin : ") + plugininfo;
+}
+
+
 int FFGLSource::getFrameWidth() const {
 
     return _plugin->getOutputTextureStruct().Width;

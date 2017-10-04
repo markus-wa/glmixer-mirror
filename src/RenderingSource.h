@@ -39,6 +39,7 @@ public:
 
     static RTTI type;
     RTTI rtti() const { return type; }
+    QString getInfo() const;
 
     void setRecursive(bool on);
     inline bool isRecursive() const { return _recursive; }

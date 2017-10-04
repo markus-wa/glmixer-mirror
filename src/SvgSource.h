@@ -46,6 +46,7 @@ public:
 
     static RTTI type;
     RTTI rtti() const { return type; }
+    QString getInfo() const;
 
     int getFrameWidth() const { return _rendered.width(); }
     int getFrameHeight() const { return _rendered.height(); }

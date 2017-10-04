@@ -416,6 +416,10 @@ AlgorithmSource::~AlgorithmSource() {
         glDeleteBuffers(1, &pboIds);
 }
 
+QString AlgorithmSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Algorithm : ") + getAlgorithmDescription(algotype);
+}
 
 void AlgorithmSource::setVariability(double v) {
 

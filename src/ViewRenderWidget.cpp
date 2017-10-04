@@ -162,7 +162,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), busy(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
+    glRenderWidget(), faded(false), busy(false), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
     setAcceptDrops ( true );
@@ -204,8 +204,8 @@ ViewRenderWidget::ViewRenderWidget() :
     cursorEnabled = false;
 
     // opengl HID display
-    connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
-    messageTimer.setSingleShot(true);
+    connect(&zoomLabelTimer, SIGNAL(timeout()), SLOT(hideZoom()));
+    zoomLabelTimer.setSingleShot(true);
     fpsTime_.start();
     fpsCounter_ = 0;
     f_p_s_ = 1000.0 / updatePeriod();
@@ -903,7 +903,7 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
         return;
 
     if (_currentView->wheelEvent(event)) {
-        showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+        showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
         zoomPercentChanged((int) _currentView->getZoomPercent());
     }
 }
@@ -1035,7 +1035,7 @@ void ViewRenderWidget::zoom(int percent)
     makeCurrent();
     _currentView->setZoomPercent( double(percent) );
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomIn()
@@ -1043,7 +1043,7 @@ void ViewRenderWidget::zoomIn()
     makeCurrent();
     _currentView->zoomIn();
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
     emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
@@ -1052,7 +1052,7 @@ void ViewRenderWidget::zoomOut()
     makeCurrent();
     _currentView->zoomOut();
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
     emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
@@ -1061,7 +1061,7 @@ void ViewRenderWidget::zoomReset()
     makeCurrent();
     _currentView->zoomReset();
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
     emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
@@ -1070,7 +1070,7 @@ void ViewRenderWidget::zoomBestFit()
     makeCurrent();
     _currentView->zoomBestFit();
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
     emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
@@ -1079,7 +1079,7 @@ void ViewRenderWidget::zoomCurrentSource()
     makeCurrent();
     _currentView->zoomBestFit(true);
 
-    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
     emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
@@ -1094,19 +1094,29 @@ void ViewRenderWidget::clearViews()
     refresh();
 }
 
-void ViewRenderWidget::showMessage(QString s)
+void ViewRenderWidget::showZoom(QString s)
 {
-    messageTimer.stop();
-    if (messageLabel)
-        messageLabel->setText(s);
-    messageTimer.start(1000);
+    zoomLabelTimer.stop();
+    if (zoomLabel)
+        zoomLabel->setText(s);
+    zoomLabelTimer.start(1000);
+}
+
+void ViewRenderWidget::hideZoom()
+{
+    if (zoomLabel)
+        zoomLabel->clear();
+}
+
+void ViewRenderWidget::showMessage(const QString &s, int timeout)
+{
+
 }
 
 void ViewRenderWidget::hideMessage()
 {
-    messageLabel->clear();
-}
 
+}
 
 void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {

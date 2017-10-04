@@ -129,8 +129,7 @@ QToolButton {
          <item>
           <widget class="QComboBox" name="blendingBox">
            <property name="toolTip">
-            <string>Blending mode
-(how the colors are mixed with other sources)</string>
+            <string>Blending mode</string>
            </property>
            <property name="statusTip">
             <string>Blending mode\n(how the colors are mixed with other sources)</string>
@@ -252,7 +251,7 @@ QToolButton {
             </size>
            </property>
            <property name="toolTip">
-            <string>Customize blending</string>
+            <string>Custom blending</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -288,7 +287,7 @@ QToolButton {
 (tint of the source)</string>
            </property>
            <property name="statusTip">
-            <string>Base color \n(tint of the source)</string>
+            <string>Choose a base color (tint of the source)</string>
            </property>
            <property name="iconSize">
             <size>
@@ -313,8 +312,7 @@ QToolButton {
             </size>
            </property>
            <property name="toolTip">
-            <string>Smoothed / Pixelated 
-(smooth between pixels or show square pixels)</string>
+            <string>Smoothed / Pixelated</string>
            </property>
            <property name="statusTip">
             <string>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</string>
@@ -543,7 +541,7 @@ QToolButton {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1911,6 +1909,9 @@ border:0px
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="toolTip">
+             <string>Remove plugin</string>
+            </property>
             <property name="text">
              <string>...</string>
             </property>
@@ -2144,8 +2145,8 @@ border:0px
   </layout>
  </widget>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

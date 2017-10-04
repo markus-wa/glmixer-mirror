@@ -403,6 +403,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Set the docking tab vertical
     setDockOptions( dockOptions() | QMainWindow::VerticalTabs);
 
+    // Setup status bar
+    infobar = new QLabel(this);
+    statusbar->addPermanentWidget(infobar);
+
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
     delete mainRendering;
@@ -507,7 +511,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Recording triggers
     QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecord, SLOT(setChecked(bool)));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), statusbar , SLOT(showMessage(const QString &, int)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget() , SLOT(showMessage(const QString &, int)));
     QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
@@ -1088,6 +1092,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         specificSourcePropertyBrowser = NULL;
     }
 
+    infobar->setText("");
+
     // whatever happens, we will drop the control on the current source
     //   (this slot is called by MainRenderWidget through signal currentSourceChanged
     //    which is sent ONLY when the current source is changed)
@@ -1140,6 +1146,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
     if ( RenderingManager::getInstance()->isValid(csi) ) {
 
         // display source preview
+        infobar->setText( tr("Current Source :") + (*csi)->getInfo() );
         sourcePreview->setSource(*csi);
         vcontrolDockWidgetContents->setEnabled( true );
 
@@ -2115,7 +2122,7 @@ void GLMixer::saveSession(bool close, bool quit){
         }
 
         // start saving
-        statusbar->showMessage( tr("Saving %1...").arg( currentSessionFileName ) );
+        statusbar->showMessage( tr("Saving %1...").arg( currentSessionFileName ), 3000 );
         workerThread->start();
 
     }

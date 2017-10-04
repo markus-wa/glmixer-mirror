@@ -47,8 +47,9 @@ public:
 
     static RTTI type;
     RTTI rtti() const { return type; }
+    QString getInfo() const;
 
-    inline QString getOriginalName() { return original->getName(); }
+    inline QString getOriginalName() const { return original->getName(); }
     inline GLuint getOriginalId() { return original->getId(); }
 
     GLuint getTextureIndex() const { return original->getTextureIndex(); }

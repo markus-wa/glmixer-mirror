@@ -87,6 +87,11 @@ SvgSource::~SvgSource()
         delete _svg;
 }
 
+QString SvgSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Vector graphics ");
+}
+
 QDomElement SvgSource::getConfiguration(QDomDocument &doc, QDir current)
 {
     // get the config from proto source

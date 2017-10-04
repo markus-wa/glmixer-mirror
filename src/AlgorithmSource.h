@@ -51,6 +51,7 @@ class AlgorithmSource: public Source {
 public:
 
     RTTI rtti() const { return AlgorithmSource::type; }
+    QString getInfo() const;
     bool isPlayable() const { return AlgorithmSource::playable; }
     bool isPlaying() const;
 

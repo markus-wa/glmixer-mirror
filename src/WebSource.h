@@ -97,6 +97,7 @@ public:
     int getPageUpdate() const;
 
     RTTI rtti() const { return WebSource::type; }
+    QString getInfo() const;
     bool isPlayable() const { return WebSource::playable; }
     bool isPlaying() const;
 

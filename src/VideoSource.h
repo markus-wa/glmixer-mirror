@@ -50,6 +50,7 @@ protected:
 public:
 
     RTTI rtti() const { return VideoSource::type; }
+    QString getInfo() const;
     bool isPlayable() const;
     bool isPlaying() const;
     bool isPaused() const;

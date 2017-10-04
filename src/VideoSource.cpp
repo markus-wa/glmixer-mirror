@@ -73,6 +73,11 @@ VideoSource::~VideoSource()
         glDeleteBuffers(2, pboIds);
 }
 
+QString VideoSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Media File : ") + is->getFileName();
+}
+
 bool VideoSource::isPlayable() const
 {
     return (is && is->getNumFrames() > 1);

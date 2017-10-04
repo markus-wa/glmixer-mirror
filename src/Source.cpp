@@ -82,6 +82,11 @@ Source::~Source() {
         glDeleteTextures(1, &textureIndex);
 }
 
+QString Source::getInfo() const {
+
+    return tr("'%1' (%2x%3)").arg(getName()).arg(getFrameWidth()).arg(getFrameHeight());
+}
+
 /****
  *
  *  Implementation of ProtoSource methods

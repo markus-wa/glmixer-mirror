@@ -111,7 +111,7 @@ public:
      */
     void displayFramerate();
     float getFramerate() { return f_p_s_; }
-    void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
+    void setLabels(QLabel *label, QLabel *labelFPS) { zoomLabel = label; fpsLabel = labelFPS; }
     int catalogWidth();
 
     /**
@@ -183,7 +183,9 @@ public slots:
     void zoomBestFit();
     void zoomCurrentSource();
     void refresh();
-    void showMessage(QString s);
+    void showZoom(QString s);
+    void hideZoom();
+    void showMessage(const QString &s, int timeout);
     void hideMessage();
     void setCatalogVisible(bool on = false);
     void setCatalogSizeSmall();
@@ -192,6 +194,8 @@ public slots:
     void setFaded(bool on) { faded = on; }
     void setBusy(bool on = true) { busy = on; }
     void setCursorEnabled(bool on);
+
+
 
 public:
     // Shading
@@ -246,8 +250,8 @@ private:
     bool cursorEnabled;
 
     // M e s s a g e s
-    QLabel *messageLabel, *fpsLabel;
-    QTimer messageTimer;
+    QLabel *zoomLabel, *fpsLabel;
+    QTimer zoomLabelTimer;
     QMenu *viewMenu, *catalogMenu, *sourceMenu;
 
     // F P S    d i s p l a y

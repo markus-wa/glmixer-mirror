@@ -25,6 +25,7 @@ protected:
 public:
 
     RTTI rtti() const { return VideoStreamSource::type; }
+    QString getInfo() const;
     bool isPlayable() const;
     bool isPlaying() const;
 

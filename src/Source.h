@@ -98,6 +98,7 @@ public:
         BASKET_SOURCE
     } RTTI;
     virtual RTTI rtti() const { return type; }
+    virtual QString getInfo() const;
 
     /*
      * Methods to be reimplemented in sub-classes

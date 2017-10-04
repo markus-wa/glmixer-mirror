@@ -463,10 +463,10 @@ border-bottom-left-radius: 5px;
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">
-          <string>On air</string>
+          <string>Output active</string>
          </property>
          <property name="statusTip">
-          <string>Output window is active when &quot;On air&quot;</string>
+          <string>Toggle enable / disable (black) of rendering output</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -493,7 +493,10 @@ border-bottom-left-radius: 5px;
        <item>
         <widget class="QSlider" name="output_alpha">
          <property name="toolTip">
-          <string>Adjust fading of output</string>
+          <string>Fade output</string>
+         </property>
+         <property name="statusTip">
+          <string>Manual fading to black of the output window</string>
          </property>
          <property name="minimum">
           <number>0</number>
@@ -520,6 +523,9 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Pause rendering</string>
          </property>
+         <property name="statusTip">
+          <string>Toggle pause / resume of rendering output</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -541,7 +547,10 @@ border-bottom-left-radius: 5px;
        <item>
         <widget class="QToolButton" name="output_aspectratio">
          <property name="toolTip">
-          <string>Select aspect ratio</string>
+          <string>Aspect ratio</string>
+         </property>
+         <property name="statusTip">
+          <string>Select aspect ratio of the rendering output</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -849,6 +858,9 @@ border-bottom-left-radius: 5px;
                  <property name="toolTip">
                   <string>Restart</string>
                  </property>
+                 <property name="statusTip">
+                  <string>Restart playing the media from beginning</string>
+                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -868,6 +880,9 @@ border-bottom-left-radius: 5px;
                 <widget class="QToolButton" name="seekBackwardButton">
                  <property name="toolTip">
                   <string>Jump backward</string>
+                 </property>
+                 <property name="statusTip">
+                  <string>Jump back in time by 10% of media duration</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -915,6 +930,9 @@ border-bottom-left-radius: 5px;
                  <property name="toolTip">
                   <string>Fast forward</string>
                  </property>
+                 <property name="statusTip">
+                  <string>Play in fast-forward (at frequency of display)</string>
+                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -944,6 +962,9 @@ border-bottom-left-radius: 5px;
                  <property name="toolTip">
                   <string>Step by 1 frame</string>
                  </property>
+                 <property name="statusTip">
+                  <string>Go forward by one frame</string>
+                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -964,6 +985,9 @@ border-bottom-left-radius: 5px;
                  <property name="toolTip">
                   <string>Jump forward</string>
                  </property>
+                 <property name="statusTip">
+                  <string>Jump forward in time by 10% of the media duration</string>
+                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -982,7 +1006,10 @@ border-bottom-left-radius: 5px;
                <item>
                 <widget class="QToolButton" name="videoLoopButton">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Loop playback (jump back to begin when arrived at end)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>Loop playback</string>
+                 </property>
+                 <property name="statusTip">
+                  <string>Toggle loop / stop at end of media.</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1118,7 +1145,7 @@ border-bottom-left-radius: 5px;
                <item>
                 <widget class="QToolButton" name="playSpeedReset">
                  <property name="toolTip">
-                  <string>Reset speed to 1</string>
+                  <string>Reset speed</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true">QToolButton {
@@ -1256,7 +1283,10 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the begin to the start of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Resets begin</string>
+                </property>
+                <property name="statusTip">
+                 <string>Resets the begin to the start of file</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton {
@@ -1333,7 +1363,10 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset the end to the end of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Reset end</string>
+                </property>
+                <property name="statusTip">
+                 <string>Reset the end to the end of file.</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton {
@@ -3315,7 +3348,7 @@ QToolButton:hover {
     <string>&amp;Mixing view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to mixing view F1</string>
+    <string>Switch to mixing view</string>
    </property>
    <property name="statusTip">
     <string>The mixing view allows to change the transparency of the sources.</string>
@@ -3336,7 +3369,7 @@ QToolButton:hover {
     <string>&amp;Geometry view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to geometry view F2</string>
+    <string>Switch to geometry view</string>
    </property>
    <property name="statusTip">
     <string>The geometry view allows to move, scale and rotate sources.</string>
@@ -3357,7 +3390,7 @@ QToolButton:hover {
     <string>&amp;Layers view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to layers view F3</string>
+    <string>Switch to layers view</string>
    </property>
    <property name="statusTip">
     <string>The layers view allows to organize the sources in layers.</string>
@@ -3378,7 +3411,7 @@ QToolButton:hover {
     <string>Create a new session</string>
    </property>
    <property name="statusTip">
-    <string>Close current and starts a new Session</string>
+    <string>Close current session and starts a new one</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -3426,7 +3459,7 @@ QToolButton:hover {
     <string>New source &amp;device</string>
    </property>
    <property name="toolTip">
-    <string>Create a live source showing frames of a connected device (e.g. webcam)</string>
+    <string>Create a Device source</string>
    </property>
    <property name="statusTip">
     <string>Create a live source showing frames of a connected device (e.g. webcam)</string>
@@ -3441,7 +3474,7 @@ QToolButton:hover {
     <string>New source &amp;loopback</string>
    </property>
    <property name="toolTip">
-    <string>Create a  source whith the content of the output window.</string>
+    <string>Create a Loopback source</string>
    </property>
    <property name="statusTip">
     <string>Create a  source whith the content of the output window.</string>
@@ -3531,7 +3564,7 @@ QToolButton:hover {
     <string>New s&amp;ource Pixmap</string>
    </property>
    <property name="toolTip">
-    <string>Create a source with the content of the image in clipboard.</string>
+    <string>Create a Pixmap source</string>
    </property>
    <property name="statusTip">
     <string>Create a source with the content of the image in clipboard.</string>
@@ -3546,7 +3579,7 @@ QToolButton:hover {
     <string>New so&amp;urce algorithm</string>
    </property>
    <property name="toolTip">
-    <string>Create a source using algorithms to generate graphics.</string>
+    <string>Create an Algorithms source</string>
    </property>
    <property name="statusTip">
     <string>Create a source using algorithms to generate graphics.</string>
@@ -3564,7 +3597,7 @@ QToolButton:hover {
     <string>&amp;Clone</string>
    </property>
    <property name="toolTip">
-    <string>Creates a source cloning the current one.</string>
+    <string>Clone the current source</string>
    </property>
    <property name="statusTip">
     <string>Creates a source cloning the current one.</string>
@@ -3619,7 +3652,7 @@ QToolButton:hover {
     <string>Save session as</string>
    </property>
    <property name="statusTip">
-    <string>Save session under another file name</string>
+    <string>Save session under another name</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -3824,8 +3857,7 @@ QToolButton:hover {
     <string>Next</string>
    </property>
    <property name="toolTip">
-    <string>Select next source
-Shortcut:                                    Tab</string>
+    <string>Select next source (Tab)</string>
    </property>
    <property name="statusTip">
     <string>Select the next source in the list (shortcut is Tab)</string>
@@ -3840,8 +3872,7 @@ Shortcut:                                    Tab</string>
     <string>&amp;Previous</string>
    </property>
    <property name="toolTip">
-    <string>Select previous source
-Shortcut:                         Ctrl + Tab</string>
+    <string>Select previous source (Ctrl + Tab)</string>
    </property>
    <property name="statusTip">
     <string>Select the previous source in the list (shortcut is Ctrl + Tab)</string>
@@ -3862,7 +3893,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Visible</string>
    </property>
    <property name="toolTip">
-    <string>Show catalog F6</string>
+    <string>Show catalog </string>
    </property>
    <property name="statusTip">
     <string>Show / hide a catalog of all sources in the current view.</string>
@@ -3878,6 +3909,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>&amp;Small</string>
    </property>
+   <property name="toolTip">
+    <string>Small icons</string>
+   </property>
    <property name="statusTip">
     <string>Shows small previews of sources in the catalog.</string>
    </property>
@@ -3892,6 +3926,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>&amp;Medium</string>
    </property>
+   <property name="toolTip">
+    <string>Medium icons</string>
+   </property>
    <property name="statusTip">
     <string>Shows medium previews of sources in the catalog.</string>
    </property>
@@ -3902,6 +3939,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>&amp;Large</string>
+   </property>
+   <property name="toolTip">
+    <string>Large icons</string>
    </property>
    <property name="statusTip">
     <string>Shows large previews of sources in the catalog.</string>
@@ -3916,7 +3956,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Preferences</string>
    </property>
    <property name="statusTip">
-    <string>Opens the preferences dialog.</string>
+    <string>Open the preferences dialog.</string>
    </property>
    <property name="menuRole">
     <enum>QAction::PreferencesRole</enum>
@@ -3953,10 +3993,10 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;On air</string>
    </property>
    <property name="toolTip">
-    <string>Enable / Disable rendering F5</string>
+    <string>Enable / Disable rendering</string>
    </property>
    <property name="statusTip">
-    <string>Output window is active when &quot;On air&quot;</string>
+    <string>Toggle Enabled / Disabled the output window</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -4204,10 +4244,10 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Reset</string>
    </property>
    <property name="toolTip">
-    <string>Reset all properties to default (from preferences)</string>
+    <string>Reset all properties </string>
    </property>
    <property name="statusTip">
-    <string>Reset all properties to default (from preferences)</string>
+    <string>Reset all properties to default values from preferences</string>
    </property>
   </action>
   <action name="actionMediaSource">
@@ -4216,10 +4256,10 @@ Shortcut:                         Ctrl + Tab</string>
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>New &amp;source(s) video(s)</string>
+    <string>New Media &amp;source(s) </string>
    </property>
    <property name="toolTip">
-    <string>Create a source from video or image file(s)</string>
+    <string>Create a Media source</string>
    </property>
    <property name="statusTip">
     <string>Create a source from video or image file(s)</string>
@@ -4308,7 +4348,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>New source &amp;vector graphics</string>
    </property>
    <property name="toolTip">
-    <string>Create a  source displaying vector graphics (SVG)</string>
+    <string>Create a vector graphics (SVG) source</string>
    </property>
    <property name="statusTip">
     <string>Create a  source displaying vector graphics (SVG)</string>
@@ -4323,7 +4363,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>New source shared &amp;memory</string>
    </property>
    <property name="toolTip">
-    <string>Create a source reading from shared memory</string>
+    <string>Create a shared memory source</string>
    </property>
    <property name="statusTip">
     <string>Create a source reading from shared memory</string>
@@ -4359,6 +4399,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="toolTip">
     <string>Play / Stop (all selected sources) </string>
    </property>
+   <property name="statusTip">
+    <string>Toggle Play / Stop of all selected sources</string>
+   </property>
    <property name="shortcut">
     <string notr="true">Space</string>
    </property>
@@ -4373,6 +4416,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="toolTip">
     <string>Restart at begin (all selected sources)</string>
+   </property>
+   <property name="statusTip">
+    <string>Restart all selected sources to their beginning</string>
    </property>
    <property name="shortcut">
     <string>Home</string>
@@ -4389,6 +4435,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="toolTip">
     <string>Seek backward (all selected sources) </string>
    </property>
+   <property name="statusTip">
+    <string>Jump backward of all selected media sources</string>
+   </property>
    <property name="shortcut">
     <string>PgUp</string>
    </property>
@@ -4402,7 +4451,10 @@ Shortcut:                         Ctrl + Tab</string>
     <string>Pa&amp;use / Resume</string>
    </property>
    <property name="toolTip">
-    <string>Toggle Pause / Resume (all selected sources)</string>
+    <string>Pause / Resume (all selected sources)</string>
+   </property>
+   <property name="statusTip">
+    <string>Toggle  Pause / Resume  of all selected sources</string>
    </property>
    <property name="shortcut">
     <string>End</string>
@@ -4418,6 +4470,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="toolTip">
     <string>Seek forward (all selected sources)</string>
+   </property>
+   <property name="statusTip">
+    <string>Jump forward of all selected media sources</string>
    </property>
    <property name="shortcut">
     <string>PgDown</string>
@@ -4435,7 +4490,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Rendering view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to Rendering view F4</string>
+    <string>Switch to Rendering view</string>
    </property>
    <property name="statusTip">
     <string>Shows the rendering as displayed in the output window</string>
@@ -4468,7 +4523,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>N&amp;ew source GPU Plugin</string>
    </property>
    <property name="toolTip">
-    <string>Create a source with GPU generated graphics</string>
+    <string>Create a GPU graphics source</string>
    </property>
    <property name="statusTip">
     <string>Create a source with GPU generated graphics</string>
@@ -4501,7 +4556,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Fixed</string>
    </property>
    <property name="toolTip">
-    <string>Fix the aspect ratio as it is now.</string>
+    <string>Fix the aspect ratio</string>
    </property>
    <property name="statusTip">
     <string>Fix the aspect ratio as it is now.</string>
@@ -4548,6 +4603,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="toolTip">
     <string>Create a new source</string>
    </property>
+   <property name="statusTip">
+    <string>Open a dialog to create a new source</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -4564,7 +4622,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>New source Web page</string>
    </property>
    <property name="toolTip">
-    <string>Create a source displaying web or HTML page.</string>
+    <string>Create a Web or HTML source</string>
    </property>
    <property name="statusTip">
     <string>Create a source displaying web or HTML page.</string>
@@ -4621,7 +4679,10 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Edit </string>
    </property>
    <property name="toolTip">
-    <string>Edit current source properties</string>
+    <string>Edit current source</string>
+   </property>
+   <property name="statusTip">
+    <string>Edit the properties of the current source</string>
    </property>
   </action>
   <action name="actionWebsite">
@@ -4633,7 +4694,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Website</string>
    </property>
    <property name="toolTip">
-    <string>Visit GlMixer website</string>
+    <string>Visit GLMixer website</string>
    </property>
   </action>
   <action name="actionTutorials">
@@ -4644,6 +4705,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>&amp;Video Tutorials</string>
    </property>
+   <property name="statusTip">
+    <string>Visit GLMixer Vimeo videos</string>
+   </property>
   </action>
   <action name="actionUndo">
    <property name="icon">
@@ -4652,6 +4716,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
+   </property>
+   <property name="statusTip">
+    <string>Undo last action</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
@@ -4664,6 +4731,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
+   </property>
+   <property name="statusTip">
+    <string>Redo last action</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -4678,7 +4748,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>New source streamin&amp;g</string>
    </property>
    <property name="toolTip">
-    <string>Create a source reading a network stream</string>
+    <string>Create a Network Stream source</string>
    </property>
    <property name="statusTip">
     <string>Create a source reading a network stream</string>
@@ -4785,6 +4855,12 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>&amp;Increment</string>
    </property>
+   <property name="toolTip">
+    <string>Add a workspaces</string>
+   </property>
+   <property name="statusTip">
+    <string>Increment number of workspaces</string>
+   </property>
   </action>
   <action name="actionWorkspaceDecrement">
    <property name="icon">
@@ -4793,6 +4869,12 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>&amp;Decrement</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove workspace</string>
+   </property>
+   <property name="whatsThis">
+    <string>Decrement number of workspaces</string>
    </property>
   </action>
   <action name="actionNewWorkspace">
@@ -4803,6 +4885,12 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>&amp;New</string>
    </property>
+   <property name="toolTip">
+    <string>New workspace</string>
+   </property>
+   <property name="statusTip">
+    <string>Create a new workspace</string>
+   </property>
   </action>
   <action name="actionOSCTranslator">
    <property name="icon">
@@ -4811,6 +4899,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Op&amp;en Sound Control</string>
+   </property>
+   <property name="statusTip">
+    <string>Opens manager of Open Sound Control network client</string>
    </property>
    <property name="menuRole">
     <enum>QAction::TextHeuristicRole</enum>
@@ -4829,6 +4920,9 @@ Shortcut:                         Ctrl + Tab</string>
     <string>&amp;Exclusive Mode</string>
    </property>
    <property name="toolTip">
+    <string>Activate / deactivate exclusive workspace mode</string>
+   </property>
+   <property name="statusTip">
     <string>Show exclusively the sources in the current workspace</string>
    </property>
    <property name="shortcut">
@@ -4841,9 +4935,12 @@ Shortcut:                         Ctrl + Tab</string>
      <normaloff>:/glmixer/icons/basketsource.png</normaloff>:/glmixer/icons/basketsource.png</iconset>
    </property>
    <property name="text">
-    <string>New source &amp;basket</string>
+    <string>New &amp;basket source</string>
    </property>
    <property name="toolTip">
+    <string>Create a Basket source</string>
+   </property>
+   <property name="statusTip">
     <string>Create a source from a basket of images</string>
    </property>
   </action>
@@ -4857,6 +4954,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Cop&amp;y</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy current source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -4873,6 +4973,9 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>Paste</string>
    </property>
+   <property name="statusTip">
+    <string>Paste content of clipboard (source or image)</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
@@ -4888,8 +4991,41 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="text">
     <string>Cut</string>
    </property>
+   <property name="statusTip">
+    <string>Copy current source and remove it</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionSourcename">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;sourcename</string>
+   </property>
+   <property name="iconText">
+    <string>source name</string>
+   </property>
+   <property name="toolTip">
+    <string>source name</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSourceinfo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>s&amp;ourceinfo</string>
    </property>
   </action>
  </widget>
@@ -4917,8 +5053,8 @@ Shortcut:                         Ctrl + Tab</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

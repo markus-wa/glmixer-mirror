@@ -35,6 +35,11 @@ CaptureSource::~CaptureSource() {
 
 }
 
+QString CaptureSource::getInfo() const {
+
+    return Source::getInfo() + tr(" - Pixmap ");
+}
+
 
 QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
 {
@@ -51,11 +56,11 @@ QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
     if (!QImageWriter::supportedImageFormats().count("jpeg")){
         qWarning() << getName() << QChar(124).toLatin1() << tr("Qt JPEG plugin not found; using XPM format (slower).") << QImageWriter::supportedImageFormats();
         if (!_capture.save(&buffer, "xpm") )
-            qWarning() << getName() << QChar(124).toLatin1() << tr("Could not save captured source (XPM format).");
+            qWarning() << getName() << QChar(124).toLatin1() << tr("Could not save pixmap source (XPM format).");
     }
     else
         if (!_capture.save(&buffer, "jpeg") )
-            qWarning() << getName()  << QChar(124).toLatin1() << tr("Could not save captured source (JPG format).");
+            qWarning() << getName()  << QChar(124).toLatin1() << tr("Could not save pixmap source (JPG format).");
 
     buffer.close();
 
