@@ -1076,7 +1076,7 @@ void GLMixer::on_actionMediaSource_triggered(){
     setBusy(false);
 
     if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
-        statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
+        RenderingManager::getRenderingWidget()->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
 }
 
 
@@ -1351,10 +1351,10 @@ void GLMixer::on_actionCameraSource_triggered() {
                 CloneSource *cs = dynamic_cast<CloneSource*> (s);
                 if (cs) {
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
-                    statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
+                    RenderingManager::getRenderingWidget()->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
                 } else {
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
-                    statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
+                    RenderingManager::getRenderingWidget()->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
                 }
             } else
                 qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
@@ -1385,7 +1385,7 @@ void GLMixer::on_actionWebSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Web source created with location ")<< web.toString();
-            statusbar->showMessage( tr("Source created with the web location %1.").arg( web.toString() ), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the web location %1.").arg( web.toString() ), 3000 );
         } else
             qCritical() << web.toString() <<  QChar(124).toLatin1() << tr("Could not create a web source with this location.");
 
@@ -1416,7 +1416,7 @@ void GLMixer::on_actionSvgSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New vector Graphics source created with file ")<< fileName;
-            statusbar->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
         } else
             qCritical() << fileName <<  QChar(124).toLatin1() << tr("Could not create a vector graphics source with this file.");
     }
@@ -1436,7 +1436,7 @@ void GLMixer::on_actionShmSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";
-            statusbar->showMessage( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
         } else
             qCritical() << shmd->getSelectedProcess() <<  QChar(124).toLatin1() << tr("Could not create shared memory source.");
     }
@@ -1461,7 +1461,7 @@ void GLMixer::on_actionStreamSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Network Stream source created with URL ")<< vsd->getUrl();
-            statusbar->showMessage( tr("Source created with network stream %1.").arg( vsd->getUrl() ), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with network stream %1.").arg( vsd->getUrl() ), 3000 );
         } else {
 
             qCritical() << vsd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a streaming source from this network URL.");
@@ -1502,7 +1502,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
                     // shadertoy info
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy GPU plugin source created.");
-                    statusbar->showMessage( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
+                    RenderingManager::getRenderingWidget()->showMessage( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
 
                     // connect the signal from the rendering manager to
                     // show the code editor after drop
@@ -1512,7 +1512,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 else {
                     // freeframe info (filename)
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Freeframe GPU plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
-                    statusbar->showMessage( tr("Freeframe GPU plugin source %1 created.").arg( s->getName() ), 3000 );
+                    RenderingManager::getRenderingWidget()->showMessage( tr("Freeframe GPU plugin source %1 created.").arg( s->getName() ), 3000 );
                 }
 
                 // add source
@@ -1566,7 +1566,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
-            statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
         } else
             qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) <<  QChar(124).toLatin1() << tr("Could not create algorithm source.");
     }
@@ -1587,7 +1587,7 @@ void GLMixer::on_actionRenderingSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
-            statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
+            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the rendering output loopback."), 3000 );
         } else
             qCritical() << tr("Could not create rendering loopback source.");
 
@@ -1611,7 +1611,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
-            statusbar->showMessage( tr("The current source has been cloned."), 3000);
+            RenderingManager::getRenderingWidget()->showMessage( tr("The current source has been cloned."), 3000);
         } else
             qCritical() << (*RenderingManager::getInstance()->getCurrentSource())->getName()<< QChar(124).toLatin1() << tr("Could not clone source %1.");
     }
@@ -1657,7 +1657,7 @@ void GLMixer::on_actionCopy_snapshot_triggered(){
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
     QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
 
-    statusbar->showMessage( tr("Current frame captured and copied to clipboard."), 3000 );
+    RenderingManager::getRenderingWidget()->showMessage( tr("Current frame captured and copied to clipboard."), 3000 );
 }
 
 void GLMixer::on_actionSave_snapshot_triggered(){
@@ -1787,7 +1787,7 @@ void GLMixer::on_actionDeleteSource_triggered()
             if ( !numclones ){
                 QString d = (*sit)->getName();
                 RenderingManager::getInstance()->removeSource(sit);
-                statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
+                RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
             }
         }
     }
@@ -1797,13 +1797,13 @@ void GLMixer::on_actionDeleteSource_triggered()
 void GLMixer::on_actionSelect_Next_triggered(){
 
     if (RenderingManager::getInstance()->setCurrentNext())
-        statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
 }
 
 void GLMixer::on_actionSelect_Previous_triggered(){
 
     if (RenderingManager::getInstance()->setCurrentPrevious())
-        statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
 
 }
 
@@ -2076,7 +2076,7 @@ void GLMixer::postSaveSession()
     switcherSession->fileChanged( currentSessionFileName );
 #endif
     // log
-    statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+    RenderingManager::getRenderingWidget()->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
 
     // broadcast session file ready
@@ -2122,7 +2122,7 @@ void GLMixer::saveSession(bool close, bool quit){
         }
 
         // start saving
-        statusbar->showMessage( tr("Saving %1...").arg( currentSessionFileName ), 3000 );
+        RenderingManager::getRenderingWidget()->showMessage( tr("Saving %1...").arg( currentSessionFileName ), 3000 );
         workerThread->start();
 
     }
@@ -2371,7 +2371,7 @@ void GLMixer::openSessionFile()
 #endif
 
     // message
-    statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
+    RenderingManager::getRenderingWidget()->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
 
 }
@@ -2435,7 +2435,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
         // confirm the loading of the file
-        statusbar->showMessage( tr("Sources from %1 added to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
+        RenderingManager::getRenderingWidget()->showMessage( tr("Sources from %1 added to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
         qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Sources from %1 added.").arg( fileName );
     }
 

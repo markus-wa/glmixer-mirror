@@ -132,7 +132,7 @@ QToolButton {
             <string>Blending mode</string>
            </property>
            <property name="statusTip">
-            <string>Blending mode\n(how the colors are mixed with other sources)</string>
+            <string>Blending mode : how the colors are mixed between sources</string>
            </property>
            <property name="styleSheet">
             <string notr="true">QComboBox {
@@ -253,6 +253,9 @@ QToolButton {
            <property name="toolTip">
             <string>Custom blending</string>
            </property>
+           <property name="statusTip">
+            <string>Select OpenGL custom blending options</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -283,8 +286,7 @@ QToolButton {
             </size>
            </property>
            <property name="toolTip">
-            <string>Base color 
-(tint of the source)</string>
+            <string>Base color</string>
            </property>
            <property name="statusTip">
             <string>Choose a base color (tint of the source)</string>
@@ -315,7 +317,7 @@ QToolButton {
             <string>Smoothed / Pixelated</string>
            </property>
            <property name="statusTip">
-            <string>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</string>
+            <string>Toggle Smoothed / Pixelated (smooth between pixels or show pixels)</string>
            </property>
            <property name="icon">
             <iconset resource="../images.qrc">
@@ -1867,7 +1869,10 @@ border:0px
           <item>
            <widget class="QToolButton" name="addPlugin">
             <property name="toolTip">
-             <string>Add a Freeframe plugin (shared library)</string>
+             <string>Add a Freeframe plugin</string>
+            </property>
+            <property name="statusTip">
+             <string>Add a Freeframe plugin by selecting a shared library</string>
             </property>
             <property name="text">
              <string>...</string>
@@ -1887,7 +1892,10 @@ border:0px
           <item>
            <widget class="QToolButton" name="addShadertoyPlugin">
             <property name="toolTip">
-             <string>Add a Shadertoy plugin (GLSL code)</string>
+             <string>Add a Shadertoy plugin</string>
+            </property>
+            <property name="statusTip">
+             <string>Add a Shadertoy plugin with GLSL code</string>
             </property>
             <property name="text">
              <string>...</string>
@@ -2009,7 +2017,10 @@ border:0px
             <bool>false</bool>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the preset to the current source&lt;/p&gt;&lt;p&gt;(or double clic on the list item)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Apply preset (double clic on list item)</string>
+           </property>
+           <property name="statusTip">
+            <string>Apply the preset to the current source</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -2045,6 +2056,9 @@ border:0px
             <bool>true</bool>
            </property>
            <property name="toolTip">
+            <string>New preset from current source</string>
+           </property>
+           <property name="statusTip">
             <string>Create a new preset from the settings of the current source.</string>
            </property>
            <property name="styleSheet">
@@ -2071,6 +2085,9 @@ border:0px
             <bool>false</bool>
            </property>
            <property name="toolTip">
+            <string>Update preset with current source</string>
+           </property>
+           <property name="statusTip">
             <string>Update this preset with  the settings of the current source.</string>
            </property>
            <property name="text">
@@ -2094,7 +2111,10 @@ border:0px
             <bool>false</bool>
            </property>
            <property name="toolTip">
-            <string>Remove this preset.</string>
+            <string>Delete preset</string>
+           </property>
+           <property name="statusTip">
+            <string>Remove this preset from the list</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -2145,8 +2165,8 @@ border:0px
   </layout>
  </widget>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

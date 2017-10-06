@@ -195,8 +195,6 @@ public slots:
     void setBusy(bool on = true) { busy = on; }
     void setCursorEnabled(bool on);
 
-
-
 public:
     // Shading
     static GLfloat coords[8];
@@ -250,8 +248,9 @@ private:
     bool cursorEnabled;
 
     // M e s s a g e s
+    QString message;
     QLabel *zoomLabel, *fpsLabel;
-    QTimer zoomLabelTimer;
+    QTimer zoomLabelTimer, messageTimer;
     QMenu *viewMenu, *catalogMenu, *sourceMenu;
 
     // F P S    d i s p l a y

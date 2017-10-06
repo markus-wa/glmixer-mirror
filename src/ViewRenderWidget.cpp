@@ -204,6 +204,9 @@ ViewRenderWidget::ViewRenderWidget() :
     cursorEnabled = false;
 
     // opengl HID display
+    hideMessage();
+    connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
+    zoomLabelTimer.setSingleShot(true);
     connect(&zoomLabelTimer, SIGNAL(timeout()), SLOT(hideZoom()));
     zoomLabelTimer.setSingleShot(true);
     fpsTime_.start();
@@ -713,11 +716,17 @@ void ViewRenderWidget::paintGL()
         qglColor(Qt::lightGray);
         glRecti(15, height() - 5, 25, height() - 30);
         glRecti(30, height() - 5, 40, height() - 30);
+        renderText(55, 25, "Paused");
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
+    }
+
+    if (!message.isNull()) {
+        qglColor(Qt::lightGray);
+        renderText(20, height() - 20, message);
     }
 }
 
@@ -1110,12 +1119,13 @@ void ViewRenderWidget::hideZoom()
 
 void ViewRenderWidget::showMessage(const QString &s, int timeout)
 {
-
+    message = s;
+    messageTimer.start(timeout);
 }
 
 void ViewRenderWidget::hideMessage()
 {
-
+    message = QString();
 }
 
 void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
