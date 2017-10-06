@@ -854,17 +854,17 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
         if (SelectionManager::getInstance()->hasSelection()) {
             for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
                 // get alpha coordinates
-                x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
-                x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
-                y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
-                y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
+                x_min = MINI (x_min, (*its)->getAlphaX() - ViewRenderWidget::iconSize *SOURCE_UNIT * (*its)->getAspectRatio());
+                x_max = MAXI (x_max, (*its)->getAlphaX() + ViewRenderWidget::iconSize *SOURCE_UNIT * (*its)->getAspectRatio());
+                y_min = MINI (y_min, (*its)->getAlphaY() - ViewRenderWidget::iconSize *SOURCE_UNIT );
+                y_max = MAXI (y_max, (*its)->getAlphaY() + ViewRenderWidget::iconSize *SOURCE_UNIT );
             }
         }
         else if ( RenderingManager::getInstance()->isValid(current) ) {
-            x_min = (*current)->getAlphaX() - SOURCE_UNIT * (*current)->getAspectRatio();
-            x_max = (*current)->getAlphaX() + SOURCE_UNIT * (*current)->getAspectRatio();
-            y_min = (*current)->getAlphaY() - SOURCE_UNIT ;
-            y_max = (*current)->getAlphaY() + SOURCE_UNIT ;
+            x_min = (*current)->getAlphaX() - ViewRenderWidget::iconSize *SOURCE_UNIT * (*current)->getAspectRatio();
+            x_max = (*current)->getAlphaX() + ViewRenderWidget::iconSize *SOURCE_UNIT * (*current)->getAspectRatio();
+            y_min = (*current)->getAlphaY() - ViewRenderWidget::iconSize *SOURCE_UNIT ;
+            y_max = (*current)->getAlphaY() + ViewRenderWidget::iconSize *SOURCE_UNIT ;
         }
     }
 
@@ -872,10 +872,10 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
     if (x_max < -maxpanx) {
         for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
             // get alpha coordinates
-            x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
-            x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
-            y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
-            y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
+            x_min = MINI (x_min, (*its)->getAlphaX() - ViewRenderWidget::iconSize *SOURCE_UNIT * (*its)->getAspectRatio());
+            x_max = MAXI (x_max, (*its)->getAlphaX() + ViewRenderWidget::iconSize *SOURCE_UNIT * (*its)->getAspectRatio());
+            y_min = MINI (y_min, (*its)->getAlphaY() - ViewRenderWidget::iconSize *SOURCE_UNIT );
+            y_max = MAXI (y_max, (*its)->getAlphaY() + ViewRenderWidget::iconSize *SOURCE_UNIT );
         }
     }
 
