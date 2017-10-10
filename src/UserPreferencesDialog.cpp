@@ -41,6 +41,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), 
 {
     setupUi(this);
     IntroTextLabel->setVisible(false);
+    warningSlowFps->setVisible(false);
+    QObject::connect(previewOutput, SIGNAL(slowFps(bool)), SLOT(showWarningSlowFps(bool)));
 
     // the default source property browser
     defaultSource = new Source();
@@ -72,6 +74,11 @@ UserPreferencesDialog::~UserPreferencesDialog()
     delete defaultSource;
 }
 
+void UserPreferencesDialog::showWarningSlowFps(bool on) {
+
+    if (warningSlowFps->isVisible() != on)
+        warningSlowFps->setVisible(on);
+}
 
 void UserPreferencesDialog::showEvent(QShowEvent *e){
 

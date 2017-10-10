@@ -92,6 +92,30 @@ int intFromBlendequation(GLenum e){
     return 0;
 }
 
+
+QGLFormat glRenderWidgetFormat(){
+
+    // Optimal format
+    QGLFormat f( QGL::AlphaChannel | QGL::NoDepthBuffer | QGL::NoStencilBuffer);
+    // disable VSYNC (apparently has no effect, but doesnt seems to hurt...)
+    f.setSwapInterval(0);
+
+    static bool testDone = false;
+    if (!testDone) {
+        if (!f.rgba())
+          qFatal( "%s", qPrintable( QObject::tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
+        if (!f.directRendering())
+          qCritical() << QObject::tr("Your OpenGL drivers could not set direct rendering.\nRendering will be slow.");
+        if (!f.doubleBuffer())
+          qCritical() << QObject::tr("Your OpenGL drivers could not set double buffering.\nRendering will be flickering.");
+        if (f.swapInterval() > 0)
+          qCritical() << QObject::tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
+        testDone = true;
+    }
+
+    return f;
+}
+
 void initListOfExtension()
 {
     //

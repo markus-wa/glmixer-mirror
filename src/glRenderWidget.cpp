@@ -38,34 +38,16 @@
 
 QTimer *glRenderWidget::timer = 0;
 
-//static QGLFormat glRenderWidgetFormat(QGL::AlphaChannel | QGL::NoDepthBuffer | QGL::DirectRendering | QGL::NoAccumBuffer | QGL::NoStencilBuffer);
-static QGLFormat glRenderWidgetFormat( QGL::NoDepthBuffer | QGL::NoStencilBuffer);
-
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
+: QGLWidget(glRenderWidgetFormat(), parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
-    static bool testDone = false;
-    if (!testDone) {
-        if (!glRenderWidgetFormat.rgba())
-          qFatal( "%s", qPrintable( QObject::tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
-        if (!glRenderWidgetFormat.directRendering())
-          qCritical() << QObject::tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
-        if (!glRenderWidgetFormat.doubleBuffer())
-          qCritical() << QObject::tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
-        // disable VSYNC
-        glRenderWidgetFormat.setSwapInterval(0);
-        if (glRenderWidgetFormat.swapInterval() > 0)
-          qCritical() << QObject::tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
-        testDone = true;
-    }
-
     if (glRenderWidget::timer == 0) {
         glRenderWidget::timer = new QTimer();
         glRenderWidget::timer->setInterval(20);
     }
-    connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(repaint()), Qt::DirectConnection);
+    connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
 void glRenderWidget::setAntiAliasing(bool on)

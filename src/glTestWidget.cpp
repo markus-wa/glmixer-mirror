@@ -5,6 +5,7 @@
 
 glTestWidget::glTestWidget(QWidget *parent) :  glRenderWidget(parent), _use_blit(true), _use_pbo(true), _use_filters(true), _texture(0), _fbo(NULL), _pbo(0)
 {
+    f_p_s_ = 0.0;
 }
 
 
@@ -62,6 +63,9 @@ void glTestWidget::initializeGL() {
     }
 
     glPointSize(10);
+
+    // fps counter
+    fpsTime_.start();
 }
 
 void glTestWidget::resizeGL(int w, int h)
@@ -138,5 +142,14 @@ void glTestWidget::paintGL()
     }
 
 
+    // compute fps
+    f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 1000.0 / float(fpsTime_.restart()) );
+    if (f_p_s_ < 800.f / (float) updatePeriod())
+        // show warning on slow FPS if bellow 80% of requested rendering fps
+        emit slowFps(true);
+    else
+        emit slowFps(false);
 
+    glColor4ub(80, 80, 80, 200);
+    renderText(10, height() - 10, QString("%1 fps").arg((int) f_p_s_));
 }

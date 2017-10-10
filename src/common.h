@@ -55,6 +55,7 @@
 #include <QUrl>
 
 void initListOfExtension();
+QGLFormat glRenderWidgetFormat();
 QStringList glSupportedExtensions();
 GLint glMaximumTextureWidth();
 GLint glMaximumTextureHeight();
