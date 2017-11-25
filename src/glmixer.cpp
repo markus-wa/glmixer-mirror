@@ -822,7 +822,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         GLMixer::logStream << "Critical| " << txt << "\n";
 
         static bool ignore = false;
-        if ( GLMixer::logsWidget && !ignore) {
+        if (!ignore) {
 
             // create message box
             QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);

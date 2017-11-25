@@ -147,14 +147,6 @@ void MixerView::paint()
         glEnd();
         glDisable(GL_LINE_STIPPLE);
 
-        // show the pivot point
-        if (selectionMap.size() > 1) {
-            glPushMatrix();
-            glTranslated(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
-            glScaled(ViewRenderWidget::iconSize, ViewRenderWidget::iconSize, 1.0);
-            glCallList(ViewRenderWidget::center_pivot);
-            glPopMatrix();
-        }
     }
 
 
@@ -321,6 +313,16 @@ void MixerView::paint()
 
     glDisable(GL_LINE_STIPPLE);
 
+    // show the pivot point
+    if (SelectionManager::getInstance()->selectionCount() > 1)
+    {
+        glPushMatrix();
+        glTranslated(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
+        glScaled(ViewRenderWidget::iconSize, ViewRenderWidget::iconSize, 1.0);
+        glCallList(ViewRenderWidget::center_pivot);
+        glPopMatrix();
+    }
+
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
@@ -486,6 +488,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     }
 
     // OTHER USER INPUT ; initiate action
+
+    // if a special mode is active
     if ( _specialMode != MODE_NONE) {
         clickedSources.clear();
         return false;
@@ -494,82 +498,65 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     // if at least one source icon was clicked
     if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
-        // get the top most clicked source (always one as getSourcesAtCoordinates returned true)
-        Source *clicked =  *clickedSources.begin();
+        // get the top most clicked source
+        // (always one as getSourcesAtCoordinates returned true)
+        Source *clicsource =  *clickedSources.begin();
 
-        // SELECT MODE : add/remove from selection
-        if ( isUserInput(event, View::INPUT_SELECT) ) {
-            SelectionManager::getInstance()->select(clicked);
-        }
-        // not in (INPUT_SELECT) action mode,
+        // set the current active source
+        RenderingManager::getInstance()->setCurrentSource( clicsource->getId() );
+
+        // context menu
+        if ( isUserInput(event, View::INPUT_CONTEXT_MENU) )
+            RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+        // zoom
+        else if ( isUserInput(event, View::INPUT_ZOOM) )
+            zoomBestFit(true);
+        // toggle selection of the source
+        else if ( isUserInput(event, View::INPUT_SELECT) )
+            SelectionManager::getInstance()->select(clicsource);
+        // other cases : TOOL
         else {
-            // then set the current active source
-            RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-
-            // context menu
-            if ( isUserInput(event, View::INPUT_CONTEXT_MENU) )
-                RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
-            // zoom
-            else if ( isUserInput(event, View::INPUT_ZOOM) )
-                zoomBestFit(true);
-            // other cases
-            else {
-
-                if (isUserInput(event, View::INPUT_TOOL_INDIVIDUAL))
-                    // in individual selection mode, the selection is cleared
+            // if the source is not in the selection, cancel previous selection
+            if ( !SelectionManager::getInstance()->isInSelection(clicsource) ) {
+                // get the group of this source (if exists)
+                SourceListArray::iterator clicgroup = findGroup(clicsource);
+                // NOT in a selection but in a group : select only the group
+                if (  clicgroup != groupSources.end() ) {
                     SelectionManager::getInstance()->clearSelection();
-                else {
-                    // test if source is in a group
-                    SourceListArray::iterator itss = findGroup(clicked);
-                    // if the source is not in the selection
-                    if ( !SelectionManager::getInstance()->isInSelection(clicked) ) {
-                        // NOT in a selection but in a group : select only the group
-                        if (  itss != groupSources.end() ) {
-                            SelectionManager::getInstance()->clearSelection();
-                            SelectionManager::getInstance()->select(*itss);
-                        }
-                        // NOT in a selection and NOT in a group (single source clicked)
-                        else
-                            SelectionManager::getInstance()->clearSelection();
-                    }
+                    SelectionManager::getInstance()->select(*clicgroup);
                 }
-                // tool use
-                if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ) {
-                    // ready for grabbing the current source
-                    setAction(View::TOOL);
-                }
+                // NOT in a selection and NOT in a group (single source clicked)
+                else
+                    SelectionManager::getInstance()->clearSelection();
             }
+            // ready for grabbing the current source
+            setAction(View::TOOL);
         }
         // current source changed in some way
         return true;
     }
-    // else
-    // click in background
-
-    // remember coordinates of clic
-    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
-    _selectionArea.markStart(QPointF(cursorx,cursory));
+    // else = click in background
 
     // context menu on the background
     if ( isUserInput(event, View::INPUT_CONTEXT_MENU) ) {
         RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-        return false;
     }
     // zoom button in the background : zoom best fit
     else if ( isUserInput(event, View::INPUT_ZOOM) ) {
         zoomBestFit(false);
-        return false;
     }
-    // selection mode, clic background is ineffective
-    else if ( isUserInput(event, View::INPUT_SELECT) )
-        return false;
+    // reset selection and action
+    else {
+        // unset current source
+        RenderingManager::getInstance()->unsetCurrentSource();
+        // back to no action
+        setAction(View::NONE);
+    }
 
-    // unset current source
-    RenderingManager::getInstance()->unsetCurrentSource();
-
-    // back to no action
-    setAction(View::NONE);
+    // remember coordinates of clic in background for selection area
+    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+    _selectionArea.markStart(QPointF(cursorx,cursory));
 
     return false;
 }
@@ -589,6 +576,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
         if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
             // get the top most clicked source
+            // (always one as getSourcesAtCoordinates returned true)
             Source *clicked = *clickedSources.begin();
 
             SourceListArray::iterator itss = findGroup(clicked);
@@ -669,17 +657,12 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     }
 
 
-    if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) )
+    if ( isUserInput(event, View::INPUT_TOOL) ||
+         isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ||
+         isUserInput(event, View::INPUT_SELECT) )
     {
-        // get the top most clicked source, if there is one
-        Source *clicked = 0;
-        if (sourceClicked())
-            clicked = *clickedSources.begin();
-        else
-            clicked = 0;
-
         // No source clicked but mouse button down
-        if ( !clicked ) {
+        if ( !sourceClicked() ) {
 
             // get coordinate of cursor
             double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
@@ -692,6 +675,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
             }
             // Are we moving the selection ?
             else if ( _specialMode == MODE_MOVE_SELECTION && SelectionManager::getInstance()->hasSelection()) {
+                // grab the selection
                 Source *s = *SelectionManager::getInstance()->selectionBegin();
                 grabSources(s, event->x(), viewport[3] - event->y(), dx, dy);
             }
@@ -703,24 +687,37 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
                 // set coordinate of end of rectangle selection
                 _selectionArea.markEnd(QPointF(cursorx, cursory));
 
-                // loop over every sources to check if it is in the rectangle area
-                SourceList rectSources;
-                for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-                    if (_selectionArea.contains(its) )
-                        rectSources.insert(*its);
+                // consider only large enough surface of selection
+                if (_selectionArea.surface() * zoom * zoom > 0.1 )
+                {
+                    // loop over every sources to check if it is in the rectangle area
+                    SourceList rectSources;
+                    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+                        if (_selectionArea.contains(its) )
+                            rectSources.insert(*its);
 
-                if ( isUserInput(event, View::INPUT_SELECT) )
-                    // extend selection
-                    SelectionManager::getInstance()->select(rectSources);
-                else  // new selection
-                    SelectionManager::getInstance()->setSelection(rectSources);
-
+                    if ( isUserInput(event, View::INPUT_SELECT) )
+                        // extend selection
+                        SelectionManager::getInstance()->select(rectSources);
+                    else  // new selection
+                        SelectionManager::getInstance()->setSelection(rectSources);
+                }
             }
         }
         // clicked source not null and grab action
-        else {
-            if (currentAction == View::TOOL)
-            {
+        else if ( !isUserInput(event, View::INPUT_SELECT) ) {
+
+            // get the top most clicked source (there is one)
+            Source *clicked = *clickedSources.begin();
+
+            // individual tool use
+            if ( isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ) {
+                // move single source
+                grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+                SelectionManager::getInstance()->updateSelectionSource();
+            }
+            else {
+                // tool use general
                 if (currentTool == View::MOVE)
                     grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
                 else if (currentTool == View::SCALE)
@@ -728,27 +725,27 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
                 else if (currentTool == View::ROTATE)
                     rotateSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
             }
-            else
-                grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+            // individual tool use // TODO
+//            else
 
         }
-        // return true if we modified (grabbed) the source
-        return (bool) clicked;
+        // return true as we modified a source
+        return true;
     }
 
-    // Show mouse over cursor only if no user input
+    // else Show mouse over cursor only if no user input
     if ( isUserInput(event, View::INPUT_NONE ) )
     {
         _specialMode = MODE_NONE;
-        //  change action cursor if over a source
-        if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
-            setAction(View::OVER);
-        }
-        else if ( SelectionManager::getInstance()->selectionCount() > 1
+        //  change action cursor if over a selection / source
+        if ( SelectionManager::getInstance()->selectionCount() > 1
                   && hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::center_pivot, ViewRenderWidget::iconSize, SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 2.0))
         {
             setAction(View::OVER);
             _specialMode = MODE_MOVE_SELECTION;
+        }
+        else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
+            setAction(View::OVER);
         }
         else {
             setAction(View::NONE);
@@ -905,17 +902,12 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 
 bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
-    // detect select mode
-    if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
-        setAction(View::SELECT);
-        return true;
-    }
-
-    // else move a source
+    // move a source
     SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
     if (its != RenderingManager::getInstance()->getEnd()) {
         int dx =0, dy = 0, factor = 1;
-        if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_TOOL_INDIVIDUAL)) )
+        // ALTERNATE ACTION
+        if ( QApplication::keyboardModifiers() & Qt::AltModifier )
             factor *= 10;
         switch (event->key()) {
             case Qt::Key_Left:
@@ -933,6 +925,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
             default:
                 return false;
         }
+
         // move current source
         if (currentTool == View::MOVE)
             grabSources(*its, 0, 0, dx, dy);
@@ -946,19 +939,6 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
     return false;
 }
-
-bool MixerView::keyReleaseEvent(QKeyEvent * event) {
-
-    // default to no action
-    setAction(View::NONE);
-
-    if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
-        setAction(previousAction);
-
-    return false;
-}
-
-
 
 SourceListArray::iterator  MixerView::findGroup(Source *s){
 

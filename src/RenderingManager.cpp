@@ -229,6 +229,9 @@ RenderingManager::~RenderingManager() {
     clearSourceSet();
     delete _defaultSource;
 
+    if (_renderwidget)
+        delete _renderwidget;
+
     if (_fbo)
         delete _fbo;
 

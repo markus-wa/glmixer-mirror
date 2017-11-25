@@ -49,7 +49,6 @@ public:
     bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
-    bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
     // Mixing specific implementation of actions and tools
@@ -106,6 +105,7 @@ private:
 
     // actual area of work
     double _mixingArea[4];
+
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

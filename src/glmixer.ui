@@ -4913,8 +4913,8 @@ QToolButton:hover {
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/workspace_3.png</normaloff>
-     <normalon>:/glmixer/icons/workspace_3_on.png</normalon>:/glmixer/icons/workspace_3.png</iconset>
+     <normaloff>:/glmixer/icons/workspace_3_on.png</normaloff>
+     <normalon>:/glmixer/icons/workspace_3.png</normalon>:/glmixer/icons/workspace_3_on.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Exclusive Mode</string>
@@ -5053,8 +5053,8 @@ QToolButton:hover {
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

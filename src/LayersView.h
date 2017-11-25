@@ -46,9 +46,9 @@ public:
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
+    bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
-    bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
     void setAction(ActionType a);
@@ -69,6 +69,7 @@ private:
     void bringForward(Source *s);
     double unProjectDepth(int x, int y);
     void moveSource(Source *s, double depth, bool setcurrent=true);
+    void grabSource(Source *s, double depth);
     void grabSources(Source *s, double depth);
     void panningBy(int x, int y, int dx, int dy);
 

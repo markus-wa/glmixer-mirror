@@ -380,6 +380,7 @@ public:
     bool isEnabled() { return enabled; }
     void markStart(QPointF s);
     void markEnd(QPointF e);
+    double surface();
 };
 
 

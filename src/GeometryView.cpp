@@ -141,8 +141,8 @@ void GeometryView::paint()
 
     }
 
-
-    if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+//        if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() )
+    {
         // Re-Draw frame buffer in the render window
         // With correct rendering on top of the different workspaces
         ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
@@ -322,7 +322,6 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
     lastClicPos = event->pos();
 
-
     //  panning
     if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveFrame) {
         // priority to panning of the view (even in drop mode)
@@ -344,122 +343,96 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
         // get the top most clicked source (always one as getSourcesAtCoordinates returned true)
         Source *clicked =  *clickedSources.begin();
+        // get current source
+        Source *cs = getCurrentSource();
 
-        // get the top most clicked source which is NOT the selection source
-        Source *clickedSource =  0;
-        // discard the selection source
-        clickedSources.erase(SelectionManager::getInstance()->selectionSource());
-        // pick next source if possible
-        if (sourceClicked())
-            clickedSource = *clickedSources.begin();
+        // selection source was clicked ? (part of clickedsource)
+        if ( clickedSources.erase(SelectionManager::getInstance()->selectionSource()) > 0) {
+            // the selection source was part of the clicked source (now removed)
 
-
-        // SELECT MODE : add/remove from selection
-        if ( isUserInput(event, INPUT_SELECT) ) {
-            SelectionManager::getInstance()->select(clickedSource);
-            // set selection as current
-            setCurrentSource(SelectionManager::getInstance()->selectionSource());
-        }
-        // context menu
-        else if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
-            // show context menu for the current source, if clicked
-            Source *curent_source = getCurrentSource();
-            if ( curent_source == 0 || clickedSources.count( curent_source ) == 0 )
-                // otherwise, activate the top most clicked source
-                setCurrentSource(clickedSource);
-            // if a source is now currently active, show context menu
-            if (currentSource)
-                RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
-
-        }
-        // not in selection or context menu action mode
-        else {
-
-            Source * cs = getCurrentSource();
-
-            // if individual source requested,
-            if (isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
-                // but if the source picked or the current source is the selection source
-                if (clicked == SelectionManager::getInstance()->selectionSource() || cs == SelectionManager::getInstance()->selectionSource() ) {
-                    cs = 0;
-                    // ignore the selection (use the pointer to the clickedSource instead)
-                    clicked = clickedSource;
-                    // no indivivual source is valid, the individual mode is meaningless
-                    if (!clicked) {
-                        setAction(View::NONE);
-                        return false;
-                    }
-                }
-            }
-            // not individual, but the source clicked is part of the selection
-            else if (SelectionManager::getInstance()->isInSelection(clickedSource)) {
-                // then we shall manipulate the selection instead
+            // tool use requested:
+            // operate on selection
+            if (isUserInput(event, INPUT_TOOL))
                 clicked = SelectionManager::getInstance()->selectionSource();
+            // individual tool or other actions requested:
+            // operate on underlying source, if any
+            else if (!clickedSources.empty())
+                clicked =  *clickedSources.begin();
+            // no underlying source, invalid action
+            else
+                clicked = NULL;
+        }
+        // current source was clicked ? (part of clickedsource)
+        else if ( cs && clickedSources.erase(cs) > 0) {
+            // keep it selected
+            clicked = cs;
+        }
+
+        // set the current active source (can now be selection source or none)
+        setCurrentSource(clicked);
+
+        // get actual current source
+        cs = getCurrentSource();
+
+        // operate on current source, if available
+        if (cs) {
+
+            // context menu
+            if ( isUserInput(event, View::INPUT_CONTEXT_MENU) )
+                RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+            // zoom
+            else if ( isUserInput(event, View::INPUT_ZOOM) )
+                zoomBestFit(true);
+            // toggle selection of the source
+            else if ( isUserInput(event, View::INPUT_SELECT) ) {
+                SelectionManager::getInstance()->select(cs);
+                setCurrentSource(SelectionManager::getInstance()->selectionSource());
             }
-            // else (the clicked item is not in the selection) if this is not the selection source, then discard the selection
-            else if ( clicked != SelectionManager::getInstance()->selectionSource() )
-                SelectionManager::getInstance()->clearSelection();
+            // other cases : TOOL
+            else {
 
-            // if there was no current source
-            // OR
-            // if the currently active source is NOT in the set of clicked sources,
-            // then take the top most source clicked as current
-            // otherwise leave the current source as is
-            if ( cs == 0 || clickedSources.count(cs) == 0 )
-                setCurrentSource(clicked);
+                // disable selection if a source out of the selection is clicked
+                if (cs != SelectionManager::getInstance()->selectionSource() &&  !SelectionManager::getInstance()->isInSelection(cs))
+                    SelectionManager::getInstance()->clearSelection();
 
-            // ready to use the current source
-            cs = getCurrentSource();
-
-            if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
-
-                // manipulate the current source
-                if ( cs ){
-                    quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
-                    // now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-                    if (quadrant == 0 || currentTool == MOVE) {
-                        setAction(View::GRAB);
-                        borderType = ViewRenderWidget::border_large;
-                    } else {
-                        setAction(View::TOOL);
-                        borderType = ViewRenderWidget::border_scale;
-                    }
+                // manipulate the source
+                quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
+                // the action depends on the quadrant clicked (4 corners).
+                if (quadrant == 0 || currentTool == MOVE) {
+                    setAction(View::GRAB);
+                    borderType = ViewRenderWidget::border_large;
+                } else {
+                    setAction(View::TOOL);
+                    borderType = ViewRenderWidget::border_scale;
                 }
             }
-            // zoom
-            else if ( isUserInput(event, INPUT_ZOOM) )
-                zoomBestFit(true);
         }
-        // a source was modified
+
+        // current source changed in some way
         return true;
     }
+    // else = click in background
 
-    // click in background
+    // context menu on the background
+    if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+        RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+    }
+    // zoom button in the background : zoom best fit
+    else if ( isUserInput(event, INPUT_ZOOM) ) {
+        zoomBestFit(false);
+    }
+    // reset selection and action
+    else {
+        // unset current source
+        setCurrentSource(NULL);
+        // back to no action
+        setAction(View::NONE);
+    }
 
     // remember coordinates of clic
     double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
     gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
     _selectionArea.markStart(QPointF(cursorx,cursory));
-
-    // context menu on the background
-    if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
-        RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-        return false;
-    }
-    // zoom button in the background : zoom best fit
-    else if ( isUserInput(event, INPUT_ZOOM) ) {
-        zoomBestFit(false);
-        return false;
-    }
-    // selection mode, clic background is ineffective
-    else if ( isUserInput(event, INPUT_SELECT) )
-        return false;
-
-    // set current to none
-    setCurrentSource(0);
-
-    // back to no action
-    setAction(View::NONE);
 
     return false;
 }
@@ -480,7 +453,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         return false;
     }
 
-
     // PANNING of the background
     if ( currentAction == View::PANNING ) {
         // panning background
@@ -488,7 +460,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         // DRAG ?
         if ( isUserInput(event, INPUT_DRAG)  || ( isUserInput(event, INPUT_TOOL) && _modeMoveFrame ) ) {
             // special move ; move the sources in the opposite
-            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin();
+                its != RenderingManager::getInstance()->getEnd(); its++) {
                 grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
             }
             if ( SelectionManager::getInstance()->hasSelection() )
@@ -505,11 +478,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
     if ( cs && (currentAction == View::GRAB || currentAction == View::TOOL)) {
 
-        if (!isUserInput(event, INPUT_TOOL_INDIVIDUAL) && SelectionManager::getInstance()->isInSelection(cs))
-            setCurrentSource(SelectionManager::getInstance()->selectionSource());
-        // ready to use the current source
-        cs = getCurrentSource();
-
         if (currentAction == View::TOOL) {
             if (currentTool == View::MOVE)
                 grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
@@ -521,7 +489,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
                 rotateSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
                 setTool(currentTool);
             }
-        } else
+        }
+        else
             grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
         // the current source has been modified
         return true;
@@ -540,20 +509,25 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         // set coordinate of end of rectangle selection
         _selectionArea.markEnd(QPointF(cursorx, cursory));
 
-        // loop over every sources to check if it is in the rectangle area
-        SourceList rectSources;
-        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-            if ((*its)->isStandby())
-                continue;
-            if (_selectionArea.contains( its ) )
-                rectSources.insert(*its);
-        }
+        // consider only large enough surface of selection
+        if (_selectionArea.surface() * zoom * zoom > 0.1 )
+        {
+            // loop over every sources to check if it is in the rectangle area
+            SourceList rectSources;
+            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+                if ((*its)->isStandby())
+                    continue;
+                if (_selectionArea.contains( its ) )
+                    rectSources.insert(*its);
+            }
 
-        if ( currentAction == View::SELECT )
-            // extend selection
-            SelectionManager::getInstance()->select(rectSources);
-        else  // new selection
-            SelectionManager::getInstance()->setSelection(rectSources);
+            if ( currentAction == View::SELECT )
+                // extend selection
+                SelectionManager::getInstance()->select(rectSources);
+            else  // new selection
+                SelectionManager::getInstance()->setSelection(rectSources);
+
+        }
 
         return false;
     }
@@ -716,7 +690,12 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
                 // update quadrant to match newly current source
                 quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
             }
+            return true;
         }
+    }  // zoom
+    else if ( isUserInput(event, View::INPUT_ZOOM) ) {
+        zoomReset();
+        return true;
     }
 
     return false;
@@ -725,17 +704,12 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
-    // detect select mode
-    if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
-        setAction(View::SELECT);
-        return true;
-    }
-
-    // define custom behavior
+    // keyboard move source
     Source * cs = getCurrentSource();
     if (cs) {
         int dx =0, dy = 0, factor = 1;
-        if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_TOOL_INDIVIDUAL)) )
+        // ALTERNATE ACTION
+        if ( QApplication::keyboardModifiers() & Qt::AltModifier )
             factor *= 10;
         switch (event->key()) {
             case Qt::Key_Left:
@@ -760,14 +734,6 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
     return false;
 }
 
-
-bool GeometryView::keyReleaseEvent(QKeyEvent * event) {
-
-    if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
-        setAction(previousAction);
-
-    return false;
-}
 
 void GeometryView::setTool(toolType t)
 {

@@ -164,6 +164,7 @@ void LayersView::paint()
         glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 );
     glTranslated(0.0, 0.0, -0.5);
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+
     glCallList(ViewRenderWidget::frame_screen_thin);
     glPopMatrix();
 
@@ -364,7 +365,7 @@ void LayersView::bringForward(Source *s)
         forwardDisplacement = 0;
 
     // if the source is part of a selection, set the whole selection to be forward
-    if (SelectionManager::getInstance()->isInSelection(s) && SelectionManager::getInstance()->isInSelection(*RenderingManager::getInstance()->getCurrentSource()) )
+    if (SelectionManager::getInstance()->isInSelection(s) )
         forwardSources = SelectionManager::getInstance()->copySelection();
     else {
         // else only this source is forward
@@ -396,41 +397,41 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
     if (getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
         // get the top most clicked source
+        // (always one as getSourcesAtCoordinates returned true)
         Source *clicked = *clickedSources.begin();
-        if (!clicked)
-            return false;
 
-        // CTRL clic = add/remove from selection
-        if ( isUserInput(event, INPUT_SELECT) ) {
+        // set the current active source
+        RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+
+        // context menu
+        if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+            RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+        // zoom
+        else if ( isUserInput(event, INPUT_ZOOM) )
+            zoomBestFit(true);
+        // toggle selection of the source
+        else if ( isUserInput(event, INPUT_SELECT) )
             SelectionManager::getInstance()->select(clicked);
-        }
-        // else not SELECTION ; normal action
+        // other cases : TOOL
         else {
-            // not in selection (SELECT) action mode, then set the current active source
-            RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
             // if the source is not in the selection, discard the selection
-            if ( !SelectionManager::getInstance()->isInSelection(clicked) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) )
+            if ( !SelectionManager::getInstance()->isInSelection(clicked) )
                 SelectionManager::getInstance()->clearSelection();
 
-            // tool
-            if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
+            // tool use
+            if ( isUserInput(event, INPUT_TOOL) ||
+                 isUserInput(event, INPUT_TOOL_INDIVIDUAL) )
                 // ready for grabbing the current source
                 setAction(View::GRAB);
-            }
-            // context menu
-            else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-                RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
-            // zoom
-            else if ( isUserInput(event, INPUT_ZOOM) )
-                zoomBestFit(true);
 
         }
 
+        // current source changed in some way
         return true;
     }
+    // else = click in background
 
-    // clicked in the background
     // initial depth of selection area
     _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
 
@@ -438,20 +439,18 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
     // context menu on the background
     if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
         RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-        return false;
     }
     // zoom button in the background : zoom best fit
     else if ( isUserInput(event, INPUT_ZOOM) ) {
         zoomBestFit(false);
-        return false;
     }
-    // selection mode, clic background is ineffective
-    else if ( isUserInput(event, INPUT_SELECT) )
-        return false;
-
-
-    // set current source to none (end of list)
-    RenderingManager::getInstance()->unsetCurrentSource();
+    // reset selection and action
+    else {
+        // unset current source
+        RenderingManager::getInstance()->unsetCurrentSource();
+        // back to no action
+        setAction(View::NONE);
+    }
 
     // clear the list of sources forward
     if (forwardSources.size() > 0) {
@@ -459,9 +458,6 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
         picking_map_width = 0;
         picking_map_needsupdate = true;
     }
-
-    // back to no action
-    setAction(View::NONE);
 
     return false;
 }
@@ -486,36 +482,17 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
     if ( currentAction == View::PANNING ) {
         // move the view
         panningBy(event->x(), event->y(), dx, dy);
+        // return false as nothing changed
         return false;
     }
 
-    // SELECT MODE : no motion
-    if ( currentAction == View::SELECT )
-        return false;
+    if ( isUserInput(event, View::INPUT_TOOL) ||
+         isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ||
+         isUserInput(event, View::INPUT_SELECT) )
+    {
+        // No source clicked but mouse button down
+        if ( !sourceClicked() ) {
 
-    // LEFT BUTTON : grab
-    if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
-
-        // keep the iterator of the current source under the shoulder ; it will be used
-        SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-
-        // if there is a current source, grab it (with other forward sources)
-        if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs)) {
-
-            if (forwardSources.size() == 0) {
-                // put this source in the forward list
-                bringForward( *cs);
-
-                picking_map_width = MAXDISPLACEMENT + (*cs)->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
-                picking_map_needsupdate = true;
-                picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
-            }
-
-            grabSources( *cs, unProjectDepth(event->x(), viewport[3] - event->y()));
-
-        } else
-        // other cause for action without a current source ; selection area
-        {
             // enable drawing of selection area
             _selectionArea.setEnabled(true);
 
@@ -536,13 +513,34 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
                 SelectionManager::getInstance()->select(rectSources);
             else  // new selection
                 SelectionManager::getInstance()->setSelection(rectSources);
+
+        }
+        // clicked source not null and grab action
+        else if ( !isUserInput(event, View::INPUT_SELECT) ) {
+
+            // get the top most clicked source (there is one)
+            Source *clicked = *clickedSources.begin();
+
+            if (forwardSources.size() == 0) {
+                // put this source in the forward list
+                bringForward(clicked);
+
+                picking_map_width = MAXDISPLACEMENT + clicked->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
+                picking_map_needsupdate = true;
+                picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
+            }
+
+            if ( isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) )
+                grabSource(clicked, unProjectDepth(event->x(), viewport[3] - event->y()));
+            else
+                grabSources(clicked, unProjectDepth(event->x(), viewport[3] - event->y()));
         }
 
+        // return true as we modified a source
         return true;
     }
 
-    // mouse over (no buttons)
-    // Show mouse over cursor only if no user input
+    // else Show mouse over cursor only if no user input
     if ( isUserInput(event, INPUT_NONE)) {
         //  change action cursor if over a source
         if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
@@ -577,6 +575,22 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
     return true;
 }
 
+bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+    if (!event)
+        return false;
+
+    if (currentAction == View::DROP)
+        return false;
+
+    // zoom
+    if ( isUserInput(event, View::INPUT_ZOOM) ) {
+        zoomReset();
+        return true;
+    }
+
+    return false;
+}
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
@@ -654,12 +668,6 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
 bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
-    // detect select mode
-    if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
-        setAction(View::SELECT);
-        return true;
-    }
-
     SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
     if (currentSource != RenderingManager::getInstance()->getEnd()) {
         double dz = 0.0, newdepth = 0.0;
@@ -676,7 +684,6 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
             default:
                 return false;
         }
-
 
         // move the source placed forward
         for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
@@ -698,16 +705,6 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
     return false;
 }
 
-bool LayersView::keyReleaseEvent(QKeyEvent * event) {
-
-    // default to no action
-    setAction(View::NONE);
-
-    if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
-        setAction(previousAction);
-
-    return false;
-}
 
 bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
@@ -971,6 +968,16 @@ void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
     if (setcurrent)
         RenderingManager::getInstance()->setCurrentSource(grabbedSource);
 
+}
+
+
+void LayersView::grabSource(Source *s, double depth)
+{
+    // compute delta depth picking and keep the previous picking depth
+    double deltad = depth - picking_grab_depth;
+    picking_grab_depth = depth;
+
+    moveSource( s, deltad, true);
 }
 
 

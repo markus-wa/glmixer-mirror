@@ -70,12 +70,6 @@ void TestButtonFrame::mousePressEvent(QMouseEvent *event){
         }
     }
 
-    // special case; SELECT MUST have a modifier
-    if (clicked == View::INPUT_SELECT && QApplication::keyboardModifiers() == Qt::NoModifier ) {
-        qCritical()<< tr("Selection action *must* use a modifier key (e.g. [CTRL]).");
-        return;
-    }
-
     // discard all other actions with the same button and modifiers
     for (b = 0; b < View::INPUT_NONE; ++b) {
         if ( qbuttonmap[(View::UserInput) b] == event->buttons() && qmodifiermap[(View::UserInput) b] == QApplication::keyboardModifiers()) {
@@ -144,9 +138,6 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
         painter.setBrush(QBrush(colorbrush));
         qareamap[(View::UserInput) b].setRect( w * b / View::INPUT_NONE + b, 1, w / View::INPUT_NONE - View::INPUT_NONE, event->rect().height() -1 );
         painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(1, 1, -1, -1), 20, 20);
-
-        if (b == View::INPUT_SELECT )
-            painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(5, 5, -5, -5), 20, 20);
 
         painter.setPen(colortext);
         painter.drawText(qareamap[(View::UserInput) b], Qt::AlignCenter, View::userInputLabel((View::UserInput) b));

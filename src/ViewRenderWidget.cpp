@@ -683,7 +683,7 @@ void ViewRenderWidget::paintGL()
     //
     // 4. The extra information
     //
-    // Catalog : show if visible and only in the appropriate views
+    // Catalog : show if visible
     if (_catalogView->visible())
         _catalogView->paint();
 

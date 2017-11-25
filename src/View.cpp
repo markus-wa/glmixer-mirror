@@ -212,20 +212,20 @@ QString View::userInputDescription(View::UserInput ab, QMap<View::UserInput,Qt::
 
     QString text;
 
-    if (mm[ab] & Qt::SHIFT)
+    if (mm[ab] & Qt::ShiftModifier)
         text.append("[SHIFT] + ");
-    if (mm[ab] & Qt::ALT)
+    if (mm[ab] & Qt::AltModifier)
         text.append("[ALT] + ");
 
 #ifdef Q_OS_MAC
-    if (mm[ab] & Qt::META)
+    if (mm[ab] & Qt::MetaModifier)
         text.append("[CTRL] + ");
-    if (mm[ab] & Qt::CTRL)
+    if (mm[ab] & Qt::ControlModifier)
         text.append("[CMD] + ");
 #else
-    if (mm[ab] & Qt::META)
+    if (mm[ab] & Qt::MetaModifier)
         text.append("[WIN] + ");
-    if (mm[ab] & Qt::CTRL)
+    if (mm[ab] & Qt::ControlModifier)
         text.append("[CTRL] + ");
 #endif
 
@@ -289,6 +289,10 @@ void SelectionArea::markStart(QPointF s){
 
 void SelectionArea::markEnd(QPointF e){
     area.setBottomRight(e);
+}
+
+double SelectionArea::surface(){
+    return qAbs(area.width() * area.height());
 }
 
 

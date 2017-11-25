@@ -38,15 +38,15 @@ CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
 {
     _size[SMALL] = 80.0;
     _iconSize[SMALL] = 60.0;
-    _spacing[SMALL] = 10.0;
+    _spacing[SMALL] = 9.0;
 
     _size[MEDIUM] = 100.0;
     _iconSize[MEDIUM] = 80.0;
-    _spacing[MEDIUM] = 14.0;
+    _spacing[MEDIUM] = 10.0;
 
     _size[LARGE] = 128.0;
-    _iconSize[LARGE] = 96.0;
-    _spacing[LARGE] = 18.0;
+    _iconSize[LARGE] = 102.0;
+    _spacing[LARGE] = 14.0;
 
     _currentSize = MEDIUM;
     title = "Catalog";
@@ -55,6 +55,7 @@ CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
 
 CatalogView::~CatalogView() {
 
+    clear();
     if (_catalogfbo)
         delete _catalogfbo;
 }
@@ -462,10 +463,7 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 {
     if ( isInside(event->pos()) ) {
 
-        if (isUserInput(event, INPUT_CONTEXT_MENU)) {
-            RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
-        }
-        else if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
+        if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
 
             Source *clicked = *clickedSources.begin();
 
@@ -477,9 +475,18 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
                 else
                     SelectionManager::getInstance()->select(clicked);
             }
-            else
+            else {
                 RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
+                if (isUserInput(event, INPUT_CONTEXT_MENU)) {
+                    RenderingManager::getRenderingWidget()->showContextMenu(
+                                ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+                }
+            }
+        }
+        else if (isUserInput(event, INPUT_CONTEXT_MENU)) {
+            RenderingManager::getRenderingWidget()->showContextMenu(
+                        ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
         }
 
         return true;
@@ -497,25 +504,33 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 
     if (isin) {
 
+        // default cursor
+        ViewRenderWidget::mouseCursor cursor = ViewRenderWidget::MOUSE_ARROW;
+        // if mouse is over a source icon
+        if ( getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
+
+            // if the mouse is over a source in the current workspace
+            Source *s = *clickedSources.begin();
+            if ( WorkspaceManager::getInstance()->current() == s->getWorkspace() )
+                // set cursor to indicate
+                cursor = ViewRenderWidget::MOUSE_HAND_INDEX;
+        }
+        // change cursor
+        RenderingManager::getRenderingWidget()->setMouseCursor(cursor);
+
+        // apply scroll when on borders
         if ( (_widgetArea.height() - event->pos().y()) > viewport[3] - _spacing[_currentSize] ) {
             pany =  maxpany;
-            return true;
         }
         else if ( (_widgetArea.height() - event->pos().y()) <  _spacing[_currentSize] ) {
             pany =  0.0;
-            return true;
         }
         else
             pany = zoom;
 
-
-        if ( getSourcesAtCoordinates(event->pos().x(), event->pos().y()) )
-            RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
-        else
-            RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
-
     }
 
+    // indicate if event was used
     return isin;
 }
 
@@ -548,7 +563,13 @@ bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
     if (isInside(event->pos())) {
 
+        // scroll
         pany = qBound( 0.0, pany + double(event->delta()) / 2.0, maxpany);
+
+        // reset cursor
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+
+        // accept event
         return true;
     }
 
