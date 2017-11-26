@@ -45,7 +45,7 @@ public:
     bool insertRows(int position, int rows, const QModelIndex &index=QModelIndex());
     bool removeRows(int position, int rows, const QModelIndex &index=QModelIndex());
 
-    bool contains(QString before, QString after);
+    bool contains(QString before, QString after = QString::null);
 
 private:
     QList< QPair<QString, QString> >  *dictionnary;
@@ -67,16 +67,21 @@ public slots:
 
     void logMessage(QString m);
     void logError(QString m);
+    void logStatus();
 
     void on_OSCHelp_pressed();
     void on_addTranslation_pressed();
     void on_verboseLogs_toggled(bool);
+    void on_clearTranslation_pressed();
 
 protected:
     void showEvent(QShowEvent *);
     void hideEvent(QHideEvent *);
 
 private:
+
+    void addTranslation(QString, QString);
+
     Ui::OpenSoundControlTranslator *ui;
 
     TranslationTableModel translations;

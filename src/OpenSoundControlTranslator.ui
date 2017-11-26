@@ -62,6 +62,9 @@
       </item>
       <item>
        <widget class="QToolButton" name="OSCHelp">
+        <property name="toolTip">
+         <string>What is Open Sound Control?</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -156,14 +159,14 @@
          <item row="0" column="0">
           <widget class="QLabel" name="whatbefore">
            <property name="text">
-            <string>When receiving this input</string>
+            <string>When receiving this input:</string>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
           <widget class="QLabel" name="whatafter">
            <property name="text">
-            <string>Translate into that</string>
+            <string>Translate into that:</string>
            </property>
           </widget>
          </item>
@@ -183,7 +186,7 @@
          <item row="1" column="3">
           <widget class="QToolButton" name="addTranslation">
            <property name="text">
-            <string>+</string>
+            <string>Add</string>
            </property>
           </widget>
          </item>
@@ -226,6 +229,44 @@
          </attribute>
         </widget>
        </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QCheckBox" name="autoFillingMode">
+           <property name="toolTip">
+            <string>Automatically add translation rules from messages receved.</string>
+           </property>
+           <property name="text">
+            <string>Auto fill</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearTranslation">
+           <property name="text">
+            <string>Clear all</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabDocumentation">
@@ -242,18 +283,25 @@
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:200; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;OpenSoundControl GLMixer Message format&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;An OSC Message is composed of an &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; and a list of &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;. A valid OSC &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; for GLMixer is in the form:&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/{target}/{property}&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Where target is either ‘render’, or the name of a source. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;The target ‘render’ has two properties: ‘Alpha’ (float value 0 .. 1.0) and ‘Pause’ (boolean). &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Where target is either 'void', ‘render’, or the name of a source. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;&lt;br /&gt;Specific Targets&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;The target ‘render’ has two properties: &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;- 'Alpha' (+ float value 0 .. 1.0) : changes the transparency of the rendering output&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;- 'Pause' (+ boolean) : pause / unpause the rendering output&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Example OSC message:&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/render/Alpha f 0.5&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/render/Pause T&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;The target 'void' is for debugging purposes. It accepts the following properties:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;- 'log' : displays the &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;received &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;values into the console&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;- 'ignore' : silently ignores this message&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;This is the default target for the translator when automatically adding translations for the messages received (Auto fill mode).  &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;&lt;br /&gt;Source Properties&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;A source target has several properties, described below. Properties will take the value of the &lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;arguments&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; given, depending on their type (i for integer, f for float). &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Special type values are: N (Nil, no value given), T (True, for boolean), F (False, for boolean).&lt;/span&gt;&lt;/p&gt;
@@ -265,43 +313,43 @@ p, li { white-space: pre-wrap; }
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600; font-style:italic;&quot;&gt;Type&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600; font-style:italic;&quot;&gt;Valuerange&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600; font-style:italic;&quot;&gt;Value range&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Alpha &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Alpha &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;f &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;f &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0.0 .. 1.0 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0.0 .. 1.0 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;AlphaCoordinates &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;AlphaCoordinates &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;ff &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;ff &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;X -100 .. 100 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Y -100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;X -100 .. 100 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Y -100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Geometry &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Geometry &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;fffffff &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;(Nil value accepted) &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;fffffff &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;(Nil value accepted) &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Position X -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Position Y -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Scale X -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Scale Y -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Rotation Center X (Not implemented) &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Rotation Center Y (Not implemented) &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Rotation Angle 0 .. 360.0 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Examples:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Alpha f 0.8&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/AlphaCoordinates ff 100.0 -50.0&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Geometry fffffff 0 0 10 10 0 0 1&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Geometry NNffNNN 20 40&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Geometry NNNNNNf 45&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Position X -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Position Y -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Scale X -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Scale Y -50.0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Rotation Center X (Not implemented) &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Rotation Center Y (Not implemented) &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Rotation Angle 0 .. 360.0 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Examples:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Alpha f 0.8&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/AlphaCoordinates ff 100.0 -50.0&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Geometry fffffff 0 0 10 10 0 0 1&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Geometry NNffNNN 20 40&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Geometry NNNNNNf 45&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;table border=&quot;1&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; cellpadding=&quot;4&quot;&gt;
 &lt;tr&gt;
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
@@ -312,116 +360,116 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Value range &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Saturation &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Saturation &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Brightness &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Brightness &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Contrast &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Contrast &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;-100 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;HueShift &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;HueShift &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 360 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 360 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Threshold &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Threshold &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Posterized &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Posterized &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 255 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Examples:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Threshold i 45&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/HueShift i 200&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;/glmixer/sourcename/Posterized i 4&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 255 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Examples:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Threshold i 45&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/HueShift i 200&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Posterized i 4&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;table border=&quot;1&quot; style=&quot; page-break-before:always; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; cellpadding=&quot;4&quot;&gt;
 &lt;tr&gt;
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Property&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Property&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Types&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Types&lt;/span&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td width=&quot;33%&quot; style=&quot; vertical-align:top; padding-left:0; padding-right:0; padding-top:0; padding-bottom:0;&quot;&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:600;&quot;&gt;Value range &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Pixelated &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Pixelated &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;T or F &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;T or F &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Mask &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Mask &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 26 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 26 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Filter &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Filter &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 15 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 15 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Color &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Color &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;iii &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;iii &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;R 0 .. 255 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;G 0 .. 255 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;B 0 .. 255&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;R 0 .. 255 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;G 0 .. 255 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;B 0 .. 255&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;ChromaKey &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;ChromaKey &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;T or F &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;T or F &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;ChromaKeyTolerance &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;ChromaKeyTolerance &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;i &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;0 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;0 .. 100 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;ChromaKeyColor &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;ChromaKeyColor &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;iii &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;iii &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;R 0 .. 255 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;G 0 .. 255 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;B 0 .. 255 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;R 0 .. 255 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;G 0 .. 255 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;B 0 .. 255 &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;Gamma &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Gamma &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;fffff &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt;&quot;&gt;(Nil value accepted) &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;fffff &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;(Nil value accepted) &lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td style=&quot; vertical-align:top; padding-left:3; padding-right:3; padding-top:3; padding-bottom:3;&quot;&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Gamma 0 .. 50.0 &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;Min Input 0 .. 1.0 &lt;/span&gt;&lt;/p&gt;
@@ -437,8 +485,8 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/ChromaKeyColor iii 240 20 20&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Gamma fffff 0.5 0 1 0 1&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:3px; margin-bottom:3px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;/glmixer/sourcename/Gamma fNNNN 0.5&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;More help in GLMixer Wiki : &lt;a href=&quot;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ff8c49;&quot;&gt;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'.SF NS Text'; font-size:13pt; font-weight:400;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400;&quot;&gt;More help in GLMixer Wiki : &lt;/span&gt;&lt;a href=&quot;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&quot;&gt;&lt;span style=&quot; font-family:'Hack'; font-size:10pt; font-weight:400; text-decoration: underline; color:#ff8c49;&quot;&gt;https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="openExternalLinks">
           <bool>true</bool>

@@ -14,7 +14,7 @@ namespace osc{
 
 class MalformedAddressException : public Exception{
 public:
-    MalformedAddressException( const char *w="malformed address pattern (expecting /glmixer/[target]/[attribute])" )
+    MalformedAddressException( const char *w="malformed address pattern" )
         : Exception( w ) {}
 };
 
@@ -110,7 +110,7 @@ void OpenSoundControlManager::readPendingDatagrams()
 
         // initialize error message
         bool ok = false;
-        QString logstring = sender.toString() + " - '" + datagram.data() + "' ";
+        QString logstring = QString("'%1' ").arg(datagram.data());
 
         // PROCESS THE UDP Datagram
         try {
@@ -212,7 +212,7 @@ void OpenSoundControlManager::readPendingDatagrams()
         }
 
         if (!ok)
-            emit error(logstring);
+            emit error(logstring + " (from " + sender.toString() + ")");
 
     }
 
@@ -237,8 +237,23 @@ void OpenSoundControlManager::executeMessage(QString pattern, QVariantList args)
 
 void OpenSoundControlManager::execute(QString object, QString property, QVariantList args)
 {
+    // Target OBJECT named "void" (debug)
+    if ( object == "void" ) {
+        // Target ATTRIBUTE for render : alpha (transparency)
+        if ( property == "log") {
+            QString msg("/void/log ");
+            int i = 0;
+            for (; i < args.size() ; ++i, msg += ' ' ) {
+                msg += args[i].toString();
+            }
+            emit log(msg);
+        }
+        else if ( property == "ignore") {}
+        else
+            throw osc::InvalidAttributeException();
+    }
     // Target OBJECT named "render" (control rendering attributes)
-    if ( object == "render" ) {
+    else if ( object == "render" ) {
         // Target ATTRIBUTE for render : alpha (transparency)
         if ( property == "Alpha") {
             if (args.size() > 0 && args[0].isValid()) {

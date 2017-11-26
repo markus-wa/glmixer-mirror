@@ -97,9 +97,9 @@ QVariant TranslationTableModel::headerData(int section, Qt::Orientation orientat
             switch (section)
             {
             case 0:
-                return QString("Inputs");
+                return QString("Input");
             case 1:
-                return QString("Translations");
+                return QString("Translation");
             }
         }
     }
@@ -167,7 +167,20 @@ bool TranslationTableModel::removeRows(int position, int rows, const QModelIndex
 
 bool TranslationTableModel::contains(QString before, QString after)
 {
-    return dictionnary->contains( QPair<QString, QString>(before, after) );
+    if (after ==  QString::null) {
+        // test only the existence of the first element of the pair
+        bool result = false;
+        for (int i = 0; i < dictionnary->size(); ++i) {
+             if (dictionnary->at(i).first == before){
+                 result = true;
+                 break;
+             }
+         }
+        return result;
+    }
+    else
+        // test the existence of the whole pair
+        return dictionnary->contains( QPair<QString, QString>(before, after) );
 }
 
 
@@ -208,10 +221,15 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
     // connect GUI to Manager
     connect(ui->enableOSC, SIGNAL(toggled(bool)), this, SLOT(updateManager()) );
     connect(ui->OSCPort, SIGNAL(valueChanged(int)), this, SLOT(updateManager()) );
+    connect(ui->clearLogs, SIGNAL(clicked(bool)), this, SLOT(logStatus()) );
 
     // connect logs
     connect(OpenSoundControlManager::getInstance(), SIGNAL(log(QString)), this, SLOT(logMessage(QString)) );
     connect(OpenSoundControlManager::getInstance(), SIGNAL(error(QString)), this, SLOT(logError(QString)) );
+
+
+    // initial log
+    logStatus();
 }
 
 OpenSoundControlTranslator::~OpenSoundControlTranslator()
@@ -240,11 +258,22 @@ void OpenSoundControlTranslator::hideEvent(QHideEvent *e)
     QWidget::hideEvent(e);
 }
 
+void OpenSoundControlTranslator::on_clearTranslation_pressed()
+{
+    translations.removeRows(0, translations.rowCount() );
+}
+
 void OpenSoundControlTranslator::on_addTranslation_pressed()
 {
     QString before = ui->beforeTranslation->text();
     QString after  = ui->afterTranslation->text();
 
+    addTranslation(before, after);
+}
+
+
+void OpenSoundControlTranslator::addTranslation(QString before, QString after)
+{
     if (before.isEmpty() || after.isEmpty())
         return;
 
@@ -276,9 +305,14 @@ void OpenSoundControlTranslator::updateManager()
     qint16 p = (qint16) ui->OSCPort->value();
     OpenSoundControlManager::getInstance()->setEnabled(on, p);
 
+    logStatus();
+}
 
+void OpenSoundControlTranslator::logStatus()
+{
     ui->consoleOSC->setTextColor(QColor(160, 250, 160));
-    if (on) {
+    if (OpenSoundControlManager::getInstance()->isEnabled()) {
+        qint16 p = OpenSoundControlManager::getInstance()->getPort();
         QStringList addresses;
         foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
@@ -289,7 +323,6 @@ void OpenSoundControlTranslator::updateManager()
     else
         logMessage(tr("Disabled"));
     ui->consoleOSC->setTextColor(Qt::white);
-
 }
 
 void OpenSoundControlTranslator::logError(QString m)
@@ -297,6 +330,17 @@ void OpenSoundControlTranslator::logError(QString m)
     ui->consoleOSC->setTextColor(QColor(250, 160, 160));
     ui->consoleOSC->append(m);
     ui->consoleOSC->setTextColor(Qt::white);
+
+    // auto fill mode :
+    if (ui->autoFillingMode->isChecked()) {
+        // get the address of the OSC message causing error
+        QString oscaddress = m.section("'", 1, 1);
+        if (ui->verboseLogs->isChecked())
+            ui->consoleOSC->append(oscaddress + " added to translator.");
+        // adds this address to the translator, if not already there
+        if (!translations.contains(oscaddress))
+            addTranslation(oscaddress, "/glmixer/void/log");
+    }
 }
 
 void OpenSoundControlTranslator::logMessage(QString m)
