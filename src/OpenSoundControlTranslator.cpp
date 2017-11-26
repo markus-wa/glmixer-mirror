@@ -339,7 +339,7 @@ void OpenSoundControlTranslator::logError(QString m)
             ui->consoleOSC->append(oscaddress + " added to translator.");
         // adds this address to the translator, if not already there
         if (!translations.contains(oscaddress))
-            addTranslation(oscaddress, "/glmixer/void/log");
+            addTranslation(oscaddress, "/glmixer/void/Log");
     }
 }
 

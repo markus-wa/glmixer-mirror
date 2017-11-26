@@ -240,15 +240,15 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
     // Target OBJECT named "void" (debug)
     if ( object == "void" ) {
         // Target ATTRIBUTE for render : alpha (transparency)
-        if ( property == "log") {
-            QString msg("/void/log ");
+        if ( property == "Log") {
+            QString msg("/void/Log ");
             int i = 0;
             for (; i < args.size() ; ++i, msg += ' ' ) {
                 msg += args[i].toString();
             }
             emit log(msg);
         }
-        else if ( property == "ignore") {}
+        else if ( property == "Ignore") {}
         else
             throw osc::InvalidAttributeException();
     }
