@@ -53,9 +53,6 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     QString styleSheet = QLatin1String(file.readAll());
     setStyleSheet(styleSheet);
 
-    // name entry should be validated
-    ui->nameEdit->setValidator(new nameValidator(this));
-
     // header area is read only
     ui->headerText->setReadOnly(true);
 
@@ -153,8 +150,11 @@ void GLSLCodeEditorWidget::updateFields()
         ui->codeTextEdit->setShiftLineNumber( ui->headerText->lineCount() );
         ui->codeTextEdit->setCode( _currentplugin->getCode() );
 
-        // set name field
+        // set fields
         QVariantHash plugininfo = _currentplugin->getInfo();
+
+        // name entry should be validated
+        ui->nameEdit->setValidator(new nameValidator(this));
         ui->nameEdit->setText( plugininfo["Name"].toString() );
         ui->aboutEdit->setText( plugininfo["About"].toString() );
         ui->descriptionEdit->setText( plugininfo["Description"].toString() );
@@ -162,15 +162,25 @@ void GLSLCodeEditorWidget::updateFields()
         // restore logs
         ui->logText->appendPlainText(_currentplugin->getLogs());
 
+        // refill the example list depending on source of effect type
         fillExamplesList(ui->headerText->lineCount() > 5);
+
+        // enable actions
+        ui->actionsFrame->setEnabled(true);
+        ui->codeTextEdit->setEnabled(true);
 
     } else
     {
-        // clear all text
+        // clear all texts
         ui->codeTextEdit->clear();
+        ui->nameEdit->setValidator(0);
         ui->nameEdit->clear();
         ui->aboutEdit->clear();
         ui->descriptionEdit->clear();
+
+        // disable actions
+        ui->actionsFrame->setEnabled(false);
+        ui->codeTextEdit->setEnabled(false);
     }
 
     update();
@@ -291,6 +301,11 @@ void GLSLCodeEditorWidget::pasteCode()
 void GLSLCodeEditorWidget::restoreCode()
 {
     ui->codeTextEdit->setCode( _currentplugin->getDefaultCode() );
+}
+
+void GLSLCodeEditorWidget::reloadCode()
+{
+    ui->codeTextEdit->setCode( _currentplugin->getCode() );
 }
 
 void GLSLCodeEditorWidget::loadCode()

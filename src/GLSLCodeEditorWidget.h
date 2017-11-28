@@ -56,6 +56,7 @@ public slots:
     void loadCode();
     void saveCode();
     void restoreCode();
+    void reloadCode();
     void openExample(int index);
 
     // reset signaling of errors

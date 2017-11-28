@@ -381,163 +381,197 @@ p, li { white-space: pre-wrap; }
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QToolButton" name="loadButton">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>Replace code by content of a text file.</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/textopen.png</normaloff>:/glmixer/icons/textopen.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="pasteButton">
-           <property name="toolTip">
-            <string>Replace code by content of the clipboard (paste)</string>
-           </property>
-           <property name="text">
-            <string>Paste over</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/textpaste.png</normaloff>:/glmixer/icons/textpaste.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="restoreButton">
-           <property name="toolTip">
-            <string>Replace code  with the default  code of the plugin.</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="examplesCombobox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QToolButton" name="saveButton">
-           <property name="toolTip">
-            <string>Save code to file</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/textsave.png</normaloff>:/glmixer/icons/textsave.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="applyButton">
-           <property name="toolTip">
-            <string>Apply the current code (compile GLSL).</string>
-           </property>
-           <property name="text">
-            <string>Apply</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="validateButton">
-           <property name="toolTip">
-            <string>Apply the current code and close this window.</string>
-           </property>
-           <property name="statusTip">
-            <string>Apply current code and close this window.</string>
-           </property>
-           <property name="text">
-            <string>Apply &amp;&amp; Close</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="default">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QFrame" name="actionsFrame">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="leftMargin">
+           <number>1</number>
+          </property>
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <property name="rightMargin">
+           <number>1</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QToolButton" name="reloadButton">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="loadButton">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Replace code by content of a text file.</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/textopen.png</normaloff>:/glmixer/icons/textopen.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="pasteButton">
+            <property name="toolTip">
+             <string>Replace code by content of the clipboard (paste)</string>
+            </property>
+            <property name="text">
+             <string>Paste over</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/textpaste.png</normaloff>:/glmixer/icons/textpaste.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="restoreButton">
+            <property name="toolTip">
+             <string>Replace code  with the default  code of the plugin.</string>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="examplesCombobox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Preferred</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QToolButton" name="saveButton">
+            <property name="toolTip">
+             <string>Save code to file</string>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/textsave.png</normaloff>:/glmixer/icons/textsave.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="applyButton">
+            <property name="toolTip">
+             <string>Apply the current code (compile GLSL).</string>
+            </property>
+            <property name="text">
+             <string>Apply</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="validateButton">
+            <property name="toolTip">
+             <string>Apply the current code and close this window.</string>
+            </property>
+            <property name="statusTip">
+             <string>Apply current code and close this window.</string>
+            </property>
+            <property name="text">
+             <string>Apply &amp;&amp; Close</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -626,118 +660,6 @@ p, li { white-space: pre-wrap; }
  </resources>
  <connections>
   <connection>
-   <sender>applyButton</sender>
-   <signal>pressed()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>apply()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>563</x>
-     <y>296</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>197</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>validateButton</sender>
-   <signal>pressed()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>703</x>
-     <y>296</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>340</x>
-     <y>333</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>validateButton</sender>
-   <signal>pressed()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>apply()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>703</x>
-     <y>296</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>340</x>
-     <y>333</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>saveButton</sender>
-   <signal>clicked()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>saveCode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>463</x>
-     <y>281</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>778</x>
-     <y>186</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pasteButton</sender>
-   <signal>clicked()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>pasteCode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>71</x>
-     <y>283</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-23</x>
-     <y>200</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>restoreButton</sender>
-   <signal>clicked()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>restoreCode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>115</x>
-     <y>280</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-10</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>loadButton</sender>
-   <signal>clicked()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>loadCode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>29</x>
-     <y>282</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-2</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>helpButton</sender>
    <signal>clicked()</signal>
    <receiver>GLSLCodeEditorWidget</receiver>
@@ -753,6 +675,134 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>validateButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>apply()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>validateButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saveButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>saveCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>412</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>restoreButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>restoreCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>140</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pasteButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>pasteCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>102</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>loadButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>loadCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>64</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>applyButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>apply()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>474</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reloadButton</sender>
+   <signal>pressed()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>reloadCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>26</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>apply()</slot>
@@ -761,5 +811,6 @@ p, li { white-space: pre-wrap; }
   <slot>pasteCode()</slot>
   <slot>restoreCode()</slot>
   <slot>showHelp()</slot>
+  <slot>reloadCode()</slot>
  </slots>
 </ui>
