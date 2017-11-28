@@ -149,6 +149,12 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonWorkspaceExclusive">
+         <property name="toolTip">
+          <string>Workspace exclusive mode</string>
+         </property>
+         <property name="statusTip">
+          <string>Exclusive mode : hide or show the sources from other workspaces</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -751,7 +757,7 @@ border-bottom-left-radius: 5px;
             <string>Start / stops </string>
            </property>
            <property name="statusTip">
-            <string>Starts / stops updating the video</string>
+            <string>Starts / stops updating the source</string>
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton {
@@ -1073,6 +1079,9 @@ border-bottom-left-radius: 5px;
                  <property name="toolTip">
                   <string>Play speed </string>
                  </property>
+                 <property name="statusTip">
+                  <string>Change play speed</string>
+                 </property>
                  <property name="minimum">
                   <number>0</number>
                  </property>
@@ -1146,6 +1155,9 @@ border-bottom-left-radius: 5px;
                 <widget class="QToolButton" name="playSpeedReset">
                  <property name="toolTip">
                   <string>Reset speed</string>
+                 </property>
+                 <property name="statusTip">
+                  <string>Reset play speed to 1.0</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true">QToolButton {
@@ -1322,7 +1334,10 @@ QToolButton:hover {
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the end to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>End to current time</string>
+                </property>
+                <property name="statusTip">
+                 <string>Sets the end to the current time</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton {
@@ -1408,6 +1423,9 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
+                 <string>Begin to current time</string>
+                </property>
+                <property name="statusTip">
                  <string>Sets the begin to the current time</string>
                 </property>
                 <property name="styleSheet">
@@ -1522,6 +1540,9 @@ QToolButton:hover {
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checked: jump to begin position when pressing stop.&lt;/p&gt;&lt;p&gt;Unchecked: stay on the same frame when pressing stop.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
+           <property name="statusTip">
+            <string>Change behavior on video stop</string>
+           </property>
            <property name="text">
             <string>Rewind on stop</string>
            </property>
@@ -1534,6 +1555,9 @@ QToolButton:hover {
            </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checked: clear to black when stopped,&lt;/p&gt;&lt;p&gt;Unchecked: maintain the current frame when stopped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="statusTip">
+            <string>Change display on video stop</string>
            </property>
            <property name="text">
             <string>Black on stop</string>
