@@ -33,33 +33,9 @@
 
 #include "SessionSwitcherWidget.moc"
 
-QModelIndex addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
-{
-
-    QFile file(filename);
-    if ( !file.open(QFile::ReadOnly | QFile::Text) )
-        return QModelIndex();
-
-    QDomDocument doc;
-    QString errorStr;
-    int errorLine;
-    int errorColumn;
-    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
-        return QModelIndex();
-
-    QDomElement root = doc.documentElement();
-    if ( root.tagName() != "GLMixer" )
-        return QModelIndex();
-
-    QDomElement srcconfig = root.firstChildElement("SourceList");
-    if ( srcconfig.isNull() )
-        return QModelIndex();
-    // get number of sources in the session
-    int nbElem = srcconfig.childNodes().count();
-
-    // get aspect ratio
+QString stringFromAspectRatio(standardAspectRatio ar){
     QString aspectRatio;
-    standardAspectRatio ar = (standardAspectRatio) srcconfig.attribute("aspectRatio", "0").toInt();
+
     switch(ar) {
     case ASPECT_RATIO_FREE:
         aspectRatio = "free";
@@ -79,6 +55,39 @@ QModelIndex addFile(QStandardItemModel *model, const QString &name, const QDateT
         break;
     }
 
+    return aspectRatio;
+}
+
+
+bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
+{
+    // read content of the file
+    QString filename = fileinfo.absoluteFilePath();
+    QFile file(filename);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) )
+        return false;
+
+    QDomDocument doc;
+    QString errorStr;
+    int errorLine;
+    int errorColumn;
+    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
+        return false;
+
+    QDomElement root = doc.documentElement();
+    if ( root.tagName() != "GLMixer" )
+        return false;
+
+    QDomElement srcconfig = root.firstChildElement("SourceList");
+    if ( srcconfig.isNull() )
+        return false;
+    // get number of sources in the session
+    int nbElem = srcconfig.childNodes().count();
+
+    // get aspect ratio
+    standardAspectRatio ar = (standardAspectRatio) srcconfig.attribute("aspectRatio", "0").toInt();
+    QString aspectRatio = stringFromAspectRatio(ar);
+
     // read notes
     QString tooltip = filename;
     QDomElement notes = root.firstChildElement("Notes");
@@ -87,8 +96,8 @@ QModelIndex addFile(QStandardItemModel *model, const QString &name, const QDateT
 
     file.close();
 
-    model->insertRow(0);
-    model->setData(model->index(0, 0), name);
+    // fill the line
+    model->setData(model->index(0, 0), fileinfo.completeBaseName());
     model->setData(model->index(0, 0), filename, Qt::UserRole);
     model->setData(model->index(0, 0), (int) ar, Qt::UserRole+1);
     model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -104,12 +113,13 @@ QModelIndex addFile(QStandardItemModel *model, const QString &name, const QDateT
     model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 2))->setToolTip(tooltip);
 
-    model->setData(model->index(0, 3), date.toString("yy/MM/dd hh:mm"));
+    model->setData(model->index(0, 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
     model->setData(model->index(0, 3), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 3))->setToolTip(tooltip);
 
-    return model->index(0, 0);
+    // all good
+    return true;
 }
 
 
@@ -130,9 +140,14 @@ void FolderModelFiller::run()
 
             // fill list
             for (int i = 0; i < fileList.size(); ++i) {
-                QFileInfo fileinfo = fileList.at(i);
-                addFile(model, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
-
+                // create a new line
+                model->insertRow(0);
+                // fill the line
+                if ( !fillItemData(model, 0, fileList.at(i) ) ) {
+                    qWarning() << fileList.at(i).absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file : not listed in session switcher.");
+                    // undo the new line on error
+                    model->removeRow(0);
+                }
             }
         }
     }
@@ -387,10 +402,14 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
                 folderModelAccesslock.unlock();
                 reloadFolder();
             }
-            // else, only update modified time field for all files found
+            // else, update modified fields for all files found
             else {
-                foreach (const QStandardItem *item, items)
-                    folderModel->setData(folderModel->index(item->row(), 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
+                foreach (const QStandardItem *item, items) {
+                    if ( !fillItemData(folderModel, item->row(), fileinfo) ) {
+                        qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
+                        // TODO : remove item ?
+                    }
+                }
                 folderModelAccesslock.unlock();
             }
 
