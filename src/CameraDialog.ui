@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLMixer - New webcam source</string>
+   <string>GLMixer - New Device Capture source</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
@@ -51,21 +51,14 @@ color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="showPreview">
+    <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>show preview</string>
+      <string>Select Device:</string>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Index</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="1">
       <widget class="QComboBox" name="indexSelection">
        <property name="sizePolicy">
@@ -122,7 +115,21 @@ color: rgb(255, 255, 255);</string>
        </item>
       </widget>
      </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Index</string>
+       </property>
+      </widget>
+     </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showPreview">
+     <property name="text">
+      <string>show preview</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="validationButtonBox">

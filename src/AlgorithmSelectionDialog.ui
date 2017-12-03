@@ -53,7 +53,7 @@
    <item>
     <widget class="QCheckBox" name="ignoreAlphaCheckbox">
      <property name="text">
-      <string>Enable transparency</string>
+      <string>Transparent</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -67,15 +67,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox {
-    margin-top: 42px;
-}
-QGroupBox::title {
-    margin-top: 24px;
-    subcontrol-origin: margin;
-}</string>
      </property>
      <property name="title">
       <string>Animation</string>

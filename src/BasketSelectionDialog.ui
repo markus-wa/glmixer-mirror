@@ -40,6 +40,18 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="leftLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
@@ -321,88 +333,97 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="bidirectional">
-         <property name="text">
-          <string>Bidirectional</string>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Animation</string>
          </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/media-bidirection.png</normaloff>:/glmixer/icons/media-bidirection.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QCheckBox" name="shuffle">
+            <property name="text">
+             <string>Shuffle</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/media-shuffle.png</normaloff>:/glmixer/icons/media-shuffle.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="bidirectional">
+            <property name="text">
+             <string>Bidirectional</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/media-bidirection.png</normaloff>:/glmixer/icons/media-bidirection.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Frame rate</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QSlider" name="frequencySlider">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>60</number>
+              </property>
+              <property name="value">
+               <number>40</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="value">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string notr="true">40</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="fps">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string notr="true">Hz</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="shuffle">
-         <property name="text">
-          <string>Shuffle</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/media-shuffle.png</normaloff>:/glmixer/icons/media-shuffle.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Fra&amp;me rate</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QSlider" name="frequencySlider">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>60</number>
-           </property>
-           <property name="value">
-            <number>40</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="value">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string notr="true">40</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="fps">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string notr="true">Hz</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </item>
        <item>
         <widget class="SizeSelectionWidget" name="sizeselection" native="true">
@@ -448,7 +469,7 @@
         <string notr="true">font:  10pt ;</string>
        </property>
        <property name="text">
-        <string>&amp;0 images in basket.</string>
+        <string>0 images in basket.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

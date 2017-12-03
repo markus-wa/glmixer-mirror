@@ -86,19 +86,19 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     QToolButton *nonrecursiveButton;
 
     setObjectName(QString::fromUtf8("RenderingSourceDialog"));
-    setWindowTitle(tr( "GLMixer - New Rendering Source"));
+    setWindowTitle(tr( "GLMixer - New Loopback Source"));
     verticalLayout = new QVBoxLayout(this);
     verticalLayout->setSpacing(9);
 
     Question = new QLabel(this);
-    Question->setText(tr(" Choose recursive or non-recursive loop-back:"));
+    Question->setText(tr("Select loop-back mode:"));
     verticalLayout->addWidget(Question);
 
     Display = new QLabel(this);
-    Display->setText(tr("Recursive \t\t\tSimple"));
+    Display->setText(tr("Recursive frames\t\tOne frame"));
     verticalLayout->addWidget(Display);
 
-    horizontalLayout = new QHBoxLayout(this);
+    horizontalLayout = new QHBoxLayout();
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontalLayout->setContentsMargins(0, 0, 0, 0);
     recursiveButton = new QToolButton(this);
