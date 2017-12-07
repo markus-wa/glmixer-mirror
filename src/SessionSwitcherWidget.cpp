@@ -97,26 +97,26 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     file.close();
 
     // fill the line
-    model->setData(model->index(0, 0), fileinfo.completeBaseName());
-    model->setData(model->index(0, 0), filename, Qt::UserRole);
-    model->setData(model->index(0, 0), (int) ar, Qt::UserRole+1);
-    model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    model->itemFromIndex (model->index(0, 0))->setToolTip(tooltip);
+    model->setData(model->index(row, 0), fileinfo.completeBaseName());
+    model->setData(model->index(row, 0), filename, Qt::UserRole);
+    model->setData(model->index(row, 0), (int) ar, Qt::UserRole+1);
+    model->itemFromIndex (model->index(row, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (model->index(row, 0))->setToolTip(tooltip);
 
-    model->setData(model->index(0, 1), nbElem);
-    model->setData(model->index(0, 1), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    model->itemFromIndex (model->index(0, 1))->setToolTip(tooltip);
+    model->setData(model->index(row, 1), nbElem);
+    model->setData(model->index(row, 1), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(row, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (model->index(row, 1))->setToolTip(tooltip);
 
-    model->setData(model->index(0, 2), aspectRatio);
-    model->setData(model->index(0, 2), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    model->itemFromIndex (model->index(0, 2))->setToolTip(tooltip);
+    model->setData(model->index(row, 2), aspectRatio);
+    model->setData(model->index(row, 2), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(row, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (model->index(row, 2))->setToolTip(tooltip);
 
-    model->setData(model->index(0, 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
-    model->setData(model->index(0, 3), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    model->itemFromIndex (model->index(0, 3))->setToolTip(tooltip);
+    model->setData(model->index(row, 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
+    model->setData(model->index(row, 3), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(row, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (model->index(row, 3))->setToolTip(tooltip);
 
     // all good
     return true;
@@ -405,6 +405,7 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
             // else, update modified fields for all files found
             else {
                 foreach (const QStandardItem *item, items) {
+
                     if ( !fillItemData(folderModel, item->row(), fileinfo) ) {
                         qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
                         // TODO : remove item ?
