@@ -79,7 +79,7 @@ bool RenderingSourceDialog::getRecursive()
 RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
 {
 
-    QVBoxLayout *verticalLayout;
+    QVBoxLayout *verticalLayout, *vl;
     QLabel *Question, *Display, *Info;
     QDialogButtonBox *DecisionButtonBox;
     QHBoxLayout *horizontalLayout;
@@ -94,13 +94,14 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     Question->setText(tr("Select loop-back mode:"));
     verticalLayout->addWidget(Question);
 
-    Display = new QLabel(this);
-    Display->setText(tr("Recursive frames\t\tOne frame"));
-    verticalLayout->addWidget(Display);
 
     horizontalLayout = new QHBoxLayout();
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontalLayout->setContentsMargins(0, 0, 0, 0);
+
+    vl = new QVBoxLayout(this);
+    Display = new QLabel(this);
+    Display->setText(tr("Recursive frames"));
     recursiveButton = new QToolButton(this);
     recursiveButton->setObjectName(QString::fromUtf8("recursiveButton"));
     recursiveButton->setCheckable(true);
@@ -110,7 +111,14 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     recursiveButton->setIcon( QIcon(i) );
     recursiveButton->setIconSize( i.size() );
 
-    horizontalLayout->addWidget(recursiveButton);
+    vl->addWidget(Display);
+    vl->addWidget(recursiveButton);
+    horizontalLayout->addLayout(vl);
+
+
+    vl = new QVBoxLayout(this);
+    Display = new QLabel(this);
+    Display->setText(tr("One frame"));
 
     nonrecursiveButton = new QToolButton(this);
     nonrecursiveButton->setObjectName(QString::fromUtf8("nonrecursiveButton"));
@@ -120,7 +128,9 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     nonrecursiveButton->setIcon( QIcon(i) );
     nonrecursiveButton->setIconSize( i.size() );
 
-    horizontalLayout->addWidget(nonrecursiveButton);
+    vl->addWidget(Display);
+    vl->addWidget(nonrecursiveButton);
+    horizontalLayout->addLayout(vl);
 
     verticalLayout->addLayout(horizontalLayout);
 
