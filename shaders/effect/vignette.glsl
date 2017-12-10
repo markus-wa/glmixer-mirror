@@ -5,10 +5,10 @@
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    vec2 uv = fragCoord.xy / iResolution.xy;
 
-        vec2 uv = fragCoord.xy / iResolution.xy;
-
-    // Center the UV with the aspect ration taken into account so the outerRadius of 1.0 is the edge of the screen
+    // Center the UV with the aspect ration taken into account
+    // so the outerRadius of 1.0 is the edge of the screen
     vec2 centered = (uv - vec2(0.5)) * (iResolution.x / iResolution.y);
 
     vec4 image = texture(iChannel0, uv);
@@ -20,9 +20,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Apply the vignette to the image
     color *= image;
 
-    // Mix between the vignette version and the original to change the vignette opacity
+    // Mix between the vignette version and the original
     color = mix(image, color, opacity);
 
     fragColor = color;
-
 }

@@ -57,7 +57,8 @@ public slots:
     void saveCode();
     void restoreCode();
     void reloadCode();
-    void openExample(int index);
+    void openExample(QListWidgetItem *it);
+    void applyExample(QListWidgetItem *it);
 
     // reset signaling of errors
     void restoreStyle();

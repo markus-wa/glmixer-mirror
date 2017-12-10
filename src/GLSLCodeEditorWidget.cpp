@@ -70,8 +70,10 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
 #endif
 
     // open example on selection
-    ui->examplesCombobox->installEventFilter(new wheelEventFilter());
-    connect(ui->examplesCombobox, SIGNAL(currentIndexChanged(int)), SLOT(openExample(int)) );
+    connect(ui->examplesList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(applyExample(QListWidgetItem*)));
+
+    connect(ui->examplesList, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(openExample(QListWidgetItem*)));
+
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
@@ -81,9 +83,7 @@ GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
 
 void GLSLCodeEditorWidget::fillExamplesList(bool effect)
 {
-    ui->examplesCombobox->clear();
-    ui->examplesCombobox->addItem("Load example..");
-
+    // select directory
     QDir dir;
     if (effect) {
         dir = QDir(":/shadertoy/shaders/effect/");
@@ -91,28 +91,45 @@ void GLSLCodeEditorWidget::fillExamplesList(bool effect)
         dir = QDir(":/shadertoy/shaders/source/");
     }
 
-    QFileInfoList list = dir.entryInfoList();
+    // get list of GLSL
+    QStringList filter;
+    filter << "*.glsl";
+    QFileInfoList list = dir.entryInfoList(filter);
+
+    // fill list
+    ui->examplesList->clear();
     for (int i = 0; i < list.size(); ++i) {
         QFileInfo fileInfo = list.at(i);
-        ui->examplesCombobox->addItem(fileInfo.baseName(), fileInfo.absoluteFilePath());
+        QListWidgetItem *it = new QListWidgetItem(QIcon(fileInfo.absoluteFilePath() + ".png"),  fileInfo.baseName() );
+        it->setData(Qt::UserRole, fileInfo.absoluteFilePath());
+        ui->examplesList->addItem(it);
+    }
+
+}
+
+
+void GLSLCodeEditorWidget::applyExample(QListWidgetItem *it)
+{
+    if (it) {
+        openExample(it);
+        apply();
     }
 }
 
-void GLSLCodeEditorWidget::openExample(int index)
+void GLSLCodeEditorWidget::openExample(QListWidgetItem *it)
 {
-    if (index > 0) {
-
-        QString filename = ui->examplesCombobox->itemData(index).toString();
+    if (it) {
+        QString filename = it->data(Qt::UserRole).toString();
 
         QFile fileContent( filename );
         if (!fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
             return;
         ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
-
-        // do not leave the combobox on the index
-        ui->examplesCombobox->setCurrentIndex(0);
+        ui->examplesList->scrollToItem(it);
+        ui->examplesList->setCurrentItem(0);
     }
 }
+
 
 void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
 {
@@ -177,6 +194,7 @@ void GLSLCodeEditorWidget::updateFields()
         ui->nameEdit->clear();
         ui->aboutEdit->clear();
         ui->descriptionEdit->clear();
+        ui->examplesList->clear();
 
         // disable actions
         ui->actionsFrame->setEnabled(false);

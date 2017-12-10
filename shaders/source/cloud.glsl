@@ -1,9 +1,7 @@
 // https://www.shadertoy.com/view/4sfSz4
 // Model for single scattering in a spherical cloud with density gradient.
-
-// ---   -> based on Mikael Lemercier & Fabrice Neyret, https://www.shadertoy.com/view/4slGWM
-// ---   -> noise functions from Inigo Quilez, https://www.shadertoy.com/view/XslGRr
-
+// based on Mikael Lemercier & Fabrice Neyret, https://www.shadertoy.com/view/4slGWM
+// noise functions from Inigo Quilez, https://www.shadertoy.com/view/XslGRr
 
 #define DENS 1.5          // tau.rho at the center
 #define rad 0.7          // sphere radius
@@ -11,8 +9,8 @@
 #define ANIM true        // true/false
 #define PI 3.14159
 
-vec3 skyColor = vec3(.7,.8,1.);
-vec3 sunColor = vec3(1.,.9,.7);   // Energy
+vec3 skyColor = vec3(0.6,0.7,1.0);
+vec3 sunColor = vec3(1.0,0.9,0.7);   // Energy
 
 mat3 m = mat3( 0.00,  0.80,  0.60,
                -0.80,  0.36, -0.48,
@@ -34,7 +32,7 @@ float noise( in vec3 x )
 
     float res = mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
                         mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y),
-                    mix(mix( hash(n+113.0), hash(n+114.0),f.x),
+                        mix(mix( hash(n+113.0), hash(n+114.0),f.x),
                         mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
     return res;
 }
@@ -76,8 +74,10 @@ vec3  sphericalTransmittanceGradient(vec2 L, float r, float h, float z)
     if (DENS < 2.)
         a1 = 0.0;
     float a12 = a1*a1;float a13 = a12*a1;float a14 = a12*a12;
-    float Lx2 = Lx*Lx;float Lx3 = Lx2*Lx;float Lx4 = Lx3*Lx; float Lx5 = Lx4*Lx;float Lx6 = Lx5*Lx;
-    float Ly2 = Ly*Ly;float Ly3 = Ly2*Ly;float Ly4 = Ly2*Ly2;float Ly5 = Ly4*Ly;float Ly6 = Ly5*Ly;
+    float Lx2 = Lx*Lx;float Lx3 = Lx2*Lx;float Lx4 = Lx3*Lx;
+    float Lx5 = Lx4*Lx;float Lx6 = Lx5*Lx;
+    float Ly2 = Ly*Ly;float Ly3 = Ly2*Ly;float Ly4 = Ly2*Ly2;
+    float Ly5 = Ly4*Ly;float Ly6 = Ly5*Ly;
     float xmax3 = xmax*xmax*xmax;
     float Y2 = Y*Y;float Y3 = Y2*Y;float Y4 = Y2*Y2;
     float r2 = r*r;float r4 = r2*r2;
@@ -120,7 +120,8 @@ vec3  sphericalTransmittanceGradient(vec2 L, float r, float h, float z)
     float EX1 = exp(c1-c2*xmax);
     float EX2 = exp(c1+c2*xmax);
     float res = -2.*EX1+EX1*c2*c2*R2-EX1*c2*c2*Y2-EX1*c2*c2*H2
-            -2.*EX1*c2*xmax-EX1*xmax*xmax*c2*c2+2.*EX2-EX2*c2*c2*R2+EX2*c2*c2*Y2+EX2*c2*c2*H2
+            -2.*EX1*c2*xmax-EX1*xmax*xmax*c2*c2
+            +2.*EX2-EX2*c2*c2*R2+EX2*c2*c2*Y2+EX2*c2*c2*H2
             -2.*EX2*c2*xmax+EX2*xmax*xmax*c2*c2;
     res *= -DENS/(rad*rad*c2*c2*c2);
     return vec3(res);

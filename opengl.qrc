@@ -19,6 +19,30 @@
         <file>shaders/effect/kaleidoscope.glsl</file>
         <file>shaders/effect/quadmirror.glsl</file>
         <file>shaders/effect/stripes.glsl</file>
+        <file>shaders/effect/talk.glsl</file>
+        <file>shaders/effect/voronoi.glsl</file>
+        <file>shaders/effect/water flow.glsl</file>
+        <file>shaders/effect/water turbulence.glsl</file>
+        <file>shaders/effect/thermal camera.glsl</file>
+        <file>shaders/effect/vignette.glsl.png</file>
+        <file>shaders/effect/Bokeh disc.glsl.png</file>
+        <file>shaders/effect/DawnBringer 4bit.glsl.png</file>
+        <file>shaders/effect/chromatic aberation.glsl.png</file>
+        <file>shaders/effect/fisheye.glsl.png</file>
+        <file>shaders/effect/bloompaint.glsl.png</file>
+        <file>shaders/effect/noise distortion.glsl.png</file>
+        <file>shaders/effect/anaglyphic.glsl.png</file>
+        <file>shaders/effect/bloom.glsl.png</file>
+        <file>shaders/effect/CRT.glsl.png</file>
+        <file>shaders/effect/cubify.glsl.png</file>
+        <file>shaders/effect/kaleidoscope.glsl.png</file>
+        <file>shaders/effect/quadmirror.glsl.png</file>
+        <file>shaders/effect/stripes.glsl.png</file>
+        <file>shaders/effect/talk.glsl.png</file>
+        <file>shaders/effect/voronoi.glsl.png</file>
+        <file>shaders/effect/water flow.glsl.png</file>
+        <file>shaders/effect/water turbulence.glsl.png</file>
+        <file>shaders/effect/thermal camera.glsl.png</file>
         <file>shaders/source/sea.glsl</file>
         <file>shaders/source/disks.glsl</file>
         <file>shaders/source/bubble.glsl</file>
@@ -31,5 +55,29 @@
         <file>shaders/source/fireball.glsl</file>
         <file>shaders/source/baba.glsl</file>
         <file>shaders/source/flash.glsl</file>
+        <file>shaders/source/bokeh paralax.glsl</file>
+        <file>shaders/source/octaves.glsl</file>
+        <file>shaders/source/simple plasma.glsl</file>
+        <file>shaders/source/sponges.glsl</file>
+        <file>shaders/source/volumetric particle.glsl</file>
+        <file>shaders/source/warping paint.glsl</file>
+        <file>shaders/source/sea.glsl.png</file>
+        <file>shaders/source/disks.glsl.png</file>
+        <file>shaders/source/bubble.glsl.png</file>
+        <file>shaders/source/fractal.glsl.png</file>
+        <file>shaders/source/cloudy sky.glsl.png</file>
+        <file>shaders/source/cloud.glsl.png</file>
+        <file>shaders/source/color grid.glsl.png</file>
+        <file>shaders/source/star nest.glsl.png</file>
+        <file>shaders/source/voronoi distance.glsl.png</file>
+        <file>shaders/source/fireball.glsl.png</file>
+        <file>shaders/source/baba.glsl.png</file>
+        <file>shaders/source/flash.glsl.png</file>
+        <file>shaders/source/bokeh paralax.glsl.png</file>
+        <file>shaders/source/octaves.glsl.png</file>
+        <file>shaders/source/simple plasma.glsl.png</file>
+        <file>shaders/source/sponges.glsl.png</file>
+        <file>shaders/source/volumetric particle.glsl.png</file>
+        <file>shaders/source/warping paint.glsl.png</file>
     </qresource>
 </RCC>

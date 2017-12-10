@@ -1,13 +1,12 @@
+// From https://www.shadertoy.com/view/4ssGzn
+
 const int _VolumeSteps = 32;
 const float _StepSize = 0.1;
 const float _Density = 0.2;
-
 const float _SphereRadius = 2.0;
 const float _NoiseFreq = 1.0;
 const float _NoiseAmp = 3.0;
 const vec3 _NoiseAnim = vec3(0, -1.0, 0);
-
-// iq's nice integer-less noise function
 
 // matrix to rotate the noise octaves
 mat3 m = mat3( 0.00,  0.80,  0.60,
@@ -19,7 +18,7 @@ float hash( float n )
     return fract(sin(n)*43758.5453);
 }
 
-
+// iq's nice integer-less noise function
 float noise( in vec3 x )
 {
     vec3 p = floor(x);
@@ -43,7 +42,6 @@ float fbm( vec3 p )
     f += 0.2500*noise( p ); p = m*p*2.03;
     f += 0.1250*noise( p ); p = m*p*2.01;
     f += 0.0625*noise( p );
-    //p = m*p*2.02; f += 0.03125*abs(noise( p ));
     return f;
 }
 
@@ -53,7 +51,7 @@ float distanceFunc(vec3 p)
         float d = length(p) - _SphereRadius;	// distance to sphere
 
         // offset distance with pyroclastic noise
-        //p = normalize(p) * _SphereRadius;	// project noise point to sphere surface
+        // project noise point to sphere surface
         d += fbm(p*_NoiseFreq + _NoiseAnim*iTime) * _NoiseAmp;
         return d;
 }
@@ -81,17 +79,14 @@ vec4 gradient(float x)
         } else {
                 c = mix(c3, c4, t);
         }
-        //return vec4(x);
-        //return vec4(t);
         return c;
 }
 
 // shade a point based on distance
 vec4 shade(float d)
 {
-        // lookup in color gradient
-        return gradient(d);
-        //return mix(vec4(1, 1, 1, 1), vec4(0, 0, 0, 0), smoothstep(1.0, 1.1, d));
+    // lookup in color gradient
+    return gradient(d);
 }
 
 // procedural volume
@@ -116,11 +111,6 @@ vec4 rayMarch(vec3 rayOrigin, vec3 rayStep, out vec3 pos)
                 // pre-multiply alpha
                 col.rgb *= col.a;
                 sum = sum + col*(1.0 - sum.a);
-#if 0
-                // exit early if opaque
-                if (sum.a > _OpacityThreshold)
-                        break;
-#endif
                 pos += rayStep;
         }
         return sum;
@@ -148,7 +138,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // volume render
     vec3 hitPos;
     vec4 col = rayMarch(ro, rd*_StepSize, hitPos);
-    //vec4 col = gradient(p.x);
 
     fragColor = col;
 }

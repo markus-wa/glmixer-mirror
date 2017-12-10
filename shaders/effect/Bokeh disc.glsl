@@ -1,9 +1,8 @@
 // from https://www.shadertoy.com/view/4d2Xzw
 // Bokeh disc.
 // by David Hoskins.
-// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-// The Golden Angle is (3.-sqrt(5.0))*PI radians, which doesn't precompiled for some reason.
-// The compiler is a dunce I tells-ya!!
+// Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+// The Golden Angle is (3.-sqrt(5.0))*PI radians
 #define GOLDEN_ANGLE 2.39996323
 #define ITERATIONS 140
 
@@ -11,7 +10,6 @@
 
 mat2 rot = mat2(cos(GOLDEN_ANGLE), sin(GOLDEN_ANGLE), -sin(GOLDEN_ANGLE), cos(GOLDEN_ANGLE));
 
-//-------------------------------------------------------------------------------------------
 vec3 Bokeh(sampler2D tex, vec2 uv, float radius, float amount)
 {
     vec3 acc = vec3(0.0);
@@ -35,7 +33,6 @@ vec3 Bokeh(sampler2D tex, vec2 uv, float radius, float amount)
     return acc / div;
 }
 
-//-------------------------------------------------------------------------------------------
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Parameters
