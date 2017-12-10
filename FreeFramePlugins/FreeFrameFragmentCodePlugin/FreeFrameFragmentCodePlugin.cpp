@@ -50,8 +50,8 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     SetTimeSupported(true);
 
     // Parameter
-    SetParamInfo(FFPARAM_TIME, "Speed", FF_TYPE_STANDARD, 0.5f);
-    timeFactor = 0.5;
+    SetParamInfo(FFPARAM_TIME, "Speed", FF_TYPE_STANDARD, 1.0f);
+    timeFactor = 1.0;
 
     // code management
     code_changed = true;
@@ -228,7 +228,7 @@ FFResult FreeFrameShadertoy::SetTime(double time)
 {
     // Global time is influenced by time factor
     double dt = time - m_curTime;
-    g_curTime += (timeFactor * 2.0) * dt;
+    g_curTime += timeFactor * dt;
 
     // channel time is absolute
     m_curTime = time;
