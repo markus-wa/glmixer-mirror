@@ -71,6 +71,9 @@
      <property name="title">
       <string>Animation</string>
      </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout2">
       <item>
        <widget class="QLabel" name="label_3">

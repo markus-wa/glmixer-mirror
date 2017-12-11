@@ -680,10 +680,10 @@ Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
     try {
         // create a source appropriate
         s = new RenderingSource(recursive, getAvailableDepthFrom(depth));
-        s->setName( _defaultSource->getName() + "Render");
+        s->setName( _defaultSource->getName() + "Loop");
 
     } catch (AllocationException &e){
-        qWarning() << tr("Cannot create Rendering source; ") << e.message();
+        qWarning() << tr("Cannot create Loopback source; ") << e.message();
         // return an invalid pointer
         s = 0;
     }
@@ -789,7 +789,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
     try {
         // create a source appropriate
         s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
-        s->setName(_defaultSource->getName() + "Capture");
+        s->setName(_defaultSource->getName() + "Pixmap");
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));

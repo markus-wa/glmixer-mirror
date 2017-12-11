@@ -41,7 +41,6 @@ SvgSource::SvgSource(QByteArray content, GLuint texture, double d): Source(textu
 
     // setup renderer resolution to match to rendering manager preference
     int w = RenderingManager::getInstance()->getFrameBufferWidth();
-    qDebug() << " RenderingManager::getInstance()->getFrameBufferWidth() " << w;
     _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32);
 
     // clear the image to transparent
@@ -73,10 +72,11 @@ SvgSource::SvgSource(QByteArray content, GLuint texture, double d): Source(textu
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
 #if QT_VERSION >= 0x040700
-    glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
+    glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(), 
+                    0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
 #else
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
+                    0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
 #endif
 
 }
