@@ -399,21 +399,24 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
 
             // if couldn't find file in the list,
             if (items.isEmpty()) {
+                // done with folder Model
                 folderModelAccesslock.unlock();
+                // try reloading the folder
                 reloadFolder();
             }
             // else, update modified fields for all files found
             else {
-                foreach (const QStandardItem *item, items) {
-
-                    if ( !fillItemData(folderModel, item->row(), fileinfo) ) {
-                        qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
-                        // TODO : remove item ?
-                    }
+                QStandardItem *item = items.first();
+                if ( !fillItemData(folderModel, item->row(), fileinfo) ) {
+                    qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
                 }
+                // done with folder Model
                 folderModelAccesslock.unlock();
-            }
 
+                // restore selection in tree view
+                if (item->index().isValid())
+                    proxyView->setCurrentIndex( proxyFolderModel->mapFromSource(item->index()));
+            }
         }
     }
 }
@@ -538,14 +541,20 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 
 void SessionSwitcherWidget::startTransitionToNextSession()
 {
-    startTransitionToSession( proxyView->indexBelow (proxyView->currentIndex())	);
-    proxyView->setCurrentIndex( proxyView->indexBelow (proxyView->currentIndex())	);
+    QModelIndex id = proxyView->indexBelow (proxyView->currentIndex());
+    if (id.isValid()) {
+        startTransitionToSession( id);
+        proxyView->setCurrentIndex( id );
+    }
 }
 
 void SessionSwitcherWidget::startTransitionToPreviousSession()
 {
-    startTransitionToSession( proxyView->indexAbove (proxyView->currentIndex())	);
-    proxyView->setCurrentIndex( proxyView->indexAbove (proxyView->currentIndex())	);
+    QModelIndex id = proxyView->indexAbove (proxyView->currentIndex());
+     if (id.isValid()) {
+         startTransitionToSession( id);
+         proxyView->setCurrentIndex( id );
+     }
 }
 
 void SessionSwitcherWidget::selectSession(const QModelIndex & index)
