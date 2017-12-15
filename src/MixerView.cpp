@@ -282,6 +282,9 @@ void MixerView::paint()
         // get a reordered map of source
         mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end(), (*itss).size());
 
+        if (selectionMap.empty())
+            break;
+
         // check if the sources are in the current view
         int w = selectionMap.begin()->second->getWorkspace();
         float a = 0.8f;
