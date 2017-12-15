@@ -242,6 +242,25 @@
           </widget>
          </item>
          <item>
+          <widget class="QComboBox" name="translationPresets">
+           <item>
+            <property name="text">
+             <string>Add preset..</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Little OSC</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>osc Hook</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

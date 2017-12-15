@@ -73,6 +73,7 @@ public slots:
     void on_addTranslation_pressed();
     void on_verboseLogs_toggled(bool);
     void on_clearTranslation_pressed();
+    void on_translationPresets_currentIndexChanged(int);
 
 protected:
     void showEvent(QShowEvent *);

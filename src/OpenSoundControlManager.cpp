@@ -267,9 +267,41 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             else
                 throw osc::MissingArgumentException();
         }
+        else if ( property == "Transparency") {
+            if (args.size() > 0 && args[0].isValid()) {
+                bool ok = false;
+                double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
+                if (ok)
+                    GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
+                else
+                    throw osc::WrongArgumentTypeException();
+            }
+            else
+                throw osc::MissingArgumentException();
+        }
         else if ( property == "Pause") {
             if (args.size() > 0 && args[0].isValid())
                 RenderingManager::getInstance()->pause( args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        else if ( property == "Unpause") {
+            if (args.size() > 0 && args[0].isValid())
+                RenderingManager::getInstance()->pause( ! args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        else if ( property == "Next") {
+            if (args.size() > 0 && args[0].isValid())
+                if (args[0].toBool())
+                    GLMixer::getInstance()->openNextSession();
+            else
+                throw osc::MissingArgumentException();
+        }
+        else if ( property == "Previous") {
+            if (args.size() > 0 && args[0].isValid())
+                if (args[0].toBool())
+                    GLMixer::getInstance()->openPreviousSession();
             else
                 throw osc::MissingArgumentException();
         }

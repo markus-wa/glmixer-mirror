@@ -140,6 +140,8 @@ public slots:
     void newSource(Source::RTTI type);
     void newSession();
     void closeSession();
+    void openNextSession();
+    void openPreviousSession();
     void saveSession(bool close = false, bool quit = false);
     void postSaveSession();
 

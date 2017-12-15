@@ -394,7 +394,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QAction *prevSession = new QAction("Previous Session", this);
     prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
     addAction(prevSession);
-    QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
+//    QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
+    QObject::connect(nextSession, SIGNAL(triggered()), SLOT(openNextSession()));
     QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
 #else
     delete switcherDockWidget;
@@ -1950,6 +1951,16 @@ void GLMixer::closeSession()
 
 }
 
+void GLMixer::openNextSession()
+{
+    switcherSession->startTransitionToNextSession();
+}
+
+void GLMixer::openPreviousSession()
+{
+    switcherSession->startTransitionToPreviousSession();
+}
+
 void GLMixer::on_actionClose_Session_triggered()
 {
     // inform the user that data might be lost
@@ -2117,9 +2128,8 @@ void GLMixer::saveSession(bool close, bool quit){
         if (close)
             connect(workerThread, SIGNAL(finished()), this, SLOT(closeSession()));
 
-        if (quit) {
+        if (quit)
             connect(workerThread, SIGNAL(finished()), actionQuit, SLOT(trigger()));
-        }
 
         // start saving
         RenderingManager::getRenderingWidget()->showMessage( tr("Saving %1...").arg( currentSessionFileName ), 3000 );

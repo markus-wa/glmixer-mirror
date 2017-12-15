@@ -308,6 +308,29 @@ void OpenSoundControlTranslator::updateManager()
     logStatus();
 }
 
+
+void OpenSoundControlTranslator::on_translationPresets_currentIndexChanged(int i)
+{
+    switch (i) {
+    case 1:
+        // Little OSC
+        addTranslation("/1/push1", "/glmixer/render/Transparency");
+        addTranslation("/1/push2", "/glmixer/render/Pause");
+        addTranslation("/1/push3", "/glmixer/render/Previous");
+        addTranslation("/1/push4", "/glmixer/render/Next");
+        break;
+    case 2:
+        // osc Hook
+        addTranslation("/rotation_vector/r4", "/glmixer/render/Transparency");
+        addTranslation("/light", "/glmixer/render/Unpause");
+        break;
+    default:
+        break;
+    }
+
+    ui->translationPresets->setCurrentIndex(0);
+}
+
 void OpenSoundControlTranslator::logStatus()
 {
     ui->consoleOSC->setTextColor(QColor(160, 250, 160));
