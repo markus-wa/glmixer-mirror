@@ -29,7 +29,7 @@ SizeSelectionWidget::SizeSelectionWidget(QWidget *parent) :
     }
 
     // default size 1024x768
-    setSizePreset(14);
+    setPreset(14);
 }
 
 SizeSelectionWidget::~SizeSelectionWidget()
@@ -45,6 +45,10 @@ int SizeSelectionWidget::getWidth()
 int SizeSelectionWidget::getHeight()
 {
     return ui->heightSpinBox->value();
+}
+
+void SizeSelectionWidget::setPreset(int preset){
+    ui->presetsSizeComboBox->setCurrentIndex(preset);
 }
 
 void SizeSelectionWidget::setSizePreset(int preset){

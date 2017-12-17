@@ -273,7 +273,7 @@
  <connections>
   <connection>
    <sender>presetsSizeComboBox</sender>
-   <signal>activated(int)</signal>
+   <signal>currentIndexChanged(int)</signal>
    <receiver>SizeSelectionWidget</receiver>
    <slot>setSizePreset(int)</slot>
    <hints>

@@ -37,8 +37,12 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     AlgorithmComboBox->clear();
     // create sources with selected algo
     for (int i = 0; i < AlgorithmSource::NONE; ++i)
-    	AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
+        AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
 
+    // default to 64x64
+    sizeselection->setPreset(3);
+
+    // update on size change
     QObject::connect(sizeselection, SIGNAL(sizeChanged()), this, SLOT(updateSourcePreview()));
 
 }
@@ -52,49 +56,51 @@ void AlgorithmSelectionDialog::showEvent(QShowEvent *e){
 
     updateSourcePreview();
 
-	QWidget::showEvent(e);
+    QWidget::showEvent(e);
 }
 
 void AlgorithmSelectionDialog::done(int r){
 
-	if (preview)
-		preview->setSource(0);
-	if (s) {
-		delete s;
-		s = 0;
-	}
-	QDialog::done(r);
+    if (preview)
+        preview->setSource(0);
+    if (s) {
+        delete s;
+        s = 0;
+    }
+    QDialog::done(r);
 }
 
 
 void AlgorithmSelectionDialog::updateSourcePreview(){
 
-	if(s) {
-		// remove source from preview: this deletes the texture in the preview
-		preview->setSource(0);
-		// delete the source:
-		delete s;
+    if(s) {
+        // remove source from preview: this deletes the texture in the preview
+        preview->setSource(0);
+        // delete the source:
+        delete s;
         s = 0;
-	}
+    }
 
-	GLuint tex = preview->getNewTextureIndex();
-	try {
-		// create a new source with a new texture index and the new parameters
+    GLuint tex = preview->getNewTextureIndex();
+    try {
+        // create a new source with a new texture index and the new parameters
         s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0,
                                 sizeselection->getWidth(), sizeselection->getHeight(),
                                 getSelectedVariability(), getUpdatePeriod(),
                                 !ignoreAlphaCheckbox->isChecked());
 
-	} catch (AllocationException &e){
-        qCritical() << "Error creating an Algorithm source; " << e.message();
-		// free the OpenGL texture
-		glDeleteTextures(1, &tex);
-		// return an invalid pointer
-		s = 0;
-	}
+        s->_setPixelated(pixelatedCheckBox->isChecked());
 
-	// apply the source to the preview
-	preview->setSource(s);
+    } catch (AllocationException &e){
+        qCritical() << "Error creating an Algorithm source; " << e.message();
+        // free the OpenGL texture
+        glDeleteTextures(1, &tex);
+        // return an invalid pointer
+        s = 0;
+    }
+
+    // apply the source to the preview
+    preview->setSource(s);
     preview->playSource(true);
 }
 
@@ -115,8 +121,8 @@ void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
 
 
 void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
-	if (!flag)
-		frequencySlider->setValue(40);
+    if (!flag)
+        frequencySlider->setValue(40);
 }
 
 void AlgorithmSelectionDialog::on_ignoreAlphaCheckbox_toggled(bool on){
@@ -124,24 +130,25 @@ void AlgorithmSelectionDialog::on_ignoreAlphaCheckbox_toggled(bool on){
         s->setIgnoreAlpha(!on);
 }
 
+void AlgorithmSelectionDialog::on_pixelatedCheckBox_toggled(bool on){
+    if (s)
+        s->_setPixelated(on);
+}
 
 int AlgorithmSelectionDialog::getSelectedAlgorithmIndex(){
 
-	return AlgorithmComboBox->currentIndex();
+    return AlgorithmComboBox->currentIndex();
 }
-
 
 double AlgorithmSelectionDialog::getSelectedVariability(){
 
-	return double(variabilitySlider->value()) / 100.0;
+    return double(variabilitySlider->value()) / 100.0;
 }
-
 
 int AlgorithmSelectionDialog::getSelectedWidth(){
 
     return sizeselection->getWidth();
 }
-
 
 int AlgorithmSelectionDialog::getSelectedHeight(){
 
@@ -150,14 +157,18 @@ int AlgorithmSelectionDialog::getSelectedHeight(){
 
 unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){
 
-	if (!customUpdateFrequency->isChecked())
-		return 0;
-	else
-		return (unsigned long) ( 1000000.0 / double(frequencySlider->value()));
-
+    if (!customUpdateFrequency->isChecked())
+        return 0;
+    else
+        return (unsigned long) ( 1000000.0 / double(frequencySlider->value()));
 }
 
 bool AlgorithmSelectionDialog::getIngoreAlpha(){
 
-	return !ignoreAlphaCheckbox->isChecked();
+    return !ignoreAlphaCheckbox->isChecked();
+}
+
+bool AlgorithmSelectionDialog::getPixelated(){
+
+    return pixelatedCheckBox->isChecked();
 }

@@ -1565,7 +1565,12 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
     if (asd->exec() == QDialog::Accepted) {
         Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
         if ( s ){
+            // add and set default properties
             RenderingManager::getInstance()->addSourceToBasket(s);
+
+            // change property pixelated
+            s->setPixelated( asd->getPixelated() );
+
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
             RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
         } else

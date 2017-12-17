@@ -17,6 +17,7 @@ public:
 
     int getWidth();
     int getHeight();
+    void setPreset(int preset);
 
 signals:
     void widthChanged(int);

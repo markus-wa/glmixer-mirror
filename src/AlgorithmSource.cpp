@@ -42,11 +42,63 @@ bool AlgorithmSource::playable = true;
 #include <QThread>
 #include <QTime>
 #include <QDateTime>
+#include <cmath>
+
+
+/**
+ * HSV to RGB
+ */
+
+void HsvToRgb(unsigned char hsv[], unsigned char rgb[])
+{
+    rgb[3] = hsv[3];
+
+    unsigned char region, remainder, p, q, t;
+
+    if (hsv[1] == 0)
+    {
+        rgb[0] = hsv[2];
+        rgb[1] = hsv[2];
+        rgb[2] = hsv[2];
+        return;
+    }
+
+    region = hsv[0] / 43;
+    remainder = (hsv[0] - (region * 43)) * 6;
+
+    p = (hsv[2] * (255 - hsv[1])) >> 8;
+    q = (hsv[2] * (255 - ((hsv[1] * remainder) >> 8))) >> 8;
+    t = (hsv[2] * (255 - ((hsv[1] * (255 - remainder)) >> 8))) >> 8;
+
+    switch (region)
+    {
+        case 0:
+            rgb[0] = hsv[2]; rgb[1] = t; rgb[2] = p;
+            break;
+        case 1:
+            rgb[0] = q; rgb[1] = hsv[2]; rgb[2] = p;
+            break;
+        case 2:
+            rgb[0] = p; rgb[1] = hsv[2]; rgb[2] = t;
+            break;
+        case 3:
+            rgb[0] = p; rgb[1] = q; rgb[2] = hsv[2];
+            break;
+        case 4:
+            rgb[0] = t; rgb[1] = p; rgb[2] = hsv[2];
+            break;
+        default:
+            rgb[0] = hsv[2]; rgb[1] = p; rgb[2] = q;
+            break;
+    }
+
+    return;
+}
+
 
 /**
  * PERLIN NOISE
  */
-#include <cmath>
 
 static int p[512];
 static int permutation[] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96,
@@ -141,7 +193,7 @@ unsigned char randDisp(double disp) {
 class AlgorithmThread: public QThread {
 public:
     AlgorithmThread(AlgorithmSource *source) :
-        QThread(), as(source), end(false), phase(0), i(0.0), j(0.0), k(0.0), l(0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
+        QThread(), as(source), end(false), phase(1), i(0.0), j(0.0), k(0.0), l(0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
 
     }
 
@@ -201,96 +253,143 @@ void AlgorithmThread::fill(double var) {
 
     if (as->algotype == AlgorithmSource::FLAT) {
 
-        unsigned char c = (unsigned char) (cos( double(phase) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
-        memset((void *) as->buffer, c,  as->width * as->height * 4);
+        // linear color change white <-> black
+        int a = phase * int(var * var * 255.0);
+        int c = (int) as->buffer[0] + a;
+        phase = c > 255 ? -phase : c < 0 ? -phase : phase ;
+        // fill image
+        memset((void *) as->buffer, (unsigned char) CLAMP(c, 0, 255), as->width * as->height * 4);
+    }
+    else if (as->algotype == AlgorithmSource::FLAT_COLOR) {
 
-        phase = (phase + int(var * 36.0)) % (360);
+        unsigned char hsv[4] = {0, 255, 255, 255};
+        unsigned char rgb[4] = {0, 0, 0, 255};
 
+        // vary Hue
+        hsv[0] = (unsigned char) ( 255.0 + phase ) % (256);
+        phase = (phase + int(var * 25.6)) % (256);
+        // convert to RGB
+        HsvToRgb(hsv, rgb);
+        // fill 1 line
+        for (int x = 0; x < as->width; ++x)
+            memmove((void *) (as->buffer + x * 4), rgb, 4 );
+        // duplicate line
+        for (int y = 1; y < as->height ; ++y)
+            memmove((void *) (as->buffer + y * as->width * 4), as->buffer, as->width * 4 );
+
+    }
+    else if (as->algotype == AlgorithmSource::BW_LINES) {
+
+        // linear color change white <-> black
+        int a = phase * int(var * var * 255.0);
+        int c = (int) as->buffer[0] + a;
+        phase = c > 255 ? -phase : c < 0 ? -phase : phase ;
+        // alternate B&W
+        unsigned char b = (unsigned char) CLAMP(c, 0, 255);
+        unsigned char w = 255 - b;
+        // fill lines
+        for (int y = 0; y < as->height ; ++y)
+            memset((void *) (as->buffer + y * as->width * 4), y%2 ? w : b, 4 * as->width );
+
+    }
+    else if (as->algotype == AlgorithmSource::COLOR_LINES) {
+
+        unsigned char hsv[4] = {0, 255, 255, 255};
+
+        // create first line
+        for (int x = 0; x < as->width; ++x) {
+            // vary Hue
+            hsv[0] = (unsigned char) ( ( (double) x / (double) as->width ) * 255.0 + phase ) % (255);
+            // convert to RGB
+            HsvToRgb(hsv, as->buffer + x * 4);
+        }
+
+        // duplicate line per bloc
+        for (int y = 1; y < as->height ; ++y)
+            memmove((void *) (as->buffer + y * as->width * 4), as->buffer, as->width * 4 );
+
+        phase = (phase + int(var * 25.6)) % 256;
     }
     else if (as->algotype == AlgorithmSource::BW_CHECKER) {
 
-        unsigned char b = (unsigned char) (cos( double(phase) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
-        unsigned char w = (unsigned char) (cos( double( (phase + 180) % 360 ) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
-
+        // linear color change white <-> black
+        int a = phase * int(var * var * 255.0);
+        int c = (int) as->buffer[0] + a;
+        phase = c > 255 ? -phase : c < 0 ? -phase : phase ;
+        // alternate B&W
+        unsigned char b = (unsigned char) CLAMP(c, 0, 255);
+        unsigned char w = 255 - b;
         bool on = false;
+
         // fast checkerboard if even numbers
         if ( as->height > 2 && !(as->width % 2) && !(as->height%2) ) {
-
+            int y = 0;
             // create two first lines
-            for (int y = 0; y < 2; ++y) {
+            for (; y < 2; ++y) {
                 on = y%2;
-                for (int x = 0; x < as->width; ++x) {
+                for (int x = 0; x < as->width; ++x, on = !on)
                     memset((void *) (as->buffer + (y * as->width + x) * 4),
-                           (unsigned char) ( on ? w : b) , 4);
-                    on = !on;
-                }
+                            on ? w : b , 4);
             }
             // duplicate lines per bloc
-            for (int l = 2; l < as->height ; l += 2)
-                memmove((void *) (as->buffer + l * as->width  * 4), as->buffer, as->width * 4 * 2);
+            for (; y < as->height ; y += 2)
+                memmove((void *) (as->buffer + y * as->width  * 4), as->buffer, as->width * 4 * 2);
         }
         else {
             for (int x = 0; x < as->width; ++x) {
                 on = x%2;
-                for (int y = 0; y < as->height; ++y) {
+                for (int y = 0; y < as->height; ++y, on = !on)
                     memset((void *) (as->buffer + (y * as->width + x) * 4),
-                           (unsigned char) ( on ? w : b) , 4);
-                    on = !on;
-                }
+                            on ? w : b , 4);
             }
         }
-        phase = (phase + int(var * 36.0)) % (360);
     }
     else if (as->algotype == AlgorithmSource::BW_NOISE) {
+
         for (int i = 0; i < (as->width * as->height); ++i)
             memset((void *) (as->buffer + i * 4),
-                   (unsigned char) ( var  * double( rand() % std::numeric_limits< unsigned char>::max()) ), 4);
+                   ( as->buffer[i*4] + (unsigned char) ( var * double( rand() % 256) ) ) % 256, 4);
 
     }
     else if (as->algotype == AlgorithmSource::BW_COSBARS) {
-        phase = (phase + int(var * 36.0)) % (360);
-        unsigned char c = 0;
 
-        // fill in a line
-        for (int x = 0; x < as->width; ++x) {
+        unsigned char c = 0;
+        phase = (phase + int(var * 36.0)) % (360);
+
+        for (int y = 0; y < as->height ; ++y) {
             c = (unsigned char) (cos(  double(phase) * M_PI / 180.0
-                                       + double(x) * 2.0 * M_PI
-                                       / double(as->width)) * 127.0
+                                       + double(y) * 2.0 * M_PI
+                                       / double(as->height)) * 127.0
                                  + 128.0);
-            memset((void *) (as->buffer + x * 4), c, 4);
+            memset((void *) (as->buffer + y * as->width * 4), c , 4 * as->width );
         }
-        // copy line in rows
-        for (int y = 1; y < as->height; ++y)
-            memmove((void *) (as->buffer + y * as->width * 4),
-                   as->buffer, as->width * 4);
 
     }
     else if (as->algotype == AlgorithmSource::BW_COSCHECKER) {
-        phase = (phase + int(var * 36.0)) % (360);
+
         unsigned char c = 0;
+        phase = (phase + int(var * 36.0)) % (360);
+        double p = double(phase) * M_PI / 180.0;
 
         for (int x = 0; x < as->width; ++x)
             for (int y = 0; y < as->height; ++y) {
-                c = (unsigned char) (cos(  double(phase) * M_PI / 180.0
-                                           + double(x) * 2.0 * M_PI
-                                           / double(as->width)) * 63.0
+                c = (unsigned char) (cos( p + double(x) * 2.0 * M_PI / double(as->width)) * 63.0
                                      + 64.0);
-                c += (unsigned char) (cos( double(phase) * M_PI / 180.0
-                                           + double(y) * 2.0 * M_PI
-                                           / double(as->height)) * 63.0
+                c += (unsigned char) (cos( p+ double(y) * 2.0 * M_PI / double(as->height)) * 63.0
                                       + 64.0);
                 memset( (void *) (as->buffer + (y * as->width + x) * 4), c, 4);
             }
 
     }
     else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
+
         for (int i = 0; i < (as->width * as->height * 4); ++i)
-            as->buffer[i] = (unsigned char) ( var * double(  rand()  % std::numeric_limits<unsigned char>::max()) );
+            as->buffer[i] = ( as->buffer[i] + (unsigned char) ( var * double( rand() % 255) ) ) % 255;
 
     }
     else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
 
-        i += di * var; // / RenderingManager::getRenderingWidget()->getFPS();
+        i += di * var;
         if (i > 100000.0 || i < 0.0)
             di = -di;
         for (int x = 0; x < as->width; ++x)
@@ -332,7 +431,7 @@ void AlgorithmThread::fill(double var) {
     }
     else if (as->algotype == AlgorithmSource::TURBULENCE) {
 
-        i += var * di; // / RenderingManager::getRenderingWidget()->getFPS();
+        i += var * di;
         if (i > 100000.0 || i < 0.0)
             di = -di;
         for (int x = 0; x < as->width; ++x)
@@ -348,8 +447,7 @@ void AlgorithmThread::fill(double var) {
 
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
                                  int h, double v, unsigned long p, bool ia) :
-    Source(texture, d), buffer(0), width(w), height(h), period(p), framerate(0), vertical( 1.0),
-    horizontal(1.0), ignoreAlpha(false), frameChanged(false), format(GL_RGBA)
+    Source(texture, d), buffer(0), pattern(0), width(w), height(h), period(p), framerate(0), vertical( 1.0), horizontal(1.0), ignoreAlpha(false), frameChanged(false), format(GL_RGBA)
 {
     // no PBO by default
     pboIds = 0;
@@ -414,6 +512,11 @@ AlgorithmSource::~AlgorithmSource() {
     // delete picture buffer
     if (pboIds)
         glDeleteBuffers(1, &pboIds);
+    else if (buffer)
+        delete[] buffer;
+
+    if (pattern)
+        delete[] pattern;
 }
 
 QString AlgorithmSource::getInfo() const {
@@ -467,7 +570,7 @@ void AlgorithmSource::initBuffer() {
         glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
         buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         CHECK_PTR_EXCEPTION(buffer);
-        // CLEAR the buffer to white
+        // CLEAR the buffer
         memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -475,10 +578,11 @@ void AlgorithmSource::initBuffer() {
     } else {
         buffer = new unsigned char[width * height * 4];
         CHECK_PTR_EXCEPTION(buffer);
-        // CLEAR the buffer to white
+        // CLEAR the buffer
         memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
     }
 
+    pattern = 0;
 }
 
 void AlgorithmSource::update() {
@@ -554,10 +658,19 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
     QString description;
     switch (t) {
     case FLAT:
-        description = QString("Flat color");
+        description = QString("White uniform");
+        break;
+    case FLAT_COLOR:
+        description = QString("Color uniform");
         break;
     case BW_CHECKER:
-        description = QString("Checkerboard");
+        description = QString("B&W Checkerboard");
+        break;
+    case BW_LINES:
+        description = QString("B&W lines");
+        break;
+    case COLOR_LINES:
+        description = QString("Color spectrum lines");
         break;
     case BW_NOISE:
         description = QString("Greyscale noise");

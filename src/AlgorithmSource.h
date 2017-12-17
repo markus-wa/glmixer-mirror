@@ -55,7 +55,7 @@ public:
     bool isPlayable() const { return AlgorithmSource::playable; }
     bool isPlaying() const;
 
-    typedef enum {FLAT = 0,  BW_COSBARS, BW_COSCHECKER, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE, BW_CHECKER, NONE} algorithmType;
+    typedef enum {FLAT = 0,  BW_COSBARS, BW_COSCHECKER, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE, BW_CHECKER, BW_LINES, COLOR_LINES, FLAT_COLOR, NONE} algorithmType;
     static QString getAlgorithmDescription(int t);
 
     inline algorithmType getAlgorithmType() const { return algotype; }
@@ -95,7 +95,7 @@ protected:
     void initBuffer();
 
     algorithmType algotype;
-    unsigned char *buffer;
+    unsigned char *buffer, *pattern;
     int width, height;
     unsigned long period;
     double framerate;

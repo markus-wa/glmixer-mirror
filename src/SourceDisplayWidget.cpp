@@ -121,6 +121,9 @@ void SourceDisplayWidget::paintGL()
         // bind raw texture
         glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 
+        // magnification filter
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, s->isPixelated() ? GL_NEAREST : GL_LINEAR);
+
         // draw a quad with the texture
         glCallList(ViewRenderWidget::quad_texured);
 

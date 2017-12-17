@@ -37,30 +37,32 @@ class AlgorithmSelectionDialog  : public QDialog, Ui::AlgorithmSelectionDialog
     Q_OBJECT
 
 public:
-	AlgorithmSelectionDialog(QWidget *parent = 0);
-	virtual ~AlgorithmSelectionDialog();
+    AlgorithmSelectionDialog(QWidget *parent = 0);
+    virtual ~AlgorithmSelectionDialog();
 
-	int getSelectedAlgorithmIndex();
-	int getSelectedWidth();
-	int getSelectedHeight();
-	double getSelectedVariability();
-	unsigned long  getUpdatePeriod();
-	bool getIngoreAlpha();
+    int getSelectedAlgorithmIndex();
+    int getSelectedWidth();
+    int getSelectedHeight();
+    double getSelectedVariability();
+    unsigned long  getUpdatePeriod();
+    bool getIngoreAlpha();
+    bool getPixelated();
 
 public slots:
 
-	void done(int r);
+    void done(int r);
 
-	void on_AlgorithmComboBox_currentIndexChanged(int algo);
-	void on_customUpdateFrequency_toggled(bool flag);
-	void on_ignoreAlphaCheckbox_toggled(bool on);
-	void on_frequencySlider_valueChanged(int v);
+    void on_AlgorithmComboBox_currentIndexChanged(int algo);
+    void on_customUpdateFrequency_toggled(bool flag);
+    void on_ignoreAlphaCheckbox_toggled(bool on);
+    void on_pixelatedCheckBox_toggled(bool on);
+    void on_frequencySlider_valueChanged(int v);
     void on_variabilitySlider_valueChanged(int v);
 
     void updateSourcePreview();
 
 protected:
-	void showEvent(QShowEvent *);
+    void showEvent(QShowEvent *);
 
 private:
     AlgorithmSource *s;
