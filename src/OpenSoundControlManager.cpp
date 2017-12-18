@@ -292,17 +292,17 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
                 throw osc::MissingArgumentException();
         }
         else if ( property == "Next") {
-            if (args.size() > 0 && args[0].isValid())
+            if (args.size() > 0 && args[0].isValid()) {
                 if (args[0].toBool())
                     GLMixer::getInstance()->openNextSession();
-            else
+            }   else
                 throw osc::MissingArgumentException();
         }
         else if ( property == "Previous") {
-            if (args.size() > 0 && args[0].isValid())
+            if (args.size() > 0 && args[0].isValid()) {
                 if (args[0].toBool())
                     GLMixer::getInstance()->openPreviousSession();
-            else
+            }   else
                 throw osc::MissingArgumentException();
         }
         else

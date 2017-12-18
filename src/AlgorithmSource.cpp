@@ -346,10 +346,18 @@ void AlgorithmThread::fill(double var) {
     }
     else if (as->algotype == AlgorithmSource::BW_NOISE) {
 
-        for (int i = 0; i < (as->width * as->height); ++i)
-            memset((void *) (as->buffer + i * 4),
-                   ( as->buffer[i*4] + (unsigned char) ( var * double( rand() % 256) ) ) % 256, 4);
-
+        // initial frame
+        if (phase > 0) {
+            phase = 0;
+            for (int i = 0; i < (as->width * as->height); ++i)
+                memset((void *) (as->buffer + i * 4), (unsigned char) ( rand() % 256 ), 4);
+        }
+        // update incremental
+        else {
+            for (int i = 0; i < (as->width * as->height); ++i)
+                memset((void *) (as->buffer + i * 4),
+                    ( as->buffer[i*4] + (unsigned char) ( var * double( rand() % 256) ) ) % 256, 4);
+        }
     }
     else if (as->algotype == AlgorithmSource::BW_COSBARS) {
 
@@ -383,9 +391,17 @@ void AlgorithmThread::fill(double var) {
     }
     else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
 
-        for (int i = 0; i < (as->width * as->height * 4); ++i)
-            as->buffer[i] = ( as->buffer[i] + (unsigned char) ( var * double( rand() % 255) ) ) % 255;
-
+        // initial frame
+        if (phase > 0) {
+            phase = 0;
+            for (int i = 0; i < (as->width * as->height * 4); ++i)
+                as->buffer[i] = (unsigned char) ( rand() % 256 );  
+        }
+        // update incremental
+        else {
+            for (int i = 0; i < (as->width * as->height * 4); ++i)
+                as->buffer[i] = ( as->buffer[i] + (unsigned char) ( var * double( rand() % 256) ) ) % 256;
+        }
     }
     else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
 
