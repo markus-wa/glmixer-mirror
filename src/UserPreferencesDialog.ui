@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>662</width>
+    <width>689</width>
     <height>583</height>
    </rect>
   </property>
@@ -20,6 +20,12 @@
   <layout class="QVBoxLayout" name="verticalLayout_15">
    <property name="sizeConstraint">
     <enum>QLayout::SetMinimumSize</enum>
+   </property>
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
    </property>
    <item>
     <widget class="QLabel" name="IntroTextLabel">
@@ -58,8 +64,17 @@ p, li { white-space: pre-wrap; }
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="LayoutLeft">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
        <item>
         <widget class="QListWidget" name="listWidget">
          <property name="sizePolicy">
@@ -68,8 +83,11 @@ p, li { white-space: pre-wrap; }
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="autoScrollMargin">
-          <number>16</number>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
          </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
@@ -81,7 +99,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="dragDropMode">
-          <enum>QAbstractItemView::DragDrop</enum>
+          <enum>QAbstractItemView::InternalMove</enum>
          </property>
          <property name="alternatingRowColors">
           <bool>false</bool>
@@ -123,7 +141,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>-1</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -133,7 +151,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -151,7 +169,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -163,13 +181,13 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <property name="text">
-           <string>Sources</string>
+           <string>Source</string>
           </property>
           <property name="toolTip">
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -187,7 +205,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -202,10 +220,10 @@ p, li { white-space: pre-wrap; }
            <string>System</string>
           </property>
           <property name="toolTip">
-           <string>System and user preference</string>
+           <string>System and user preferences</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -965,32 +983,31 @@ p, li { white-space: pre-wrap; }
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
                <layout class="QGridLayout" name="gridLayout_3">
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_18">
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_info">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>24</height>
-                   </size>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;RAW and FFVHUFF are looseless but produce large files (slower).&lt;/p&gt;&lt;p&gt;Other codecs are lossy but are compressed and more portable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
-                  <property name="text">
-                   <string>Buffer size</string>
+                  <property name="layoutDirection">
+                   <enum>Qt::RightToLeft</enum>
                   </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_5">
-                  <property name="text">
-                   <string>Fi&amp;le format (codec)</string>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
                   </property>
-                  <property name="buddy">
-                   <cstring>recordingFormatSelection</cstring>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -1016,72 +1033,32 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="2">
-                 <widget class="QLabel" name="recordingFrameRateString">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_5">
                   <property name="text">
-                   <string notr="true">25 fps</string>
+                   <string>Fi&amp;le format (codec)</string>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  <property name="buddy">
+                   <cstring>recordingFormatSelection</cstring>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
-                 <widget class="QSlider" name="recordingUpdatePeriod">
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_18">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Target frame rate for video recording&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="minimum">
-                   <number>33</number>
-                  </property>
-                  <property name="maximum">
-                   <number>65</number>
-                  </property>
-                  <property name="value">
-                   <number>40</number>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="invertedAppearance">
-                   <bool>true</bool>
-                  </property>
-                  <property name="invertedControls">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QLabel" name="label_17">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;RAW and FFVHUFF are looseless but produce large files (slower).&lt;/p&gt;&lt;p&gt;Other codecs are lossy but are compressed and more portable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>24</height>
+                   </size>
                   </property>
                   <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="pixmap">
-                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
-                  </property>
-                  <property name="scaledContents">
-                   <bool>true</bool>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   <string>Buffer size</string>
                   </property>
                  </widget>
                 </item>
@@ -1110,22 +1087,6 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="tickPosition">
                    <enum>QSlider::NoTicks</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="2">
-                 <widget class="QLabel" name="recordingBuffersizeString">
-                  <property name="minimumSize">
-                   <size>
-                    <width>70</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string notr="true">300 MB</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -1174,6 +1135,63 @@ p, li { white-space: pre-wrap; }
                   </item>
                  </widget>
                 </item>
+                <item row="2" column="2">
+                 <widget class="QLabel" name="recordingBuffersizeString">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string notr="true">300 MB</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSlider" name="recordingUpdatePeriod">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Target frame rate for video recording&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="minimum">
+                   <number>33</number>
+                  </property>
+                  <property name="maximum">
+                   <number>65</number>
+                  </property>
+                  <property name="value">
+                   <number>40</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="invertedAppearance">
+                   <bool>true</bool>
+                  </property>
+                  <property name="invertedControls">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLabel" name="recordingFrameRateString">
+                  <property name="text">
+                   <string notr="true">25 fps</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
               <item>
@@ -1184,6 +1202,9 @@ the user to select a file name</string>
                 </property>
                 <property name="title">
                  <string>Automatic saving in a folder</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
