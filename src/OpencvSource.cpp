@@ -103,7 +103,7 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     pboIds[0] = 0;
     pboIds[1] = 0;
 
-    // prevent from creation of duplicated opencv sources and from creation of more than 2 sources
+    // prevent from creation of duplicated opencv sources and from creation of more than 4 sources
     if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
         UnavailableCameraIndexException().raise();
 
@@ -118,8 +118,8 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     if (mode == LOWRES_MODE)
     {
         // divide resolution to minimum
-        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, w / 3);
-        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, h / 3);
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, w / 2);
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, h / 2);
     }
     if (mode == HIGHRES_MODE)
     {
@@ -201,8 +201,8 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
             thread = new CameraThread(this);
     CHECK_PTR_EXCEPTION(thread)
 
-            // store this pointer to the global list
-            OpencvSource::_existingSources[opencvCameraIndex] = this;
+    // store this pointer to the global list
+    OpencvSource::_existingSources[opencvCameraIndex] = this;
 }
 
 

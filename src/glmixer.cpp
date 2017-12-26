@@ -2499,7 +2499,7 @@ void GLMixer::drop(QDropEvent *event)
         }
     }
     else
-        qDebug() << "[" << ++errors << "]" << tr("Not a valid drop; Ignoring!");
+        qWarning() << "[" << ++errors << "]" << tr("Not a valid drop; Ignoring!");
 
     if (!glmfile.isNull()) {
         currentSessionFileName = glmfile;
@@ -2533,7 +2533,7 @@ void GLMixer::drop(QDropEvent *event)
                     // create the source as it is a valid video file (this also set it to be the current source)
                     if ( s ) {
                         RenderingManager::getInstance()->addSourceToBasket(s);
-                        qDebug() << s->getName() << tr("|New media source created with file ") << mediaFiles.at(i);
+                        qDebug() << s->getName() << QChar(124).toLatin1()<< tr("New media source created with file ") << mediaFiles.at(i);
                     } else {
                         qWarning() << mediaFiles.at(i) << QChar(124).toLatin1()<< "[" << ++errors << "]" << tr("The source could not be created.");
                         delete newSourceVideoFile;

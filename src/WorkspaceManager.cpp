@@ -159,5 +159,5 @@ QPixmap WorkspaceManager::getPixmap(int index, bool active)
 
 //    pix.save(tr("ws_%1_%2.png").arg(index).arg(active));
 
-    return pix;
+    return pix.scaled(16, 16);
 }
