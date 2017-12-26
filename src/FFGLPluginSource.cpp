@@ -34,7 +34,8 @@ FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUG
 
 
 FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
-    : _plugin(0), _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
+    : QObject(), _plugin(0), _filename("Freeframe"), _initialized(false), 
+    _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
 {
     // descriptor for the source texture, used also to store size
     _inputTexture.Handle = inputTexture.Handle;
@@ -50,7 +51,7 @@ void FFGLPluginSource::load(QString filename)
     // check the file exists
     QFileInfo pluginfile(filename);
     if (!pluginfile.exists()){
-        qWarning()<< filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
+        qWarning()<< filename << QChar(124).toLatin1() << tr("The file does not exist.");
         FFGLPluginException().raise();
     }
 
@@ -59,12 +60,12 @@ void FFGLPluginSource::load(QString filename)
     // instanciate if needed
     if ( !_plugin ) {
         _plugin =  FFGLPluginInstanceFreeframe::New();
-        qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU Plugin instanciated");
+        qDebug()<< _filename << QChar(124).toLatin1() << tr("GPU Plugin instanciated");
     }
 
     // check validity of plugin§
     if (!_plugin){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("GPU plugin could not be instanciated");
+        qWarning()<< _filename << QChar(124).toLatin1() << tr("GPU plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
@@ -80,7 +81,7 @@ void FFGLPluginSource::load(QString filename)
     char fname[4096];
     strcpy(fname, pluginfile.absoluteFilePath().toLatin1().data());
     if (_plugin->Load(fname) == FF_FAIL){
-        qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
+        qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
 
@@ -88,7 +89,7 @@ void FFGLPluginSource::load(QString filename)
     FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
     if ( p ) {
         if ( !p->hasProcessOpenGLCapability()){
-            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
+            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
             FFGLPluginException().raise();
         }
 
@@ -102,11 +103,11 @@ void FFGLPluginSource::load(QString filename)
         _parametersDefaults = p->getParametersDefaults();
 
     } else {
-        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin");
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("Invalid FreeframeGL plugin");
         FFGLPluginException().raise();
     }
 
-    //qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("Loaded");
+    //qDebug()<< _filename << QChar(124).toLatin1() << tr("Loaded");
 }
 
 QVariantHash FFGLPluginSource::getParameters()
@@ -122,7 +123,7 @@ void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
 {
     FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
     if( !p || !p->setParameter(parameterNum, value) )
-        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("Parameter could not be set.");
 
 }
 
@@ -130,7 +131,7 @@ void FFGLPluginSource::setParameter(QString parameterName, QVariant value)
 {
     FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
     if( !p || !p->setParameter(parameterName, value) )
-        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("Parameter could not be set.");
 
 }
 
@@ -315,7 +316,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("GPU plugin could not process OpenGL.");
+            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << tr("GPU plugin could not process OpenGL.");
             FFGLPluginException().raise();
         }
         else
@@ -359,7 +360,7 @@ bool FFGLPluginSource::initialize()
                 _fbo->release();
             }
             else {
-                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not initialize FBO");
+                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("FreeframeGL plugin could not initialize FBO");
                 FFGLPluginException().raise();
             }
 
@@ -390,12 +391,12 @@ bool FFGLPluginSource::initialize()
 
             }
             else {
-                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be initialized");
+                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("FreeframeGL plugin could not be initialized");
                 FFGLPluginException().raise();
             }
         }
         else {
-            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not create FBO");
+            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << tr("FreeframeGL plugin could not create FBO");
             FFGLPluginException().raise();
         }
     }

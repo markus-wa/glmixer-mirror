@@ -398,6 +398,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 
                                 // create and push the plugin to the source
                                 plugin = addFreeframeGLPlugin( fileNameToOpen );
+                                plugin->setParent( this );
                                 qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
                                          << tr("GPU plugin %1 added.").arg(QFileInfo(fileNameToOpen).baseName());
                             }
@@ -445,6 +446,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 
                             // create and push the plugin to the source
                             plugin = addFreeframeGLPlugin();
+                            plugin->setParent( this );
                             qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
                                      << tr("GPU plugin Shadertoy added.");
                         }
@@ -810,6 +812,7 @@ void Source::reproduceFreeframeGLPluginStack(Source *s)
         FFGLPluginSource *plugin = addFreeframeGLPlugin( (*it)->fileName() );
         // set configuration
         if (plugin) {
+            plugin->setParent( this );
             plugin->setConfiguration( (*it)->getConfiguration() );
         }
     }

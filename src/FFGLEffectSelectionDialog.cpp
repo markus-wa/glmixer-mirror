@@ -154,6 +154,7 @@ void FFGLEffectSelectionDialog::updateSourcePreview(){
 
         // add a the given freeframe plugin
         FFGLPluginSource *plugin = s->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
+        plugin->setParent( s );
 
         // qDebug() << pluginfile.absoluteFilePath() << QChar(124).toLatin1() << tr("Trying Freeframe plugin.");
         // test if plugin was added

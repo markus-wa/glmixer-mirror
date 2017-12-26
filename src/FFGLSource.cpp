@@ -64,6 +64,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     }
 
     // no exceptions raised, continue with the plugin
+    _plugin->setParent( this );
 
     // if plugin not of type source, create a buffer and a texture for applying effect
     if (!_plugin->isSourceType()) {
@@ -99,6 +100,7 @@ FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
 
     // create the plugin itself
     _plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(FF_SOURCE, w, h, it);
+    _plugin->setParent( this );
 
     // if plugin not of type source, create a buffer and a texture for applying effect
     if (!_plugin->isSourceType()) {

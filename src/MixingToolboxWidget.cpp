@@ -880,6 +880,7 @@ void MixingToolboxWidget::on_addPlugin_pressed()
 
             // add a the given freeframe plugin
             FFGLPluginSource *plugin = source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
+            plugin->setParent( source );
 
             // test if plugin was added
             if ( plugin ) {
@@ -899,6 +900,7 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 
         // add a generic freeframe plugin
         FFGLPluginSource *plugin = source->addFreeframeGLPlugin();
+        plugin->setParent( source );
 
         // test if plugin was added
         if ( plugin ) {

@@ -127,6 +127,7 @@ void GLSLCodeEditorWidget::openExample(QListWidgetItem *it)
         ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
         ui->examplesList->scrollToItem(it);
         ui->examplesList->setCurrentItem(0);
+        ui->nameEdit->setText( QFileInfo(filename).baseName() );
     }
 }
 
@@ -155,7 +156,8 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
 }
 
 void GLSLCodeEditorWidget::updateFields()
-{
+{   
+    // clear the logs
     ui->logText->clear();
 
     if ( _currentplugin )
@@ -173,8 +175,14 @@ void GLSLCodeEditorWidget::updateFields()
         // name entry should be validated
         ui->nameEdit->setValidator(new nameValidator(this));
         ui->nameEdit->setText( plugininfo["Name"].toString() );
+
         ui->aboutEdit->setText( plugininfo["About"].toString() );
         ui->descriptionEdit->setText( plugininfo["Description"].toString() );
+
+        if (_currentplugin->parent())
+            ui->sourceEdit->setText( _currentplugin->parent()->objectName() );
+        else
+            ui->sourceEdit->setText( "*" );
 
         // restore logs
         ui->logText->appendPlainText(_currentplugin->getLogs());
@@ -194,6 +202,7 @@ void GLSLCodeEditorWidget::updateFields()
         ui->nameEdit->clear();
         ui->aboutEdit->clear();
         ui->descriptionEdit->clear();
+        ui->sourceEdit->clear();
         ui->examplesList->clear();
 
         // disable actions
@@ -242,15 +251,15 @@ void GLSLCodeEditorWidget::apply()
 
 void GLSLCodeEditorWidget::showLogs()
 {
+    // clear the logs
+    ui->logText->clear();
+
     // no plugin, no logs
     if (!_currentplugin)
         return;
 
     // disconnect from updated signal
     disconnect(_currentplugin, SIGNAL(updated()), this, SLOT(showLogs()));
-
-    // clear the logs
-    ui->logText->clear();
 
     // read the logs from plugin
     QString logs = _currentplugin->getLogs();
@@ -307,8 +316,6 @@ void GLSLCodeEditorWidget::restoreStyle()
 void GLSLCodeEditorWidget::showHelp()
 {
     QDesktopServices::openUrl(QUrl("https://www.khronos.org/registry/OpenGL/index_gl.php#apispecs", QUrl::TolerantMode));
-
-
 }
 
 void GLSLCodeEditorWidget::pasteCode()
