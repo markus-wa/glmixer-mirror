@@ -62,7 +62,7 @@ if( APPLE )
             set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Choose OSX Version for Deployment." FORCE)
         endif(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 
-        set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.5;10.6;10.7;10.8;10.9;10.10;10.11;10.12" )
+        set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.9;10.10;10.11;10.12;10.13" )
     endif()
 
     # avoid display all the warnings about OPENGL DEPRECATED
