@@ -2030,6 +2030,11 @@ void GLMixer::newSession()
     emit sessionLoaded();
     maybeSave = false;
 
+#ifdef GLM_SESSION
+    // update session switcher
+    switcherSession->fileChanged( currentSessionFileName );
+#endif
+
     qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
 }
 

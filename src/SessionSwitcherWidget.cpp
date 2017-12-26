@@ -419,6 +419,8 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
             }
         }
     }
+    else
+        proxyView->setCurrentIndex( QModelIndex () );
 }
 
 void SessionSwitcherWidget::folderChanged(const QString & foldername )
