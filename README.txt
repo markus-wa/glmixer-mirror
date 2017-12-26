@@ -149,9 +149,10 @@ Install programs and libraries (run the following in a terminal)
 You can now compile like under Unix (see above)
 
 To configure for OSX Release packaging:
-      $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=False -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -G Ninja ../glmixer-Source/
+    $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=True -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -G Ninja ../glmixer-Source/
 
-
+If you installed qt4 with brew, specify where qmake is :
+    $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=True -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 -DQT_QMAKE_EXECUTABLE=/usr/local/Cellar/qt/4.8.7_2/bin/qmake -G Ninja ../glmixer-Source/
 
 WINDOWS COMPILATION
 
