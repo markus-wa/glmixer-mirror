@@ -27,7 +27,7 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent), source(
     QObject::connect(plot, SIGNAL(gammaChanged()), this, SLOT(updateSource()) );
 
     // setup plot
-    plot->setPen(QPen( palette().color(QPalette::Highlight) ));
+    plot->setPen(QPen( palette().color(QPalette::Mid) ));
     plot->setAntialiased(true);
 
 }
@@ -237,24 +237,24 @@ void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 void GammaPlotArea::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
-    QPen p(Qt::DotLine);
-
+    if (antialiased)
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        
     // draw grid
-    if (!isEnabled())
-        p.setColor(Qt::lightGray);
+    QPen p(Qt::DotLine);
+    if (isEnabled())
+        p.setColor(palette().color(QPalette::Mid).lighter(120));
     else
-        p.setColor(Qt::darkGray);
+        p.setColor(palette().color(QPalette::Midlight));
     painter.setPen(p);
-    for (int x = 0; x < width(); x += width()/4)
+    for (int x = width()/4; x < width(); x += width()/4 + 1)
         painter.drawLine(x, 0, x, height());
-    for (int y = 0; y < height(); y += height() / 4)
+    for (int y = height()/4; y < height(); y += height()/4 + 1)
         painter.drawLine(0, y, width(), y);
 
     // draw plot
     if (isEnabled()){
         painter.setPen(pen);
-        if (antialiased)
-            painter.setRenderHint(QPainter::Antialiasing, true);
 
         float incr = 1.f / (float)( NUM_POINTS_PLOT - 1);
         float x = 0.f;

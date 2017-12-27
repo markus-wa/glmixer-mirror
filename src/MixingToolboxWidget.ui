@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>282</width>
+    <width>298</width>
     <height>501</height>
    </rect>
   </property>
@@ -35,7 +35,7 @@ QToolButton {
     <number>3</number>
    </property>
    <property name="topMargin">
-    <number>2</number>
+    <number>6</number>
    </property>
    <property name="rightMargin">
     <number>3</number>
@@ -56,7 +56,11 @@ QTabBar QToolButton:enabled {
  QTabBar QToolButton:disabled { 
      background: palette(mid);
  }
-</string>
+
+QToolButton {
+    min-height: 20px;
+    min-width: 20px;
+}</string>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
@@ -104,6 +108,12 @@ QTabBar QToolButton:enabled {
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="styleSheet">
             <string notr="true">font: bold;</string>
            </property>
@@ -173,7 +183,7 @@ QTabBar QToolButton:enabled {
      image: url(:/glmixer/icons/downarrow.png);
  }
 
- QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+ QComboBox::down-arrow:on {
      top: 1px;
      left: 1px;
  }</string>
@@ -250,8 +260,8 @@ QTabBar QToolButton:enabled {
           <widget class="QToolButton" name="blendingCustomButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>22</width>
+             <height>22</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -285,8 +295,8 @@ QTabBar QToolButton:enabled {
            </property>
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>22</width>
+             <height>22</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -313,8 +323,8 @@ QTabBar QToolButton:enabled {
           <widget class="QToolButton" name="blendingPixelatedButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>22</width>
+             <height>22</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1782,10 +1792,16 @@ border:0px
           </property>
           <item>
            <widget class="QToolButton" name="addPlugin">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
-              <width>18</width>
-              <height>18</height>
+              <width>22</width>
+              <height>22</height>
              </size>
             </property>
             <property name="toolTip">
@@ -1811,10 +1827,16 @@ border:0px
           </item>
           <item>
            <widget class="QToolButton" name="addShadertoyPlugin">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
-              <width>18</width>
-              <height>18</height>
+              <width>22</width>
+              <height>22</height>
              </size>
             </property>
             <property name="toolTip">

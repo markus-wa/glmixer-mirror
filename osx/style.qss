@@ -118,24 +118,26 @@ QListWidget::item {
 }
 
 QListWidget::item:hover {
-    border-color: palette(highlight);
+    border-color: palette(mid);
 }
 
 QListWidget::item:selected:hover {
-    background-color: palette(highlight);
+    background-color: palette(mid);
     border-width: 1px;
     border-style: solid;
     border-color: palette(mid);
 }
 
 QListWidget::item:selected {
-    background-color: palette(highlight);
-    color: palette(HighlightedText);
+    background-color: palette(mid);
+    color: palette(BrightText);
+	font: bold;
 }
 
 QListWidget::item:focus {
-    background-color: palette(highlight);
-    color: palette(HighlightedText);
+    background-color: palette(mid);
+    color: palette(BrightText);
+    font: bold;
 }
 
 QGroupBox {
@@ -144,13 +146,4 @@ QGroupBox {
  }
 
 
-/*
 
-QPushButton#blendingColorButton {
-     background-color: red;
-     width: 42px;
-     height: 42px;
-     min-width: 42px;
-     min-height: 42px;
-}
-*/
