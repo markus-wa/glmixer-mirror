@@ -774,23 +774,7 @@ p, li { white-space: pre-wrap; }
    <sender>validateButton</sender>
    <signal>pressed()</signal>
    <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>apply()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>584</x>
-     <y>292</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>329</x>
-     <y>293</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>validateButton</sender>
-   <signal>pressed()</signal>
-   <receiver>GLSLCodeEditorWidget</receiver>
-   <slot>close()</slot>
+   <slot>applyAndClose()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>584</x>
@@ -907,5 +891,6 @@ p, li { white-space: pre-wrap; }
   <slot>restoreCode()</slot>
   <slot>showHelp()</slot>
   <slot>reloadCode()</slot>
+  <slot>applyAndClose()</slot>
  </slots>
 </ui>
