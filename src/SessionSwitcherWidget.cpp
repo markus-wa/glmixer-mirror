@@ -178,7 +178,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      * Tab automatic
      */
     transitionTab = new QTabWidget(this);
-    transitionTab->setTabPosition(QTabWidget::East);
     transitionTab->setToolTip(tr("How you control the transition"));
     transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
@@ -201,7 +200,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     easingCurvePicker->setCurrentRow(3);
     easingCurvePicker->setToolTip(tr("How the transition is done through time."));
 
-    transitionTab->addTab( new QWidget(), "Auto");
+    transitionTab->addTab( new QWidget(), "Automatic");
     g = new QGridLayout(this);
     g->setContentsMargins(6, 6, 6, 6);
     g->addWidget(transitionDurationLabel, 1, 0);
@@ -214,19 +213,19 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      */
     currentSessionLabel = new QLabel(this);
     currentSessionLabel->setText(tr("100%"));
-    currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
+    currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred);
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
     currentSessionLabel->setToolTip(tr("Percent of current session visible."));
 
     nextSessionLabel = new QLabel(this);
     nextSessionLabel->setText(tr("0%"));
-    nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
     nextSessionLabel->setToolTip(tr("Percent of destination session visible."));
 
     overlayLabel = new QLabel(this);
-    overlayLabel->setText(tr("Select destination."));
-    overlayLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    overlayLabel->setText(tr("Select destination\n(double clic session)"));
+    overlayLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     overlayLabel->setAlignment(Qt::AlignCenter);
     overlayLabel->setToolTip(tr("Double clic on a session to activate destination."));
 
@@ -577,13 +576,16 @@ void SessionSwitcherWidget::setTransitionType(int t)
     SessionSwitcher::transitionType tt = (SessionSwitcher::transitionType) CLAMP(SessionSwitcher::TRANSITION_NONE, t, SessionSwitcher::TRANSITION_CUSTOM_MEDIA);
     RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
+    // revert to default status
+    customButton->setVisible(false);
     customButton->setStyleSheet("QToolButton { padding: 1px;}");
-    //	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
     transitionTab->setVisible(tt != SessionSwitcher::TRANSITION_NONE);
+    transitionTab->widget(1)->setEnabled(true);
 
     // hack ; NONE transition type should emulate automatic transition mode
     setTransitionMode(tt == SessionSwitcher::TRANSITION_NONE ? 0 : transitionTab->currentIndex());
 
+    // adjust GUI depending on transition
     if ( tt == SessionSwitcher::TRANSITION_CUSTOM_COLOR ) {
         QPixmap c = QPixmap(16, 16);
         c.fill(RenderingManager::getSessionSwitcher()->transitionColor());
@@ -602,8 +604,12 @@ void SessionSwitcherWidget::setTransitionType(int t)
         else
             customButton->setToolTip(QString("%1").arg(RenderingManager::getSessionSwitcher()->transitionMedia()));
     }
-    else
-        customButton->setVisible(false);
+    else if ( tt == SessionSwitcher::TRANSITION_LAST_FRAME ) {
+        // manual transition impossible in this mode
+        transitionTab->widget(1)->setEnabled(false);
+
+    }
+        
 
 }
 
@@ -708,49 +714,59 @@ void SessionSwitcherWidget::restoreSettings()
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()
 {
-    QListWidget *easingCurvePicker = new QListWidget;
-    QPixmap pix(m_iconSize * 1.3);
-    QPainter painter(&pix);
+    // default icon size is 48x48
+    int zoom = 3; // magnification factor for creation of icon (must be > 0)
+    qreal margin = 5.0;  // margins (top, boton, right & left)
 
+    QPixmap pix(m_iconSize * zoom); // pix size is (48x48) * zoom
+    QPainter painter(&pix);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    margin *= (float) zoom;
+    qreal xAxis = (float) pix.width() - margin;
+    qreal yAxis = margin;
+    qreal curveScale = (float) pix.width() - margin * 2.0;
+    qreal inc = 1.0 / curveScale;
+
+    // ready to create list widget
+    QListWidget *easingCurvePicker = new QListWidget;
+
+    // loop on every curve type
     // Skip QEasingCurve::Custom
-    for (int i = 0; i < QEasingCurve::NCurveTypes - 3; ++i) {
+    for (int i = 0; i <= QEasingCurve::OutInBounce; ++i) {
+        // background & axis
         painter.fillRect(QRect(QPoint(0, 0), pix.size()), QApplication::palette().base());
-        QEasingCurve curve((QEasingCurve::Type)i);
-        painter.setPen(QApplication::palette().alternateBase().color());
-        qreal xAxis = pix.height()/1.15;
-        qreal yAxis = pix.width()/5.5;
+        painter.setPen(QPen(QApplication::palette().alternateBase().color(), zoom));
         painter.drawLine(0, xAxis, pix.width(),  xAxis);
         painter.drawLine(yAxis, 0, yAxis, pix.height());
 
-        qreal curveScale = pix.height()/1.4;
-
-        painter.setPen(Qt::NoPen);
+        // curve 
+        QEasingCurve curve((QEasingCurve::Type)i);
 
         // start point
-        painter.setBrush(Qt::red);
+        painter.setPen(QPen(Qt::red, zoom*2));
         QPoint start(yAxis, xAxis - curveScale * curve.valueForProgress(0));
         painter.drawRect(start.x() - 1, start.y() - 1, 3, 3);
 
         // end point
-        painter.setBrush(Qt::blue);
+        painter.setPen(QPen(Qt::blue, zoom*2));
         QPoint end(yAxis + curveScale, xAxis - curveScale * curve.valueForProgress(1));
         painter.drawRect(end.x() - 1, end.y() - 1, 3, 3);
 
+        // curve points
         QPainterPath curvePath;
         curvePath.moveTo(start);
-        for (qreal t = 0; t <= 1.0; t+=1.0/curveScale) {
-            QPoint to;
-            to.setX(yAxis + curveScale * t);
-            to.setY(xAxis - curveScale * curve.valueForProgress(t));
-            curvePath.lineTo(to);
-        }
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.strokePath(curvePath, QApplication::palette().text().color());
-        painter.setRenderHint(QPainter::Antialiasing, false);
+        for (qreal t = 0; t < 1.0 + inc; t += inc) 
+            curvePath.lineTo( QPoint(yAxis + curveScale * t, xAxis - curveScale * curve.valueForProgress(t)) );
+        painter.strokePath(curvePath, QPen(QApplication::palette().text().color(), zoom));
+
+        // add icon 
         QListWidgetItem *item = new QListWidgetItem;
-        item->setIcon(QIcon(pix.scaled(m_iconSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+        item->setIcon(QIcon(pix));
+        // scaling not needed (improves rendering quality in retina displays)
+        // item->setIcon(QIcon(pix.scaled(m_iconSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
         easingCurvePicker->addItem(item);
     }
+
     return easingCurvePicker;
 }
 
@@ -792,7 +808,7 @@ void SessionSwitcherWidget::resetTransitionSlider()
     proxyView->clearSelection();
 
     if(!nextSessionSelected)
-        overlayLabel->setText(tr("Select destination."));
+        overlayLabel->setText(tr("Select destination\n(double clic session)"));
 
 }
 

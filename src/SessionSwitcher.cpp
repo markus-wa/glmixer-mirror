@@ -78,9 +78,7 @@ void SessionSwitcher::render() {
 
         glColor4f(overlayColor.redF(), overlayColor.greenF(), overlayColor.blueF(), overlayAlpha);
 
-        if (transition_type > TRANSITION_CUSTOM_COLOR) {
-//            if (overlayMedia.isNull())
-//                overlayMedia = RenderingManager::getInstance()->captureFrameBuffer().mirrored();
+        if (transition_type > TRANSITION_CUSTOM_COLOR && !overlayMedia.isNull()) {
             RenderingManager::getRenderingWidget()->bindTexture(overlayMedia);
         }
         else {
@@ -125,8 +123,10 @@ void SessionSwitcher::setTransparency(int alpha)
 
 void SessionSwitcher::setTransitionMedia(QString filename)
 {
-    customTransitionMedia = filename;
-    setTransitionType(TRANSITION_CUSTOM_MEDIA);
+    if (QFileInfo(filename).isFile()) {
+        customTransitionMedia = filename;
+        setTransitionType(TRANSITION_CUSTOM_MEDIA); 
+    }
 }
 
 QString SessionSwitcher::transitionMedia() const
@@ -147,7 +147,10 @@ void SessionSwitcher::setTransitionType(transitionType t)
         break;
     case TRANSITION_CUSTOM_MEDIA:
         overlayColor = QColor(Qt::white);
-        overlayMedia = QImage(customTransitionMedia).mirrored();
+        if (customTransitionMedia.isEmpty())
+            overlayMedia = QImage();
+        else
+            overlayMedia = QImage(customTransitionMedia).mirrored();
         break;
     case TRANSITION_LAST_FRAME:
         overlayColor = QColor(Qt::white);
