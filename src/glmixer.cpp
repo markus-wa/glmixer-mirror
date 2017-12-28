@@ -1749,6 +1749,7 @@ void GLMixer::replaceCurrentSource()
                 if (vf) {
                     QFileInfo fi( vf->getFileName() );
                     mfd->setDirectory( fi.dir() );
+                    mfd->selectFile( fi.absoluteFilePath() );
                 }
             }
         }

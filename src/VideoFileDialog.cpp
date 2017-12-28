@@ -29,7 +29,7 @@
 
 #include "VideoFileDialog.moc"
 
-VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, const QString & directory, const QString & filter) : QFileDialog(parent, caption, directory, filter) {
+VideoFileDialog::VideoFileDialog(QWidget * parent, const QString & caption) : QFileDialog(parent, caption) {
 
     setNameFilter(VIDEOFILE_DIALOG_FORMATS);
     setOption(QFileDialog::DontUseNativeDialog, true);
