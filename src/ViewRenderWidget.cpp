@@ -847,6 +847,7 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
                 previousCursor.setShape(Qt::BlankCursor);
             }
     }
+
 }
 
 void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)

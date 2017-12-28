@@ -662,7 +662,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         return false;
     }
 
-
     if ( isUserInput(event, View::INPUT_TOOL) ||
          isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ||
          isUserInput(event, View::INPUT_SELECT) )
@@ -711,7 +710,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
             }
         }
         // clicked source not null and grab action
-        else if ( !isUserInput(event, View::INPUT_SELECT) ) {
+        else if ( currentAction != View::NONE && !isUserInput(event, View::INPUT_SELECT) ) {
 
             // get the top most clicked source (there is one)
             Source *clicked = *clickedSources.begin();
@@ -731,13 +730,12 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
                 else if (currentTool == View::ROTATE)
                     rotateSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
             }
-            // individual tool use // TODO
-//            else
 
         }
         // return true as we modified a source
         return true;
     }
+    
 
     // else Show mouse over cursor only if no user input
     if ( isUserInput(event, View::INPUT_NONE ) )

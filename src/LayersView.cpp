@@ -516,7 +516,7 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
 
         }
         // clicked source not null and grab action
-        else if ( !isUserInput(event, View::INPUT_SELECT) ) {
+        else if ( currentAction != View::NONE && !isUserInput(event, View::INPUT_SELECT) ) {
 
             // get the top most clicked source (there is one)
             Source *clicked = *clickedSources.begin();
