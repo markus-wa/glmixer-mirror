@@ -1182,8 +1182,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // check the menu action of the current source
         WorkspaceManager::getInstance()->getSourceActions()[(*csi)->getWorkspace()]->setChecked(true);
 
+        // default disable source manipulation tools
         startButton->setEnabled(false);
         startButton->setChecked( false );
+        mixingToolBox->setEnabled(false);
 
         // Among playable sources, there is the particular case of video sources :
         if ((*csi)->isPlayable()) {
@@ -1201,6 +1203,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
             // connect the start button to the state of source
             QObject::connect((*csi), SIGNAL(playing(bool)), startButton, SLOT(setChecked(bool)));
+
+            // status of mixing toolbox is associated to stanby mode
+            mixingToolBox->setEnabled(!(*csi)->isStandby());
+            QObject::connect((*csi), SIGNAL(standingby(bool)), mixingToolBox, SLOT(setDisabled(bool)));
 
             if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
                 // get the pointer to the video to control
@@ -1268,11 +1274,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // disable control panel widgets
         vcontrolDockWidgetContents->setEnabled(false);
         vcontrolOptionSplitter->setEnabled( false );
-        startButton->setEnabled(false);
-        startButton->setChecked( false );
 
         // disable source related toolboxes
-        mixingToolBox->setEnabled(false);
         sourceDockWidgetContents->setEnabled(false);
 
         // disable options
