@@ -31,6 +31,7 @@
 #include "glmixerdialogs.h"
 #include "VideoFileDialogPreview.moc"
 #include "VideoFileDialog.h"
+#include "RenderingManager.h"
 
 VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent) {
 
@@ -93,8 +94,8 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
     if ( fi.isFile() && isVisible() ) {
 
         if ( customSizeCheckBox->isChecked() )
-            //  non-power of two supporting hardware or custom size choosen;
-            is = new VideoFile(this, true);
+            // custom size choosen
+            is = new VideoFile(this, true, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
         else
             is = new VideoFile(this);
 
@@ -118,20 +119,16 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             previewWidget->updateFrame(is->getFirstFrame());
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
-            endLineEdit->setText( getStringFromTime(is->getEnd()) );
+            endLineEdit->setText( QString::number(qMax(1, is->getNumFrames())) );
             // is there more than one frame ?
             if ( is->getNumFrames() > 1 ) {
                 startButton->setEnabled( true );
                 is->start();
             }
             // display size
-            if (customSizeCheckBox->isChecked()) {
-                widthLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameWidth()).arg(is->getFrameWidth()));
-                heightLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameHeight()).arg(is->getFrameHeight()));
-            } else {
-                widthLineEdit->setText( QString("%1").arg(is->getFrameWidth()));
-                heightLineEdit->setText( QString("%1").arg(is->getFrameHeight()));
-            }
+            widthLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameWidth()).arg(is->getFrameWidth()));
+            heightLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameHeight()).arg(is->getFrameHeight()));
+
             previewWidget->setFixedWidth( previewWidget->height() * is->getStreamAspectRatio() );
             gridLayout->update();
         }

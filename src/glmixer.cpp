@@ -1027,8 +1027,8 @@ void GLMixer::newSource(Source::RTTI type) {
 
 void GLMixer::on_actionMediaSource_triggered(){
 
-    bool generatePowerOfTwoRequested = false;
-    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
+    bool smartScale = false;
+    QStringList fileNames = getMediaFileNames(smartScale);
 
     // open all files from the list
     QStringListIterator fileNamesIt(fileNames);
@@ -1042,12 +1042,12 @@ void GLMixer::on_actionMediaSource_triggered(){
 
         if ( !filename.isEmpty() && QFileInfo(filename).isFile() ){
 
-            // if the dialog did not request power of two generation of textures
-            // and if the opengl supports the extension, then open the source normally
-            if ( !generatePowerOfTwoRequested && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
+            // if the dialog did not request recomputation of texture size
+            // and if the opengl supports the non power of two textures, then open the source normally
+            if ( !smartScale && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
                 newSourceVideoFile = new VideoFile(this);
             else
-                newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
+                newSourceVideoFile = new VideoFile(this, true, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
 
             // if the video file was created successfully
             if (newSourceVideoFile){
@@ -3517,7 +3517,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
     return fileName;
 }
 
-QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
+QStringList GLMixer::getMediaFileNames(bool &smartScaling) {
 
     QStringList fileNames;
 
@@ -3529,7 +3529,7 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
             dir = QFileInfo(fileNames.front()).absoluteDir();
     } else if (mfd->exec()) {
         fileNames = mfd->selectedFiles();
-        generatePowerOfTwoRequest = mfd->configCustomSize();
+        smartScaling = mfd->configCustomSize();
     }
 
     return fileNames;

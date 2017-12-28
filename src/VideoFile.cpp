@@ -210,10 +210,9 @@ private:
 
 
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
-                     int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
+                     int destinationWidth, int destinationHeight) :
     QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
-    targetWidth(destinationWidth), targetHeight(destinationHeight),
-    conversionAlgorithm(swsConversionAlgorithm)
+    targetWidth(destinationWidth), targetHeight(destinationHeight)
 {
     // first time a video file is created?
     CodecManager::registerAll();
@@ -623,28 +622,32 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    // read picture width from video codec
+    // read picture size from video codec
     // (NB : if available, use coded width as some files have a width which is different)
     int actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
+    int actual_height = video_st->codec->height;
 
     // fix non-aligned width (causing alignment problem in sws conversion)
-    actual_width -= actual_width%16;
+    actual_width -= actual_width%16;  // TODO : really needed ???
 
-    // set picture size
+    // set picture size : no argument means no scaling
     if (targetWidth == 0)
         targetWidth = actual_width;
+    else
+        targetWidth = qMin(targetWidth, actual_width);
 
     if (targetHeight == 0)
-        targetHeight = video_st->codec->height;
+        targetHeight = actual_height;
+    else
+        targetHeight = qMin(targetHeight, actual_height);
 
-    // round target picture size to power of two size
-    if (powerOfTwo)
+    // round target picture size to power of two dimensions if requested
+    if (powerOfTwo) 
         CodecManager::convertSizePowerOfTwo(targetWidth, targetHeight);
-
+        
     // Default targetFormat to PIX_FMT_RGB24, not using color palette
     targetFormat = AV_PIX_FMT_RGB24;
     rgba_palette = false;
-
 
     // Change target format to keep Alpha channel if format requires
     if ( hasAlphaChannel() && !ignoreAlpha )
@@ -660,16 +663,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // format description screen (for later)
     QString pfn = CodecManager::getPixelFormatName(targetFormat);
 
-    // Decide for optimal scaling algo if it was not specified
+    // Decide for optimal scaling algo 
     // NB: the algo is used only if the conversion is scaled or with filter
     // (i.e. optimal 'unscaled' converter is used by default)
-    if (conversionAlgorithm == 0)
-    {
-        if ( nb_frames < 2 )
-            conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
-        else
-            conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
-    }
+    int conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
+    if ( nb_frames < 2 )
+        conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
 
 #ifdef VIDEOFILE_DEBUG
     // print all info if in debug

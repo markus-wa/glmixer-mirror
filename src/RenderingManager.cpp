@@ -2031,12 +2031,10 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
 
             // generate texture of size in power of two if required
             bool power2 = false;
-            int convert = 0;
             if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
                  || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
                        || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
                 power2 = true;
-                convert = SWS_FAST_BILINEAR;
             }
 
 #ifdef GLM_CUDA
@@ -2050,8 +2048,12 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
                 newSourceVideoFile = 0;
             }
 #endif
-            if (!newSourceVideoFile)
-                newSourceVideoFile = new VideoFile(this, power2, convert);
+            if (!newSourceVideoFile) {
+                if (power2)
+                    newSourceVideoFile = new VideoFile(this, true, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
+                else
+                    newSourceVideoFile = new VideoFile(this);
+            }
 
             // if the video file was created successfully
             if (newSourceVideoFile){

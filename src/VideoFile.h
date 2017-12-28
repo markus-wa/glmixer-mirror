@@ -159,8 +159,7 @@ public:
      *  @param destinationHeight Height of the VideoPicture to produce; leave at 0 for auto detection from the file resolution.
      */
     VideoFile(QObject *parent = 0,  bool generatePowerOfTwo = false,
-              int swsConversionQuality = 0, int destinationWidth = 0,
-              int destinationHeight = 0);
+              int destinationWidth = 0, int destinationHeight = 0);
     /**
      * Destructor.
      *
@@ -654,7 +653,6 @@ protected:
     QString codecname;
     bool powerOfTwo;
     int targetWidth, targetHeight;
-    int conversionAlgorithm;
     VideoPicture *firstPicture, *blackPicture;
     bool rgba_palette;
     double duration;

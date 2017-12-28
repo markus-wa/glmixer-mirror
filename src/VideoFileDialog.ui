@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>411</width>
-    <height>154</height>
+    <width>468</width>
+    <height>159</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,42 +28,25 @@
    <string notr="true">font-size:11px;</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" rowspan="2">
-    <widget class="QToolButton" name="startButton">
-     <property name="toolTip">
-      <string>Start / stop  the movie</string>
-     </property>
-     <property name="text">
-      <string>Play</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../icons.qrc">
-       <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>22</width>
-       <height>22</height>
-      </size>
-     </property>
-     <property name="checkable">
+   <item row="0" column="3">
+    <widget class="QLineEdit" name="CodecNameLineEdit">
+     <property name="enabled">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="0" column="1" rowspan="7">
-    <widget class="VideoFileDisplayWidget" name="previewWidget" native="true">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>148</width>
-       <height>111</height>
-      </size>
+     <property name="toolTip">
+      <string>Codec short name</string>
+     </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -86,28 +69,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
-    <widget class="QLineEdit" name="CodecNameLineEdit">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="toolTip">
-      <string>Video codec short name</string>
-     </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="2" rowspan="2">
     <widget class="QLabel" name="label_5">
      <property name="sizePolicy">
@@ -120,15 +81,15 @@
       <enum>Qt::RightToLeft</enum>
      </property>
      <property name="text">
-      <string>Duration</string>
+      <string>Frames</string>
      </property>
      <property name="buddy">
       <cstring>endLineEdit</cstring>
      </property>
     </widget>
    </item>
-   <item row="1" column="3" rowspan="2">
-    <widget class="QLineEdit" name="endLineEdit">
+   <item row="4" column="3">
+    <widget class="QLineEdit" name="heightLineEdit">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -136,7 +97,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Duration of the video</string>
+      <string>Height of the frames (displayed height in parenthesis)</string>
      </property>
      <property name="maxLength">
       <number>20</number>
@@ -149,7 +110,46 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" rowspan="5">
+   <item row="0" column="1" rowspan="8">
+    <widget class="VideoFileDisplayWidget" name="previewWidget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>148</width>
+       <height>111</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="2">
+    <widget class="QToolButton" name="startButton">
+     <property name="toolTip">
+      <string>Play / Pause</string>
+     </property>
+     <property name="text">
+      <string>Play</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>22</width>
+       <height>22</height>
+      </size>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" rowspan="6">
     <widget class="QFrame" name="videoControlFrame">
      <property name="enabled">
       <bool>false</bool>
@@ -170,16 +170,7 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>3</number>
       </property>
       <item>
@@ -213,7 +204,7 @@
       <item>
        <widget class="QToolButton" name="seekBeginButton">
         <property name="toolTip">
-         <string>Jump backward to movie start.</string>
+         <string>Jump back to start</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -238,6 +229,28 @@
        </spacer>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="1" column="3" rowspan="2">
+    <widget class="QLineEdit" name="endLineEdit">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Number of frames</string>
+     </property>
+     <property name="maxLength">
+      <number>20</number>
+     </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item row="3" column="2">
@@ -268,7 +281,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Width of the frames (eventually converted width in parenthesis)</string>
+      <string>Width of the frames (displayed width in parenthesis)</string>
      </property>
      <property name="maxLength">
       <number>20</number>
@@ -300,46 +313,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="3">
-    <widget class="QLineEdit" name="heightLineEdit">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="toolTip">
-      <string>Height of the frames (eventually converted height in parenthesis)</string>
-     </property>
-     <property name="maxLength">
-      <number>20</number>
-     </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="2" colspan="2">
-    <widget class="QCheckBox" name="customSizeCheckBox">
-     <property name="toolTip">
-      <string>Convert dimensions to the closest power-of-two
-(necessary for some OpenGL rendering).</string>
-     </property>
-     <property name="layoutDirection">
-      <enum>Qt::RightToLeft</enum>
-     </property>
-     <property name="text">
-      <string>Generate power of two</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="3">
+   <item row="6" column="3">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -351,6 +325,19 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="5" column="3">
+    <widget class="QCheckBox" name="customSizeCheckBox">
+     <property name="toolTip">
+      <string>Automatically adjust resolution to optimal size for OpenGL rendering (see render preferences)</string>
+     </property>
+     <property name="text">
+      <string>Smart scaling</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
