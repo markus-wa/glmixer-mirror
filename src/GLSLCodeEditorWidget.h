@@ -47,6 +47,7 @@ public slots:
 
     // management of code
     void apply();
+    void applyAndClose();
     void showLogs();
     void updateFields();
 
@@ -63,6 +64,9 @@ public slots:
     // reset signaling of errors
     void restoreStyle();
 
+protected:
+	void showEvent(QShowEvent *);
+    
 private:
 
     void fillExamplesList(bool effect = true);
@@ -70,6 +74,7 @@ private:
     Ui::GLSLCodeEditorWidget *ui;
     QDir _currentDirectory;
     FFGLPluginSourceShadertoy *_currentplugin;
+    bool wantToClose;
 };
 
 

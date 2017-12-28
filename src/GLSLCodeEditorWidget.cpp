@@ -44,7 +44,7 @@ public:
 };
 
 GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentDirectory(QDir::home()), _currentplugin(NULL)
+    QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentDirectory(QDir::home()), _currentplugin(NULL), wantToClose(false)
 {
     ui->setupUi(this);
 
@@ -248,6 +248,23 @@ void GLSLCodeEditorWidget::apply()
     connect(_currentplugin, SIGNAL(updated()), this, SLOT(showLogs()));
 }
 
+void GLSLCodeEditorWidget::showEvent(QShowEvent *e){
+
+    wantToClose = false;
+
+	QWidget::showEvent(e);
+}
+
+void GLSLCodeEditorWidget::applyAndClose()
+{
+    if (!_currentplugin)
+        return;
+
+    wantToClose = true;
+
+    apply();
+}
+
 
 void GLSLCodeEditorWidget::showLogs()
 {
@@ -284,9 +301,12 @@ void GLSLCodeEditorWidget::showLogs()
             ui->splitter->setSizes( sizes );
         }
 
-        if (logs.count("error") > 0)
+        if (logs.count("error") > 0) {
             // red for error
             stylesheet = "background: rgb(210, 60, 60);";
+            // disable closing
+            wantToClose = false;
+        }
         else
             // orange for warning
             stylesheet = "background: rgb(255, 120, 0);";
@@ -302,8 +322,12 @@ void GLSLCodeEditorWidget::showLogs()
 
     }
 
-    ui->titleCompilationLogs->setStyleSheet(stylesheet);
-    QTimer::singleShot(250, this, SLOT(restoreStyle()));
+    if (wantToClose)
+        close();
+    else {
+        ui->titleCompilationLogs->setStyleSheet(stylesheet);
+        QTimer::singleShot(250, this, SLOT(restoreStyle()));
+    }
 }
 
 
