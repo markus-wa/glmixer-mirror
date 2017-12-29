@@ -175,7 +175,7 @@ void GeometryView::paint()
         //
         GLuint border_workspace = 0;
         int alpha = 200;
-        QColor c = s->getTag()->getColor();
+        QColor c = Tag::get(s)->getColor();
         if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
 
             if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )

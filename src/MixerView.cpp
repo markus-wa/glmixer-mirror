@@ -218,7 +218,7 @@ void MixerView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (larger if active)
-            ViewRenderWidget::program->setUniformValue(_baseColor, s->isStandby() ? s->getTag()->getColor().darker() : s->getTag()->getColor());
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->isStandby() ? Tag::get(s)->getColor().darker() : Tag::get(s)->getColor());
             if (RenderingManager::getInstance()->isCurrentSource(s))
                 glCallList(ViewRenderWidget::border_large_shadow);
             else
@@ -240,7 +240,7 @@ void MixerView::paint()
 
             // draw border (never active)
             ViewRenderWidget::program->setUniformValue(_baseAlpha, WORKSPACE_MAX_ALPHA);
-            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            ViewRenderWidget::program->setUniformValue(_baseColor, Tag::get(s)->getColor().darker(WORKSPACE_COLOR_SHIFT));
             glCallList(ViewRenderWidget::border_thin_shadow + 2);
 
         }

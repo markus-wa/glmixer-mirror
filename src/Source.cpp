@@ -56,9 +56,6 @@ Source::Source(GLuint texture, double depth): ProtoSource(),
     // give it a unique identifier
     id = Source::lastid++;
 
-    // default tag
-    Tag::apply(this, Tag::getDefault());
-
     // empty clone list
     clones = new SourceList;
     CHECK_PTR_EXCEPTION(clones)
@@ -327,6 +324,10 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
     sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
     sourceElem.setAttribute("workspace", getWorkspace());
 
+#ifdef GLM_TAG
+    sourceElem.setAttribute("tag", Tag::get(this)->getIndex());
+#endif
+
     // freeframe gl plugin
 #ifdef GLM_FFGL
     FFGLPluginSourceStack *plugins = getFreeframeGLPluginStack();
@@ -355,6 +356,10 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         setWorkspace( modifiable > 0 ? 0 : 1);
     }
 
+#ifdef GLM_TAG
+    // set tag
+    Tag::get( xmlconfig.attribute("tag","0").toInt() )->set(this);
+#endif
     // clear the plugin list if none provided
     if ( xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
         clearFreeframeGLPlugin();

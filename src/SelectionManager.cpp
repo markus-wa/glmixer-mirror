@@ -77,6 +77,8 @@ void SelectionManager::deselect(Source *s) {
 
 void SelectionManager::select(SourceList l)
 {
+    if (l.empty())
+        return;
     // Do not consider the _selectionSource in a selection
     l.erase(SelectionManager::_selectionSource);
     // generate new set as union of current selection and give list
@@ -90,6 +92,8 @@ void SelectionManager::select(SourceList l)
 
 void SelectionManager::deselect(SourceList l)
 {
+    if (l.empty())
+        return;
     // Do not consider the _selectionSource in a selection
     l.erase(SelectionManager::_selectionSource);
     // generate new set as difference of current selection and give list
@@ -104,12 +108,16 @@ void SelectionManager::deselect(SourceList l)
 
 void SelectionManager::setSelection(SourceList l)
 {
-    // Do not consider the _selectionSource in a selection
-    l.erase(SelectionManager::_selectionSource);
-    // set new selection
-    _selectedSources = SourceList(l);
-    // update the selection source for geometry view
-    updateSelectionSource();
+    if (l.empty())
+        clearSelection();
+    else {
+        // Do not consider the _selectionSource in a selection
+        l.erase(SelectionManager::_selectionSource);
+        // set new selection
+        _selectedSources = SourceList(l);
+        // update the selection source for geometry view
+        updateSelectionSource();
+    }
 }
 
 bool SelectionManager::isInSelection(Source *s) const

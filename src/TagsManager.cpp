@@ -7,21 +7,34 @@
 #include "qtcolorpicker.h"
 
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 
 TagsManager::TagsManager(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::TagsManager)
+    QWidget(parent), ui(new Ui::TagsManager), currentSource(NULL)
 {
     ui->setupUi(this);
 
-    // add color picker
-    colorpick = new QtColorPicker(this);
-    colorpick->setStandardColors();
-    colorpick->setCurrentColor(QColor("cyan"));
-    ui->buttonsLayout->insertWidget(1, colorpick);
+    // fill the list of items with all possible tags 
+    for (int i=0; i < Tag::getNumTags(); ++i) {
+        // get Tag
+        Tag *t = Tag::get(i);
+        // create icon
+        QBitmap mask(":/glmixer/icons/tagMask.png");
+        QPixmap pix(mask.width(), mask.height());
+        pix.fill(t->getColor());
+        pix.setMask(mask);
+        QIcon icon;
+        icon.addPixmap(pix, QIcon::Normal, QIcon::Off);
+        icon.addPixmap(pix, QIcon::Selected, QIcon::Off);
+        // create tag item
+        QListWidgetItem *item = new QListWidgetItem(icon, t->getLabel());
+        // add to the lists
+        ui->tagsListWidget->addItem(item);
+        tagsMap[t] = item;
+    }
 
-    // setup default tag
-    selectTag(Tag::getDefault());
+    // select default tag
+    ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
 
 }
 
@@ -37,115 +50,66 @@ QListWidgetItem *TagsManager::getTagItem(Tag *t)
     // try to find the item for this tag
     QHash<Tag *, QListWidgetItem *>::Iterator it = tagsMap.find(t);
 
-    if (it == tagsMap.end())
-    // not found, create a new tag
-    {
-        // create icon
-        QBitmap mask(":/glmixer/icons/tagMask.png");
-        QPixmap pix(mask.width(), mask.height());
-        pix.fill(t->getColor());
-        pix.setMask(mask);
-        QIcon icon;
-        icon.addPixmap(pix, QIcon::Normal, QIcon::Off);
-        icon.addPixmap(pix, QIcon::Selected, QIcon::Off);
-
-        // create tag item
-        item = new QListWidgetItem(icon,t->getLabel());
-
-        // add to the lists
-        ui->tagsListWidget->addItem(item);
-        tagsMap[t] = item;
-    }
-    else
-        // found, return it
+    if (it != tagsMap.end())
+        // found item; return it
         item = it.value();
 
     return item;
 }
 
-void TagsManager::createTag()
+void TagsManager::selectTag(Tag *t)
 {
-    // add task
-    Tag *t = new Tag("Custom", colorpick->currentColor());
-
-    // select item from tag
-    selectTag(t);
-
-    // edit text of tag
-    currentItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable );
-    ui->tagsListWidget->editItem(currentItem);
-}
-
-
-void TagsManager::deleteTag()
-{
-
+    QListWidgetItem *currentItem = getTagItem(t);
+    if (currentItem)
+        ui->tagsListWidget->setCurrentItem(currentItem);
 }
 
 void TagsManager::selectTag(QListWidgetItem *i)
 {
+    if (i)
+    {
+        // get the key for the given item in the map
+        QList<Tag *> tags = tagsMap.keys(i);
+        if (!tags.empty()) {
+            Tag *t = tags.first();
 
-    qDebug() << "TagsManager::selectTag" << i->text();
-
-}
-
-void TagsManager::updateTag(QListWidgetItem *i)
-{
-
-    qDebug() << "TagsManager::updateTag" << i->text();
-
-}
-
-void TagsManager::selectTag(Tag *t)
-{
-
-    currentItem = getTagItem(t);
-    ui->tagsListWidget->setCurrentItem(currentItem);
-
+            qDebug() << "select tag "<< t->getLabel() << t->getSources().size();
+            // select all sources of this tag
+            SelectionManager::getInstance()->setSelection( t->getSources() );
+        }
+    }
 }
 
 void TagsManager::useTag(QListWidgetItem *i)
 {
-    currentItem = i;
-    Tag *t = Tag::getDefault();
-
-
-    qDebug() << "TagsManager::useTag" << i->text();
-
-    if (currentItem && currentSource)
+    // apply this tag to the current source
+    if (i && currentSource)
     {
-        QList<Tag *> tags = tagsMap.keys(currentItem);
-        if (!tags.empty())
-            t = tags.first();
+        // get the key for the given item in the map
+        QList<Tag *> tags = tagsMap.keys(i);
+        if (!tags.empty()) {
+            Tag *t = tags.first();
 
-        // apply the tag found
-        Tag::apply(currentSource, t);
-
-
-
-        qDebug() << "Tag::apply" << t->getLabel();
-
+            // apply the tag found
+            t->set(currentSource);
+        }
     }
-
-    // allow delete non default
-    ui->tagRemove->setEnabled(t != Tag::getDefault());
 }
 
 
 void TagsManager::connectSource(SourceSet::iterator csi)
 {
-
-    // enable / disable toolbox depending on availability of current source
     if (RenderingManager::getInstance()->isValid(csi)) {
-        setEnabled(true);
+        // remember current source pointer
         currentSource = *csi;
-
-        selectTag( currentSource->getTag() );
-
-    } else {
-        setEnabled(false);
-        currentSource = 0;
-
+        // activate item 
+        selectTag( Tag::get(currentSource) );
+    } 
+    else {
+        // disable current source
+        currentSource = NULL;
+        // select default tag
+        ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
     }
 
 }

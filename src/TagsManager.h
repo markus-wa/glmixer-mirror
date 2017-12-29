@@ -26,11 +26,8 @@ public:
 
 public slots:
 
-    void createTag();
-    void deleteTag();
     void useTag(QListWidgetItem *i);
     void selectTag(QListWidgetItem *i);
-    void updateTag(QListWidgetItem *i);
 
     // Source to operate
     void connectSource(SourceSet::iterator);
@@ -38,11 +35,8 @@ public slots:
 
 private:
     Ui::TagsManager *ui;
-    class QtColorPicker *colorpick;
 
-    QListWidgetItem *currentItem;
     Source *currentSource;
-
     QHash<Tag *, QListWidgetItem *> tagsMap;
 };
 

@@ -45,6 +45,7 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
 #include "SelectionManager.h"
+#include "Tag.h"
 
 #ifdef GLM_SHM
 #include <QSharedMemory>
@@ -1229,6 +1230,10 @@ bool RenderingManager::_insertSource(Source *s)
                 // connect source to the undo manager
                 UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)), Qt::UniqueConnection);
 #endif
+#ifdef GLM_TAG
+                // set tag (get(s) returns default tag if none was set)
+                Tag::get(s)->set(s);
+#endif
                 // inform of success
                 return true;
             }
@@ -1282,6 +1287,8 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     // clear plugins
     (*sit)->clearFreeframeGLPlugin();
 #endif
+    // reset tag
+    Tag::getDefault()->set(*sit);
     // inform GUI
     emit currentSourceChanged(sit);
 }
@@ -1595,6 +1602,8 @@ int RenderingManager::_removeSource(SourceSet::iterator itsource) {
     int num_sources_deleted = 0;
     if (itsource != _front_sources.end()) {
         Source *s = *itsource;
+        // remove tag
+        Tag::remove(s);
         // if this is not a clone
         if (s->rtti() != Source::CLONE_SOURCE)
             // remove every clone of the source to be removed
@@ -1637,6 +1646,8 @@ void RenderingManager::clearSourceSet() {
     UndoManager::getInstance()->clear();
 #endif
 
+    // clear tag
+    Tag::remove();
     // restore default Workspaces
     WorkspaceManager::getInstance()->setCount();
     WorkspaceManager::getInstance()->setCurrent(0);

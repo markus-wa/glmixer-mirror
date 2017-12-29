@@ -45,7 +45,6 @@ public:
 
 class QtProperty;
 class QGLFramebufferObject;
-class Tag;
 
 class Source;
 typedef std::set<Source *> SourceList;
@@ -67,7 +66,6 @@ class Source: public ProtoSource {
     Q_OBJECT
 
     friend class RenderingManager;
-    friend class Tag;
 
 public:
     /*
@@ -155,8 +153,6 @@ public:
     inline bool isCloned() const {
         return clones->size() > 0;
     }
-    // tags
-    inline Tag *getTag() const { return tag; }
 
     // workspace
     inline void setWorkspace(int w) { workspace = w; }
@@ -315,10 +311,6 @@ protected:
 
     // GL Stuff
     GLuint textureIndex;
-
-    // tag : only Tag class can set a tag
-    inline void setTag(Tag *t) { tag = t; }
-    Tag *tag;
 
     // workspace it belongs to
     int workspace;

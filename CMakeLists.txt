@@ -170,7 +170,7 @@ set( CMAKE_INCLUDE_PATH
 
 # HERE ARE THE OPTIONNAL MODULES TO COMPILE
 SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK to compile with Session switcher")
-SET(USE_TAG_MANAGEMENT OFF CACHE BOOL "CHECK to compile with the Tag manager")
+SET(USE_TAG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Tag manager")
 SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "CHECK to compile with History manager")
 SET(USE_UNDO ON CACHE BOOL "CHECK if you want to compile the Undo functionnality")
 

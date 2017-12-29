@@ -1,12 +1,25 @@
 #include "Tag.h"
 
-Tag *Tag::defaultTag = 0;
-QList<Tag *> Tag::tags;
+QList<Tag *> Tag::_tags;
+QHash<Source *, Tag*> Tag::_sourceMap;
 
+void Tag::initialize()
+{
+    if (Tag::_tags.isEmpty()) {
+        // item 0 : default tag
+        _tags.append( new Tag("Yellow", QColor(255,255,60)) );
+        // other tags
+        _tags.append( new Tag("Cyan", QColor(0, 255, 220)) );
+        _tags.append( new Tag("Orange", QColor(255, 150, 0)) );
+        _tags.append( new Tag("Red", QColor(255, 30, 30)) );
+        _tags.append( new Tag("Purple", QColor(160, 100, 255)) );
+        _tags.append( new Tag("Blue", QColor(50, 120, 255)) );
+    }
+}
 
 Tag::Tag(QString l, QColor c): label(l), color(c)
 {
-
+    
 }
 
 QString Tag::getLabel() const
@@ -14,50 +27,71 @@ QString Tag::getLabel() const
     return label;
 }
 
-void Tag::setLabel(const QString &value)
-{
-    label = value;
-}
-
 QColor Tag::getColor() const
 {
     return color;
 }
 
-void Tag::setColor(const QColor &value)
+int Tag::getIndex() const
 {
-    color = value;
+    int i = Tag::_tags.size() - 1;
+    while( i > 0 && Tag::_tags[i] != this )  
+        --i;
+    return i;
+}
+
+SourceList Tag::getSources() const
+{
+    SourceList sl;
+
+    // get all sources associated to this Tag
+    QHashIterator<Source *, Tag *> i(Tag::_sourceMap);
+    while (i.hasNext()) {
+        i.next();
+        if ( i.value() == this )
+            sl.insert( i.key() );
+    }
+
+    return sl;
 }
 
 Tag *Tag::getDefault()
 {
-    if (!Tag::defaultTag)
-        Tag::defaultTag = new Tag();
-    return Tag::defaultTag;
+    Tag::initialize();
+    return Tag::_tags[0];
 }
 
-void Tag::apply(Source *s, Tag *t)
+Tag *Tag::get(int index)
+{
+    Tag::initialize();
+    return Tag::_tags[ qBound(0, index, Tag::_tags.size()-1) ];
+}
+
+int Tag::getNumTags()
+{
+    Tag::initialize();
+    return Tag::_tags.size();
+}
+
+Tag *Tag::get(Source *s)
+{
+    return Tag::_sourceMap.value(s, Tag::getDefault());
+}
+
+void Tag::set(Source *s)
 {
     if (!s)
         return;
 
-    s->setTag(t);
-    t->sources.insert(s);
-
-    //tODO remove source from previous tag
+    Tag::_sourceMap.insert(s, this);
 }
-
 
 void Tag::remove(Source *s)
 {
-    if (!s)
-        return;
-
-    Tag *t = s->getTag();
-
-    SourceList::iterator it = t->sources.find(s);
-    if ( it != t->sources.end() )
-        t->sources.erase(it);
-
-    s->setTag( Tag::getDefault() );
+    if (!s) 
+        // if no source argument, clear all
+        Tag::_sourceMap.clear();
+    else
+        // remove source from the map
+        Tag::_sourceMap.remove(s);
 }

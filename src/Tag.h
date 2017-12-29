@@ -1,31 +1,37 @@
 #ifndef TAG_H
 #define TAG_H
 
-#include <QColor>
 #include "Source.h"
 
+#include <QString>
+#include <QColor>
+#include <QHash>
 
 class Tag
 {
-
     QString label;
     QColor color;
-    SourceList sources;
 
-    static Tag *defaultTag;
-    static QList<Tag *> tags;
+    static QList<Tag *> _tags;
+    static QHash<Source *, Tag*> _sourceMap;
+    static void initialize();
+
+    Tag(QString l, QColor c);
 
 public:
-    Tag(QString l = "Default", QColor c = QColor(255,255,60));
 
-    static void apply(Source *s, Tag* t);
-    static void remove(Source *s);
+    static void remove(Source *s = NULL);
+    static Tag *get(Source *s);
+    static Tag *get(int index = 0);
     static Tag *getDefault();
+    static int getNumTags();
+
+    void set(Source *s);
 
     QString getLabel() const;
-    void setLabel(const QString &value);
     QColor getColor() const;
-    void setColor(const QColor &value);
+    int getIndex() const;
+    SourceList getSources() const;
 };
 
 

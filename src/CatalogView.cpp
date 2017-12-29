@@ -295,7 +295,8 @@ void CatalogView::paint() {
     foreach ( Icon *item, _icons) {
 
         // Tag color
-        glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
+        QColor c = Tag::get(item->source)->getColor();
+        glColor4ub(c.red(), c.green(), c.blue(), 255 * _alpha);
 
         //  border
         if (RenderingManager::getInstance()->isCurrentSource(item->source))
