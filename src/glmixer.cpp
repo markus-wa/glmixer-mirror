@@ -1187,6 +1187,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         startButton->setChecked( false );
         mixingToolBox->setEnabled(false);
 
+        // status of mixing toolbox is associated to stanby mode
+        mixingToolBox->setEnabled(!(*csi)->isStandby());
+        QObject::connect((*csi), SIGNAL(standingby(bool)), mixingToolBox, SLOT(setDisabled(bool)));
+
         // Among playable sources, there is the particular case of video sources :
         if ((*csi)->isPlayable()) {
 
@@ -1203,10 +1207,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
             // connect the start button to the state of source
             QObject::connect((*csi), SIGNAL(playing(bool)), startButton, SLOT(setChecked(bool)));
-
-            // status of mixing toolbox is associated to stanby mode
-            mixingToolBox->setEnabled(!(*csi)->isStandby());
-            QObject::connect((*csi), SIGNAL(standingby(bool)), mixingToolBox, SLOT(setDisabled(bool)));
 
             if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
                 // get the pointer to the video to control
