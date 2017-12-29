@@ -1135,6 +1135,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
     if (previousSource) {
         previousSource->disconnect(startButton);
+        previousSource->disconnect(mixingToolBox);
         previousSource = NULL;
     }
     QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
@@ -1163,7 +1164,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         currentSourceMenu->setEnabled(true);
         actionCloneSource->setEnabled(true);
         toolButtonZoomCurrent->setEnabled(true);
-        mixingToolBox->setEnabled(true);
         actionAspectRatioFixed->setChecked( (*csi)->isFixedAspectRatio() );
 
         // Enable control pannels if the source is playable
@@ -1185,7 +1185,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // default disable source manipulation tools
         startButton->setEnabled(false);
         startButton->setChecked( false );
-        mixingToolBox->setEnabled(false);
 
         // status of mixing toolbox is associated to stanby mode
         mixingToolBox->setEnabled(!(*csi)->isStandby());
@@ -1253,7 +1252,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     QObject::connect(seekForwardButton, SIGNAL(clicked()), previousSourceVideoFile, SLOT(seekForward()));
                     QObject::connect(seekBeginButton, SIGNAL(clicked()), previousSourceVideoFile, SLOT(seekBegin()));
                     QObject::connect(videoLoopButton, SIGNAL(toggled(bool)), previousSourceVideoFile, SLOT(setLoop(bool)));
-
 
                     // DISPLAY consistency from VideoFile to GUI
 //                    QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
