@@ -315,7 +315,7 @@ void CatalogView::paint() {
         // selection border
         if ( SelectionManager::getInstance()->isInSelection(item->source) ) {
             glColor4ub(COLOR_SELECTION, 255 * _alpha);
-            glLineStipple(1, 0x9999);
+            glLineStipple(1, 0x7777);
             glLineWidth(2.0);
             glEnable(GL_LINE_STIPPLE);
             glBegin(GL_LINE_LOOP);

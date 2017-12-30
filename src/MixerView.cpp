@@ -69,16 +69,17 @@ void MixerView::setModelview()
 
 typedef std::map<double, Source*> mixingSourceMap;
 
-mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::iterator end, int size)
+mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::iterator end)
 {
     mixingSourceMap map;
     if ( !RenderingManager::getInstance()->isValid(begin))
         return map;
 
     SourceList::iterator sit = begin;
+    int size = 1;
     double cx = (*sit)->getAlphaX();
     double cy = (*sit)->getAlphaY();
-    for (sit++; sit != end; sit++) {
+    for (sit++; sit != end; sit++, ++size) {
         cx += (*sit)->getAlphaX();
         cy += (*sit)->getAlphaY();
     }
@@ -134,15 +135,18 @@ void MixerView::paint()
         glBegin(GL_LINES);
 
         // loop over a list of sources sorted by angle around the center of selection
-        mixingSourceMap selectionMap = getMixingSourceMap(SelectionManager::getInstance()->selectionBegin(), SelectionManager::getInstance()->selectionEnd(), SelectionManager::getInstance()->selectionCount());
-        for(mixingSourceMap::iterator  its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
-            mixingSourceMap::iterator  its2 = its1;
+        mixingSourceMap selectionMap = getMixingSourceMap(SelectionManager::getInstance()->selectionBegin(), SelectionManager::getInstance()->selectionEnd());
+        for(mixingSourceMap::iterator  its2, its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
+            its2 = its1;
             its2++;
-            if (its2 == selectionMap.end())
-                its2 = selectionMap.begin();
+            if (its2 == selectionMap.end()) {
+                if (selectionMap.size() > 2)
+                    its2 = selectionMap.begin();
+                else
+                    break;
+            }
             glVertex3d(its1->second->getAlphaX(), its1->second->getAlphaY(), 0.0);
             glVertex3d(its2->second->getAlphaX(), its2->second->getAlphaY(), 0.0);
-
         }
         glEnd();
         glDisable(GL_LINE_STIPPLE);
@@ -280,7 +284,7 @@ void MixerView::paint()
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
 
         // get a reordered map of source
-        mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end(), (*itss).size());
+        mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end());
 
         if (selectionMap.empty())
             break;
@@ -300,11 +304,15 @@ void MixerView::paint()
         glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), a);
 
         glBegin(GL_LINES);
-        for(mixingSourceMap::iterator  its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
-            mixingSourceMap::iterator  its2 = its1;
+        for(mixingSourceMap::iterator  its2, its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
+            its2 = its1;
             its2++;
-            if (its2 == selectionMap.end())
-                its2 = selectionMap.begin();
+            if (its2 == selectionMap.end()) {
+                if (selectionMap.size() > 2)
+                    its2 = selectionMap.begin();
+                else
+                    break;
+            }
             glVertex3d(its1->second->getAlphaX(), its1->second->getAlphaY(), 0.0);
             glVertex3d(its2->second->getAlphaX(), its2->second->getAlphaY(), 0.0);
         }

@@ -271,8 +271,8 @@ void SelectionArea::draw() {
         end[0] = area.bottomRight().x();
         end[1] = area.bottomRight().y();
         glRectdv(start, end);
-        glLineWidth(0.5);
-        glColor4ub(COLOR_SELECTION_AREA, 125);
+        glLineWidth(1.0);
+        glColor4ub(COLOR_SELECTION_AREA, 165);
         glBegin(GL_LINE_LOOP);
         glVertex3d(start[0], start[1], 0.0);
         glVertex3d(end[0], start[1], 0.0);

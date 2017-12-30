@@ -1425,13 +1425,14 @@ GLuint ViewRenderWidget::buildSelectList()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        glLineWidth(2.0);
+        glLineWidth(3.0);
         glColor4ub(COLOR_SELECTION, 255);
-        glLineStipple(1, 0x6666);
+        glLineStipple(1, 0x7777);
+        // glLineStipple(1, 0x6666);
         glEnable(GL_LINE_STIPPLE);
         glCallList(vertex_array_coords);
         glPushMatrix();
-        glScalef(1.1, 1.1, 1.0);
+        glScalef(1.12, 1.12, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
         glDisable(GL_LINE_STIPPLE);
@@ -1444,12 +1445,12 @@ GLuint ViewRenderWidget::buildSelectList()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        glLineWidth(2.0);
+        glLineWidth(3.0);
         glLineStipple(1, 0x6186);
         glEnable(GL_LINE_STIPPLE);
         glCallList(vertex_array_coords);
         glPushMatrix();
-        glScalef(1.1, 1.1, 1.0);
+        glScalef(1.12, 1.12, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
         glDisable(GL_LINE_STIPPLE);
@@ -1519,7 +1520,7 @@ GLuint ViewRenderWidget::buildLineList()
         glPopAttrib();
 
         glBindTexture(GL_TEXTURE_2D, white_texture);
-        glLineWidth(1.0);
+        glLineWidth(2.0);
       //  glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
@@ -1544,11 +1545,13 @@ GLuint ViewRenderWidget::buildLineList()
         glPopAttrib();
 
         glBindTexture(GL_TEXTURE_2D, white_texture);
-        glLineWidth(3.0);
+        glLineWidth(4.0);
+        glPointSize(3.0);
 //        glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
+        glDrawArrays(GL_POINTS, 0, 4);
         glPopMatrix();
 
     glEndList();
@@ -1763,7 +1766,7 @@ GLuint ViewRenderWidget::buildPivotPointList()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     //limbo area
-    glColor4ub(COLOR_SELECTION_AREA, 50);
+    glColor4ub(COLOR_SELECTION_AREA, 80);
     gluDisk(quadObj, 0, 3, 30, 3);
 
     // border
@@ -2180,7 +2183,7 @@ GLuint ViewRenderWidget::buildBordersList()
 
     glNewList(base + 7, GL_COMPILE);
 //    glColor4ub(COLOR_SOURCE_STATIC, 200);
-//    glLineStipple(1, 0x9999);
+//    glLineStipple(1, 0x7777);
 //    glEnable(GL_LINE_STIPPLE);
     glCallList(base+1);
 //    glDisable(GL_LINE_STIPPLE);
@@ -2195,7 +2198,7 @@ GLuint ViewRenderWidget::buildBordersList()
 
     glNewList(base + 8, GL_COMPILE);
 //    glColor4ub(COLOR_SOURCE_STATIC, 220);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glCallList(base+1);
     glDisable(GL_LINE_STIPPLE);
@@ -2212,7 +2215,7 @@ GLuint ViewRenderWidget::buildBordersList()
     // Selection source color
     glNewList(base + 9, GL_COMPILE);
     glColor4ub(COLOR_SELECTION , 180);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glScalef(1.01, 1.01, 1.01);
     glCallList(base);
@@ -2221,7 +2224,7 @@ GLuint ViewRenderWidget::buildBordersList()
 
     glNewList(base + 10, GL_COMPILE);
     glColor4ub(COLOR_SELECTION, 200);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glScalef(1.01, 1.01, 1.01);
     glCallList(base+1);
@@ -2230,7 +2233,7 @@ GLuint ViewRenderWidget::buildBordersList()
 
     glNewList(base + 11, GL_COMPILE);
     glColor4ub(COLOR_SELECTION, 220);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glScalef(1.01, 1.01, 1.01);
     glCallList(base+2);
@@ -2251,7 +2254,7 @@ GLuint ViewRenderWidget::buildBordersTools()
     glLineWidth(1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glBegin(GL_LINE_LOOP);
     for (float i = 0; i < 2.0 * M_PI; i += 0.2)
@@ -2270,7 +2273,7 @@ GLuint ViewRenderWidget::buildBordersTools()
     glNewList(base + 1, GL_COMPILE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(1.0);
     glBegin(GL_LINES); // begin drawing handles
@@ -2294,7 +2297,7 @@ GLuint ViewRenderWidget::buildBordersTools()
     glNewList(base + 2, GL_COMPILE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    glLineStipple(1, 0x9999);
+    glLineStipple(1, 0x7777);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(1.0);
     glBegin(GL_LINES); // begin drawing handles

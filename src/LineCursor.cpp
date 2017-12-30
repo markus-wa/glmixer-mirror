@@ -144,7 +144,7 @@ void LineCursor::draw(GLint viewport[4])
     glVertex2d(p.x(), (viewport[3] - p.y()));
     glEnd();
 
-    glLineWidth(1);
+    glLineWidth(2);
     glBegin(GL_LINES);
     glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
     glVertex2d(releasePos.x(), viewport[3] - releasePos.y());

@@ -13,7 +13,7 @@ void Tag::initialize()
         _tags.append( new Tag("Orange", QColor(255, 150, 0)) );
         _tags.append( new Tag("Red", QColor(255, 30, 30)) );
         _tags.append( new Tag("Purple", QColor(160, 100, 255)) );
-        _tags.append( new Tag("Blue", QColor(50, 120, 255)) );
+        _tags.append( new Tag("Blue", QColor(30, 170, 255)) );
     }
 }
 

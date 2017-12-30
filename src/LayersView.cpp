@@ -77,7 +77,7 @@ void LayersSelectionArea::draw() {
         glVertex3d(0.0, start[1], -2.0);
         glEnd();
 
-        glLineWidth(0.5);
+        glLineWidth(1.0);
         glBegin(GL_LINES);
         glColor4ub(COLOR_SELECTION_AREA, 225);
         glVertex3d(start[0], start[1], 0.0);

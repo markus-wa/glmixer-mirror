@@ -135,7 +135,7 @@ void DelayCursor::draw(GLint viewport[4]) {
 	glEnable(GL_LINE_STIPPLE);
 	glLineStipple( 10 - int( 10.0 * latency / (MAX_LATENCY - MIN_LATENCY) ), 0xAAAA);
 
-	glLineWidth(1);
+	glLineWidth(2);
 	glBegin(GL_LINE_STRIP);
 	while (p.hasNext()){
 		pos = p.next();

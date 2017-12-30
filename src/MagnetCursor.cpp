@@ -101,7 +101,7 @@ void MagnetCursor::draw(GLint viewport[4]) {
 	glVertex2d(0.0, 0.0);
 	glEnd();
 
-	glLineWidth(1);
+	glLineWidth(2);
 	float r = (2.0 +cos(t + 1.6)) * 20.0;
 	glBegin(GL_LINE_LOOP);
 	for (float i = 0; i < 2.0 * M_PI; i += 0.2)

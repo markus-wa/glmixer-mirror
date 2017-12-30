@@ -102,13 +102,13 @@ void AxisCursor::draw(GLint viewport[4]) {
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
-	glLineWidth(1);
+	glLineWidth(2);
 	glBegin(GL_LINES);
 	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
-	glLineStipple(1, 0x9999);
+	glLineStipple(2, 0x9999);
 	glEnable(GL_LINE_STIPPLE);
 	glBegin(GL_LINES);
 	glVertex2d(mousePos.x(), viewport[3] - mousePos.y());
