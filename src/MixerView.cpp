@@ -296,10 +296,8 @@ void MixerView::paint()
             if (WorkspaceManager::getInstance()->current() != w)
                 continue;
         }
-        
         a *= (WorkspaceManager::getInstance()->current() == w ? 1.0 : WORKSPACE_MAX_ALPHA);
         
-
         // use color of the group
         glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), a);
 
@@ -346,7 +344,7 @@ void MixerView::paint()
         gluUnProject(double (lastClicPos.x()), double (viewport[3] - lastClicPos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
         glPushMatrix();
-        glTranslated( ax, ay, az);
+        glTranslated(ax, ay, az);
         glPushMatrix();
         if ( ABS(s->getAspectRatio()) > 1.0)
             glTranslated(SOURCE_UNIT + 1.0, -SOURCE_UNIT / s->getAspectRatio() + 1.0,  0.0);

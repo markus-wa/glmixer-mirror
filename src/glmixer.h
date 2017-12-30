@@ -188,7 +188,7 @@ private:
     QLabel *infobar;
     bool usesystemdialogs, maybeSave;
     Source *previousSource;
-    class VideoFile *previousSourceVideoFile;
+    class VideoFile *currentVideoFile;
     class QFileDialog *sfd;
     class VideoFileDialog *mfd;
     class OutputRenderWidget *outputpreview;
