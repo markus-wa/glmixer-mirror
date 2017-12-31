@@ -44,6 +44,9 @@ public slots:
     void on_presetReApply_pressed();
     void on_presetAdd_pressed();
     void on_presetRemove_pressed();
+    void removeAllUserPresets();
+    void renamePreset();
+    void on_presetButton_clicked(bool);
 
     // Blending Page
     void on_blendingBox_currentIndexChanged(int);
@@ -51,6 +54,12 @@ public slots:
     void on_blendingCustomButton_pressed();
     void on_blendingPixelatedButton_toggled(bool);
     void on_blendingMaskList_currentRowChanged(int);
+    void on_resetBlending_pressed();
+    void on_blendingButton_clicked(bool);
+
+    // Gamma page
+    void on_resetGamma_pressed();
+    void on_gammaButton_clicked(bool);
 
     // Color page
     void on_saturationSlider_valueChanged(int);
@@ -70,31 +79,28 @@ public slots:
     void on_chromakeyEnable_toggled(bool);
     void on_chromakeyColor_pressed();
     void on_chromakeySlider_valueChanged(int);
-
-    // Effects page
-    void on_filterList_currentRowChanged(int);
-
-    // Clear All
-    void on_resetBlending_pressed();
-    void on_resetGamma_pressed();
     void on_resetColor_pressed();
+    void on_colorButton_clicked(bool);
+
+    // Filter page
+    void on_filterList_currentRowChanged(int);
     void on_resetFilter_pressed();
-    void on_resetPlugins_pressed();
+    void on_filterButton_clicked(bool);
 
 #ifdef GLM_FFGL
     // Plugin page
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
+    void on_resetPlugins_pressed();
+    void on_pluginButton_clicked(bool);
 #endif
 
-    void removeAllUserPresets();
-    void renamePreset();
+    // inform something changed
+    void changed();
 
     // state restoration
     QByteArray saveState() const;
     bool restoreState(const QByteArray &state);
-
-    void changed();
 
 signals:
     // inform property manager when a property is modified here

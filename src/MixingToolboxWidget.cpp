@@ -271,7 +271,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     QObject::connect(pluginBrowser, SIGNAL(pluginChanged()), this, SLOT(changed()) );
     QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), parent, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 #else
-    mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
+    pluginButton->hide();
 #endif
 
 
@@ -366,8 +366,10 @@ MixingToolboxWidget::~MixingToolboxWidget()
 
 void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
 {
-    // show or hide Filter effetcs section
-    mixingToolBox->setTabEnabled(3, ViewRenderWidget::filteringEnabled());
+    // show or hide Filter section
+    filterButton->setVisible(ViewRenderWidget::filteringEnabled());
+    if ( !ViewRenderWidget::filteringEnabled() && mixingToolBox->currentWidget() == Filter )
+        mixingToolBox->setCurrentWidget(Blending);
 
     // connect gamma adjustment to the current source
     gammaAdjust->connectSource(csi);
@@ -852,6 +854,38 @@ void MixingToolboxWidget::changed()
 {
     if (source)
         emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
+}
+
+
+void MixingToolboxWidget::on_blendingButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Blending);
+}
+void MixingToolboxWidget::on_gammaButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Gamma);
+}
+void MixingToolboxWidget::on_colorButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Color);
+}
+void MixingToolboxWidget::on_filterButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Filter);
+}
+void MixingToolboxWidget::on_pluginButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Plugin);
+}
+void MixingToolboxWidget::on_presetButton_clicked(bool on)
+{
+    if (on)
+        mixingToolBox->setCurrentWidget(Preset);
 }
 
 #ifdef GLM_FFGL
