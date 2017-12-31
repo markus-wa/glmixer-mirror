@@ -23,13 +23,13 @@
       <enum>Qt::NoContextMenu</enum>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single clic: apply this tag to selected source.&lt;/p&gt;&lt;p&gt;Double clic: select all sources with this tag.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single clic: apply this tag to selected source.&lt;/p&gt;&lt;p&gt;Double clic: apply &amp;amp; select all sources with this tag.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="statusTip">
       <string>Clic to apply tag; Double-clic to select tagged sources.</string>
      </property>
      <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAsNeeded</enum>
+      <enum>Qt::ScrollBarAlwaysOn</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -48,12 +48,6 @@
      </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>48</width>
-       <height>48</height>
-      </size>
      </property>
      <property name="verticalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>

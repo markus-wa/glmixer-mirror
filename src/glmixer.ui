@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1468</width>
+    <width>1427</width>
     <height>1006</height>
    </rect>
   </property>
@@ -1563,7 +1563,7 @@ QToolButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1468</width>
+     <width>1427</width>
      <height>22</height>
     </rect>
    </property>
@@ -2291,9 +2291,6 @@ QToolButton:hover {
        <property name="styleSheet">
         <string notr="true">color:palette(dark);</string>
        </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -2312,6 +2309,12 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_16">
            <item>
@@ -2371,6 +2374,12 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorSpringOptions">
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
@@ -2471,6 +2480,12 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorDelayOptions">
         <layout class="QVBoxLayout" name="verticalLayout_8">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
@@ -2625,6 +2640,12 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorAxisOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_17">
            <item>
@@ -2684,6 +2705,12 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorLineOptions">
         <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
@@ -2835,6 +2862,12 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorFuzzyOptions">
         <layout class="QVBoxLayout" name="verticalLayout_11">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_15">
            <item>
@@ -3411,13 +3444,10 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="text">
-    <string>About &amp;Libav Formats and Codec</string>
+    <string>About Libav Formats and Codec</string>
    </property>
    <property name="statusTip">
     <string>Display the list of video codecs that can be read.</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionOpenGL_extensions">
@@ -3426,13 +3456,10 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/opengl.png</normaloff>:/glmixer/icons/opengl.png</iconset>
    </property>
    <property name="text">
-    <string>About &amp;OpenGL</string>
+    <string>About OpenGL</string>
    </property>
    <property name="statusTip">
     <string>Display the list of OpenGL extensions that your system supports.</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionFullscreen">
@@ -5057,9 +5084,6 @@ QToolButton:hover {
    </property>
    <property name="statusTip">
     <string>Opens manager of Open Sound Control network client</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionWorkspaceExclusive">
