@@ -1958,9 +1958,6 @@ QToolButton:hover {
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
    </property>
-   <property name="toolTip">
-    <string>Options for the current cursor mode.</string>
-   </property>
    <property name="windowTitle">
     <string>Cursor</string>
    </property>
@@ -2304,29 +2301,64 @@ QToolButton:hover {
      </item>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
+       <property name="styleSheet">
+        <string notr="true">QToolButton {
+    min-height: 20px;
+    min-width: 20px;
+}</string>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QLabel" name="label_3">
+          <layout class="QHBoxLayout" name="horizontalLayout_16">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Normal</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="label">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Normal</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label">
            <property name="text">
             <string>No option</string>
            </property>
@@ -2338,8 +2370,91 @@ QToolButton:hover {
         </layout>
        </widget>
        <widget class="QWidget" name="cursorSpringOptions">
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="2" column="0" colspan="2">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Elastic</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="resetElastic">
+             <property name="toolTip">
+              <string>Reset</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Mass:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="cursorSpringMass">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>The heavyer, the slower to follow.</string>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>20</number>
+             </property>
+             <property name="value">
+              <number>5</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2352,141 +2467,148 @@ QToolButton:hover {
            </property>
           </spacer>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Mass:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSlider" name="cursorSpringMass">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>Make the cursor heavy or lightweight</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>20</number>
-           </property>
-           <property name="value">
-            <number>5</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Elastic</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="cursorDelayOptions">
-        <layout class="QGridLayout" name="gridLayout_5">
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Latency:</string>
-           </property>
-          </widget>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <item>
+            <widget class="QLabel" name="label_7">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>26</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Delay</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="resetDelay">
+             <property name="toolTip">
+              <string>Reset</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="cursorDelayLatency">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>How late the cursor is behind the mouse.</string>
-           </property>
-           <property name="suffix">
-            <string> second(s)</string>
-           </property>
-           <property name="minimum">
-            <double>0.200000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>3.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.200000000000000</double>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Latency:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="cursorDelayLatency">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>How late the cursor is behind the mouse.</string>
+             </property>
+             <property name="suffix">
+              <string> second(s)</string>
+             </property>
+             <property name="minimum">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>3.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Filtering:</string>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_6">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Filtering:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="cursorDelayFiltering">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>How many frames used to smooth the path</string>
+             </property>
+             <property name="suffix">
+              <string> frames</string>
+             </property>
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>30</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="cursorDelayFiltering">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>How many frames used to smooth the path</string>
-           </property>
-           <property name="suffix">
-            <string> frames</string>
-           </property>
-           <property name="minimum">
-            <number>0</number>
-           </property>
-           <property name="maximum">
-            <number>30</number>
-           </property>
-           <property name="singleStep">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <number>10</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="2">
+         <item>
           <spacer name="verticalSpacer_3">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2499,38 +2621,57 @@ QToolButton:hover {
            </property>
           </spacer>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Delay</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="cursorMagnetOptions">
+       <widget class="QWidget" name="cursorAxisOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
          <item>
-          <widget class="QLabel" name="label_9">
+          <layout class="QHBoxLayout" name="horizontalLayout_17">
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Axis</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_8">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Axis</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_8">
            <property name="text">
             <string>No option</string>
            </property>
@@ -2541,60 +2682,143 @@ QToolButton:hover {
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="page">
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Speed</string>
-           </property>
-          </widget>
+       <widget class="QWidget" name="cursorLineOptions">
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <item>
+            <widget class="QLabel" name="label_10">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>21</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Line</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="resetLine">
+             <property name="toolTip">
+              <string>Reset</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QLabel" name="label_12">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Triger delay</string>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Speed</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="cursorLineSpeed">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Translation speed : each point is 1 second.</string>
+             </property>
+             <property name="minimum">
+              <number>30</number>
+             </property>
+             <property name="maximum">
+              <number>250</number>
+             </property>
+             <property name="value">
+              <number>100</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="1" column="1" colspan="2">
-          <widget class="QSlider" name="cursorLineSpeed">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>Translation speed</string>
-           </property>
-           <property name="minimum">
-            <number>30</number>
-           </property>
-           <property name="maximum">
-            <number>250</number>
-           </property>
-           <property name="value">
-            <number>100</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <item>
+            <widget class="QLabel" name="label_12">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Triger delay</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="cursorLineWaitDuration">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>How long before the movement starts.</string>
+             </property>
+             <property name="suffix">
+              <string> second(s)</string>
+             </property>
+             <property name="minimum">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>3.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="3" column="2">
+         <item>
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2607,112 +2831,148 @@ QToolButton:hover {
            </property>
           </spacer>
          </item>
-         <item row="2" column="2">
-          <widget class="QDoubleSpinBox" name="cursorLineWaitDuration">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>How long before the movement starts.</string>
-           </property>
-           <property name="suffix">
-            <string> second(s)</string>
-           </property>
-           <property name="minimum">
-            <double>0.200000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>3.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.200000000000000</double>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Line</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="page_2">
-        <layout class="QGridLayout" name="gridLayout_7">
-         <item row="1" column="1">
-          <widget class="QSlider" name="cursorFuzzyRadius">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>250</number>
-           </property>
-           <property name="singleStep">
-            <number>10</number>
-           </property>
-           <property name="pageStep">
-            <number>50</number>
-           </property>
-           <property name="value">
-            <number>50</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
+       <widget class="QWidget" name="cursorFuzzyOptions">
+        <layout class="QVBoxLayout" name="verticalLayout_11">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_14">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>21</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: bold;</string>
+             </property>
+             <property name="text">
+              <string>Fuzzy</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="resetFuzzy">
+             <property name="toolTip">
+              <string>Reset</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_15">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Filtering</string>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Radius</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="cursorFuzzyRadius">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>How far the cursor can go.</string>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>250</number>
+             </property>
+             <property name="singleStep">
+              <number>10</number>
+             </property>
+             <property name="pageStep">
+              <number>50</number>
+             </property>
+             <property name="value">
+              <number>50</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="cursorFuzzyFiltering">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="suffix">
-            <string> frames</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>20</number>
-           </property>
-           <property name="value">
-            <number>5</number>
-           </property>
-          </widget>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <item>
+            <widget class="QLabel" name="label_15">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Filtering</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="cursorFuzzyFiltering">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>How many frames used to smooth the movement.</string>
+             </property>
+             <property name="suffix">
+              <string> frames</string>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>20</number>
+             </property>
+             <property name="value">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="3" column="0" colspan="2">
+         <item>
           <spacer name="verticalSpacer_5">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2724,29 +2984,6 @@ QToolButton:hover {
             </size>
            </property>
           </spacer>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_13">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Radius</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="styleSheet">
-            <string notr="true">font: bold;</string>
-           </property>
-           <property name="text">
-            <string>Fuzzy</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </widget>
@@ -2876,7 +3113,7 @@ QToolButton:hover {
           <x>0</x>
           <y>0</y>
           <width>244</width>
-          <height>131</height>
+          <height>125</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -4982,12 +5219,12 @@ QToolButton:hover {
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>319</x>
-     <y>859</y>
+     <x>336</x>
+     <y>942</y>
     </hint>
     <hint type="destinationlabel">
-     <x>360</x>
-     <y>859</y>
+     <x>416</x>
+     <y>942</y>
     </hint>
    </hints>
   </connection>
@@ -5014,8 +5251,8 @@ QToolButton:hover {
    <slot>paste()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>178</x>
-     <y>612</y>
+     <x>108</x>
+     <y>530</y>
     </hint>
     <hint type="destinationlabel">
      <x>178</x>
@@ -5030,8 +5267,8 @@ QToolButton:hover {
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>250</x>
-     <y>605</y>
+     <x>273</x>
+     <y>530</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
@@ -5046,12 +5283,12 @@ QToolButton:hover {
    <slot>setHidden(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>305</x>
-     <y>846</y>
+     <x>336</x>
+     <y>942</y>
     </hint>
     <hint type="destinationlabel">
-     <x>350</x>
-     <y>846</y>
+     <x>376</x>
+     <y>942</y>
     </hint>
    </hints>
   </connection>
@@ -5062,8 +5299,8 @@ QToolButton:hover {
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1134</x>
-     <y>76</y>
+     <x>1163</x>
+     <y>87</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -5126,8 +5363,8 @@ QToolButton:hover {
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1158</x>
-     <y>76</y>
+     <x>1195</x>
+     <y>87</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>

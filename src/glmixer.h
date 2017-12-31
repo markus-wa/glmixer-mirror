@@ -131,6 +131,7 @@ public slots:
     QString getNotes();
     void updateWorkspaceActions();
     void setBusy(bool busy = true);
+    void resetCurrentCursor();
 
     // source config
     void connectSource(SourceSet::iterator csi);

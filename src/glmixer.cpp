@@ -576,6 +576,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(cursorFuzzyRadius, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setRadius(int)) );
     QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
 
+    QObject::connect(resetElastic, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+    QObject::connect(resetDelay, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+    QObject::connect(resetLine, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+    QObject::connect(resetFuzzy, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+    
     // connect actions with selectionManager
     QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
     QObject::connect(actionSelectInvert, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(invertSelection()));
@@ -3595,4 +3600,25 @@ void GLMixer::setBusy(bool busy)
     }
 }
 
-
+void GLMixer::resetCurrentCursor()
+{
+    switch( cursorOptionWidget->currentIndex() ) {
+        case 1:
+            cursorSpringMass->setValue(5);
+        break;
+        case 2:
+            cursorDelayLatency->setValue(1.0);
+            cursorDelayFiltering->setValue(10);
+        break;
+        case 4:
+            cursorLineSpeed->setValue(100);
+            cursorLineWaitDuration->setValue(1.0);
+        break;
+        case 5:
+            cursorFuzzyRadius->setValue(50);
+            cursorFuzzyFiltering->setValue(5);
+        break;
+        default:
+        break;
+    }
+}
