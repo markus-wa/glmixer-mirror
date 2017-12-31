@@ -193,7 +193,7 @@ void CatalogView::reorganize() {
     foreach ( Icon *item, _icons) {
 
         // stack icons vertically
-        int borderleft = (int) (_size[_currentSize] - _iconSize[_currentSize]) / 2.0;
+        int borderleft = 2 + (int) (_size[_currentSize] - _iconSize[_currentSize]) / 2.0;
         double ar = item->source->getAspectRatio();
         if ( ar < 1 ) {
             int w = (int) _iconSize[_currentSize] * item->source->getAspectRatio();
@@ -413,6 +413,7 @@ void CatalogView::paint() {
 
     // draw frame
     glColor4f(0.8, 0.8, 0.8, 1.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
         glVertex2i( 1, 1);
         glVertex2i( 1, viewport[3] - 1);
