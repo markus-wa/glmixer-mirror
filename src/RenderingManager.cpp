@@ -305,7 +305,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
         // TODO : better texture atlas to avoid this limitation
         // setup the maximum texture count accordingly
-        maxSourceCount = maxwidth / CATALOG_TEXTURE_HEIGHT;
+        maxSourceCount = maxwidth / (CATALOG_TEXTURE_HEIGHT + 1);
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Maximum number of sources: ") << maxSourceCount;
     }
 

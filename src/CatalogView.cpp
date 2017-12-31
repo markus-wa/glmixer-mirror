@@ -131,7 +131,7 @@ void CatalogView::drawSource(Source *s)
         // NB : icons are rendered as squares of the size of FBO height
         QRect coords(0, 0, _catalogfbo->height(), _catalogfbo->height());
         if (!_icons.empty())
-            coords.moveLeft( (_icons.top())->fbocoordinates.right() );
+            coords.moveLeft( (_icons.top())->fbocoordinates.right() + 1); // add a margin to avoid dripping
 
         // 2 render the source into the section of FBO texture attibuted
         glViewport(coords.left(), coords.top(), coords.width(), coords.height());
