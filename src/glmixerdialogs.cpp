@@ -94,7 +94,6 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     Question->setText(tr("Select loop-back mode:"));
     verticalLayout->addWidget(Question);
 
-
     horizontalLayout = new QHBoxLayout();
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontalLayout->setContentsMargins(0, 0, 0, 0);
@@ -114,7 +113,6 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     vl->addWidget(Display);
     vl->addWidget(recursiveButton);
     horizontalLayout->addLayout(vl);
-
 
     vl = new QVBoxLayout(this);
     Display = new QLabel(this);
@@ -151,11 +149,17 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
 }
 
 
+void SourceFileEditDialog::validateName(const QString &name)
+{
+    emit nameChanged("Name", name);
+}
 
 SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QString caption): QDialog(parent), s(source) {
 
     QVBoxLayout *verticalLayout;
+    QHBoxLayout *horizontalLayout;
     QDialogButtonBox *DecisionButtonBox;
+    QLabel *name;
     QTabWidget *tabs;
 
     setObjectName(QString::fromUtf8("SourceEditDialog"));
@@ -171,6 +175,23 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
     sourcedisplay->setSource(s);
     verticalLayout->addWidget(sourcedisplay);
 
+    horizontalLayout = new QHBoxLayout();
+    horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+    horizontalLayout->setContentsMargins(0, 6, 0, 6);
+
+    name = new QLabel(this);
+    name->setText(tr("Name"));
+    horizontalLayout->addWidget(name);
+
+    nameEdit = new QLineEdit(this);
+    nameEdit->setText(s->getName());
+    horizontalLayout->addWidget(nameEdit);
+    connect(nameEdit, SIGNAL(textEdited(const QString &)), SLOT(validateName(const QString &)));    
+    QObject::connect(this, SIGNAL(nameChanged(QString, QString)), 
+                    RenderingManager::getPropertyBrowserWidget(), SLOT(valueChanged(QString, QString)) );
+
+    verticalLayout->addLayout(horizontalLayout);
+
     specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser(s, this);
     specificSourcePropertyBrowser->setDisplayPropertyTree(false);
     specificSourcePropertyBrowser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -179,6 +200,8 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
     if (s->getFreeframeGLPluginStack()->empty()) {
         pluginBrowser = 0;
         verticalLayout->addWidget(specificSourcePropertyBrowser);
+        // in case this is a GPU Plugin source:
+        QObject::connect(specificSourcePropertyBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(accept()));
     }
     else {
         // show effects if there are plugins
@@ -220,6 +243,7 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 }
 
 SourceFileEditDialog::~SourceFileEditDialog() {
+    delete nameEdit;
     delete specificSourcePropertyBrowser;
     delete sourcedisplay;
 #ifdef GLM_FFGL

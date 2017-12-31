@@ -1715,21 +1715,8 @@ void GLMixer::on_actionEditSource_triggered()
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
 #ifdef GLM_FFGL
-
         // this connection is useful only after creation of a new Freeframe Source
         QObject::disconnect(RenderingManager::getInstance(), SIGNAL(editCurrentSource()), this, SLOT(on_actionEditSource_triggered()) );
-
-        // for SHADERTOY sources, edit means edit code
-        if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
-            FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
-            if (ffgls) {
-                FFGLPluginSource *plugin = ffgls->freeframeGLPlugin();
-                if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-                    editShaderToyPlugin(  plugin );
-                    return;
-                }
-            }
-        }
 #endif
 
         // for others, edit mean show the dialog to change source
@@ -1737,7 +1724,7 @@ void GLMixer::on_actionEditSource_triggered()
 
         sed.exec();
 
-        // update the property browser of the source
+        // update the property browser of the source (might have changed)
         connectSource(RenderingManager::getInstance()->getCurrentSource());
     }
 }

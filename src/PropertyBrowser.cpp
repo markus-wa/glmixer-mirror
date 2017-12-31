@@ -305,6 +305,11 @@ void PropertyBrowser::valueChanged(QString propertyname, const QColor &value)
     colorManager->setValue(idToProperty[propertyname], value);
 }
 
+void PropertyBrowser::valueChanged(QString propertyname, const QString &value)
+{
+    stringManager->setValue(idToProperty[propertyname], value);
+}
+
 void PropertyBrowser::valueChanged(QString propertyname, bool value)
 {
     boolManager->setValue(idToProperty[propertyname], value);
@@ -331,6 +336,11 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, int value)
 }
 
 void PropertyBrowser::propertyValueChanged(QtProperty *property, const QColor &value)
+{
+    emit( propertyChanged( property->propertyName(), value) );
+}
+
+void PropertyBrowser::propertyValueChanged(QtProperty *property, const QString &value)
 {
     emit( propertyChanged( property->propertyName(), value) );
 }

@@ -96,6 +96,10 @@ QString Source::getInfo() const {
  * */
 
 void Source::setName(QString n) {
+    
+    // do not accept empty strings
+    if (n.isEmpty())  return;
+    
     // accept new name only if validated by rendering manager
     QString newname = RenderingManager::getInstance()->getAvailableNameFrom(n);
 

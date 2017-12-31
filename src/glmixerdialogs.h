@@ -16,7 +16,6 @@ class CaptureDialog: public QDialog {
 public:
 
     int getWidth();
-
     CaptureDialog(QWidget *parent, QImage capture, QString caption);
 
     QSize sizeHint() const {
@@ -32,7 +31,6 @@ class RenderingSourceDialog: public QDialog {
 public:
 
     bool getRecursive();
-
     RenderingSourceDialog(QWidget *parent);
 
     QSize sizeHint() const {
@@ -43,19 +41,34 @@ public:
 
 class SourceFileEditDialog: public QDialog {
 
+    Q_OBJECT
+
+public:
+
+    SourceFileEditDialog(QWidget *parent, Source *source, QString caption);
+    ~SourceFileEditDialog();
+
+    QSize sizeHint() const {
+        return QSize(400, 550);
+    }
+
+signals:
+
+    void nameChanged(const QString &, const QString &);
+
+public slots:
+
+    void validateName(const QString &s);
+
+private:
+
     Source *s;
+    QLineEdit *nameEdit;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class SourceDisplayWidget *sourcedisplay;
 #ifdef GLM_FFGL
     class FFGLPluginBrowser *pluginBrowser;
 #endif
-
-public:
-    SourceFileEditDialog(QWidget *parent, Source *source, QString caption);
-    ~SourceFileEditDialog();
-    QSize sizeHint() const {
-        return QSize(400, 500);
-    }
 };
 
 
@@ -67,7 +80,6 @@ class TimeInputDialog: public QDialog {
 public:
 
     double getTime() { return _t; }
-
     TimeInputDialog(QWidget *parent, double time, double min, double max, double fps, bool asframe);
 
     QSize sizeHint() const {
@@ -97,16 +109,16 @@ class LoggingWidget: public QWidget {
 public:
 
     LoggingWidget(QWidget *parent = 0);
+    virtual void closeEvent ( QCloseEvent * event );
+    QByteArray saveState() const;
+    bool restoreState(const QByteArray &state);    
 
     QSize sizeHint() const {
         return QSize(600, 250);
     }
-    virtual void closeEvent ( QCloseEvent * event );
-    
-    QByteArray saveState() const;
-    bool restoreState(const QByteArray &state);    
 
 signals:
+
     void saveLogs();
     void isVisible(bool);
 

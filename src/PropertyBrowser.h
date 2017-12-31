@@ -37,6 +37,7 @@ public slots:
     void valueChanged(QString propertyName, int value);
     void valueChanged(QString propertyName, double value);
     void valueChanged(QString propertyName, const QColor &value);
+    void valueChanged(QString propertyName, const QString &value);
     void enumChanged(QString propertyName, int value);
 
     // simple slots to always forward the property changed signals
@@ -44,6 +45,7 @@ public slots:
     void propertyValueChanged(QtProperty *, int);
     void propertyValueChanged(QtProperty *, double);
     void propertyValueChanged(QtProperty *, const QColor &);
+    void propertyValueChanged(QtProperty *, const QString &);
 
     // utility slot for expanding / collapsing all tree items
     void expandAll();
@@ -71,6 +73,7 @@ signals:
     void propertyChanged(QString, int);
     void propertyChanged(QString, double);
     void propertyChanged(QString, const QColor &);
+    void propertyChanged(QString, const QString &);
     void currentItemChanged(bool);
 
 protected:
