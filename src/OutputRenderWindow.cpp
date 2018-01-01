@@ -63,12 +63,8 @@ void OutputRenderWidget::initializeGL() {
     // Turn blending off
     glDisable(GL_BLEND);
 
-#ifdef Q_OS_MAC
+    // background color match window background
     setBackgroundColor(palette().color(QPalette::Window));
-#else
-    setBackgroundColor(palette().color(QPalette::Window));
-#endif
-
 }
 
 void OutputRenderWidget::resizeGL(int w, int h)

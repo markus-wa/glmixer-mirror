@@ -1669,7 +1669,7 @@ void GLMixer::on_actionCopy_snapshot_triggered(){
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
     QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
 
-    RenderingManager::getRenderingWidget()->showMessage( tr("Current frame captured and copied to clipboard."), 3000 );
+    RenderingManager::getRenderingWidget()->showMessage( tr("Snapshot copied to clipboard."), 3000 );
 }
 
 void GLMixer::on_actionSave_snapshot_triggered(){
@@ -1685,7 +1685,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
     }
     else {
         // display and request action with this capture
-        CaptureDialog cd(this, capture, tr("Save this image ?"));
+        CaptureDialog cd(this, capture, tr("Save this snapshot ?"));
 
         if (cd.exec() == QDialog::Accepted) {
 
@@ -1702,8 +1702,10 @@ void GLMixer::on_actionSave_snapshot_triggered(){
     if ( !fileName.isEmpty() ) {
         if (!capture.save(fileName)) {
             qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
-        } else
+        } else {
             qDebug() << fileName << QChar(124).toLatin1() << tr("Snapshot saved.");
+            RenderingManager::getRenderingWidget()->showMessage( tr("Snapshot %1 saved.").arg(fileName), 3000 );
+        }
     }
 }
 

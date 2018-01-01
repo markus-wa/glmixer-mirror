@@ -35,6 +35,10 @@ VideoFileDialog::VideoFileDialog(QWidget * parent, const QString & caption) : QF
     setOption(QFileDialog::DontUseNativeDialog, true);
     setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
     setFilter(QDir::NoDotAndDotDot);
+    setFileMode(QFileDialog::ExistingFiles);
+
+    setStyleSheet(  "QToolButton { min-height: 16px; min-width: 16px; }"
+                    "QComboBox { min-height: 32px; }" );
 
     QLayout *grid = layout();
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -53,7 +57,6 @@ VideoFileDialog::VideoFileDialog(QWidget * parent, const QString & caption) : QF
 
     QObject::connect(this, SIGNAL(currentChanged ( const QString & )), preview, SLOT(showFilePreview(const QString &)));
 
-    setFileMode(QFileDialog::ExistingFiles);
 }
 
 VideoFileDialog::~VideoFileDialog() {
@@ -79,6 +82,14 @@ void VideoFileDialog::showEvent ( QShowEvent *e )
 {
     // restore preview
     setPreviewVisible(pv->isChecked());
+
+    // size hint on first show
+    static bool firstshow = true;
+    if (firstshow) {
+        firstshow = false;
+        resize(sizeHint());
+    } 
+
     QFileDialog::showEvent(e);
 }
 

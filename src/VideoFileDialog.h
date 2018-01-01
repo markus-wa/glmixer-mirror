@@ -45,6 +45,10 @@ public:
     void showEvent ( QShowEvent * );
     void hideEvent ( QHideEvent * );
 
+    QSize sizeHint() const {
+        return QSize(800, 600);
+    }
+
 public slots:
     void setPreviewVisible(bool visible);
 

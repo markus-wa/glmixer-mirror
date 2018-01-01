@@ -4390,13 +4390,16 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
    </property>
    <property name="text">
-    <string>Capture frame and save to file</string>
+    <string>Save snapshot</string>
    </property>
    <property name="toolTip">
     <string>Capture and save current rendered frame</string>
    </property>
    <property name="statusTip">
-    <string>Take a screenshot and save to image file.</string>
+    <string>Take a snapshot of the rendering and save the image.</string>
+   </property>
+   <property name="shortcut">
+    <string>F12</string>
    </property>
   </action>
   <action name="actionCursorLine">
@@ -4717,10 +4720,13 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/photo.png</normaloff>:/glmixer/icons/photo.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Capture frame to clipboard</string>
+    <string>Copy snapshot</string>
+   </property>
+   <property name="toolTip">
+    <string>Capture and copy current rendered frame</string>
    </property>
    <property name="statusTip">
-    <string>Take a screenshot and copy it to clipboard</string>
+    <string>Take a snapshot of the rendering and copy the image.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>

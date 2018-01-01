@@ -59,10 +59,10 @@ void VideoFileDialogPreview::closeFilePreview() {
     if (is) {
         // unset video display
         previewWidget->setVideo(NULL);
-        CodecNameLineEdit->setText("");
-        endLineEdit->setText("");
-        widthLineEdit->setText("");
-        heightLineEdit->setText("");
+        CodecNameLineEdit->clear();
+        endLineEdit->clear();
+        widthLineEdit->clear();
+        heightLineEdit->clear();
         // stop video
         is->stop();
         // delete video File
@@ -80,10 +80,10 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
 
     //reset view to blank screen
     previewWidget->setVideo(NULL);
-    CodecNameLineEdit->setText("");
-    endLineEdit->setText("");
-    widthLineEdit->setText("");
-    heightLineEdit->setText("");
+    CodecNameLineEdit->clear();
+    endLineEdit->clear();
+    widthLineEdit->clear();
+    heightLineEdit->clear();
 
     if (is) {
         delete is;
@@ -119,6 +119,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             previewWidget->updateFrame(is->getFirstFrame());
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
+            CodecNameLineEdit->home(false);
             endLineEdit->setText( QString::number(qMax(1, is->getNumFrames())) );
             // is there more than one frame ?
             if ( is->getNumFrames() > 1 ) {
@@ -128,14 +129,8 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             // display size
             widthLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameWidth()).arg(is->getFrameWidth()));
             heightLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameHeight()).arg(is->getFrameHeight()));
-
-            previewWidget->setFixedWidth( previewWidget->height() * is->getStreamAspectRatio() );
-            gridLayout->update();
         }
-
-
     }
-
 }
 
 void VideoFileDialogPreview::on_customSizeCheckBox_toggled(bool on){

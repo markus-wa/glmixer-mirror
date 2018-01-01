@@ -64,8 +64,8 @@ void VideoFileDisplayWidget::setVideo(VideoFile *f){
 void VideoFileDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
+    setBackgroundColor(palette().color(QPalette::Window));
 
-//    cubeTexture = bindTexture(QImage("./cubelogo.png"));
     glGenTextures(1, &textureIndex);
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
