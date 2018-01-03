@@ -145,7 +145,7 @@ QPixmap WorkspaceManager::getPixmap(int index, bool active)
 
     // Draw the workspace icon
     QPainter painter(&pix);
-    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::Antialiasing, false);
 
     painter.setPen(QPen(brush, 2));
     if (!active)
@@ -154,10 +154,15 @@ QPixmap WorkspaceManager::getPixmap(int index, bool active)
         painter.setBrush(Qt::white);
     painter.drawRoundedRect(rect, s / 4, s / 4);
 
-    painter.setFont(QFont(getMonospaceFont(), s / 2 + 2));
+    painter.setFont(QFont(getMonospaceFont(), s / 2 + 4));
     painter.drawText(rect, Qt::AlignCenter, QString::number(index));
 
 //    pix.save(tr("ws_%1_%2.png").arg(index).arg(active));
 
-    return pix.scaled(16, 16);
+#ifdef Q_OS_MAC
+    return pix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+#else
+    return pix;
+#endif    
+    
 }

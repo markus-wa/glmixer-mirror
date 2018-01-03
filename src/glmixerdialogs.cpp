@@ -98,7 +98,7 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
-    vl = new QVBoxLayout(this);
+    vl = new QVBoxLayout();
     Display = new QLabel(this);
     Display->setText(tr("Recursive frames"));
     recursiveButton = new QToolButton(this);
@@ -114,7 +114,7 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
     vl->addWidget(recursiveButton);
     horizontalLayout->addLayout(vl);
 
-    vl = new QVBoxLayout(this);
+    vl = new QVBoxLayout();
     Display = new QLabel(this);
     Display->setText(tr("One frame"));
 

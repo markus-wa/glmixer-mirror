@@ -291,15 +291,12 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
     // display loading screen
     _image = QImage(QString(":/glmixer/textures/loading.png"));
 
-    // configure web page
-    _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled,  true);
-    _page.settings()->setAttribute( QWebSettings::PluginsEnabled, true);
-    _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, true);
-    _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, true);
-    //_page.settings()->setAttribute( QWebSettings::NotificationsEnabled, false);
+    // configure web page to minimum
+    _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::PluginsEnabled, false);
+    _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, false);
+    _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, false);
 
-    // enable cookies
-    _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
     _page.setPreferredContentsSize(QSize(w,h));
 
     // render page when loaded
