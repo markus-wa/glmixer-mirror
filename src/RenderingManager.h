@@ -135,6 +135,7 @@ public:
     SourceSet::const_iterator getBegin() const;
     SourceSet::const_iterator getEnd() const;
     SourceSet::iterator getById(const GLuint id);
+    SourceSet::const_iterator getById(const GLuint id) const;
     SourceSet::iterator getByName(const QString name);
     SourceSet::const_iterator getByName(const QString name) const;
     bool notAtEnd(SourceSet::const_iterator itsource) const;

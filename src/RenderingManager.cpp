@@ -1371,7 +1371,7 @@ void RenderingManager::resetCurrentSource(){
 
 void RenderingManager::refreshCurrentSource(){
 
-    if(isValid(_currentSource)) {
+    if(notAtEnd(_currentSource)) {
         emit currentSourceChanged(_currentSource);
     }
 
@@ -1517,7 +1517,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
     SourceSet::iterator it_oldsource = getById(oldsource);
     SourceSet::iterator it_newsource = getById(newsource);
 
-    if ( isValid(it_oldsource) && isValid(it_newsource)) {
+    if ( notAtEnd(it_oldsource) && notAtEnd(it_newsource)) {
 
         // inform undo manager
         emit methodCalled(QString("_replaceSource(%1,%2)").arg(oldsource).arg(newsource));
@@ -1658,10 +1658,13 @@ bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
     return (itsource != _front_sources.end());
 }
 
-bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
+bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const {
 
-    if (notAtEnd(itsource) && (*itsource) != NULL)
-        return (_front_sources.find(*itsource) != _front_sources.end());
+    // basic check
+    if (notAtEnd(itsource) && (*itsource) != NULL) 
+        // a source is valid if it is in the _front_sources list 
+        // (there are other sources and other lists of source)
+       return (_front_sources.find(*itsource) != _front_sources.end());
     else
         return false;
 }
@@ -1825,7 +1828,9 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 
             foundDepth = d;
         }
+        else
         // else the foundDepth will be invalid
+            AllocationException().raise();
     }
 
     // eventually the tentative depth is ok
@@ -1839,12 +1844,12 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
     // ignore invalid iterator
     if (itsource != _front_sources.end()) {
 
+        // clamp values
+        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
         // ignore if no change required
         if ( ABS(newdepth - (*itsource)->getDepth()) < EPSILON)
             return itsource;
-
-        // clamp values
-        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 
         // inform undo
         emit methodCalled(QString("_changeDepth(%1,double)").arg((*itsource)->getId()));
@@ -1866,26 +1871,69 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
             newdepth += depthinc;
         }
 
-        // remember pointer to the source
-        Source *tmp = (*itsource);
-        // sort again the set by depth: this is done by removing the element and adding it again after changing its depth
-        _front_sources.erase(itsource);
-        // change the source internal depth value
-        tmp->setDepth(newdepth);
-
+        // do not allow going negative
         if (newdepth < 0) {
+            return itsource;
+        }
+
+ /*       if (newdepth < 0) {
             // if request to place the source in a negative depth, shift all sources forward
             for (SourceSet::iterator it = _front_sources.begin(); it != _front_sources.end(); it++)
                 (*it)->setDepth((*it)->getDepth() - newdepth);
+        }*/
+
+        bool needreordering = false;
+
+        // get source before and source after
+        SourceSet::iterator before = _front_sources.begin();
+        SourceSet::iterator after = _front_sources.begin();
+        SourceSet::iterator i = _front_sources.begin();
+        while (i != _front_sources.end()) {
+            if ( i == itsource ) {
+                after++;
+                break;
+            }
+            if (i != _front_sources.begin())
+                before++;
+            after++;
+            i++;
+        }
+        // if there is a source before
+        if (before != _front_sources.end() && before != itsource && newdepth < (*before)->getDepth()) {
+                needreordering = true;
+        }
+        // if there is a source after
+        if(after != _front_sources.end() && newdepth > (*after)->getDepth()) {
+                needreordering = true;
         }
 
-        // re-insert the source into the sorted list ; it will be placed according to its new depth
-        std::pair<SourceSet::iterator, bool> ret;
-        ret = _front_sources.insert(tmp);
-        if (ret.second)
-            return (ret.first);
-        else
-            return (_front_sources.end());
+        // sort again the set by depth: this is done by removing the element and adding it again after changing its depth            
+        if (needreordering) {
+
+            // make sure we do not keep the _current_cource iterator to an invalid value.
+            unsetCurrentSource();
+
+            // remember pointer to the source
+            Source *tmp = (*itsource);
+            // remove the element
+            _front_sources.erase(itsource);
+            // change the source internal depth value
+            tmp->setDepth(newdepth);
+            // re-insert the source into the sorted list ; it will be placed according to its new depth
+            std::pair<SourceSet::iterator, bool> ret;
+            ret = _front_sources.insert(tmp);
+            // inform of success
+            if (ret.second) 
+                return (ret.first);
+            else 
+                return (_front_sources.end()); // should never happen
+        }
+
+        // no reordering necessary, just
+        // change the source internal depth value
+        (*itsource)->setDepth(newdepth);
+
+        return itsource;
     }
 
     return _front_sources.end();
@@ -1912,7 +1960,12 @@ SourceSet::iterator RenderingManager::getById(const GLuint id) {
     return std::find_if(_front_sources.begin(), _front_sources.end(), hasId(id));
 }
 
-SourceSet::iterator RenderingManager::getByName(const QString name){
+SourceSet::const_iterator RenderingManager::getById(const GLuint id) const {
+
+    return std::find_if(_front_sources.begin(), _front_sources.end(), hasId(id));
+}
+
+SourceSet::iterator RenderingManager::getByName(const QString name) {
 
     return std::find_if(_front_sources.begin(), _front_sources.end(), hasName(name));
 }

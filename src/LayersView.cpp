@@ -961,12 +961,13 @@ void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
     double newdepth = s->getDepth() + depthchange;
 
     // actually perform the depth change for the source
-    SourceSet::iterator grabbedSource = RenderingManager::getInstance()->getById(s->getId());
-    grabbedSource = RenderingManager::getInstance()->changeDepth(grabbedSource, newdepth);
+    SourceSet::iterator previousit = RenderingManager::getInstance()->getById(s->getId());
+    // this might return a different iterator
+    SourceSet::iterator newit = RenderingManager::getInstance()->changeDepth(previousit, newdepth);
 
-    // if we need to set current again
-    if (setcurrent)
-        RenderingManager::getInstance()->setCurrentSource(grabbedSource);
+    // if we need to set current again (argument) and if the iterator was replaced
+    if (setcurrent && newit != previousit)
+        RenderingManager::getInstance()->setCurrentSource(newit);
 
 }
 
