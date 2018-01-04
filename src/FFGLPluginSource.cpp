@@ -21,8 +21,11 @@
  */
 
 #include "common.h"
+
 #include "FFGLPluginSource.moc"
 #include "FFGLPluginInstances.h"
+
+#include <FFGL.h>
 
 #include <QDebug>
 #include <QGLFramebufferObject>
@@ -38,11 +41,12 @@ FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
     _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
 {
     // descriptor for the source texture, used also to store size
-    _inputTexture.Handle = inputTexture.Handle;
-    _inputTexture.Width = inputTexture.Width;
-    _inputTexture.Height = inputTexture.Height;
-    _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
-    _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
+    _inputTexture = new FFGLTextureStruct;
+    _inputTexture->Handle = inputTexture.Handle;
+    _inputTexture->Width = inputTexture.Width;
+    _inputTexture->Height = inputTexture.Height;
+    _inputTexture->HardwareWidth = inputTexture.HardwareWidth;
+    _inputTexture->HardwareHeight = inputTexture.HardwareHeight;
 
 }
 
@@ -183,11 +187,11 @@ FFGLTextureStruct FFGLPluginSource::getInputTextureStruct(){
 
     FFGLTextureStruct it;
 
-    it.Handle = _inputTexture.Handle;
-    it.Width = _inputTexture.Width;
-    it.Height = _inputTexture.Height;
-    it.HardwareWidth = _inputTexture.HardwareWidth;
-    it.HardwareHeight = _inputTexture.HardwareHeight;
+    it.Handle = _inputTexture->Handle;
+    it.Width = _inputTexture->Width;
+    it.Height = _inputTexture->Height;
+    it.HardwareWidth = _inputTexture->HardwareWidth;
+    it.HardwareHeight = _inputTexture->HardwareHeight;
 
     return it;
 }
@@ -196,11 +200,11 @@ FFGLTextureStruct FFGLPluginSource::getInputTextureStruct(){
 void FFGLPluginSource::setInputTextureStruct(FFGLTextureStruct inputTexture)
 {
     // descriptor for the source texture, used also to store size
-    _inputTexture.Handle = inputTexture.Handle;
-    _inputTexture.Width = inputTexture.Width;
-    _inputTexture.Height = inputTexture.Height;
-    _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
-    _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
+    _inputTexture->Handle = inputTexture.Handle;
+    _inputTexture->Width = inputTexture.Width;
+    _inputTexture->Height = inputTexture.Height;
+    _inputTexture->HardwareWidth = inputTexture.HardwareWidth;
+    _inputTexture->HardwareHeight = inputTexture.HardwareHeight;
 }
 
 void FFGLPluginSource::update()
@@ -256,10 +260,10 @@ void FFGLPluginSource::update()
         FFGLTextureStruct *inputTextures[1];
 
         // if a texture handle was provided
-        if (_inputTexture.Handle > 0) {
+        if (_inputTexture->Handle > 0) {
             //create the array of OpenGLTextureStruct * to be passed
             //to the plugin
-            inputTextures[0] = &_inputTexture;
+            inputTextures[0] = _inputTexture;
             //provide the 1 input texture structure we allocated above
             processStruct.numInputTextures = 1;
             processStruct.inputTextures = inputTextures;
@@ -280,10 +284,10 @@ void FFGLPluginSource::update()
         if (_enabled)
             // call the plugin's ProcessOpenGL
             callresult = _plugin->CallProcessOpenGL(processStruct);
-        else if ( !_isFreeframeTypeSource && _inputTexture.Handle > 0) {
+        else if ( !_isFreeframeTypeSource && _inputTexture->Handle > 0) {
             // fill-in the FBO with input texture
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, _inputTexture.Handle);
+            glBindTexture(GL_TEXTURE_2D, _inputTexture->Handle);
             glBegin(GL_QUADS);
             //lower left
             glTexCoord2d(0.0, 0.0);
@@ -330,9 +334,9 @@ void FFGLPluginSource::bind() const
     if (_initialized)
         // bind the FBO texture
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-    else if (_inputTexture.Handle > 0)
+    else if (_inputTexture->Handle > 0)
         // bind the input texture
-        glBindTexture(GL_TEXTURE_2D, _inputTexture.Handle);
+        glBindTexture(GL_TEXTURE_2D, _inputTexture->Handle);
 }
 
 bool FFGLPluginSource::initialize()

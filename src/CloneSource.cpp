@@ -27,6 +27,7 @@
 
 #ifdef GLM_FFGL
 #include "FFGLPluginSource.h"
+#include <FFGL.h>
 #endif
 
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;

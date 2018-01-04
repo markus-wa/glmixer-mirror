@@ -23,7 +23,8 @@
 #ifndef FFGLPLUGINSOURCE_H
 #define FFGLPLUGINSOURCE_H
 
-#include <FFGL.h>
+//#include <FFGL.h>
+typedef struct FFGLTextureStructTag FFGLTextureStruct;
 
 #include <QtCore>
 #include <QString>
@@ -124,7 +125,7 @@ protected:
 
 private:
     //this represents the texture (on the GPU) that we feed to the plugins
-    FFGLTextureStruct _inputTexture;
+    FFGLTextureStruct *_inputTexture;
 
     // timer
     QElapsedTimer timer;

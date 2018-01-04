@@ -65,6 +65,7 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #ifdef GLM_FFGL
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSource.h"
+#include <FFGL.h>
 #endif
 
 #ifdef GLM_CUDA

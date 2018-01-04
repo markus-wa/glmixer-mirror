@@ -423,6 +423,9 @@ border-bottom-left-radius: 5px;
        <property name="margin">
         <number>3</number>
        </property>
+       <property name="spacing">
+        <number>3</number>
+       </property>
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">

@@ -32,6 +32,9 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
+#include <FFGL.h>
+
+
 Source::RTTI FFGLSource::type = Source::FFGL_SOURCE;
 bool FFGLSource::playable = true;
 

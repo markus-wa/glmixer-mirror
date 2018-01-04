@@ -25,6 +25,8 @@
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginSourceStack.h"
 
+#include <FFGL.h>
+
 
 FFGLPluginSourceStack::FFGLPluginSourceStack( FFGLPluginSource *ffgl_plugin )
 {
