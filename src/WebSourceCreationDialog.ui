@@ -93,7 +93,7 @@
             <string>Enter a web URL (http://...)</string>
            </property>
            <property name="text">
-            <string>https://vimeo.com/glmixer</string>
+            <string>https://en.wikipedia.org/wiki/Vision_mixer</string>
            </property>
           </widget>
          </item>

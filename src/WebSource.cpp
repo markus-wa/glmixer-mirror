@@ -293,21 +293,28 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
 
     // configure web page to minimum
     _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled, true);
+
+#ifdef Q_OS_WIN
     _page.settings()->setAttribute( QWebSettings::PluginsEnabled, false);
     _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, false);
     _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, false);
+#else
+    _page.settings()->setAttribute( QWebSettings::PluginsEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, true);
+#endif
 
     _page.setPreferredContentsSize(QSize(w,h));
-
-    // render page when loaded
-    qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Loading web page.");
-    connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
-    _page.mainFrame()->load(_url);
 
     // time out 10 seconds
     _timeoutTimer.setSingleShot(true);
     connect(&_timeoutTimer, SIGNAL(timeout()), this, SLOT(timeout()));
     _timeoutTimer.start(10000);
+
+    // render page when loaded
+    qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Loading web page.");
+    connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+    _page.mainFrame()->load(_url);
 
     // updater
     connect(&_updateTimer, SIGNAL(timeout()), this, SLOT(timeupdate()));
@@ -335,13 +342,12 @@ void WebRenderer::render(bool ok)
         // remember page size
         _pagesize = _page.mainFrame()->contentsSize();
 
-        // force reload (to trigger animations if exist)
-        _page.triggerAction(QWebPage::Reload);
-
-        //       _page.mainFrame()->evaluateJavaScript("var mute=function(tag){var elems = document.getElementsByTagName(tag);for(var i = 0; i < elems.length; i++){elems[i].muted=true;}} mute(\"video\");mute (\"audio\");");
-
         _propertyChanged = true;
         _imageChanged = false;
+
+        // force reload (to trigger animations if exist)
+        // _page.triggerAction(QWebPage::Reload);
+
     }
     else
         timeout();
