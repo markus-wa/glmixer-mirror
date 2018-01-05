@@ -259,6 +259,14 @@ void AlgorithmThread::fill(double var) {
         phase = c > 255 ? -phase : c < 0 ? -phase : phase ;
         // fill image
         memset((void *) as->buffer, (unsigned char) CLAMP(c, 0, 255), as->width * as->height * 4);
+
+
+//        double t = (double) (as->width * as->width + as->height * as->height);
+//        for (int x = 0; x < as->width; ++x)
+//            for (int y = 0; y < as->height; ++y)
+////                memset((void *) (as->buffer + (y * as->width + x) * 4), (unsigned char) ( 256.0 * ( (double) (x * x + y * y) / (double) t ) ), 4 );
+//                memset((void *) (as->buffer + (y * as->width + x) * 4), c * (unsigned char) ( 256.0 * ( (double) (x * x + y * y) / (double) t ) ), 4 );
+
     }
     else if (as->algotype == AlgorithmSource::FLAT_COLOR) {
 
@@ -395,7 +403,7 @@ void AlgorithmThread::fill(double var) {
         if (phase > 0) {
             phase = 0;
             for (int i = 0; i < (as->width * as->height * 4); ++i)
-                as->buffer[i] = (unsigned char) ( rand() % 256 );  
+                as->buffer[i] = (unsigned char) ( rand() % 256 );
         }
         // update incremental
         else {

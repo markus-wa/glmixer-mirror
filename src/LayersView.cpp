@@ -966,7 +966,7 @@ void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
     SourceSet::iterator newit = RenderingManager::getInstance()->changeDepth(previousit, newdepth);
 
     // if we need to set current again (argument) and if the iterator was replaced
-    if (setcurrent && newit != previousit)
+    if (setcurrent /*&& newit != previousit*/)
         RenderingManager::getInstance()->setCurrentSource(newit);
 
 }
@@ -974,6 +974,8 @@ void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
 
 void LayersView::grabSource(Source *s, double depth)
 {
+    if (!s) return;
+
     // compute delta depth picking and keep the previous picking depth
     double deltad = depth - picking_grab_depth;
     picking_grab_depth = depth;
@@ -984,15 +986,19 @@ void LayersView::grabSource(Source *s, double depth)
 
 void LayersView::grabSources(Source *s, double depth)
 {
+    if (!s) return;
+
     // compute delta depth picking and keep the previous picking depth
     double deltad = depth - picking_grab_depth;
     picking_grab_depth = depth;
 
+    // remember id of main source
+    GLuint sid =  s->getId();
+
     // move all the source placed forward
-    for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
-        moveSource( *its, deltad, (*its)->getId() == s->getId());
-        s = *RenderingManager::getInstance()->getCurrentSource();
-    }
+    for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
+        moveSource( *its, deltad, (*its)->getId() == sid);
+
 }
 
 

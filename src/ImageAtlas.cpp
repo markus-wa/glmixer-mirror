@@ -179,14 +179,14 @@ int ImageAtlasPage::texturesize() const {
 
 
 int ImageAtlas::texturesize() const {
-    
+
     int s = 0;
     foreach(ImageAtlasPage *P, _atlasPages) {
         s += P->texturesize();
     }
     return s;
 }
-    
+
 ImageAtlasPage::ImageAtlasPage(QSize imagesize, int numimages){
 
     // Check limits of the openGL frame buffer dimensions

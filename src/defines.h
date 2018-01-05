@@ -30,7 +30,7 @@
 #define MAX_DEPTH_LAYER 40.0
 #define MIN_SCALE 0.1
 #define MAX_SCALE 200.0
-#define DEPTH_EPSILON 0.01
+#define DEPTH_EPSILON 0.1
 #define DEPTH_DEFAULT_SPACING 1.0
 #define BORDER_SIZE 0.4
 #define CENTER_SIZE 1.2

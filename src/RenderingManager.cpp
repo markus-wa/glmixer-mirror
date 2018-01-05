@@ -1662,8 +1662,8 @@ bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
 bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const {
 
     // basic check
-    if (notAtEnd(itsource) && (*itsource) != NULL) 
-        // a source is valid if it is in the _front_sources list 
+    if (notAtEnd(itsource) && (*itsource) != NULL)
+        // a source is valid if it is in the _front_sources list
         // (there are other sources and other lists of source)
        return (_front_sources.find(*itsource) != _front_sources.end());
     else
@@ -1861,31 +1861,25 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
         if (newdepth < (*itsource)->getDepth()) {
             sb = _front_sources.begin();
             se = itsource;
-            depthinc = -DEPTH_EPSILON;
+            depthinc = -DEPTH_EPSILON * 2.0;
         } else {
             sb = itsource;
             sb++;
             se = _front_sources.end();
-            depthinc = DEPTH_EPSILON;
+            depthinc = DEPTH_EPSILON * 2.0;
         }
         while (std::find_if(sb, se, isCloseTo(newdepth)) != se) {
             newdepth += depthinc;
         }
 
-        // do not allow going negative
+        // if the action requires to push the source to ZERO
         if (newdepth < 0) {
+            // ignore and return it
             return itsource;
         }
 
- /*       if (newdepth < 0) {
-            // if request to place the source in a negative depth, shift all sources forward
-            for (SourceSet::iterator it = _front_sources.begin(); it != _front_sources.end(); it++)
-                (*it)->setDepth((*it)->getDepth() - newdepth);
-        }*/
-
-        bool needreordering = false;
-
-        // get source before and source after
+        // General case
+        // Lookup for the source just before and source just after
         SourceSet::iterator before = _front_sources.begin();
         SourceSet::iterator after = _front_sources.begin();
         SourceSet::iterator i = _front_sources.begin();
@@ -1899,16 +1893,22 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
             after++;
             i++;
         }
-        // if there is a source before
+
+        // Test if the order with the source before and after would change with the new depth
+        bool needreordering = false;
+        // if there is a source before, and the new depth would be lower
         if (before != _front_sources.end() && before != itsource && newdepth < (*before)->getDepth()) {
-                needreordering = true;
+            // have to swap the source order
+            needreordering = true;
         }
-        // if there is a source after
+        // if there is a source after, and the new depth would be higher
         if(after != _front_sources.end() && newdepth > (*after)->getDepth()) {
-                needreordering = true;
+            // have to swap the source order
+            needreordering = true;
         }
 
-        // sort again the set by depth: this is done by removing the element and adding it again after changing its depth            
+        // We need to reorder the set by depth when changing the depth of the source
+        // this is done by removing the element and adding it again after changing its depth
         if (needreordering) {
 
             // make sure we do not keep the _current_cource iterator to an invalid value.
@@ -1924,19 +1924,19 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
             std::pair<SourceSet::iterator, bool> ret;
             ret = _front_sources.insert(tmp);
             // inform of success
-            if (ret.second) 
+            if (ret.second)
                 return (ret.first);
-            else 
+            else
                 return (_front_sources.end()); // should never happen
         }
 
-        // no reordering necessary, just
-        // change the source internal depth value
+        // no reordering necessary, just change the source internal depth value
         (*itsource)->setDepth(newdepth);
-
+        // and return it
         return itsource;
     }
 
+    // error
     return _front_sources.end();
 }
 
