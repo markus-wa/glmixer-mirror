@@ -1628,9 +1628,13 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 (*its)->setScaleX( sign_x * K );
                 // keep aspect ratio
                 (*its)->setScaleY( sign_y * K / ar);
+                // solves the rescaling of the bounding box to find the new position
+                QRectF sbox = GeometryView::getBoundingBox(*its);
+                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), 
+                                    selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
             }
-            // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
-            else {
+            // Compute scaling to target the scaling of the HEIGHT 
+            else if (a == View::AXIS_VERTICAL) {
                 scale = ref.height() / selectionbox.height();
                 K *= scale * scale;
                 // appy aspect ratio of original source
@@ -1639,11 +1643,17 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 (*its)->setScaleY( sign_y * K );
                 // keep aspect ratio
                 (*its)->setScaleX( sign_x * K * ar);
+                // solves the rescaling of the bounding box to find the new position
+                QRectF sbox = GeometryView::getBoundingBox(*its);
+                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), 
+                                    selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
             }
-
-            // solves the rescaling of the bounding box to find the new position
-            QRectF sbox = GeometryView::getBoundingBox(*its);
-            (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
+            // Rescale all source to the aspect ratio of the FRAME (View::AXIS_BOTH)
+            else {
+                
+                scale = (*its)->getScaleX();
+                (*its)->setScaleY( sign_y * qAbs(scale) * ref.height() / ref.width() );
+            }
 
         }
 
@@ -1671,8 +1681,8 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
             // keep aspect ratio
             s->setScaleY( sign_y * K / ar);
         }
-        // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
-        else {
+        // Compute scaling to target the scaling of the HEIGHT 
+        else if (a == View::AXIS_VERTICAL) {
             scale = ref.height() / GeometryView::getBoundingBox(s).height();
             K *= scale * scale;
             // appy aspect ratio of original source
@@ -1682,7 +1692,11 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
             // keep aspect ratio
             s->setScaleX( sign_x * K * ar);
         }
-
+        // Rescale all source to their original aspect ratio (View::AXIS_BOTH)
+        else {
+            scale = s->getScaleX();
+            s->setScaleY( sign_y * qAbs(scale) / s->getAspectRatio() );
+        }
 
     }
 }
@@ -1692,7 +1706,11 @@ void rotate90Source(Source *s, QRectF box, View::Axis a)
 {
     // if the source is the selection, rotate the selection in reference to the frame
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
-        // NOT IMPLEMENTED
+        // this means reset the rotation of all sources selected
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // reset angle
+            (*its)->setRotationAngle( 0.0 );
+        }
     }
     // default case : rotate the sources in the selection
     else {
@@ -1716,7 +1734,12 @@ void flipSource(Source *s, QRectF box, View::Axis a)
 {
     // if the source is the selection, flip the selection in reference to the frame
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
-        // NOT IMPLEMENTED
+        // this means reset the flipping of all sources selected
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // reset sign of scales
+            (*its)->setScaleX( qAbs( (*its)->getScaleX()) );
+            (*its)->setScaleY( qAbs( (*its)->getScaleY()) );
+        }
     }
     // default case : flip the sources in the selection
     else {
@@ -1732,6 +1755,30 @@ void flipSource(Source *s, QRectF box, View::Axis a)
         }
 
     }
+}
+
+void rescaleSource(Source *s, QRectF ref, View::Axis a)
+{
+    // set aspect ratio of all sources selected
+    for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+       
+        double sign_x = SIGN( (*its)->getScaleX() );
+        double sign_y = SIGN( (*its)->getScaleY() );
+       
+        // set aspect ratio to match rendering resolution
+        if (a == View::AXIS_BOTH) {
+            double U = MINI( ref.width(), ref.height() );
+            (*its)->setScaleX( sign_x * SOURCE_UNIT * (double) (*its)->getFrameWidth() / U );
+            (*its)->setScaleY( sign_y * SOURCE_UNIT * (double) (*its)->getFrameHeight() / U );
+        } 
+        // set widh and height so that aspect ratio is 1.0
+        else { 
+            double U = MAXI( ABS((*its)->getScaleX()), ABS((*its)->getScaleY()) );
+            (*its)->setScaleX( sign_x * U );
+            (*its)->setScaleY( sign_y * U );
+        }
+    }
+
 }
 
 void GeometryView::transformSelection(View::Transformation t, View::Axis a, View::Reference r)
@@ -1767,13 +1814,28 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
         }
     }
     // transform the selection in reference to the frame (View::REFERENCE_FRAME)
-    else {
+    else if (r == View::REFERENCE_FRAME) {
         // reference is the frame
         QRectF ref = QRectF(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),-SOURCE_UNIT, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
         // perform the computations
         if (t == View::TRANSFORM_SCALE )
             resizeSource(SelectionManager::getInstance()->selectionSource(), ref, a);
-        // NB : not implemented (not meaningful?) for rotation and flip
+        else if (t == View::TRANSFORM_FLIP )
+            // reset the flipping of the sources
+            flipSource(SelectionManager::getInstance()->selectionSource(), ref, a);
+        else if (t == View::TRANSFORM_ROTATE )
+            // reset the rotation of the sources
+            rotate90Source(SelectionManager::getInstance()->selectionSource(), ref, a);
+    }
+    // transform the selection in reference to the resolution of the rendering (View::REFERENCE_PIXEL)
+    else {
+        // reference is the pixel resolution
+        QRectF ref = QRectF(0.0, 0.0, (double) RenderingManager::getInstance()->getFrameBufferWidth(), 
+                            (double) RenderingManager::getInstance()->getFrameBufferHeight());
+        
+        if (t == View::TRANSFORM_SCALE )
+            rescaleSource(SelectionManager::getInstance()->selectionSource(), ref, a);
+
     }
 
 }

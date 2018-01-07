@@ -273,12 +273,14 @@ public:
 
     typedef enum {
         AXIS_HORIZONTAL = 0,
-        AXIS_VERTICAL
+        AXIS_VERTICAL,
+        AXIS_BOTH
     } Axis;
 
     typedef enum {
         REFERENCE_SOURCES = 0,
-        REFERENCE_FRAME
+        REFERENCE_FRAME,
+        REFERENCE_PIXEL
     } Reference;
 
     typedef enum {

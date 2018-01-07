@@ -142,49 +142,97 @@ void LayoutToolboxWidget::on_distributeVerticalTopButton_clicked(){
 void LayoutToolboxWidget::on_sizeHorizontalButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeHorizontalFrameButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_HORIZONTAL, View::REFERENCE_FRAME);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeVerticalButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeVerticalFrameButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_VERTICAL, View::REFERENCE_FRAME);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeRenderingAspectButton_clicked(){
-
-    RenderingManager::getInstance()->setRenderingAspectRatioCurrentSource();
+    
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_BOTH, View::REFERENCE_FRAME);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeOriginalAspectButton_clicked(){
+    
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_BOTH, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
+}
 
-    RenderingManager::getInstance()->setOriginalAspectRatioCurrentSource();
+void LayoutToolboxWidget::on_sizePixelAspectButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_BOTH, View::REFERENCE_PIXEL);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
+}
+
+void LayoutToolboxWidget::on_sizeSquareAspectButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_HORIZONTAL, View::REFERENCE_PIXEL);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
+}
+
+void LayoutToolboxWidget::on_rotateReset_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_HORIZONTAL, View::REFERENCE_FRAME);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_rotateClockwiseButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_rotateCounterclockwiseButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_flipHorizontalButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_FLIP, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_flipVerticalButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_FLIP, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
+}
+
+void LayoutToolboxWidget::on_flipReset_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_FLIP, View::AXIS_VERTICAL, View::REFERENCE_FRAME);
+    // update GUI
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
