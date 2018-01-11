@@ -9,6 +9,7 @@
 #define EPSILON 0.00001
 #define LOG100(val) (50.0/log(10.0)*log((float)val + 1.0))
 #define EXP100(val) (exp(log(10.0)/50.0*(float)(val))-1.0)
+#define EUCLIDEAN(P1, P2) sqrt((P1.x() - P2.x()) * (P1.x() - P2.x()) + (P1.y() - P2.y()) * (P1.y() - P2.y()))
 
 #define FRAME_DURATION 15
 

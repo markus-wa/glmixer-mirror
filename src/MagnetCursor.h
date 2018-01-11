@@ -26,9 +26,14 @@
 #ifndef MAGNETCURSOR_H_
 #define MAGNETCURSOR_H_
 
+#include <QObject>
+
+#include "defines.h"
 #include "Cursor.h"
-#define MIN_FORCE 1
-#define MAX_FORCE 20
+#define MIN_DISTANCE 30
+#define MAX_DISTANCE 300
+#define MIN_DURATION 0.0
+#define MAX_DURATION 1.0
 
 class MagnetCursor: public QObject, public Cursor
 {
@@ -37,25 +42,31 @@ class MagnetCursor: public QObject, public Cursor
 public:
     MagnetCursor();
 
-	void update(QMouseEvent *e);
-	bool apply(double fpsaverage);
-	bool wheelEvent(QWheelEvent * event);
-	void draw(GLint viewport[4]);
+        void update(QMouseEvent *e);
+        bool apply(double fpsaverage);
+        bool wheelEvent(QWheelEvent * event);
+        void draw(GLint viewport[4]);
+        void setParameter(float percent);
 
-	inline int getForce() const { return (int) force; }
+        inline int getRadius() const { return radius; }
+        inline double getDuration() const { return duration; }
 
 public Q_SLOTS:
-	inline void setForce(int s) { force = (double) s; }
+        inline void setRadius(int r) { radius = CLAMP(r, MIN_DISTANCE, MAX_DISTANCE); }
+        inline void setDuration(double t) { duration = CLAMP(t, MIN_DURATION, MAX_DURATION); }
 
-Q_SIGNALS:
-	void forceChanged(int s);
+signals:
+        void radiusChanged(int m);
 
 private:
 
-	double force;
+        int radius;
+        double duration;
+        QPointF targetPos;
+        bool targethit;
 
-	// timing
-	double t;
+        // timing
+        QElapsedTimer targetTimer;
 };
 
 #endif /* MAGNETCURSOR_H_ */

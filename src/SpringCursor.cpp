@@ -49,9 +49,9 @@ void SpringCursor::update(QMouseEvent *e){
 
 bool SpringCursor::apply(double fpsaverage){
 
-	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
+    double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
-	// animate the shadow
+    // animate the shadow
     if (active) {
 
         releasePos = mousePos;
@@ -82,20 +82,20 @@ bool SpringCursor::apply(double fpsaverage){
         _velocity = QVector2D(0,0);
     }
 
-	return false;
+    return false;
 }
 
 
 bool SpringCursor::wheelEvent(QWheelEvent * event){
 
-	if (!active)
-		return false;
+    if (!active)
+        return false;
 
-	mass += ((float) event->delta() * mass * MIN_MASS) / (30.0 * MAX_MASS) ;
-	mass = CLAMP(mass, MIN_MASS, MAX_MASS);
+    mass += ((float) event->delta() * mass * MIN_MASS) / (30.0 * MAX_MASS) ;
+    mass = CLAMP(mass, MIN_MASS, MAX_MASS);
 
-	emit massChanged((int)mass);
-	return true;
+    emit massChanged((int)mass);
+    return true;
 }
 
 
@@ -108,37 +108,37 @@ void SpringCursor::setParameter(float percent){
 
 void SpringCursor::draw(GLint viewport[4]) {
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
 
-	glPointSize(10 + mass);
-	glColor4ub(COLOR_CURSOR, 255);
+    glPointSize(10 + mass);
+    glColor4ub(COLOR_CURSOR, 255);
 
-	glBegin(GL_POINTS);
-	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-	glEnd();
+    glBegin(GL_POINTS);
+    glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glEnd();
 
-	// dashed line with pattern depending on spring lenght
-	glEnable(GL_LINE_STIPPLE);
-	glLineStipple( int((releasePos-shadowPos).manhattanLength() / 50.0), 0xAAAA);
+    // dashed line with pattern depending on spring lenght
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple( int((releasePos-shadowPos).manhattanLength() / 50.0), 0xAAAA);
 
-	glLineWidth(2);
-	glBegin(GL_LINES);
-	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
-	glEnd();
+    glLineWidth(2);
+    glBegin(GL_LINES);
+    glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+    glEnd();
 
-	glDisable(GL_LINE_STIPPLE);
+    glDisable(GL_LINE_STIPPLE);
 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 }
 
 

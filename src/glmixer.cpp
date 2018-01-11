@@ -55,6 +55,7 @@
 #include "AxisCursor.h"
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
+#include "MagnetCursor.h"
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
 #include "MixingToolboxWidget.h"
@@ -258,6 +259,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionCursorLine->setData(ViewRenderWidget::CURSOR_LINE);
     cursorActions->addAction(actionCursorFuzzy);
     actionCursorFuzzy->setData(ViewRenderWidget::CURSOR_FUZZY);
+    cursorActions->addAction(actionCursorMagnet);
+    actionCursorMagnet->setData(ViewRenderWidget::CURSOR_MAGNET);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
     cursor_normal->setDefaultAction(actionCursorNormal);
@@ -266,6 +269,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     cursor_axis->setDefaultAction(actionCursorAxis);
     cursor_line->setDefaultAction(actionCursorLine);
     cursor_fuzzy->setDefaultAction(actionCursorFuzzy);
+    cursor_magnet->setDefaultAction(actionCursorMagnet);
 
     QActionGroup *aspectRatioActions = new QActionGroup(this);
     Q_CHECK_PTR(aspectRatioActions);
@@ -575,12 +579,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SIGNAL(radiusChanged(int)), cursorFuzzyRadius, SLOT(setValue(int)) );
     QObject::connect(cursorFuzzyRadius, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setRadius(int)) );
     QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
+    QObject::connect(dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SIGNAL(radiusChanged(int)), cursorMagnetRadius, SLOT(setValue(int)) );
+    QObject::connect(cursorMagnetRadius, SIGNAL(valueChanged(int)), dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SLOT(setRadius(int)) );
 
     QObject::connect(resetElastic, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
     QObject::connect(resetDelay, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
     QObject::connect(resetLine, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
     QObject::connect(resetFuzzy, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
-    
+    QObject::connect(resetMagnet, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+
     // connect actions with selectionManager
     QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
     QObject::connect(actionSelectInvert, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(invertSelection()));
@@ -1201,7 +1208,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // Among playable sources, there is the particular case of video sources :
         if ((*csi)->isPlayable()) {
 
-            // Set the status of start button 
+            // Set the status of start button
             startButton->setChecked( (*csi)->isPlaying() );
             QObject::connect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
 
@@ -2659,6 +2666,9 @@ void GLMixer::readSettings( QString pathtobin )
         case ViewRenderWidget::CURSOR_FUZZY:
             actionCursorFuzzy->trigger();
             break;
+        case ViewRenderWidget::CURSOR_MAGNET:
+            actionCursorMagnet->trigger();
+            break;
         default:
         case ViewRenderWidget::CURSOR_NORMAL:
             actionCursorNormal->trigger();
@@ -3592,22 +3602,25 @@ void GLMixer::setBusy(bool busy)
 void GLMixer::resetCurrentCursor()
 {
     switch( cursorOptionWidget->currentIndex() ) {
-        case 1:
-            cursorSpringMass->setValue(5);
+    case 1:
+        cursorSpringMass->setValue(5);
         break;
-        case 2:
-            cursorDelayLatency->setValue(1.0);
-            cursorDelayFiltering->setValue(10);
+    case 2:
+        cursorDelayLatency->setValue(1.0);
+        cursorDelayFiltering->setValue(10);
         break;
-        case 4:
-            cursorLineSpeed->setValue(100);
-            cursorLineWaitDuration->setValue(1.0);
+    case 4:
+        cursorLineSpeed->setValue(100);
+        cursorLineWaitDuration->setValue(1.0);
         break;
-        case 5:
-            cursorFuzzyRadius->setValue(50);
-            cursorFuzzyFiltering->setValue(5);
+    case 5:
+        cursorFuzzyRadius->setValue(50);
+        cursorFuzzyFiltering->setValue(5);
         break;
-        default:
+    case 6:
+        cursorMagnetRadius->setValue(100);
+        break;
+    default:
         break;
     }
 }

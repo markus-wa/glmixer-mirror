@@ -25,97 +25,103 @@
 
 #include <cmath>
 
-#define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
-
 #include "MagnetCursor.moc"
 
-MagnetCursor::MagnetCursor() : Cursor(), force(MIN_FORCE), t(0.0)
+MagnetCursor::MagnetCursor() : Cursor(),
+    radius(150.0),
+    duration(0.0)
 {
-
+    targetPos = QPointF(0,0);
 }
 
 void MagnetCursor::update(QMouseEvent *e){
 
-	Cursor::update(e);
+    Cursor::update(e);
 
-	if (e->type() == QEvent::MouseButtonPress){
-		// reset time
-		t = 0.0;
-	}
+    if (e->type() == QEvent::MouseButtonPress){
+        // reset time
+    }
 }
 
 bool MagnetCursor::apply(double fpsaverage){
 
-	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
+    double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
-	t += 3.0 * dt;
-	if (t > 3.14) t = 0.0;
+    // animate the shadow
+    if (active) {
 
-	// animate the shadow
-	if (active) {
+        // where is the target ?
+        float d = EUCLIDEAN(pressPos, mousePos);
+        if (d > radius)
+            targetPos = mousePos;
+        else
+            targetPos = pressPos;
 
-		shadowPos = mousePos;
+        shadowPos = targetPos;
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 
 bool MagnetCursor::wheelEvent(QWheelEvent * event){
 
-	if (!active)
-		return false;
+    if (!active)
+        return false;
 
-	if (!active)
-		return false;
+    radius += (float) event->delta() / 12.0 ;
+    radius = CLAMP(radius, MIN_DISTANCE, MAX_DISTANCE);
 
-	force += ((float) event->delta() * force * MIN_FORCE) / (60.0 * MAX_FORCE) ;
-	force = CLAMP(force, MIN_FORCE, MAX_FORCE);
+    emit radiusChanged((int)radius);
 
-//		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
-//		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
-	emit forceChanged((int)force);
-
-	return true;
+    return true;
 }
 
+void MagnetCursor::setParameter(float percent){
+
+    radius = MIN_DISTANCE + (MAX_DISTANCE - MIN_DISTANCE) * (percent-0.1);
+
+    emit radiusChanged((int)radius);
+}
 
 void MagnetCursor::draw(GLint viewport[4]) {
-//	glDisable(GL_TEXTURE_2D);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
 
-	glColor4ub(COLOR_CURSOR, 255);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
 
-	glTranslatef(shadowPos.x(), viewport[3] - shadowPos.y(), 0.0);
+    glColor4ub(COLOR_CURSOR, 255);
 
-	glPointSize(10 + force);
-	glBegin(GL_POINTS);
-	glVertex2d(0.0, 0.0);
-	glEnd();
+    glPointSize(10);
+    glBegin(GL_POINTS);
+    glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
+    glEnd();
 
-	glLineWidth(2);
-	float r = (2.0 +cos(t + 1.6)) * 20.0;
-	glBegin(GL_LINE_LOOP);
-	for (float i = 0; i < 2.0 * M_PI; i += 0.2)
-		glVertex3f( r * cos(i), r * sin(i), 0);
-	glEnd();
-	r = (1.0 +cos(t)) * 20.0;
-	glBegin(GL_LINE_LOOP);
-	for (float i = 0; i < 2.0 * M_PI; i += 0.2)
-		glVertex3f( r * cos(i), r * sin(i), 0);
-	glEnd();
+    glPointSize(15);
+    glBegin(GL_POINTS);
+    glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glEnd();
 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-//	glEnable(GL_TEXTURE_2D);
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple( 1, 0x9999);
+
+    glTranslatef(mousePos.x(), viewport[3] - mousePos.y(), 0.0);
+    glLineWidth(1);
+    glBegin(GL_LINE_LOOP);
+    for (float i = 0; i < 2.0 * M_PI; i += 0.2)
+            glVertex2d( radius * cos(i), radius * sin(i));
+    glEnd();
+
+    glDisable(GL_LINE_STIPPLE);
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 }

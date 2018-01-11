@@ -38,13 +38,7 @@
 #include "View.h"
 
 class QGLShaderProgram;
-
 class Cursor;
-class SpringCursor;
-class DelayCursor;
-class AxisCursor;
-class LineCursor;
-class FuzzyCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -127,7 +121,7 @@ public:
     void setToolMode(toolMode m, View::viewMode v = View::NULLVIEW);
     toolMode getToolMode(View::viewMode v = View::NULLVIEW);
 
-    typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
+    typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY, CURSOR_MAGNET} cursorMode;
     void setCursorMode(cursorMode m);
     cursorMode getCursorMode();
     Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
@@ -240,11 +234,12 @@ private:
 
     // C u r s o r s
     Cursor *_currentCursor;
-    SpringCursor *_springCursor;
-    DelayCursor *_delayCursor;
-    AxisCursor *_axisCursor;
-    LineCursor *_lineCursor;
-    FuzzyCursor *_fuzzyCursor;
+    class SpringCursor *_springCursor;
+    class DelayCursor *_delayCursor;
+    class AxisCursor *_axisCursor;
+    class LineCursor *_lineCursor;
+    class FuzzyCursor *_fuzzyCursor;
+    class MagnetCursor *_magnetCursor;
     bool cursorEnabled;
 
     // M e s s a g e s

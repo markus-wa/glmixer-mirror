@@ -25,12 +25,9 @@
 
 #include <cmath>
 
-#define euclidean(P1, P2) sqrt((P1.x() - P2.x()) * (P1.x() - P2.x()) + (P1.y() - P2.y()) * (P1.y() - P2.y()))
-
 #include "LineCursor.moc"
 
-LineCursor::LineCursor()
-    : Cursor()
+LineCursor::LineCursor() : Cursor()
     , speed(100.0)
     , waitTime(1.0)
     , pos(0)
@@ -69,14 +66,14 @@ bool LineCursor::apply(double fpsaverage)
                 pos = 0;
             } else {
 
-                if (euclidean(releasePos, pressPos) > 1) {
+                if (EUCLIDEAN(releasePos, pressPos) > 1) {
                     // move by :  speed * delta T * direction vector
                     pos += speed * (double(shadowTimer.restart()) / 1000.0);
-                    shadowPos = pressPos + pos * (releasePos - pressPos) / euclidean(releasePos, pressPos);
+                    shadowPos = pressPos + pos * (releasePos - pressPos) / EUCLIDEAN(releasePos, pressPos);
                 }
 
                 // interpolation finished?
-                if (euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)) {
+                if (EUCLIDEAN(pressPos, shadowPos) > EUCLIDEAN(releasePos, pressPos)) {
                     // reset all
                     pressPos = mousePos;
                     shadowPos = mousePos;
@@ -137,9 +134,9 @@ void LineCursor::draw(GLint viewport[4])
     QPointF p(pressPos);
     glPointSize(5);
     glBegin(GL_POINTS);
-    while (euclidean(releasePos, p) > speed) {
+    while (EUCLIDEAN(releasePos, p) > speed) {
         glVertex2d(p.x(), (viewport[3] - p.y()));
-        p += speed / euclidean(releasePos, pressPos) * (releasePos - pressPos);
+        p += speed / EUCLIDEAN(releasePos, pressPos) * (releasePos - pressPos);
     }
     glVertex2d(p.x(), (viewport[3] - p.y()));
     glEnd();

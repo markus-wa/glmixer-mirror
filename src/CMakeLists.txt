@@ -63,6 +63,7 @@ SET(GLMIXER_SRCS
     AxisCursor.cpp
     LineCursor.cpp
     FuzzyCursor.cpp
+    MagnetCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
     glmixer.cpp
@@ -489,7 +490,7 @@ IF(APPLE)
     # Install needed Qt plugins by copying directories from the qt installation
     # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
     INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime)
-    
+
     #--------------------------------------------------------------------------------
     # install a qt.conf file
     # this inserts some cmake code into the install script to write the file

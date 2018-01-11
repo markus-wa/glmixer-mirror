@@ -40,6 +40,7 @@
 #include "AxisCursor.h"
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
+#include "MagnetCursor.h"
 #include "glmixer.h"
 #include "WorkspaceManager.h"
 
@@ -199,6 +200,8 @@ ViewRenderWidget::ViewRenderWidget() :
     Q_CHECK_PTR(_lineCursor);
     _fuzzyCursor = new FuzzyCursor;
     Q_CHECK_PTR(_fuzzyCursor);
+    _magnetCursor = new MagnetCursor;
+    Q_CHECK_PTR(_magnetCursor);
     // sets the current cursor
     _currentCursor = 0;
     cursorEnabled = false;
@@ -260,6 +263,7 @@ ViewRenderWidget::~ViewRenderWidget()
     delete _axisCursor;
     delete _lineCursor;
     delete _fuzzyCursor;
+    delete _magnetCursor;
 }
 
 
@@ -531,6 +535,9 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
     case ViewRenderWidget::CURSOR_FUZZY:
         _currentCursor = _fuzzyCursor;
         break;
+    case ViewRenderWidget::CURSOR_MAGNET:
+        _currentCursor = _magnetCursor;
+        break;
     default:
     case ViewRenderWidget::CURSOR_NORMAL:
         _currentCursor = 0;
@@ -552,6 +559,8 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
         return ViewRenderWidget::CURSOR_LINE;
     if (_currentCursor == _fuzzyCursor)
         return ViewRenderWidget::CURSOR_FUZZY;
+    if (_currentCursor == _magnetCursor)
+        return ViewRenderWidget::CURSOR_MAGNET;
 
     return ViewRenderWidget::CURSOR_NORMAL;
 }
@@ -559,20 +568,21 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 Cursor *ViewRenderWidget::getCursor(cursorMode m)
 {
     switch(m) {
-        case ViewRenderWidget::CURSOR_DELAY:
-            return (Cursor*)_delayCursor;
-        case ViewRenderWidget::CURSOR_SPRING:
-            return (Cursor*)_springCursor;
-        case ViewRenderWidget::CURSOR_AXIS:
-            return (Cursor*)_axisCursor;
-        case ViewRenderWidget::CURSOR_LINE:
-            return (Cursor*)_lineCursor;
-        case ViewRenderWidget::CURSOR_FUZZY:
-            return (Cursor*)_fuzzyCursor;
-            break;
-        default:
-        case ViewRenderWidget::CURSOR_NORMAL:
-            return 0;
+    case ViewRenderWidget::CURSOR_DELAY:
+        return (Cursor*)_delayCursor;
+    case ViewRenderWidget::CURSOR_SPRING:
+        return (Cursor*)_springCursor;
+    case ViewRenderWidget::CURSOR_AXIS:
+        return (Cursor*)_axisCursor;
+    case ViewRenderWidget::CURSOR_LINE:
+        return (Cursor*)_lineCursor;
+    case ViewRenderWidget::CURSOR_FUZZY:
+        return (Cursor*)_fuzzyCursor;
+    case ViewRenderWidget::CURSOR_MAGNET:
+        return (Cursor*)_magnetCursor;
+    default:
+    case ViewRenderWidget::CURSOR_NORMAL:
+        return 0;
     }
 
 }
@@ -856,7 +866,9 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
     event->accept();
 
     if (cursorEnabled) {
+        // inform cursor of release event
         _currentCursor->update(event);
+
         // disable cursor
         setCursorEnabled(false);
     }
