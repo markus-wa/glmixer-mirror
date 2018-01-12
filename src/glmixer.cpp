@@ -581,12 +581,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
     QObject::connect(dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SIGNAL(radiusChanged(int)), cursorMagnetRadius, SLOT(setValue(int)) );
     QObject::connect(cursorMagnetRadius, SIGNAL(valueChanged(int)), dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SLOT(setRadius(int)) );
+    QObject::connect(cursorMagnetStrength, SIGNAL(valueChanged(double)), dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SLOT(setStrength(double)) );
 
-    QObject::connect(resetElastic, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
-    QObject::connect(resetDelay, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
-    QObject::connect(resetLine, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
-    QObject::connect(resetFuzzy, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
-    QObject::connect(resetMagnet, SIGNAL(clicked()), this, SLOT(resetCurrentCursor()));
+    connect(resetElastic, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
+    connect(resetDelay, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
+    connect(resetLine, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
+    connect(resetFuzzy, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
+    connect(resetMagnet, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
 
     // connect actions with selectionManager
     QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
@@ -2681,15 +2682,19 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("cursorLineSpeed"))
         cursorLineSpeed->setValue(settings.value("cursorLineSpeed").toInt());
     if (settings.contains("cursorLineWaitDuration"))
-        cursorLineWaitDuration->setValue(settings.value("cursorLineWaitDuration").toInt());
+        cursorLineWaitDuration->setValue(settings.value("cursorLineWaitDuration").toDouble());
     if (settings.contains("cursorDelayLatency"))
-        cursorDelayLatency->setValue(settings.value("cursorDelayLatency").toInt());
+        cursorDelayLatency->setValue(settings.value("cursorDelayLatency").toDouble());
     if (settings.contains("cursorDelayFiltering"))
         cursorDelayFiltering->setValue(settings.value("cursorDelayFiltering").toInt());
     if (settings.contains("cursorFuzzyRadius"))
         cursorFuzzyRadius->setValue(settings.value("cursorFuzzyRadius").toInt());
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
+    if (settings.contains("cursorMagnetRadius"))
+        cursorMagnetRadius->setValue(settings.value("cursorMagnetRadius").toInt());
+    if (settings.contains("cursorMagnetStrength"))
+        cursorMagnetStrength->setValue(settings.value("cursorMagnetStrength").toDouble());
 
     // last tools used
     if (settings.contains("lastToolMixing"))
@@ -2754,6 +2759,8 @@ void GLMixer::saveSettings()
     settings.setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
     settings.setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
     settings.setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
+    settings.setValue("cursorMagnetRadius", cursorMagnetRadius->value() );
+    settings.setValue("cursorMagnetStrength", cursorMagnetStrength->value() );
 
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
@@ -3601,6 +3608,7 @@ void GLMixer::setBusy(bool busy)
 
 void GLMixer::resetCurrentCursor()
 {
+
     switch( cursorOptionWidget->currentIndex() ) {
     case 1:
         cursorSpringMass->setValue(5);
@@ -3618,7 +3626,8 @@ void GLMixer::resetCurrentCursor()
         cursorFuzzyFiltering->setValue(5);
         break;
     case 6:
-        cursorMagnetRadius->setValue(100);
+        cursorMagnetRadius->setValue(150);
+        cursorMagnetStrength->setValue(1.0);
         break;
     default:
         break;

@@ -95,10 +95,10 @@ public:
 
     }
 
-    /**
-         *
-         * @return True if the event was processed and used.
-         */
+    /*
+     *
+     * @return True if the event was processed and used.
+     */
     virtual bool wheelEvent(QWheelEvent * event) {
         return false;
     }

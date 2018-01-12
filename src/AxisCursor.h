@@ -35,17 +35,15 @@ class AxisCursor: public QObject, public Cursor
     Q_OBJECT
 
 public:
-	AxisCursor();
+    AxisCursor();
 
-//	void update(QMouseEvent *e);
-	bool apply(double fpsaverage);
-	bool wheelEvent(QWheelEvent * event);
-	void draw(GLint viewport[4]);
-
+    bool apply(double fpsaverage);
+    bool wheelEvent(QWheelEvent * event);
+    void draw(GLint viewport[4]);
 
 private:
 
-	bool x_axis;
+    bool x_axis;
 };
 
 #endif /* AxisCursor_H_ */

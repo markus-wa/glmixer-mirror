@@ -34,16 +34,6 @@ AxisCursor::AxisCursor() : Cursor(), x_axis(true)
 
 }
 
-//void AxisCursor::update(QMouseEvent *e){
-//
-//	Cursor::update(e);
-//
-//	if (e->type() == QEvent::MouseButtonPress){
-//		// reset time
-//		t = 0.0;
-//		duration = 0.0;
-//	}
-//}
 
 bool AxisCursor::apply(double fpsaverage){
 

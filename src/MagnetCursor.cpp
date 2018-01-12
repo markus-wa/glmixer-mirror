@@ -29,17 +29,23 @@
 
 MagnetCursor::MagnetCursor() : Cursor(),
     radius(150.0),
-    duration(0.0)
+    strength(1.0),
+    targethit(false),
+    targetmode(false)
 {
     targetPos = QPointF(0,0);
 }
+
 
 void MagnetCursor::update(QMouseEvent *e){
 
     Cursor::update(e);
 
     if (e->type() == QEvent::MouseButtonPress){
-        // reset time
+        // reset
+        targetPos = QPointF(0,0);
+        targethit = false;
+        targetmode = false;
     }
 }
 
@@ -50,14 +56,40 @@ bool MagnetCursor::apply(double fpsaverage){
     // animate the shadow
     if (active) {
 
+        releasePos = mousePos;
+
         // where is the target ?
-        float d = EUCLIDEAN(pressPos, mousePos);
-        if (d > radius)
+        bool m = false;
+        if ( EUCLIDEAN(pressPos, mousePos) > radius) {
             targetPos = mousePos;
+            m = true;
+        }
         else
             targetPos = pressPos;
 
-        shadowPos = targetPos;
+        // different target mode ?
+        if ( m != targetmode ) {
+            targetmode = m;
+            // reset target hit to trigger animation
+            targethit = false;
+        }
+
+        // move the shadow if new target and new mode
+        if (!targethit) {
+            // compute direction vector
+            QVector2D dir = QVector2D(targetPos - shadowPos);
+            if ( dir.lengthSquared() > 1.0 ) {
+                // scale the direction by the strenght of attraction
+                dir *= strength;
+                // move the point
+                shadowPos +=  dir.toPointF();
+            }
+            else
+                // end animation
+                targethit = true;
+        }
+        else
+            shadowPos =  targetPos;
 
         return true;
     }
@@ -98,21 +130,22 @@ void MagnetCursor::draw(GLint viewport[4]) {
 
     glColor4ub(COLOR_CURSOR, 255);
 
-    glPointSize(10);
-    glBegin(GL_POINTS);
-    glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
-    glEnd();
-
     glPointSize(15);
     glBegin(GL_POINTS);
-    glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+//    glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glEnd();
+
+    glTranslatef(pressPos.x(), viewport[3] - pressPos.y(), 0.0);
+
+    glPointSize(10);
+    glBegin(GL_POINTS);
+    glVertex2d(0, 0);
     glEnd();
 
     glEnable(GL_LINE_STIPPLE);
     glLineStipple( 1, 0x9999);
-
-    glTranslatef(mousePos.x(), viewport[3] - mousePos.y(), 0.0);
-    glLineWidth(1);
+    glLineWidth(2);
     glBegin(GL_LINE_LOOP);
     for (float i = 0; i < 2.0 * M_PI; i += 0.2)
             glVertex2d( radius * cos(i), radius * sin(i));

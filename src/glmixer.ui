@@ -2549,7 +2549,7 @@ QToolButton:hover {
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Mass:</string>
+              <string>Mass </string>
              </property>
             </widget>
            </item>
@@ -2560,6 +2560,12 @@ QToolButton:hover {
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
              </property>
              <property name="toolTip">
               <string>The heavyer, the slower to follow.</string>
@@ -2654,25 +2660,13 @@ QToolButton:hover {
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <widget class="QLabel" name="label_5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="text">
-              <string>Latency:</string>
+              <string>Latency </string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="cursorDelayLatency">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="toolTip">
               <string>How late the cursor is behind the mouse.</string>
              </property>
@@ -2699,25 +2693,13 @@ QToolButton:hover {
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QLabel" name="label_6">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="text">
-              <string>Filtering:</string>
+              <string>Filtering </string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QSpinBox" name="cursorDelayFiltering">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="toolTip">
               <string>How many frames used to smooth the path</string>
              </property>
@@ -2898,6 +2880,12 @@ QToolButton:hover {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Translation speed : each point is 1 second.</string>
              </property>
@@ -2921,12 +2909,6 @@ QToolButton:hover {
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QLabel" name="label_12">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="text">
               <string>Triger delay</string>
              </property>
@@ -2934,12 +2916,6 @@ QToolButton:hover {
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="cursorLineWaitDuration">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="toolTip">
               <string>How long before the movement starts.</string>
              </property>
@@ -3055,6 +3031,12 @@ QToolButton:hover {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>How far the cursor can go.</string>
              </property>
@@ -3084,12 +3066,6 @@ QToolButton:hover {
           <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
             <widget class="QLabel" name="label_15">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="text">
               <string>Filtering</string>
              </property>
@@ -3097,12 +3073,6 @@ QToolButton:hover {
            </item>
            <item>
             <widget class="QSpinBox" name="cursorFuzzyFiltering">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="toolTip">
               <string>How many frames used to smooth the movement.</string>
              </property>
@@ -3194,12 +3164,18 @@ QToolButton:hover {
            <item>
             <widget class="QLabel" name="label_17">
              <property name="text">
-              <string>Radius: </string>
+              <string>Radius </string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QSlider" name="cursorMagnetRadius">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
              <property name="minimum">
               <number>30</number>
              </property>
@@ -3211,6 +3187,33 @@ QToolButton:hover {
              </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
+           <item>
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Strength</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="cursorMagnetStrength">
+             <property name="minimum">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -3375,7 +3378,7 @@ QToolButton:hover {
           <x>0</x>
           <y>0</y>
           <width>230</width>
-          <height>90</height>
+          <height>358</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">

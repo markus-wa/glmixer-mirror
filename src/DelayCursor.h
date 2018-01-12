@@ -40,28 +40,28 @@ class DelayCursor: public QObject, public Cursor
     Q_OBJECT
 
 public:
-	DelayCursor();
+    DelayCursor();
 
-	void update(QMouseEvent *e);
-	bool apply(double fpsaverage);
-	bool wheelEvent(QWheelEvent * event);
+    void update(QMouseEvent *e);
+    bool apply(double fpsaverage);
+    bool wheelEvent(QWheelEvent * event);
     void draw(GLint viewport[4]);
 
-	inline double getLatency() const { return latency; }
+    inline double getLatency() const { return latency; }
 
 public slots:
-	inline void setLatency(double t) { latency = CLAMP(t, MIN_LATENCY, MAX_LATENCY); }
-	void setFiltering(int p);
+    inline void setLatency(double t) { latency = CLAMP(t, MIN_LATENCY, MAX_LATENCY); }
+    void setFiltering(int p);
 
 signals:
-	void latencyChanged(double s);
+    void latencyChanged(double s);
 
 private:
 
-	double latency, emaexp;
+    double latency, emaexp;
 
-	// timing
-	QVector<QPointF> positions;
+    // timing
+    QVector<QPointF> positions;
 };
 
 #endif /* DelayCursor_H_ */

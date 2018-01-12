@@ -32,8 +32,8 @@
 #include "Cursor.h"
 #define MIN_DISTANCE 30
 #define MAX_DISTANCE 300
-#define MIN_DURATION 0.0
-#define MAX_DURATION 1.0
+#define MIN_STRENGTH 0.1
+#define MAX_STRENGTH 1.0
 
 class MagnetCursor: public QObject, public Cursor
 {
@@ -49,24 +49,22 @@ public:
         void setParameter(float percent);
 
         inline int getRadius() const { return radius; }
-        inline double getDuration() const { return duration; }
+        inline double getStrength() const { return strength; }
 
 public Q_SLOTS:
         inline void setRadius(int r) { radius = CLAMP(r, MIN_DISTANCE, MAX_DISTANCE); }
-        inline void setDuration(double t) { duration = CLAMP(t, MIN_DURATION, MAX_DURATION); }
+        inline void setStrength(double s) { strength = CLAMP(s, MIN_STRENGTH, MAX_STRENGTH); }
 
 signals:
-        void radiusChanged(int m);
+        void radiusChanged(int r);
 
 private:
 
         int radius;
-        double duration;
+        double strength;
         QPointF targetPos;
-        bool targethit;
+        bool targethit, targetmode;
 
-        // timing
-        QElapsedTimer targetTimer;
 };
 
 #endif /* MAGNETCURSOR_H_ */
