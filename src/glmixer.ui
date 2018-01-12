@@ -1661,6 +1661,7 @@ QToolButton:hover {
     <addaction name="actionNew_Session"/>
     <addaction name="actionLoad_Session"/>
     <addaction name="actionRecent_session"/>
+    <addaction name="actionReload_Session"/>
     <addaction name="actionAppend_Session"/>
     <addaction name="actionSave_Session"/>
     <addaction name="actionSave_Session_as"/>
@@ -3377,8 +3378,8 @@ QToolButton:hover {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>230</width>
-          <height>358</height>
+          <width>270</width>
+          <height>84</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -4063,14 +4064,18 @@ QToolButton:hover {
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/plus.png</normaloff>:/glmixer/icons/plus.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Append session</string>
+    <string>&amp;Import session</string>
    </property>
    <property name="statusTip">
-    <string>Loads a session file and appends all its sources to the current session.</string>
+    <string>Loads a session file and import all its sources to the current session.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+O</string>
+    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="actionSave_Session_as">
@@ -5476,6 +5481,21 @@ QToolButton:hover {
    </property>
    <property name="shortcut">
     <string>M</string>
+   </property>
+  </action>
+  <action name="actionReload_Session">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>R&amp;eload session</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
  </widget>

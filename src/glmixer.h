@@ -88,6 +88,7 @@ public slots:
     void on_actionSave_Session_as_triggered();
     void on_actionLoad_Session_triggered();
     void on_actionAppend_Session_triggered();
+    void on_actionReload_Session_triggered();
     void on_actionSelect_Next_triggered();
     void on_actionSelect_Previous_triggered();
     void on_actionResetToolbars_triggered();

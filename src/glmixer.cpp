@@ -1914,11 +1914,13 @@ void GLMixer::confirmSessionFileName(){
     if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty()) {
         setWindowTitle(QString("%1 %2 - unsaved").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()));
         actionAppend_Session->setEnabled(false);
+        actionReload_Session->setEnabled(false);
     }
     else {
         // title and menu
         setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(QFileInfo(currentSessionFileName).fileName()));
         actionAppend_Session->setEnabled(true);
+        actionReload_Session->setEnabled(true);
 
         files.removeAll(currentSessionFileName);
         files.prepend(currentSessionFileName);
@@ -2400,6 +2402,12 @@ void GLMixer::openSessionFile()
 
 }
 
+void GLMixer::on_actionReload_Session_triggered(){
+
+
+    switchToSessionFile(currentSessionFileName);
+
+}
 
 void GLMixer::on_actionAppend_Session_triggered(){
 
