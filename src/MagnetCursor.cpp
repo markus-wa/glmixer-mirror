@@ -29,7 +29,7 @@
 
 MagnetCursor::MagnetCursor() : Cursor(),
     radius(150.0),
-    strength(1.0),
+    strength(0.7),
     targethit(false),
     targetmode(false)
 {

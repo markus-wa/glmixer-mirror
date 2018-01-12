@@ -582,6 +582,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SIGNAL(radiusChanged(int)), cursorMagnetRadius, SLOT(setValue(int)) );
     QObject::connect(cursorMagnetRadius, SIGNAL(valueChanged(int)), dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SLOT(setRadius(int)) );
     QObject::connect(cursorMagnetStrength, SIGNAL(valueChanged(double)), dynamic_cast<MagnetCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_MAGNET)), SLOT(setStrength(double)) );
+    QObject::connect(cursorAxisScroll, SIGNAL(toggled(bool)), dynamic_cast<AxisCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_AXIS)), SLOT(setScrollingEnabled(bool)) );
 
     connect(resetElastic, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
     connect(resetDelay, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
@@ -3635,7 +3636,7 @@ void GLMixer::resetCurrentCursor()
         break;
     case 6:
         cursorMagnetRadius->setValue(150);
-        cursorMagnetStrength->setValue(1.0);
+        cursorMagnetStrength->setValue(0.7);
         break;
     default:
         break;

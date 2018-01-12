@@ -29,6 +29,7 @@
 #include <QObject>
 
 #include "Cursor.h"
+#define INIT_THRESHOLD 15.0
 
 class AxisCursor: public QObject, public Cursor
 {
@@ -41,9 +42,12 @@ public:
     bool wheelEvent(QWheelEvent * event);
     void draw(GLint viewport[4]);
 
+public slots:
+    inline void setScrollingEnabled(bool on) { scrollEnabled = on;}
+
 private:
 
-    bool x_axis;
+    bool x_axis, scrollEnabled;
 };
 
 #endif /* AxisCursor_H_ */

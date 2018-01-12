@@ -29,7 +29,7 @@
 
 #include "AxisCursor.moc"
 
-AxisCursor::AxisCursor() : Cursor(), x_axis(true)
+AxisCursor::AxisCursor() : Cursor(), x_axis(true), scrollEnabled(true)
 {
 
 }
@@ -41,7 +41,7 @@ bool AxisCursor::apply(double fpsaverage){
     if (active) {
 
         // updated means fist time pressed : we determine the direction
-        if (updated && (mousePos-pressPos).manhattanLength() < 15.0 )  {
+        if (updated && (mousePos-pressPos).manhattanLength() < INIT_THRESHOLD )  {
             x_axis =  ABS(mousePos.x() - pressPos.x()) > ABS(mousePos.y() - pressPos.y()) ;
             updated = false;
         }
@@ -65,10 +65,12 @@ bool AxisCursor::wheelEvent(QWheelEvent * event){
     if (!active)
         return false;
 
-    if (x_axis)
-        pressPos.setY( pressPos.y() - ((float) event->delta()) / (24.0) );
-    else
-        pressPos.setX( pressPos.x() + ((float) event->delta()) / (24.0) );
+    if (scrollEnabled) {
+        if (x_axis)
+            pressPos.setY( pressPos.y() - ((float) event->delta()) / (24.0) );
+        else
+            pressPos.setX( pressPos.x() + ((float) event->delta()) / (24.0) );
+    }
 
     return true;
 }
@@ -86,15 +88,31 @@ void AxisCursor::draw(GLint viewport[4]) {
 
     glColor4ub(COLOR_CURSOR, 255);
 
+    glPointSize(5);
+    glBegin(GL_POINTS);
+    glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
+    glEnd();
+
     glPointSize(15);
     glBegin(GL_POINTS);
     glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
     glEnd();
 
+    QVector2D U = QVector2D(mousePos - shadowPos).normalized() * INIT_THRESHOLD;
+    QVector2D V = QVector2D(pressPos - shadowPos).normalized() * INIT_THRESHOLD;
+
+    QPointF P1 = shadowPos + U.toPointF();
+    QPointF P2 = shadowPos + U.toPointF() + V.toPointF();
+    QPointF P3 = shadowPos + V.toPointF();
+
     glLineWidth(2);
     glBegin(GL_LINES);
     glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
     glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+    glVertex2d(P1.x(), viewport[3] - P1.y());
+    glVertex2d(P2.x(), viewport[3] - P2.y());
+    glVertex2d(P2.x(), viewport[3] - P2.y());
+    glVertex2d(P3.x(), viewport[3] - P3.y());
     glEnd();
 
     glLineStipple(2, 0x9999);
