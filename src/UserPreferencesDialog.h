@@ -72,7 +72,6 @@ private:
 
     QList<QAction *> getActionsList(QList<QAction *> al);
 
-    int monitorindex;
 };
 
 #endif /* USERPREFERENCESDIALOG_H_ */

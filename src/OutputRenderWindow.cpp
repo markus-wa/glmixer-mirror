@@ -214,13 +214,19 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
     // this is not a windet, but a window
     useWindowAspectRatio = false;
     setCursor(Qt::BlankCursor);
-    fullscreenMonitorIndex = 0;
     setMinimumSize(160,120);
     // set initial geometry
     setWindowState(Qt::WindowNoState);
     windowGeometry = QRect(100,100,848,480);
     setGeometry( windowGeometry );
     switching = false;
+
+    // init screen index
+    fullscreenMonitorIndex = 0;
+    // init screen count
+    fullscreenMonitorCount = QApplication::desktop()->screenCount();
+    // connect to desktop event
+    connect(QApplication::desktop(), SIGNAL(screenCountChanged(int)), SLOT(setScreenCount(int)));
 }
 
 OutputRenderWindow *OutputRenderWindow::getInstance() {
@@ -297,16 +303,32 @@ void OutputRenderWindow::setFullScreen(bool on) {
 }
 
 
+void OutputRenderWindow::setScreenCount(int count)
+{
+    // remember count
+    fullscreenMonitorCount = count;
+
+    // re-apply : will change if different
+    setFullScreenMonitor(fullscreenMonitorIndex);
+}
+
 void OutputRenderWindow::setFullScreenMonitor(int index)
 {
-    // if meaningful (has more than 1 monitor)
-    if ( index <= QApplication::desktop()->screenCount() ) {
-        // set index of monitor
-        fullscreenMonitorIndex = index;
-        // if already fullscreen, apply the change immediately
+    int previousIndex = fullscreenMonitorIndex;
+    // new index is bound to count of monitors
+    fullscreenMonitorIndex = qBound(0, index, fullscreenMonitorCount-1);
+
+    // if different
+    if ( fullscreenMonitorIndex != previousIndex ) {
+        // if already fullscreen in another monitor, disable fullscreen
         if (windowState().testFlag(Qt::WindowFullScreen) )
-            setFullScreen( true	);
+            setFullScreen( false );
     }
+}
+
+int OutputRenderWindow::getFullScreenMonitor()
+{
+    return  qBound(0, fullscreenMonitorIndex, fullscreenMonitorCount-1);;
 }
 
 void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {

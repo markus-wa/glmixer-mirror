@@ -69,7 +69,8 @@ public:
     static OutputRenderWindow *getInstance();
     static void deleteInstance();
 
-    int getFullScreenMonitor() { return fullscreenMonitorIndex; }
+    int getFullScreenMonitor();
+    int getFullScreenCount() { return fullscreenMonitorCount; }
 
     void initializeGL();
     void resizeGL(int w = 0, int h = 0);
@@ -88,6 +89,7 @@ public:
 public slots:
     void setFullScreen(bool on);
     void setFullScreenMonitor(int index);
+    void setScreenCount(int count);
 
 signals:
     void resized();
@@ -101,7 +103,7 @@ signals:
 private:
     OutputRenderWindow();
     static OutputRenderWindow *_instance;
-    int fullscreenMonitorIndex;
+    int fullscreenMonitorIndex, fullscreenMonitorCount;
     QRect windowGeometry;
     bool switching;
 };
