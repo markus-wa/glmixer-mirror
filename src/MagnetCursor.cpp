@@ -84,9 +84,12 @@ bool MagnetCursor::apply(double fpsaverage){
                 // move the point
                 shadowPos +=  dir.toPointF();
             }
-            else
+            else {
+                // exact match
+                shadowPos = targetPos;
                 // end animation
                 targethit = true;
+            }
         }
         else
             shadowPos =  targetPos;

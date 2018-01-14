@@ -1630,10 +1630,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 (*its)->setScaleY( sign_y * K / ar);
                 // solves the rescaling of the bounding box to find the new position
                 QRectF sbox = GeometryView::getBoundingBox(*its);
-                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), 
+                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()),
                                     selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
             }
-            // Compute scaling to target the scaling of the HEIGHT 
+            // Compute scaling to target the scaling of the HEIGHT
             else if (a == View::AXIS_VERTICAL) {
                 scale = ref.height() / selectionbox.height();
                 K *= scale * scale;
@@ -1645,12 +1645,12 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 (*its)->setScaleX( sign_x * K * ar);
                 // solves the rescaling of the bounding box to find the new position
                 QRectF sbox = GeometryView::getBoundingBox(*its);
-                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), 
+                (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()),
                                     selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
             }
             // Rescale all source to the aspect ratio of the FRAME (View::AXIS_BOTH)
             else {
-                
+
                 scale = (*its)->getScaleX();
                 (*its)->setScaleY( sign_y * qAbs(scale) * ref.height() / ref.width() );
             }
@@ -1681,7 +1681,7 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
             // keep aspect ratio
             s->setScaleY( sign_y * K / ar);
         }
-        // Compute scaling to target the scaling of the HEIGHT 
+        // Compute scaling to target the scaling of the HEIGHT
         else if (a == View::AXIS_VERTICAL) {
             scale = ref.height() / GeometryView::getBoundingBox(s).height();
             K *= scale * scale;
@@ -1761,18 +1761,18 @@ void rescaleSource(Source *s, QRectF ref, View::Axis a)
 {
     // set aspect ratio of all sources selected
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-       
+
         double sign_x = SIGN( (*its)->getScaleX() );
         double sign_y = SIGN( (*its)->getScaleY() );
-       
+
         // set aspect ratio to match rendering resolution
         if (a == View::AXIS_BOTH) {
             double U = MINI( ref.width(), ref.height() );
             (*its)->setScaleX( sign_x * SOURCE_UNIT * (double) (*its)->getFrameWidth() / U );
             (*its)->setScaleY( sign_y * SOURCE_UNIT * (double) (*its)->getFrameHeight() / U );
-        } 
+        }
         // set widh and height so that aspect ratio is 1.0
-        else { 
+        else {
             double U = MAXI( ABS((*its)->getScaleX()), ABS((*its)->getScaleY()) );
             (*its)->setScaleX( sign_x * U );
             (*its)->setScaleY( sign_y * U );
@@ -1830,9 +1830,10 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
     // transform the selection in reference to the resolution of the rendering (View::REFERENCE_PIXEL)
     else {
         // reference is the pixel resolution
-        QRectF ref = QRectF(0.0, 0.0, (double) RenderingManager::getInstance()->getFrameBufferWidth(), 
+        QRectF ref = QRectF(0.0, 0.0,
+                            (double) RenderingManager::getInstance()->getFrameBufferWidth(),
                             (double) RenderingManager::getInstance()->getFrameBufferHeight());
-        
+
         if (t == View::TRANSFORM_SCALE )
             rescaleSource(SelectionManager::getInstance()->selectionSource(), ref, a);
 

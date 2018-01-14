@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>254</width>
-    <height>501</height>
+    <height>487</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -679,7 +679,16 @@ QSpinBox {
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -723,6 +732,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="saturationBox">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -756,7 +771,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pageBrightness">
           <layout class="QHBoxLayout" name="horizontalLayoutBrightness">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -800,6 +824,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="brightnessBox">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -833,7 +863,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pageContrast">
           <layout class="QHBoxLayout" name="horizontalLayoutcontrast">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -874,6 +913,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="contrastBox">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -907,7 +952,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pageHue">
           <layout class="QHBoxLayout" name="horizontalLayoutHue">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -948,6 +1002,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="hueBox">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -981,7 +1041,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pageThreshold">
           <layout class="QHBoxLayout" name="horizontalLayoutThreshold">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -1022,6 +1091,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="thresholdBox">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -1055,7 +1130,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pagePosterize">
           <layout class="QHBoxLayout" name="horizontalLayoutPosterize">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -1105,6 +1189,12 @@ QSpinBox {
            </item>
            <item>
             <widget class="QSpinBox" name="posterizeBox">
+             <property name="maximumSize">
+              <size>
+               <width>120</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter value</string>
              </property>
@@ -1141,7 +1231,16 @@ QSpinBox {
          </widget>
          <widget class="QWidget" name="pageChromakey">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -1212,11 +1311,11 @@ border:0px
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="toolTip">
               <string>Enter value</string>
@@ -1251,7 +1350,16 @@ border:0px
          </widget>
          <widget class="QWidget" name="pageInvert">
           <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>

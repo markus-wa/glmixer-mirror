@@ -3461,7 +3461,7 @@ QToolButton:hover {
     <string>Edit personnal notes </string>
    </property>
    <property name="windowTitle">
-    <string>Bloc &amp;note</string>
+    <string>&amp;Notes</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>

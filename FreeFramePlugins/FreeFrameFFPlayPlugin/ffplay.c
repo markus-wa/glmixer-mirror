@@ -23,6 +23,8 @@
  * simple media player based on the FFmpeg libraries
  */
 
+// MAYBE Better example : http://git.videolan.org/?p=ffmpeg.git;a=blob;f=doc/examples/hw_decode.c
+
 //#include "config.h"
 #include <inttypes.h>
 #include <math.h>
