@@ -40,10 +40,13 @@
 #define OSC_RENDER_NEXT "next"
 #define OSC_RENDER_PREVIOUS "previous"
 #define OSC_CURRENT "current"
+#define OSC_SELECT "select"
+#define OSC_SELECT_NEXT "next"
+#define OSC_SELECT_PREVIOUS "previous"
+#define OSC_SELECT_NONE "none"
 #define OSC_REQUEST "request"
 #define OSC_REQUEST_COUNT "count"
 #define OSC_REQUEST_NAME "name"
-#define OSC_REQUEST_LOAD "load"
 
 
 /**

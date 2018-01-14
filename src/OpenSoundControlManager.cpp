@@ -378,6 +378,20 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
 
         executeRequest(property, args);
     }
+    // Target OBJECT "select" (switch next or previous current source)
+    else if ( object.compare(OSC_SELECT, Qt::CaseInsensitive) == 0 ) {
+        // Target ATTRIBUTE next source
+        if ( property.compare(OSC_SELECT_NEXT, Qt::CaseInsensitive) == 0 )
+            RenderingManager::getInstance()->setCurrentNext();
+        // Target ATTRIBUTE previous source
+        else if ( property.compare(OSC_SELECT_PREVIOUS, Qt::CaseInsensitive) == 0 )
+            RenderingManager::getInstance()->setCurrentPrevious();
+        // Target ATTRIBUTE no source
+        else if ( property.compare(OSC_SELECT_NONE, Qt::CaseInsensitive) == 0 )
+            RenderingManager::getInstance()->unsetCurrentSource();
+        else
+            throw osc::InvalidAttributeException();
+    }
     // Target OBJECT named "current" (control current source attributes)
     else if ( object.compare(OSC_CURRENT, Qt::CaseInsensitive) == 0 ) {
 
