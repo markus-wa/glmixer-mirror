@@ -217,6 +217,9 @@ void OpenSoundControlManager::readPendingDatagrams()
                     } else if ((arg)->IsBool()) {
                         args.append( (bool) (arg)->AsBool() );
                         values.append(" " + QString::number((int)(arg)->AsBool()));
+                    }  else if ((arg)->IsString()) {
+                        args.append( QString( (arg)->AsString() ) );
+                        values.append(" " + QString( (arg)->AsString() ));
                     } else if ((arg)->IsNil() || (arg)->IsInfinitum()) {
                         args.append( (double) std::numeric_limits<double>::max() );
                         values.append(" N");
@@ -308,12 +311,8 @@ void OpenSoundControlManager::executeMessage(QString pattern, QVariantList args)
 
 void invoke(Source *s, QString property, QVariantList args)
 {
-    if ( property.compare("standby", Qt::CaseInsensitive) == 0 ) {
-        // translate standby by a
-    }
-
     // generic case : the property is the name of function to call
-    if (!property.isEmpty()) {
+    if (s && !property.isEmpty()) {
         // create the string describing the slot
         // and build the list of arguments
         QString slot = "_set" + property + "(";
@@ -389,26 +388,42 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
         // Target ATTRIBUTE no source
         else if ( property.compare(OSC_SELECT_NONE, Qt::CaseInsensitive) == 0 )
             RenderingManager::getInstance()->unsetCurrentSource();
-        else
-            throw osc::InvalidAttributeException();
+        else {
+            SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(property);
+            if ( RenderingManager::getInstance()->notAtEnd(sit))
+                // set current by name
+                RenderingManager::getInstance()->setCurrentSource(sit);
+            else
+                throw osc::InvalidAttributeException();
+        }
     }
     // Target OBJECT named "current" (control current source attributes)
     else if ( object.compare(OSC_CURRENT, Qt::CaseInsensitive) == 0 ) {
 
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
         // if the current source is valid
-        if ( RenderingManager::getInstance()->notAtEnd(sit))
-            // invoke the call with given property and arguments on that source
-            invoke( *sit, property, args);
+        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+            // special case of preset
+            if ( property.compare(OSC_PRESET, Qt::CaseInsensitive) == 0 && args.size() > 0 && args[0].isValid())
+                emit applyPreset((*sit)->getName(), args[0].toString() );
+            else
+                // invoke the call with given property and arguments on that source
+                invoke( *sit, property, args);
+        }
         // NB: do not warn if no current source
     }
     // Target OBJECT : name of a source
     else {
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(object);
         // if the given source exists
-        if ( RenderingManager::getInstance()->notAtEnd(sit))
-            // invoke the call with given property and arguments on that source
-            invoke( *sit, property, args);
+        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+            // special case of preset
+            if ( property.compare(OSC_PRESET, Qt::CaseInsensitive) == 0 && args.size() > 0 && args[0].isValid())
+                emit applyPreset(object, args[0].toString() );
+            else
+                // invoke the call with given property and arguments on that source
+                invoke( *sit, property, args);
+        }
         else
             // inform that the source name is wrong
             throw osc::InvalidObjectException();
@@ -493,7 +508,20 @@ void OpenSoundControlManager::executeRequest(QString property, QVariantList args
         emit log(QString("Replied /glmixer/count i %1 ").arg(list.count()) );
 
     }
-    // Target ATTRIBUTE for request : count (number of sources)
+    // Target ATTRIBUTE for request : current (name of the current source)
+    if ( property.compare(OSC_REQUEST_CURRENT, Qt::CaseInsensitive) == 0 ) {
+        // if the current source is valid
+        SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
+        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+            // get the name of current source
+            QString name = (*sit)->getName();
+            // reply to request with name of source
+            broadcastDatagram( name );
+            emit log(QString("Replied /glmixer/%1").arg(name) );
+        }
+
+    }
+    // Target ATTRIBUTE for request : name (of the source at given index)
     else if ( property.compare(OSC_REQUEST_NAME, Qt::CaseInsensitive) == 0 ) {
         // read the argument : index of source requested
         if (args.size() > 0 && args[0].isValid()) {

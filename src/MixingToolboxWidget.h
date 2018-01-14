@@ -26,6 +26,10 @@ public:
 
 public slots:
 
+    // apply preset
+    void applyPreset(Source *s, QListWidgetItem *itemListPreset);
+    void applyPreset(QString sourceName, QString nameItemListPreset);
+
     // get informed when a property is changed
     void connectSource(SourceSet::iterator);
     void propertyChanged(QString propertyname, bool);

@@ -39,6 +39,7 @@
 #define OSC_RENDER_UNPAUSE "unpause"
 #define OSC_RENDER_NEXT "next"
 #define OSC_RENDER_PREVIOUS "previous"
+#define OSC_PRESET "preset"
 #define OSC_CURRENT "current"
 #define OSC_SELECT "select"
 #define OSC_SELECT_NEXT "next"
@@ -47,6 +48,7 @@
 #define OSC_REQUEST "request"
 #define OSC_REQUEST_COUNT "count"
 #define OSC_REQUEST_NAME "name"
+#define OSC_REQUEST_CURRENT "current"
 
 
 /**
@@ -120,6 +122,7 @@ public slots:
 signals:
     void log(QString);
     void error(QString);
+    void applyPreset(QString, QString);
 
 private:
     OpenSoundControlManager();

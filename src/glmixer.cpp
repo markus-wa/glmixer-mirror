@@ -357,6 +357,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
+#ifdef GLM_OSC
+    // special link between OSC and MixingToolbox to call for presets
+    QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, QString)), mixingToolBox, SLOT(applyPreset(QString, QString)) );
+#endif
+
     // setup the layout toolbox
     layoutToolBox = new LayoutToolboxWidget(this);
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
