@@ -5,6 +5,7 @@
 
 #include "OpenSoundControlManager.moc"
 
+#include "OscOutboundPacketStream.h"
 #include "OscReceivedElements.h"
 #include "RenderingManager.h"
 #include "glmixer.h"
@@ -52,61 +53,130 @@ OpenSoundControlManager *OpenSoundControlManager::getInstance() {
     return _instance;
 }
 
-OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpSocket(0), _port(7000), _verbose(false)
+OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpReceive(0), _udpBroadcast(0), _portReceive(7000), _portBroadcast(3000), _verbose(false)
 {
     _dictionnary = new QList< QPair<QString, QString> >();
+
 }
 
-qint16 OpenSoundControlManager::getPort()
+qint16 OpenSoundControlManager::getPortReceive()
 {
-    return _port;
+    return _portReceive;
 }
+
+qint16 OpenSoundControlManager::getPortBroadcast()
+{
+    return _portBroadcast;
+}
+
 
 bool OpenSoundControlManager::isEnabled()
 {
-    return ( _udpSocket != 0 );
+    return ( _udpReceive != 0 );
 }
 
-void OpenSoundControlManager::setEnabled(bool enable, qint16 port)
+void OpenSoundControlManager::setEnabled(bool enable, qint16 portreceive, qint16 portbroadcast)
 {
-
-    if ( _udpSocket ) {
-        delete _udpSocket;
-        _udpSocket = 0;
+    // reset receiving socket
+    if ( _udpReceive ) {
+        delete _udpReceive;
+        _udpReceive = 0;
+    }
+    // reset broadcast socket
+    if ( _udpBroadcast ) {
+        delete _udpBroadcast;
+        _udpBroadcast = 0;
+        disconnect(RenderingManager::getInstance(), SIGNAL(countSourceChanged(int)), this, SLOT(broadcastSourceCount(int)));
     }
 
-    // set port
-    _port = port;
+    // set ports
+    _portReceive = portreceive;
+    _portBroadcast = portbroadcast;
 
     if (enable) {
+        // create broadcasting slot
+        _udpBroadcast = new QUdpSocket(this);
+
+        // listen to broadcasting messages
+        connect(RenderingManager::getInstance(), SIGNAL(countSourceChanged(int)), this, SLOT(broadcastSourceCount(int)));
+
         // bind socket and connect reading slot
-        _udpSocket = new QUdpSocket(this);
-        _udpSocket->bind(_port);
-        connect(_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
+        _udpReceive = new QUdpSocket(this);
+        _udpReceive->bind(_portReceive);
+        connect(_udpReceive, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
         // Provide informative log
         QStringList addresses;
         foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
                 addresses << a.toString();
-        qDebug() << addresses.join(", ") << QChar(124).toLatin1() << "UDP OSC Server enabled (port " << _port <<").";
+        qDebug() << addresses.join(", ") << QChar(124).toLatin1() << "UDP OSC Server enabled (read port " << _portReceive <<").";
     }
     else
         qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server disabled.";
 
 }
 
+
+void OpenSoundControlManager::broadcastDatagram(QString property, QVariantList args)
+{
+    // ignore invalid
+    if (!_udpBroadcast || property.isEmpty())
+        return;
+
+    // create an osc packet
+    char buffer[1024];
+    osc::OutboundPacketStream p( buffer, 1024 );
+
+    // begin message
+    p << osc::BeginMessage( QString("/glmixer/%1").arg(property).toLatin1().constData() );
+
+    // fill argument list
+    foreach (QVariant arg, args) {
+
+        switch (arg.type()) {
+        case QVariant::Int:
+            p << (osc::int32) arg.toInt();
+            break;
+        case QVariant::UInt:
+            p << (osc::int32) arg.toUInt();
+            break;
+        case QVariant::Double:
+            p << (float) arg.toDouble();
+            break;
+        case QVariant::Bool:
+            p << (bool) arg.toBool();
+            break;
+        default:
+            throw osc::WrongArgumentTypeException();
+            break;
+        }
+
+    }
+    // end message
+    p << osc::EndMessage;
+
+    // broadcast message
+    _udpBroadcast->writeDatagram( p.Data(), p.Size(),
+                                 QHostAddress::Broadcast, _portBroadcast);
+
+}
+
+
 void OpenSoundControlManager::readPendingDatagrams()
 {
+    if (!_udpReceive)
+        return;
+
     // read all datagrams
-    while (_udpSocket->hasPendingDatagrams())
+    while (_udpReceive->hasPendingDatagrams())
     {
         // read data
         QHostAddress sender;
         quint16 senderPort;
         QByteArray datagram;
-        datagram.resize(_udpSocket->pendingDatagramSize());
-        _udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+        datagram.resize(_udpReceive->pendingDatagramSize());
+        _udpReceive->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
         // initialize error message
         bool ok = false;
@@ -235,12 +305,58 @@ void OpenSoundControlManager::executeMessage(QString pattern, QVariantList args)
     execute(object.remove(0,1), property.remove(0,1), args);
 }
 
+
+void invoke(Source *s, QString property, QVariantList args)
+{
+    if ( property.compare("standby", Qt::CaseInsensitive) == 0 ) {
+        // translate standby by a
+    }
+
+    // generic case : the property is the name of function to call
+    if (!property.isEmpty()) {
+        // create the string describing the slot
+        // and build the list of arguments
+        QString slot = "_set" + property + "(";
+        QVector<SourceArgument> arguments;
+
+        // fill the list with values
+        int i = 0;
+        for (; i < args.size() ; ++i, slot += ',' ) {
+            arguments.append( SourceArgument(args[i]) );
+            slot += arguments[i].typeName();
+        }
+        // finish the list with empty arguments
+        for (; i < 7; ++i) {
+            arguments.append( SourceArgument() );
+        }
+        // end the string with closing parenthesis instead of comas
+        if (slot.contains(','))
+            slot.chop(1);
+        slot += ')';
+
+        // Try to find the index of the given slot
+        int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
+        if ( methodIndex > 0 ) {
+
+            //                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
+
+            // invoke the method with all arguments
+            QMetaMethod method = s->metaObject()->method(methodIndex);
+            method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
+
+        }
+        else
+            throw osc::InvalidAttributeException();
+    }
+}
+
+
 void OpenSoundControlManager::execute(QString object, QString property, QVariantList args)
 {
     // Target OBJECT named "void" (debug)
-    if ( object == "void" ) {
+    if ( object.compare(OSC_VOID, Qt::CaseInsensitive) == 0 ) {
         // Target ATTRIBUTE for render : alpha (transparency)
-        if ( property == "Log") {
+        if ( property.compare(OSC_VOID_LOG, Qt::CaseInsensitive) == 0 ) {
             QString msg("/void/Log ");
             int i = 0;
             for (; i < args.size() ; ++i, msg += ' ' ) {
@@ -248,115 +364,147 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             }
             emit log(msg);
         }
-        else if ( property == "Ignore") {}
+        else if ( property.compare(OSC_VOID_IGNORE, Qt::CaseInsensitive) == 0 ) {}
         else
             throw osc::InvalidAttributeException();
     }
     // Target OBJECT named "render" (control rendering attributes)
-    else if ( object == "render" ) {
-        // Target ATTRIBUTE for render : alpha (transparency)
-        if ( property == "Alpha") {
-            if (args.size() > 0 && args[0].isValid()) {
-                bool ok = false;
-                double v = 1.0 - qBound(0.0, args[0].toDouble(&ok), 1.0);
-                if (ok)
-                    GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
-                else
-                    throw osc::WrongArgumentTypeException();
-            }
-            else
-                throw osc::MissingArgumentException();
-        }
-        else if ( property == "Transparency") {
-            if (args.size() > 0 && args[0].isValid()) {
-                bool ok = false;
-                double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
-                if (ok)
-                    GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
-                else
-                    throw osc::WrongArgumentTypeException();
-            }
-            else
-                throw osc::MissingArgumentException();
-        }
-        else if ( property == "Pause") {
-            if (args.size() > 0 && args[0].isValid())
-                RenderingManager::getInstance()->pause( args[0].toBool() );
-            else
-                throw osc::MissingArgumentException();
-        }
-        else if ( property == "Unpause") {
-            if (args.size() > 0 && args[0].isValid())
-                RenderingManager::getInstance()->pause( ! args[0].toBool() );
-            else
-                throw osc::MissingArgumentException();
-        }
-        else if ( property == "Next") {
-            if (args.size() > 0 && args[0].isValid()) {
-                if (args[0].toBool())
-                    GLMixer::getInstance()->openNextSession();
-            }   else
-                throw osc::MissingArgumentException();
-        }
-        else if ( property == "Previous") {
-            if (args.size() > 0 && args[0].isValid()) {
-                if (args[0].toBool())
-                    GLMixer::getInstance()->openPreviousSession();
-            }   else
-                throw osc::MissingArgumentException();
-        }
-        else
-            throw osc::InvalidAttributeException();
+    else if ( object.compare(OSC_RENDER, Qt::CaseInsensitive) == 0 ) {
+
+        executeRender(property, args);
+    }
+    // Target OBJECT "request" (request for information)
+    else if ( object.compare(OSC_REQUEST, Qt::CaseInsensitive) == 0 ) {
+
+        executeRequest(property, args);
+    }
+    // Target OBJECT named "current" (control current source attributes)
+    else if ( object.compare(OSC_CURRENT, Qt::CaseInsensitive) == 0 ) {
+
+        SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
+        // if the current source is valid
+        if ( RenderingManager::getInstance()->notAtEnd(sit))
+            // invoke the call with given property and arguments on that source
+            invoke( *sit, property, args);
+        // NB: do not warn if no current source
     }
     // Target OBJECT : name of a source
     else {
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(object);
         // if the given source exists
-        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-
-            // create the string describing the slot
-            // and build the list of arguments
-            QString slot = "_set" + property + "(";
-            QVector<SourceArgument> arguments;
-
-            // fill the list with values
-            int i = 0;
-            for (; i < args.size() ; ++i, slot += ',' ) {
-                arguments.append( SourceArgument(args[i]) );
-                slot += arguments[i].typeName();
-            }
-            // finish the list with empty arguments
-            for (; i < 7; ++i) {
-                arguments.append( SourceArgument() );
-            }
-
-            if (slot.contains(','))
-                slot.chop(1);
-            slot += ')';
-
-            // get the source on which to call the method
-            Source *s = *sit;
-
-            // Try to find the index of the given slot
-            int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
-            if ( methodIndex > 0 ) {
-
-//                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
-
-                // invoke the method with all arguments
-                QMetaMethod method = s->metaObject()->method(methodIndex);
-                method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
-
-
-            }
-            else
-                throw osc::InvalidAttributeException();
-
-        }
+        if ( RenderingManager::getInstance()->notAtEnd(sit))
+            // invoke the call with given property and arguments on that source
+            invoke( *sit, property, args);
         else
+            // inform that the source name is wrong
             throw osc::InvalidObjectException();
     }
 
+}
+
+void OpenSoundControlManager::executeRender(QString property, QVariantList args)
+{
+    // Target ATTRIBUTE for render : alpha (transparency)
+    if ( property.compare(OSC_RENDER_ALPHA, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid()) {
+            bool ok = false;
+            double v = 1.0 - qBound(0.0, args[0].toDouble(&ok), 1.0);
+            if (ok)
+                GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
+            else
+                throw osc::WrongArgumentTypeException();
+        }
+        else
+            throw osc::MissingArgumentException();
+    }
+    else if ( property.compare(OSC_RENDER_TRANSPARENCY, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid()) {
+            bool ok = false;
+            double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
+            if (ok)
+                GLMixer::getInstance()->on_output_alpha_valueChanged( (int) (v * 100.0) );
+            else
+                throw osc::WrongArgumentTypeException();
+        }
+        else
+            throw osc::MissingArgumentException();
+    }
+    else if ( property.compare(OSC_RENDER_PAUSE, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid())
+            RenderingManager::getInstance()->pause( args[0].toBool() );
+        else
+            throw osc::MissingArgumentException();
+    }
+    else if ( property.compare(OSC_RENDER_UNPAUSE, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid())
+            RenderingManager::getInstance()->pause( ! args[0].toBool() );
+        else
+            throw osc::MissingArgumentException();
+    }
+    else if ( property.compare(OSC_RENDER_NEXT, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid()) {
+            if (args[0].toBool())
+                GLMixer::getInstance()->openNextSession();
+        }   else
+            throw osc::MissingArgumentException();
+    }
+    else if ( property.compare(OSC_RENDER_PREVIOUS, Qt::CaseInsensitive) == 0 ) {
+        if (args.size() > 0 && args[0].isValid()) {
+            if (args[0].toBool())
+                GLMixer::getInstance()->openPreviousSession();
+        }   else
+            throw osc::MissingArgumentException();
+    }
+    else
+        throw osc::InvalidAttributeException();
+}
+
+
+void OpenSoundControlManager::broadcastSourceCount(int count)
+{
+    // broadcast the count of source
+    QVariantList args;
+    args.append(count);
+    broadcastDatagram( OSC_REQUEST_COUNT, args );
+}
+
+void OpenSoundControlManager::executeRequest(QString property, QVariantList args)
+{
+    // Target ATTRIBUTE for request : count (number of sources)
+    if ( property.compare(OSC_REQUEST_COUNT, Qt::CaseInsensitive) == 0 ) {
+        // get the list of source names
+        QStringList list = RenderingManager::getInstance()->getSourceNameList();
+        // reply to request with count of sources
+        broadcastSourceCount(list.count());
+        emit log(QString("Replied /glmixer/count i %1 ").arg(list.count()) );
+
+    }
+    // Target ATTRIBUTE for request : count (number of sources)
+    else if ( property.compare(OSC_REQUEST_NAME, Qt::CaseInsensitive) == 0 ) {
+        // read the argument : index of source requested
+        if (args.size() > 0 && args[0].isValid()) {
+            bool ok = false;
+            double n = args[0].toInt(&ok);
+            if (ok) {
+                // get the list of source names
+                QStringList list = RenderingManager::getInstance()->getSourceNameList();
+
+                if ( n < 0 || n > list.count()-1 )
+                    emit error(QString("Invalid request : index %1 outside of range [0..%2].").arg(n).arg(list.count()-1) );
+                else {
+                    // reply to request with name of source
+                    broadcastDatagram( list[n] );
+                    emit log(QString("Replied /glmixer/%1").arg(list[n]) );
+                }
+            }
+            else
+                throw osc::WrongArgumentTypeException();
+        }
+        else
+            throw osc::MissingArgumentException();
+    }
+    else
+        throw osc::InvalidAttributeException();
 }
 
 void OpenSoundControlManager::addTranslation(QString before, QString after)

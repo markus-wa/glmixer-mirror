@@ -278,6 +278,7 @@ signals:
     void currentSourceChanged(SourceSet::iterator csi);
     void methodCalled(QString);
     void editCurrentSource();
+    void countSourceChanged(int count);
 #ifdef GLM_SPOUT
     void spoutSharingEnabled(bool on);
 #endif

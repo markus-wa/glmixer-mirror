@@ -2713,13 +2713,10 @@ void GLMixer::readSettings( QString pathtobin )
 
     // Open Sound Control
 #ifdef GLM_OSC
-    bool useOSC = false;
-    int portOSC = 7000;
-    if (settings.contains("OSCEnabled"))
-        useOSC = settings.value("OSCEnabled").toBool();
-    if (settings.contains("OSCPort"))
-        portOSC = settings.value("OSCPort").toInt();
-    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
+    bool useOSC = settings.value("OSCEnabled", "0").toBool();
+    int portOSC = settings.value("OSCPort", "7000").toInt();
+    int portOSCBroadcast = settings.value("OSCBroadcast", "3000").toInt();
+    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC, (qint16) portOSCBroadcast);
     if (settings.contains("OSCVerbose"))
         OpenSoundControlManager::getInstance()->setVerbose(settings.value("OSCVerbose").toBool());
     // restore table translator
@@ -2781,7 +2778,8 @@ void GLMixer::saveSettings()
     // Open Sound Control
 #ifdef GLM_OSC
     settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
-    settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPort());
+    settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPortReceive());
+    settings.setValue("OSCBroadcast", OpenSoundControlManager::getInstance()->getPortBroadcast());
     settings.setValue("OSCVerbose", OpenSoundControlManager::getInstance()->isVerbose());
     settings.remove("OSCTranslations");
     settings.beginWriteArray("OSCTranslations");

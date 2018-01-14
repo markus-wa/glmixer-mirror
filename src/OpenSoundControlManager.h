@@ -29,6 +29,21 @@
 #include <QString>
 #include <QUdpSocket>
 
+#define OSC_VOID "void"
+#define OSC_VOID_LOG "log"
+#define OSC_VOID_IGNORE "ignore"
+#define OSC_RENDER "render"
+#define OSC_RENDER_ALPHA "alpha"
+#define OSC_RENDER_TRANSPARENCY "transparency"
+#define OSC_RENDER_PAUSE "pause"
+#define OSC_RENDER_UNPAUSE "unpause"
+#define OSC_RENDER_NEXT "next"
+#define OSC_RENDER_PREVIOUS "previous"
+#define OSC_CURRENT "current"
+#define OSC_REQUEST "request"
+#define OSC_REQUEST_COUNT "count"
+#define OSC_REQUEST_NAME "name"
+#define OSC_REQUEST_LOAD "load"
 
 
 /**
@@ -76,15 +91,14 @@ class OpenSoundControlManager: public QObject
 public:
     static OpenSoundControlManager *getInstance();
 
-public slots:
-
     // server UDP
-    void setEnabled(bool enable, qint16 port);
+    void setEnabled(bool enable, qint16 portreceive, qint16 portbroadcast);
     bool isEnabled();
-    qint16 getPort();
+    qint16 getPortReceive();
+    qint16 getPortBroadcast();
 
-    void readPendingDatagrams();
-    void executeMessage(QString pattern, QVariantList arguments);
+    void broadcastDatagram(QString property, QVariantList args = QVariantList());
+    void executeMessage(QString pattern, QVariantList args);
 
     // translator
     void addTranslation(QString before, QString after);
@@ -95,6 +109,11 @@ public slots:
     void setVerbose(bool on) { _verbose = on; }
     bool isVerbose() const { return _verbose; }
 
+public slots:
+
+    void readPendingDatagrams();
+    void broadcastSourceCount(int count);
+
 signals:
     void log(QString);
     void error(QString);
@@ -103,10 +122,13 @@ private:
     OpenSoundControlManager();
     static OpenSoundControlManager *_instance;
 
-    void execute(QString object, QString property, QVariantList arguments);
+    void execute(QString object, QString property, QVariantList args);
+    void executeRender(QString property, QVariantList args);
+    void executeRequest(QString property, QVariantList args);
 
-    QUdpSocket *_udpSocket;
-    qint16 _port;
+    QUdpSocket *_udpReceive;
+    QUdpSocket *_udpBroadcast;
+    qint16 _portReceive, _portBroadcast;
 
     QList< QPair<QString, QString> > *_dictionnary;
     bool _verbose;

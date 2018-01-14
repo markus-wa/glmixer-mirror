@@ -215,12 +215,14 @@ OpenSoundControlTranslator::OpenSoundControlTranslator(QSettings *settings, QWid
 
     // set GUI initial status from Manager
     ui->enableOSC->setChecked( OpenSoundControlManager::getInstance()->isEnabled());
-    ui->OSCPort->setValue( OpenSoundControlManager::getInstance()->getPort() );
+    ui->OSCPort->setValue( OpenSoundControlManager::getInstance()->getPortReceive() );
+    ui->OSCBroadcastPort->setValue( OpenSoundControlManager::getInstance()->getPortBroadcast() );
     ui->verboseLogs->setChecked( OpenSoundControlManager::getInstance()->isVerbose() );
 
     // connect GUI to Manager
     connect(ui->enableOSC, SIGNAL(toggled(bool)), this, SLOT(updateManager()) );
     connect(ui->OSCPort, SIGNAL(valueChanged(int)), this, SLOT(updateManager()) );
+    connect(ui->OSCBroadcastPort, SIGNAL(valueChanged(int)), this, SLOT(updateManager()) );
     connect(ui->clearLogs, SIGNAL(clicked(bool)), this, SLOT(logStatus()) );
 
     // connect logs
@@ -303,7 +305,8 @@ void OpenSoundControlTranslator::updateManager()
 {
     bool on = ui->enableOSC->isChecked();
     qint16 p = (qint16) ui->OSCPort->value();
-    OpenSoundControlManager::getInstance()->setEnabled(on, p);
+    qint16 b = (qint16) ui->OSCBroadcastPort->value();
+    OpenSoundControlManager::getInstance()->setEnabled(on, p, b);
 
     logStatus();
 }
@@ -333,15 +336,18 @@ void OpenSoundControlTranslator::on_translationPresets_currentIndexChanged(int i
 
 void OpenSoundControlTranslator::logStatus()
 {
+    ui->consoleOSC->clear();
+
     ui->consoleOSC->setTextColor(QColor(160, 250, 160));
     if (OpenSoundControlManager::getInstance()->isEnabled()) {
-        qint16 p = OpenSoundControlManager::getInstance()->getPort();
+        qint16 p = OpenSoundControlManager::getInstance()->getPortReceive();
         QStringList addresses;
         foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
                 addresses << a.toString() + ":" + QString::number(p);
 
         logMessage(tr("Listening to ") + addresses.join(", "));
+        logMessage(tr("Broadcasting to port %1").arg(OpenSoundControlManager::getInstance()->getPortBroadcast()) );
     }
     else
         logMessage(tr("Disabled"));

@@ -1436,6 +1436,8 @@ void RenderingManager::dropSource(){
             top->play(_playOnDrop);
 
             emit editCurrentSource();
+            // inform of change
+            emit countSourceChanged(_front_sources.size());
         }
         else
             delete top;
@@ -1575,7 +1577,13 @@ int RenderingManager::removeSource(SourceSet::iterator itsource)
     // inform undo manager
     emit methodCalled(QString("_removeSource(%1)").arg((*itsource)->getId()));
 
-    return _removeSource(itsource);
+    // remove source
+    int ret = _removeSource(itsource);
+
+    // inform of change
+    emit countSourceChanged(_front_sources.size());
+
+    return ret;
 }
 
 int RenderingManager::_removeSource(const GLuint idsource){
@@ -1619,7 +1627,6 @@ int RenderingManager::_removeSource(SourceSet::iterator itsource) {
         num_sources_deleted++;
     }
 
-
     return num_sources_deleted;
 }
 
@@ -1649,9 +1656,13 @@ void RenderingManager::clearSourceSet() {
 
     // clear tag
     Tag::remove();
+
     // restore default Workspaces
     WorkspaceManager::getInstance()->setCount();
     WorkspaceManager::getInstance()->setCurrent(0);
+
+    // inform of change
+    emit countSourceChanged(_front_sources.size());
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -2579,6 +2590,9 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     // cleanup & reactivate Undo Manager
     UndoManager::getInstance()->clear();
 #endif
+
+    // inform of change
+    emit countSourceChanged(_front_sources.size());
 
     return errors;
 }
