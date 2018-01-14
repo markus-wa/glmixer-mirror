@@ -131,7 +131,7 @@ void SelectionManager::updateSelectionSource()
     // do not add sources which are not in current workspace
     for ( SourceSet::const_iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); ) {
         if ( WorkspaceManager::getInstance()->current() != (*sit)->getWorkspace() )
-            sit = _selectedSources.erase(sit);
+            _selectedSources.erase(sit++);
         else
             ++sit;
     }
