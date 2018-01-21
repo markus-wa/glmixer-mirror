@@ -9,6 +9,7 @@
 #include "OscReceivedElements.h"
 #include "RenderingManager.h"
 #include "glmixer.h"
+#include "VideoSource.h"
 
 
 namespace osc{
@@ -311,44 +312,122 @@ void OpenSoundControlManager::executeMessage(QString pattern, QVariantList args)
 
 void invoke(Source *s, QString property, QVariantList args)
 {
-    // generic case : the property is the name of function to call
-    if (s && !property.isEmpty()) {
-        // create the string describing the slot
-        // and build the list of arguments
-        QString slot = "_set" + property + "(";
-        QVector<SourceArgument> arguments;
+    // create the string describing the slot
+    // and build the list of arguments
+    QString slot = "_set" + property + "(";
+    QVector<SourceArgument> arguments;
 
-        // fill the list with values
-        int i = 0;
-        for (; i < args.size() ; ++i, slot += ',' ) {
-            arguments.append( SourceArgument(args[i]) );
-            slot += arguments[i].typeName();
-        }
-        // finish the list with empty arguments
-        for (; i < 7; ++i) {
-            arguments.append( SourceArgument() );
-        }
-        // end the string with closing parenthesis instead of comas
-        if (slot.contains(','))
-            slot.chop(1);
-        slot += ')';
-
-        // Try to find the index of the given slot
-        int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
-        if ( methodIndex > 0 ) {
-
-            //                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
-
-            // invoke the method with all arguments
-            QMetaMethod method = s->metaObject()->method(methodIndex);
-            method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
-
-        }
-        else
-            throw osc::InvalidAttributeException();
+    // fill the list with values
+    int i = 0;
+    for (; i < args.size() ; ++i, slot += ',' ) {
+        arguments.append( SourceArgument(args[i]) );
+        slot += arguments[i].typeName();
     }
+    // finish the list with empty arguments
+    for (; i < 7; ++i) {
+        arguments.append( SourceArgument() );
+    }
+    // end the string with closing parenthesis instead of comas
+    if (slot.contains(','))
+        slot.chop(1);
+    slot += ')';
+
+    // Try to find the index of the given slot
+    int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
+    if ( methodIndex > 0 ) {
+        //                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
+
+        // invoke the method with all arguments
+        QMetaMethod method = s->metaObject()->method(methodIndex);
+        method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
+
+    }
+    else
+        throw osc::InvalidAttributeException();
+
 }
 
+void OpenSoundControlManager::executeSource(Source *s, QString property, QVariantList args)
+{
+    VideoFile *vf = NULL;
+
+    // discard invalid arguments
+    if (s && !property.isEmpty()) {
+
+        // prepare for media sources
+        if ( s->rtti() == Source::VIDEO_SOURCE ) {
+            // get the pointer to the video file to control
+            vf = ( dynamic_cast<VideoSource *>(s))->getVideoFile();
+        }
+
+        //  case of PRESET property
+        if ( property.compare(OSC_SOURCE_PRESET, Qt::CaseInsensitive) == 0 ){
+            if (args.size() > 0 && args[0].isValid())
+                emit applyPreset(s->getName(), args[0].toString() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        // Play / Stop source
+        else if ( property.compare(OSC_SOURCE_PLAY, Qt::CaseInsensitive) == 0 ) {
+            if (args.size() > 0 && args[0].isValid())
+                s->play( args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        // pause video file
+        else if ( property.compare(OSC_SOURCE_PAUSE, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid())
+                vf->pause( args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        // loop on / off
+        else if ( property.compare(OSC_SOURCE_LOOP, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid())
+                vf->setLoop( args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        // fast forward of video file
+        else if ( property.compare(OSC_SOURCE_FASTFORWARD, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid())
+                vf->setFastForward( args[0].toBool() );
+            else
+                throw osc::MissingArgumentException();
+        }
+        // source speed of video file
+        else if ( property.compare(OSC_SOURCE_SPEED, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid()) {
+                bool ok = false;
+                double v = args[0].toDouble(&ok);
+                if (ok)
+                    vf->setPlaySpeed( v );
+                else
+                    throw osc::WrongArgumentTypeException();
+            }
+            else
+                throw osc::MissingArgumentException();
+        }
+        // source speed of video file
+        else if ( property.compare(OSC_SOURCE_TIME, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid()) {
+                bool ok = false;
+                double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
+                if (ok) {
+                    vf->seekToPosition( vf->getMarkIn() + v * (vf->getMarkOut()-vf->getMarkIn()) );
+                } else
+                    throw osc::WrongArgumentTypeException();
+            }
+            else
+                throw osc::MissingArgumentException();
+        }
+        // general case : property name is Proto Source property
+        else
+            // invoke the call with given property and arguments on that source
+            invoke( s, property, args);
+
+    }
+}
 
 void OpenSoundControlManager::execute(QString object, QString property, QVariantList args)
 {
@@ -363,7 +442,8 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             }
             emit log(msg);
         }
-        else if ( property.compare(OSC_VOID_IGNORE, Qt::CaseInsensitive) == 0 ) {}
+        else if ( property.compare(OSC_VOID_IGNORE, Qt::CaseInsensitive) == 0 )
+        {}
         else
             throw osc::InvalidAttributeException();
     }
@@ -398,32 +478,20 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
         }
     }
     // Target OBJECT named "current" (control current source attributes)
-    else if ( object.compare(OSC_CURRENT, Qt::CaseInsensitive) == 0 ) {
+    else if ( object.compare(OSC_SOURCE_CURRENT, Qt::CaseInsensitive) == 0 ) {
 
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
         // if the current source is valid
-        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-            // special case of preset
-            if ( property.compare(OSC_PRESET, Qt::CaseInsensitive) == 0 && args.size() > 0 && args[0].isValid())
-                emit applyPreset((*sit)->getName(), args[0].toString() );
-            else
-                // invoke the call with given property and arguments on that source
-                invoke( *sit, property, args);
-        }
+        if ( RenderingManager::getInstance()->notAtEnd(sit))
+            executeSource( *sit, property, args);
         // NB: do not warn if no current source
     }
     // Target OBJECT : name of a source
     else {
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(object);
         // if the given source exists
-        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-            // special case of preset
-            if ( property.compare(OSC_PRESET, Qt::CaseInsensitive) == 0 && args.size() > 0 && args[0].isValid())
-                emit applyPreset(object, args[0].toString() );
-            else
-                // invoke the call with given property and arguments on that source
-                invoke( *sit, property, args);
-        }
+        if ( RenderingManager::getInstance()->notAtEnd(sit))
+            executeSource( *sit, property, args);
         else
             // inform that the source name is wrong
             throw osc::InvalidObjectException();
@@ -459,30 +527,32 @@ void OpenSoundControlManager::executeRender(QString property, QVariantList args)
             throw osc::MissingArgumentException();
     }
     else if ( property.compare(OSC_RENDER_PAUSE, Qt::CaseInsensitive) == 0 ) {
+        bool val = true;
+        // optional argument
         if (args.size() > 0 && args[0].isValid())
-            RenderingManager::getInstance()->pause( args[0].toBool() );
-        else
-            throw osc::MissingArgumentException();
+            val = args[0].toBool();
+        RenderingManager::getInstance()->pause( val );
     }
     else if ( property.compare(OSC_RENDER_UNPAUSE, Qt::CaseInsensitive) == 0 ) {
+        bool val = false;
+        // optional argument
         if (args.size() > 0 && args[0].isValid())
-            RenderingManager::getInstance()->pause( ! args[0].toBool() );
-        else
-            throw osc::MissingArgumentException();
+            val = ! args[0].toBool();
+        RenderingManager::getInstance()->pause( val );
     }
     else if ( property.compare(OSC_RENDER_NEXT, Qt::CaseInsensitive) == 0 ) {
-        if (args.size() > 0 && args[0].isValid()) {
-            if (args[0].toBool())
-                GLMixer::getInstance()->openNextSession();
-        }   else
-            throw osc::MissingArgumentException();
+        // if argument is given, react only to TRUE value
+        if (args.size() > 0 && args[0].isValid() && args[0].toBool() )
+            GLMixer::getInstance()->openNextSession();
+        else
+            GLMixer::getInstance()->openNextSession();
     }
     else if ( property.compare(OSC_RENDER_PREVIOUS, Qt::CaseInsensitive) == 0 ) {
-        if (args.size() > 0 && args[0].isValid()) {
-            if (args[0].toBool())
-                GLMixer::getInstance()->openPreviousSession();
-        }   else
-            throw osc::MissingArgumentException();
+        // if argument is given, react only to TRUE value
+        if (args.size() > 0 && args[0].isValid() && args[0].toBool() )
+            GLMixer::getInstance()->openPreviousSession();
+        else
+            GLMixer::getInstance()->openPreviousSession();
     }
     else
         throw osc::InvalidAttributeException();

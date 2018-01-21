@@ -39,8 +39,14 @@
 #define OSC_RENDER_UNPAUSE "unpause"
 #define OSC_RENDER_NEXT "next"
 #define OSC_RENDER_PREVIOUS "previous"
-#define OSC_PRESET "preset"
-#define OSC_CURRENT "current"
+#define OSC_SOURCE_PRESET "preset"
+#define OSC_SOURCE_CURRENT "current"
+#define OSC_SOURCE_PLAY "play"
+#define OSC_SOURCE_PAUSE "pause"
+#define OSC_SOURCE_LOOP "loop"
+#define OSC_SOURCE_SPEED "speed"
+#define OSC_SOURCE_FASTFORWARD "fastforward"
+#define OSC_SOURCE_TIME "time"
 #define OSC_SELECT "select"
 #define OSC_SELECT_NEXT "next"
 #define OSC_SELECT_PREVIOUS "previous"
@@ -129,6 +135,7 @@ private:
     static OpenSoundControlManager *_instance;
 
     void execute(QString object, QString property, QVariantList args);
+    void executeSource(class Source *s, QString property, QVariantList args);
     void executeRender(QString property, QVariantList args);
     void executeRequest(QString property, QVariantList args);
 
