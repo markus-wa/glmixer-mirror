@@ -512,9 +512,9 @@ void VideoFile::play(bool startorstop)
 void VideoFile::setPlaySpeedFactor(int s)
 {
     // exponential scale of speed
-    // 0 % is 0.1 speed (1/5)
-    // 50% is 1.0
-    // 100% is 5.0
+    // 0 % is x 0.1 speed (1/5)
+    // 100% is x 1.0
+    // 200% is x 10.0
     if ( s != getPlaySpeedFactor() ){
 
         setPlaySpeed( exp( double(s -100) / 43.42 ) );
@@ -611,7 +611,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     else
     {
         mark_in = qBound(getBegin(), markIn, getEnd());
-        emit markingChanged();
+        emit markInChanged(mark_in);
     }
 
     if (markOut <= 0 || nb_frames < 2)
@@ -619,7 +619,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     else
     {
         mark_out = qBound(mark_in, markOut, getEnd());
-        emit markingChanged();
+        emit markOutChanged(mark_out);
     }
 
     // read picture size from video codec
@@ -642,9 +642,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         targetHeight = qMin(targetHeight, actual_height);
 
     // round target picture size to power of two dimensions if requested
-    if (powerOfTwo) 
+    if (powerOfTwo)
         CodecManager::convertSizePowerOfTwo(targetWidth, targetHeight);
-        
+
     // Default targetFormat to PIX_FMT_RGB24, not using color palette
     targetFormat = AV_PIX_FMT_RGB24;
     rgba_palette = false;
@@ -663,7 +663,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // format description screen (for later)
     QString pfn = CodecManager::getPixelFormatName(targetFormat);
 
-    // Decide for optimal scaling algo 
+    // Decide for optimal scaling algo
     // NB: the algo is used only if the conversion is scaled or with filter
     // (i.e. optimal 'unscaled' converter is used by default)
     int conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
@@ -1199,7 +1199,7 @@ void VideoFile::setMarkIn(double time)
         clean_until_time_picture_queue();
 
     // inform about change in marks
-    emit markingChanged();
+    emit markInChanged(mark_in);
 
     // change the picture queue size to match the new interval
     recompute_max_count_picture_queue();
@@ -1226,7 +1226,7 @@ void VideoFile::setMarkOut(double time)
         clean_until_time_picture_queue(mark_out);
 
     // inform about change in marks
-    emit markingChanged();
+    emit markOutChanged(mark_out);
 
     // charnge the picture queue size to match the new interval
     recompute_max_count_picture_queue();

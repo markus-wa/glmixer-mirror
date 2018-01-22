@@ -1131,6 +1131,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // timeline
         QObject::disconnect(currentVideoFile, SIGNAL(timeChanged(double)), timeline, SLOT(setValue(double)));
         QObject::disconnect(currentVideoFile, SIGNAL(playSpeedChanged(double)), timeline, SLOT(setSpeed(double)));
+        QObject::disconnect(currentVideoFile, SIGNAL(markInChanged(double)), timeline, SLOT(setBegin(double)));
+        QObject::disconnect(currentVideoFile, SIGNAL(markOutChanged(double)), timeline, SLOT(setEnd(double)));
         QObject::disconnect(currentVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
         QObject::disconnect(timeline, SIGNAL(beginChanged(double)), currentVideoFile, SLOT(setMarkIn(double)) );
         QObject::disconnect(timeline, SIGNAL(endChanged(double)), currentVideoFile, SLOT(setMarkOut(double)) );
@@ -1256,6 +1258,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     // timeline
                     QObject::connect(currentVideoFile, SIGNAL(timeChanged(double)), timeline, SLOT(setValue(double)));
                     QObject::connect(currentVideoFile, SIGNAL(playSpeedChanged(double)), timeline, SLOT(setSpeed(double)));
+                    QObject::connect(currentVideoFile, SIGNAL(markInChanged(double)), timeline, SLOT(setBegin(double)));
+                    QObject::connect(currentVideoFile, SIGNAL(markOutChanged(double)), timeline, SLOT(setEnd(double)));
                     QObject::connect(currentVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
                     QObject::connect(timeline, SIGNAL(beginChanged(double)), currentVideoFile, SLOT(setMarkIn(double)) );
                     QObject::connect(timeline, SIGNAL(endChanged(double)), currentVideoFile, SLOT(setMarkOut(double)) );

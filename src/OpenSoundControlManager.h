@@ -47,6 +47,8 @@
 #define OSC_SOURCE_SPEED "speed"
 #define OSC_SOURCE_FASTFORWARD "fastforward"
 #define OSC_SOURCE_TIMING "timing"
+#define OSC_SOURCE_MARKIN "begin"
+#define OSC_SOURCE_MARKOUT "end"
 #define OSC_SELECT "select"
 #define OSC_SELECT_NEXT "next"
 #define OSC_SELECT_PREVIOUS "previous"

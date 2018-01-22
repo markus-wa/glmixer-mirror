@@ -395,7 +395,8 @@ signals:
     /**
      * Signal emited when a mark (IN or OUT) has been moved.
      */
-    void markingChanged();
+    void markInChanged(double);
+    void markOutChanged(double);
     /**
      * Signal emited when playing speed changed.
      */

@@ -408,10 +408,36 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
         else if ( property.compare(OSC_SOURCE_SPEED, Qt::CaseInsensitive) == 0 && vf ) {
             if (args.size() > 0 && args[0].isValid()) {
                 bool ok = false;
-                double v = args[0].toDouble(&ok);
+                double v = args[0].toInt(&ok);
                 if (ok)
-                    vf->setPlaySpeed( v );
+                    vf->setPlaySpeedFactor( v );
                 else
+                    throw osc::WrongArgumentTypeException();
+            }
+            else
+                throw osc::MissingArgumentException();
+        }
+        // source speed of video file
+        else if ( property.compare(OSC_SOURCE_MARKIN, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid()) {
+                bool ok = false;
+                double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
+                if (ok) {
+                    vf->setMarkIn( vf->getBegin() + v * vf->getDuration() );
+                } else
+                    throw osc::WrongArgumentTypeException();
+            }
+            else
+                throw osc::MissingArgumentException();
+        }
+        // source speed of video file
+        else if ( property.compare(OSC_SOURCE_MARKOUT, Qt::CaseInsensitive) == 0 && vf ) {
+            if (args.size() > 0 && args[0].isValid()) {
+                bool ok = false;
+                double v = qBound(0.0, args[0].toDouble(&ok), 1.0);
+                if (ok) {
+                    vf->setMarkOut( vf->getBegin() + v * vf->getDuration() );
+                } else
                     throw osc::WrongArgumentTypeException();
             }
             else
