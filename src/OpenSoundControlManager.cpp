@@ -111,7 +111,14 @@ void OpenSoundControlManager::setEnabled(bool enable, qint16 portreceive, qint16
         foreach( const QHostAddress &a, QNetworkInterface::allAddresses())
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
                 addresses << a.toString();
+        // log
         qDebug() << addresses.join(", ") << QChar(124).toLatin1() << "UDP OSC Server enabled (read port " << _portReceive <<").";
+
+        // broadcast the information of connection
+        QVariantList args;
+        args.append(addresses.last());
+        args.append(_portReceive);
+        broadcastDatagram( OSC_REQUEST_CONNECT, args );
     }
     else
         qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server disabled.";
@@ -148,8 +155,10 @@ void OpenSoundControlManager::broadcastDatagram(QString property, QVariantList a
         case QVariant::Bool:
             p << (bool) arg.toBool();
             break;
+        case QVariant::String:
+            p << (char *) qPrintable(arg.toString());
+            break;
         default:
-            throw osc::WrongArgumentTypeException();
             break;
         }
 
@@ -409,7 +418,7 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
                 throw osc::MissingArgumentException();
         }
         // source speed of video file
-        else if ( property.compare(OSC_SOURCE_TIME, Qt::CaseInsensitive) == 0 && vf ) {
+        else if ( property.compare(OSC_SOURCE_TIMING, Qt::CaseInsensitive) == 0 && vf ) {
             if (args.size() > 0 && args[0].isValid()) {
                 bool ok = false;
                 double v = qBound(0.0, args[0].toDouble(&ok), 1.0);

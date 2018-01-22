@@ -46,7 +46,7 @@
 #define OSC_SOURCE_LOOP "loop"
 #define OSC_SOURCE_SPEED "speed"
 #define OSC_SOURCE_FASTFORWARD "fastforward"
-#define OSC_SOURCE_TIME "time"
+#define OSC_SOURCE_TIMING "timing"
 #define OSC_SELECT "select"
 #define OSC_SELECT_NEXT "next"
 #define OSC_SELECT_PREVIOUS "previous"
@@ -55,6 +55,7 @@
 #define OSC_REQUEST_COUNT "count"
 #define OSC_REQUEST_NAME "name"
 #define OSC_REQUEST_CURRENT "current"
+#define OSC_REQUEST_CONNECT "connection"
 
 
 /**
