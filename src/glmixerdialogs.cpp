@@ -239,7 +239,6 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    QObject::connect(DecisionButtonBox, SIGNAL(rejected()), parent, SLOT(replaceCurrentSource()));
 }
 
 SourceFileEditDialog::~SourceFileEditDialog() {

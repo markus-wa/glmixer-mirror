@@ -1434,8 +1434,8 @@ void RenderingManager::dropSource(){
             setCurrentSource(top->getId());
             // start playing (according to preference)
             top->play(_playOnDrop);
-
-            emit editCurrentSource();
+            // inform of source drop
+            emit sourceDropped(top);
             // inform of change
             emit countSourceChanged(_front_sources.size());
         }

@@ -1529,9 +1529,8 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy GPU plugin source created.");
                     RenderingManager::getRenderingWidget()->showMessage( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
 
-                    // connect the signal from the rendering manager to
-                    // show the code editor after drop
-                    QObject::connect(RenderingManager::getInstance(), SIGNAL(editCurrentSource()), this, SLOT(on_actionEditSource_triggered()) );
+                    // connect the signal from the rendering manager to show the code editor after source drop
+                    QObject::connect(RenderingManager::getInstance(), SIGNAL(sourceDropped(Source *)), this, SLOT(editShaderToySource(Source *)) );
                 }
                 // if it is a Freeframe plugin
                 else {
@@ -1554,6 +1553,26 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
 
 #ifdef GLM_FFGL
+
+
+void GLMixer::editShaderToySource(Source *s)
+{
+    // this is a rare need (drop of shader toy) so we avoid to do it for all source dropped
+    QObject::disconnect(RenderingManager::getInstance(), SIGNAL(sourceDropped(Source *)), this, SLOT(editShaderToySource(Source *)) );
+
+    //  ignore invalid
+    if (!s)
+        return;
+
+    // try to convert to ffsource
+    FFGLSource *ps = dynamic_cast<FFGLSource *> (s);
+    if ( ps )
+        // get the plugin and request to edit code
+        editShaderToyPlugin( ps->freeframeGLPlugin() );
+        // ( this will test if it is a shadertoy )
+
+}
+
 void GLMixer::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
     if(!plugin)
@@ -1734,18 +1753,16 @@ void GLMixer::on_actionEditSource_triggered()
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
-#ifdef GLM_FFGL
-        // this connection is useful only after creation of a new Freeframe Source
-        QObject::disconnect(RenderingManager::getInstance(), SIGNAL(editCurrentSource()), this, SLOT(on_actionEditSource_triggered()) );
-#endif
-
-        // for others, edit mean show the dialog to change source
+        // edit mean show the dialog to change source
         SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 
-        sed.exec();
+        if (sed.exec() == QDialog::Rejected) {
+            // requet to re-create source
+            replaceCurrentSource();
+            // update the property browser of the source 
+            connectSource(RenderingManager::getInstance()->getCurrentSource()); 
+        }
 
-        // update the property browser of the source (might have changed)
-        connectSource(RenderingManager::getInstance()->getCurrentSource());
     }
 }
 

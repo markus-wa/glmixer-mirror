@@ -165,6 +165,7 @@ public slots:
 
 #ifdef GLM_FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
+    void editShaderToySource(Source *);
 #endif
 
     void disable() { setDisabled(true); }
