@@ -1216,13 +1216,18 @@ void VideoFile::setMarkOut(double time)
     // reserve at least 1 frame interval with mark in
     mark_out = qBound(mark_in + getFrameDuration(), time, getEnd());
 
-    // if requested mark_out is before current time or
-    if ( !(mark_out > current_frame_pts) )
-        // seek to mark in
-        seekToPosition(mark_out);
-    // else mark in is before the current time, but the queue might already have looped
+    // if requested mark_out is before current time
+    if ( !(current_frame_pts + getFrameDuration() < mark_out) ) {
+       // react according to loop mode
+       if (loop_video)
+           // seek to mark in
+           seekToPosition(mark_in);
+       else
+           stop();
+    }
+    // else mark out is after the current time, but the queue might already have looped
     else
-        // Cleanup the queue until the next mark it contains, or until the new mark_out
+        // Cleanup the queue until the new mark_out
         clean_until_time_picture_queue(mark_out);
 
     // inform about change in marks
