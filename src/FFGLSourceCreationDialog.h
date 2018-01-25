@@ -62,6 +62,8 @@ protected:
     void showEvent(QShowEvent *);
 
 private:
+    int getUserSelection();
+    void setUserSelection(int select);
 
     Ui::FFGLSourceCreationDialog *ui;
 

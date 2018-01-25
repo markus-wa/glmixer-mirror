@@ -1499,13 +1499,12 @@ void GLMixer::on_actionStreamSource_triggered(){
 void GLMixer::on_actionFreeframeSource_triggered(){
 
 #ifdef GLM_FFGL
-
-    // popup a question dialog to select the type of algorithm
+    // create dialog on first run
     static FFGLSourceCreationDialog *ffgld = 0;
     if (!ffgld)
         ffgld = new FFGLSourceCreationDialog(this, &settings);
 
-
+    // popup a question dialog to select the type of algorithm
     if (ffgld->exec() == QDialog::Accepted) {
 
         int w = ffgld->getSelectedWidth();
@@ -1564,7 +1563,7 @@ void GLMixer::editShaderToySource(Source *s)
     if (!s)
         return;
 
-    // try to convert to ffsource
+    // try to convert to freeframe source
     FFGLSource *ps = dynamic_cast<FFGLSource *> (s);
     if ( ps )
         // get the plugin and request to edit code
@@ -1591,7 +1590,6 @@ void GLMixer::editShaderToyPlugin(FFGLPluginSource *plugin)
 
         // update list in case the plugin changed (e.g. name)
         connect(plugin, SIGNAL(changed()), mixingToolBox, SLOT(changed()));
-
     }
 
 }
@@ -1759,8 +1757,8 @@ void GLMixer::on_actionEditSource_triggered()
         if (sed.exec() == QDialog::Rejected) {
             // requet to re-create source
             replaceCurrentSource();
-            // update the property browser of the source 
-            connectSource(RenderingManager::getInstance()->getCurrentSource()); 
+            // update the property browser of the source
+            connectSource(RenderingManager::getInstance()->getCurrentSource());
         }
 
     }
@@ -1777,9 +1775,31 @@ void GLMixer::replaceCurrentSource()
             if (vs) {
                 VideoFile *vf = vs->getVideoFile();
                 if (vf) {
-                    QFileInfo fi( vf->getFileName() );
-                    mfd->setDirectory( fi.dir() );
-                    mfd->selectFile( fi.absoluteFilePath() );
+                    // indicate location of file to replace
+                    settings.setValue("recentMediaFile", vf->getFileName());
+                }
+            }
+        }
+        // if we replace a shadertoy, copy its code to clipboard
+        else if ( (*cs)->rtti() == Source::FFGL_SOURCE ) {
+
+            FFGLSource *ffs = dynamic_cast<FFGLSource *> (*cs);
+            if (ffs) {
+                FFGLPluginSource *plugin = ffs->freeframeGLPlugin();
+                // case of Shadertoy plugins
+                if ( plugin->rtti()== FFGLPluginSource::SHADERTOY_PLUGIN ) {
+                    FFGLPluginSourceShadertoy *st = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+                    if (st) {
+                        // copy code of shadertoy to clipboard
+                        QApplication::clipboard()->setText( st->getCode() );
+                        // indicate in settings that FFGLCreationDialog should open on shadertoy clipboard
+                        settings.setValue("recentFFGLPluginSelection", 3);
+                    }
+                }
+                // case of freeframe plugins
+                else {
+                    // indicate in settings that FFGLCreationDialog should open on ffgl source
+                    settings.setValue("recentFFGLPluginSelection", 0);
                 }
             }
         }
@@ -3566,17 +3586,30 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 QStringList GLMixer::getMediaFileNames(bool &smartScaling) {
 
     QStringList fileNames;
+    QString recentfile = settings.value("recentMediaFile", QDesktopServices::storageLocation(QDesktopServices::MoviesLocation)).toString();
+    QFileInfo fi( recentfile );
 
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
-        static QDir dir(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
-        fileNames = QFileDialog::getOpenFileNames(this, tr("GLMixer - Open videos or Pictures"), dir.absolutePath(), VIDEOFILE_DIALOG_FORMATS );
-        if (!fileNames.isEmpty())
-            dir = QFileInfo(fileNames.front()).absoluteDir();
-    } else if (mfd->exec()) {
-        fileNames = mfd->selectedFiles();
-        smartScaling = mfd->configCustomSize();
+        // open standard dialog at location of recent file
+        fileNames = QFileDialog::getOpenFileNames(this,
+                                                  tr("GLMixer - Open videos or Pictures"),
+                                                  fi.dir().absolutePath(),
+                                                  VIDEOFILE_DIALOG_FORMATS );
     }
+    else {
+        // restore location and file selection at recent file
+        mfd->setDirectory( fi.dir() );
+        mfd->selectFile( fi.absoluteFilePath() );
+        // open dialog
+        if (mfd->exec()) {
+            fileNames = mfd->selectedFiles();
+            smartScaling = mfd->configCustomSize();
+        }
+    }
+
+    if (!fileNames.empty())
+        settings.setValue("recentMediaFile", fileNames.front());
 
     return fileNames;
 }

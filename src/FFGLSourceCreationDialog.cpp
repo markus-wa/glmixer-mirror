@@ -90,7 +90,11 @@ FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 
 void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
-//    ui->freeframeFileList->setCurrentIndex(0);
+    // select mode according to settings
+    if (appSettings)
+        setUserSelection( appSettings->value("recentFFGLPluginSelection", "0").toInt());
+
+    // update source display
     updateSourcePreview();
 
     QWidget::showEvent(e);
@@ -116,12 +120,52 @@ void FFGLSourceCreationDialog::done(int r){
         for ( int i = 1; i < ui->shadertoyFileList->count(); ++i )
             l.append(ui->shadertoyFileList->itemData(i).toString());
         appSettings->setValue("recentShadertoyCodeList", l);
+        appSettings->setValue("recentFFGLPluginSelection", getUserSelection());
     }
 
     QDialog::done(r);
 }
 
 
+int FFGLSourceCreationDialog::getUserSelection() {
+
+    int select = 0;
+
+    // CASE 1: load file Freeframe plugin
+    if ( ui->freeframeFilePlugin->isChecked() )
+        select = 1;
+    // CASE 2: empty shadertoy plugin
+    else if (ui->shadertoyGeneric->isChecked())
+        select = 2;
+    // CASE 3: clipboard shadertoy plugin
+    else if (ui->shadertoyClipboard->isChecked())
+        select = 3;
+    // CASE 4: text file shadertoy plugin
+    else if (ui->shadertoyFile->isChecked())
+        select = 4;
+
+    return select;
+}
+
+void FFGLSourceCreationDialog::setUserSelection(int select){
+
+    switch (select) {
+    case 1:
+        ui->freeframeFilePlugin->setChecked(true);
+        break;
+    case 2:
+        ui->shadertoyGeneric->setChecked(true);
+        break;
+    case 3:
+        ui->shadertoyClipboard->setChecked(true);
+        break;
+    case 4:
+        ui->shadertoyFile->setChecked(true);
+        break;
+    default:
+        ui->freeframeEmbededPlugin->setChecked(true);
+    }
+}
 
 void FFGLSourceCreationDialog::updateSourcePreview(){
 
