@@ -207,6 +207,9 @@ private:
 #ifdef GLM_TAG
     class TagsManager *tagsManager;
 #endif
+#ifdef GLM_SNAPSHOT
+    class SnapshotManagerWidget *snapshotManager;
+#endif
 #ifdef GLM_HISTORY
     class HistoryRecorderWidget *actionHistoryView;
 #endif

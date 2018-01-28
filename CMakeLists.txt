@@ -169,13 +169,16 @@ set( CMAKE_INCLUDE_PATH
 )
 
 # HERE ARE THE OPTIONNAL MODULES TO COMPILE
+# STABLE MODULE : ENABLED BY DEFAULT
 SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK to compile with Session switcher")
 SET(USE_TAG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Tag manager")
-SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "CHECK to compile with History manager")
 SET(USE_UNDO ON CACHE BOOL "CHECK if you want to compile the Undo functionnality")
-
-# HERE IS THE OPTIONNAL USE OF SHARED MEMORY
+SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
+# UNSTABLE MODULE : DISABLED BY DEFAULT
+SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "CHECK to compile with History manager")
+SET(USE_SNAPSHOT_MANAGEMENT OFF CACHE BOOL "CHECK to compile with snapshots manager")
 SET(USE_SHAREDMEMORY OFF CACHE BOOL "CHECK to compile with Shared Memory support")
+SET(USE_NVIDIA_CUDA OFF CACHE BOOL "CHECK to compile with NVIDIA CUDA Video Decoding")
 
 if( USE_SHAREDMEMORY )
 
@@ -212,12 +215,9 @@ if( USE_SHAREDMEMORY )
 endif( USE_SHAREDMEMORY )
 
 
-# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
-SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
-
 if(USE_OPENCV)
 
-message(STATUS "Looking for OpenCV.")
+    message(STATUS "Looking for OpenCV.")
 
     unset(OPENCV_CORE_LIBRARY CACHE)
     unset(OPENCV_IMGPROC_LIBRARY CACHE)
@@ -266,7 +266,7 @@ message(STATUS "Looking for OpenCV.")
 
         unset(USE_OPENCV CACHE)
  #       set(USE_OPENCV OFF CACHE BOOL)
- message(STATUS "Did not find OpenCV.")
+        message(STATUS "Did not find OpenCV.")
 
     endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
@@ -296,9 +296,6 @@ if(USE_FREEFRAMEGL)
     endif(UNIX)
 
 endif(USE_FREEFRAMEGL)
-
-
-SET(USE_NVIDIA_CUDA OFF CACHE BOOL "CHECK to compile with NVIDIA CUDA Video Decoding")
 
 if(USE_NVIDIA_CUDA)
 

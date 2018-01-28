@@ -87,6 +87,10 @@
 #include "TagsManager.h"
 #endif
 
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManagerWidget.h"
+#endif
+
 #ifdef GLM_HISTORY
 #include "HistoryRecorderWidget.h"
 #endif
@@ -357,14 +361,16 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
-#ifdef GLM_OSC
-    // special link between OSC and MixingToolbox to call for presets
-    QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, QString)), mixingToolBox, SLOT(applyPreset(QString, QString)) );
-#endif
-
     // setup the layout toolbox
     layoutToolBox = new LayoutToolboxWidget(this);
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
+
+#ifdef GLM_OSC
+    // special link between OSC and MixingToolbox to call for presets
+    QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, QString)), mixingToolBox, SLOT(applyPreset(QString, QString)) );
+#else
+    delete actionOSCTranslator;
+#endif
 
 #ifdef GLM_TAG
     // setup the tags toolbox
@@ -385,9 +391,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     delete actionHistoryDockWidget;
 #endif
 
-#ifdef GLM_OSC
+#ifdef GLM_SNAPSHOT
+    // setup the snapshot toolbox
+    snapshotManager = new SnapshotManagerWidget(this);
+    snapshotsDockWidgetContentsLayout->addWidget(snapshotManager);
 #else
-    delete actionOSCTranslator;
+    // DISABLE SNAPSHOT MANAGER
+    delete snapshotsDockWidget;
 #endif
 
 #ifdef GLM_SESSION
@@ -504,6 +514,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef GLM_SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
 #endif
+
 #ifdef GLM_SPOUT
     QObject::connect(actionShareToSPOUT, SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
     QObject::connect(RenderingManager::getInstance(), SIGNAL(spoutSharingEnabled(bool)), actionShareToSPOUT, SLOT(setChecked(bool)));
@@ -680,8 +691,10 @@ void GLMixer::closeEvent(QCloseEvent * event ){
 
 void GLMixer::keyPressEvent(QKeyEvent * event) {
 
+    Qt::KeyboardModifiers m = event->modifiers();
+
     // React to Key pressed for numerical keys [0..9]
-    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+    if ( (event->modifiers() & Qt::ControlModifier) &&  event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
         emit keyPressed((int) event->key() - (int) Qt::Key_0, true);
         event->accept();
     }
@@ -694,7 +707,7 @@ void GLMixer::keyPressEvent(QKeyEvent * event) {
 void GLMixer::keyReleaseEvent(QKeyEvent * event) {
 
     // React to Key release for numerical keys [0..9]
-    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+    if ( (event->modifiers() & Qt::ControlModifier) &&  event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
         emit keyPressed((int) event->key() - (int) Qt::Key_0, false);
         event->accept();
     }
