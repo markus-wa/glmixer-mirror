@@ -348,7 +348,7 @@ void invoke(Source *s, QString property, QVariantList args)
 
         // invoke the method with all arguments
         QMetaMethod method = s->metaObject()->method(methodIndex);
-        method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
+        method.invoke(s, Qt::AutoConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
 
     }
     else
@@ -457,10 +457,14 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
                 throw osc::MissingArgumentException();
         }
         // general case : property name is Proto Source property
-        else
+        else {
             // invoke the call with given property and arguments on that source
             invoke( s, property, args);
 
+            // update current source if necessary
+            if ( RenderingManager::getInstance()->isCurrentSource(s) )
+                RenderingManager::getInstance()->updateCurrentSource();
+        }
     }
 }
 
