@@ -242,6 +242,7 @@ if(USE_SNAPSHOT_MANAGEMENT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SNAPSHOT" ) # make QtCreator happy
     add_definitions(-DGLM_SNAPSHOT)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        SnapshotManager.cpp
         SnapshotManagerWidget.cpp
     )
     SET(GLMIXER_UIS  ${GLMIXER_UIS}

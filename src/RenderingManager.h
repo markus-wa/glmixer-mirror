@@ -156,6 +156,7 @@ public:
     inline SourceSet::iterator getCurrentSource()  const{
         return _currentSource;
     }
+    void updateCurrentSource();
     bool setCurrentNext();
     bool setCurrentPrevious();
     void unsetCurrentSource() { setCurrentSource( getEnd() ); }

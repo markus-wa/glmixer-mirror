@@ -1730,9 +1730,16 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
     }
 }
 
-void RenderingManager::setCurrentSource(GLuint id) {
+void RenderingManager::setCurrentSource(GLuint id)
+{
 
     setCurrentSource(getById(id));
+}
+
+void RenderingManager::updateCurrentSource()
+{
+    if ( isValid(_currentSource) )
+        emit currentSourceChanged(_currentSource);
 }
 
 
