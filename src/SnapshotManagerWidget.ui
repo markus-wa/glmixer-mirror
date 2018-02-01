@@ -16,8 +16,23 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QListWidget" name="snapshotsList">
+     <property name="autoScroll">
+      <bool>false</bool>
+     </property>
      <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+      <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+     </property>
+     <property name="dragEnabled">
+      <bool>true</bool>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DragOnly</enum>
+     </property>
+     <property name="defaultDropAction">
+      <enum>Qt::LinkAction</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectItems</enum>
      </property>
      <property name="iconSize">
       <size>
@@ -25,8 +40,23 @@
        <height>128</height>
       </size>
      </property>
-     <property name="isWrapping" stdset="0">
-      <bool>true</bool>
+     <property name="movement">
+      <enum>QListView::Snap</enum>
+     </property>
+     <property name="resizeMode">
+      <enum>QListView::Fixed</enum>
+     </property>
+     <property name="layoutMode">
+      <enum>QListView::SinglePass</enum>
+     </property>
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <property name="gridSize">
+      <size>
+       <width>140</width>
+       <height>110</height>
+      </size>
      </property>
      <property name="viewMode">
       <enum>QListView::IconMode</enum>

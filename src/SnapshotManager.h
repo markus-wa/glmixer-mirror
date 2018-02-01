@@ -23,18 +23,25 @@ public:
     QStringList getSnapshotIdentifiers();
     QPixmap getSnapshotPixmap(QString id) { return _snapshotsList[id]; }
 
+    void setSnapshotLabel(QString id, QString label);
+    QString getSnapshotLabel(QString id);
+
+    void removeSnapshot(QString id);
+
     /**
      * get and set configuration
      */
     QDomElement getConfiguration(QDomDocument &doc);
-    void setConfiguration(QDomElement xmlconfig);
+    void addConfiguration(QDomElement xmlconfig);
+    void clearConfiguration();
 
 signals:
-    void snap();
+    void clear();
+    void newSnapshot(QString id);
+    void deleteSnapshot(QString id);
 
 public slots:
-
-    QString addSnapshot();
+    void addSnapshot();
     void restoreSnapshot(QString id);
 
 private:

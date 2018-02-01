@@ -18,9 +18,13 @@ public:
 public:
 
 public slots:
-    void on_addSnapshot_pressed();
+    void clear();
+    void newSnapshot(QString id);
+    void deleteSnapshot(QString id);
+
     void on_deleteSnapshot_pressed();
     void on_snapshotsList_itemDoubleClicked(QListWidgetItem *);
+    void on_snapshotsList_itemChanged(QListWidgetItem *);
 
 private:
     Ui::SnapshotManagerWidget *ui;
