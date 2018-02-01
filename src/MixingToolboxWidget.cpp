@@ -608,8 +608,10 @@ void MixingToolboxWidget::applyPreset(Source *s, QListWidgetItem *itemListPreset
         if (doc.setContent( itemListPreset->data(Qt::UserRole).toString() )) {
             QDomElement child = doc.firstChildElement("Source");
             if (!child.isNull()) {
+#ifdef GLM_UNDO
                 // inform undo manager
                 UndoManager::getInstance()->store();
+#endif
                 // apply configuration
                 s->Source::setConfiguration(child, QDir());
             }

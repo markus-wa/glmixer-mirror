@@ -137,20 +137,14 @@ public slots:
     // source config
     void connectSource(SourceSet::iterator csi);
     void sessionChanged();
-
     void openSessionFile();
     void newSource(Source::RTTI type);
     void newSession();
     void closeSession();
-    void openNextSession();
-    void openPreviousSession();
     void saveSession(bool close = false, bool quit = false);
     void postSaveSession();
 
-#ifdef GLM_LOGS
-    void saveLogsToFile();
-#endif
-
+    // app settings
     void readSettings(QString pathtobin = QString::null);
     void saveSettings();
 
@@ -166,6 +160,13 @@ public slots:
 #ifdef GLM_FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
     void editShaderToySource(Source *);
+#endif
+#ifdef GLM_SESSION
+    void openNextSession();
+    void openPreviousSession();
+#endif
+#ifdef GLM_LOGS
+    void saveLogsToFile();
 #endif
 
     void disable() { setDisabled(true); }

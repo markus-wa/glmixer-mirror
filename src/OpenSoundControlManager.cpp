@@ -579,6 +579,7 @@ void OpenSoundControlManager::executeRender(QString property, QVariantList args)
             val = ! args[0].toBool();
         RenderingManager::getInstance()->pause( val );
     }
+#ifdef GLM_SESSION
     else if ( property.compare(OSC_RENDER_NEXT, Qt::CaseInsensitive) == 0 ) {
         // if argument is given, react only to TRUE value
         if (args.size() > 0 && args[0].isValid() && args[0].toBool() )
@@ -593,6 +594,7 @@ void OpenSoundControlManager::executeRender(QString property, QVariantList args)
         else
             GLMixer::getInstance()->openPreviousSession();
     }
+#endif
     else
         throw osc::InvalidAttributeException();
 }

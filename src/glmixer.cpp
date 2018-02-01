@@ -88,6 +88,7 @@
 #endif
 
 #ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
 #include "SnapshotManagerWidget.h"
 #endif
 
@@ -1793,6 +1794,7 @@ void GLMixer::replaceCurrentSource()
                 }
             }
         }
+#ifdef GLM_FFGL
         // if we replace a shadertoy, copy its code to clipboard
         else if ( (*cs)->rtti() == Source::FFGL_SOURCE ) {
 
@@ -1816,6 +1818,7 @@ void GLMixer::replaceCurrentSource()
                 }
             }
         }
+#endif
 
         // show gui to re-create a source of same type
         newSource( (*cs)->rtti() );
@@ -1823,6 +1826,7 @@ void GLMixer::replaceCurrentSource()
         // drop the source and make new source current
         RenderingManager::getInstance()->dropReplaceSource(cs);
     }
+
 }
 
 void GLMixer::on_actionDeleteSource_triggered()
@@ -2022,6 +2026,7 @@ void GLMixer::closeSession()
 
 }
 
+#ifdef GLM_SESSION
 void GLMixer::openNextSession()
 {
     switcherSession->startTransitionToNextSession();
@@ -2031,6 +2036,7 @@ void GLMixer::openPreviousSession()
 {
     switcherSession->startTransitionToPreviousSession();
 }
+#endif
 
 void GLMixer::on_actionClose_Session_triggered()
 {
@@ -2076,6 +2082,9 @@ void GLMixer::newSession()
 
     // reset
     RenderingManager::getInstance()->clearSourceSet();
+#ifdef GLM_SNAPSHOT
+    SnapshotManager::getInstance()->clearConfiguration();
+#endif
     actionWhite_background->setChecked(false);
     RenderingManager::getRenderingWidget()->clearViews();
     QString note = tr("Created on ");
@@ -2146,6 +2155,11 @@ void SessionSaver::run()
     QDomText text = doc.createTextNode(GLMixer::getInstance()->getNotes() );
     notes.appendChild(text);
     root.appendChild(notes);
+
+#ifdef GLM_SNAPSHOT
+    QDomElement snapshotConfig =  SnapshotManager::getInstance()->getConfiguration(doc);
+    root.appendChild(snapshotConfig);
+#endif
 
     doc.appendChild(root);
     doc.save(out, 4);
@@ -2344,6 +2358,9 @@ void GLMixer::openSessionFile()
 
     // clear sources
     RenderingManager::getInstance()->clearSourceSet();
+#ifdef GLM_SNAPSHOT
+    SnapshotManager::getInstance()->clearConfiguration();
+#endif
     QCoreApplication::processEvents();
 
     // read the source list and its configuration
@@ -2439,6 +2456,14 @@ void GLMixer::openSessionFile()
         text = notes.text();
     blocNoteEdit->setPlainText(text);
 
+#ifdef GLM_SNAPSHOT
+    // read the snapshots
+    QDomElement snaphots = root.firstChildElement("SnapshotList");
+    if (!snaphots.isNull()) {
+        SnapshotManager::getInstance()->addConfiguration(snaphots);
+    }
+#endif
+
     // unsuspend display
     RenderingManager::getRenderingWidget()->setFaded(false);
     RenderingManager::getInstance()->pause(false);
@@ -2463,7 +2488,6 @@ void GLMixer::openSessionFile()
 }
 
 void GLMixer::on_actionReload_Session_triggered(){
-
 
     switchToSessionFile(currentSessionFileName);
 
@@ -3462,8 +3486,10 @@ void GLMixer::on_actionPaste_triggered() {
                     // that name is not in the list
                     else
                     {
+#ifdef GLM_UNDO
                         // inform undo manager
                         UndoManager::getInstance()->store();
+#endif
                         // create a new source from this description
                         n += 1 - RenderingManager::getInstance()->addSourceConfiguration(child);
                     }
