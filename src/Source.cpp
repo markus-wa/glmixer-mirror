@@ -96,10 +96,10 @@ QString Source::getInfo() const {
  * */
 
 void Source::setName(QString n) {
-    
+
     // do not accept empty strings
     if (n.isEmpty())  return;
-    
+
     // accept new name only if validated by rendering manager
     QString newname = RenderingManager::getInstance()->getAvailableNameFrom(n);
 
@@ -364,6 +364,8 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     // set tag
     Tag::get( xmlconfig.attribute("tag","0").toInt() )->set(this);
 #endif
+
+#ifdef GLM_FFGL
     // clear the plugin list if none provided
     if ( xmlconfig.firstChildElement("FreeFramePlugin").isNull()) {
         clearFreeframeGLPlugin();
@@ -376,7 +378,6 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         while (!p.isNull() /*&& ret != false*/) {
             // ignore empty node
             if (p.hasChildNodes()) {
-#ifdef GLM_FFGL
                 QDomElement Filename = p.firstChildElement("Filename");
 
                 // for FreeFrame plugins using a DLL
@@ -484,10 +485,6 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 
                 }
 
-#else
-                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
-                ret = false;
-#endif
             }
             // next plugin in configuration
             p = p.nextSiblingElement("FreeFramePlugin");
@@ -498,6 +495,8 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         // remove the rest of the stack as it is not part of config
         _ffgl_plugins.clearAfterIndex(id);
     }
+
+#endif
 
     return ret;
 }
