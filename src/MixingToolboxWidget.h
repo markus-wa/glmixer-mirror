@@ -95,9 +95,9 @@ public slots:
     // Plugin page
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
+#endif
     void on_resetPlugins_pressed();
     void on_pluginButton_clicked(bool);
-#endif
 
     // inform something changed
     void changed();
