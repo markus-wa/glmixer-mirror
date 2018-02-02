@@ -38,13 +38,10 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
 
 void SnapshotManager::addConfiguration(QDomElement xmlconfig)
 {
-
-
     QDomElement child = xmlconfig.firstChildElement();
     while (!child.isNull()) {
 
         QString id = child.nodeName();
-        qDebug() << id << child.attribute("label");
 
         // load icon
         QDomElement img = child.firstChildElement("Image");
@@ -55,12 +52,12 @@ void SnapshotManager::addConfiguration(QDomElement xmlconfig)
         else
             _snapshotsList[id] = QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_256x256.png"));
 
-
+        // create new entry
         QDomElement childnew = _snapshotsDescription.createElement(id);
         childnew.setAttribute("label", child.attribute("label"));
-
+        // copy content of the snapshot
         childnew.appendChild( child.firstChildElement("SourceList") );
-
+        // add snapshot to description list
         _snapshotsDescription.appendChild(childnew);
 
         // inform GUI
@@ -70,7 +67,6 @@ void SnapshotManager::addConfiguration(QDomElement xmlconfig)
         child = child.nextSiblingElement();
     }
 
-    qDebug() << " xml "<< _snapshotsDescription.toString(1);
 }
 
 void SnapshotManager::clearConfiguration()

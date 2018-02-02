@@ -163,7 +163,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), busy(false), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
+    glRenderWidget(), faded(false), busy(false), flashIntensity(0), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
     setAcceptDrops ( true );
@@ -516,6 +516,11 @@ void ViewRenderWidget::setCursorEnabled(bool on) {
         cursorEnabled = on;
 }
 
+void ViewRenderWidget::triggerFlash()
+{
+    flashIntensity = 240;
+}
+
 void ViewRenderWidget::setCursorMode(cursorMode m){
 
     switch(m) {
@@ -665,8 +670,16 @@ void ViewRenderWidget::paintGL()
         glCallList(ViewRenderWidget::fading + 2);
     }
     else if (faded) {
-        // the fading overlay is in one single call list
+        // the fading overlay is in a single call list with given color
+        glColor4ub(COLOR_FADING, 128);
         glCallList(ViewRenderWidget::fading);
+    }
+    else if (flashIntensity > 0) {
+        // the fading overlay is in a single call list with given color
+        glColor4ub(COLOR_FLASHING, flashIntensity);
+        glCallList(ViewRenderWidget::fading);
+        flashIntensity /= 2;
+        flashIntensity = flashIntensity < 10 ? 0 : flashIntensity;
     }
     // if not faded, means the area is active
     else
@@ -2356,7 +2369,7 @@ GLuint ViewRenderWidget::buildFadingList()
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 
-    GLuint id = glGenLists(3);
+    GLuint id = glGenLists(4);
 
     // simple overlay for fading the view
     glNewList(id, GL_COMPILE);
@@ -2371,7 +2384,6 @@ GLuint ViewRenderWidget::buildFadingList()
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    glColor4ub(COLOR_FADING, 128);
     glRectf(-1, -1, 1, 1);
 
     glMatrixMode(GL_PROJECTION);

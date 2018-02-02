@@ -188,6 +188,7 @@ public slots:
     void setFaded(bool on) { faded = on; }
     void setBusy(bool on = true) { busy = on; }
     void setCursorEnabled(bool on);
+    void triggerFlash();
 
 public:
     // Shading
@@ -231,6 +232,7 @@ private:
     class RenderingView *_renderingView;
     class CatalogView *_catalogView;
     bool faded, busy;
+    int flashIntensity;
 
     // C u r s o r s
     Cursor *_currentCursor;

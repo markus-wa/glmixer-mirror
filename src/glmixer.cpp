@@ -393,6 +393,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #endif
 
 #ifdef GLM_SNAPSHOT
+    // setup snapshot manager
+    QObject::connect(SnapshotManager::getInstance(), SIGNAL(newSnapshot(QString)), RenderingManager::getRenderingWidget(), SLOT(triggerFlash() ) );
     // setup the snapshot toolbox
     snapshotManager = new SnapshotManagerWidget(this, &settings);
     snapshotsDockWidgetContentsLayout->addWidget(snapshotManager);
