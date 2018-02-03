@@ -44,6 +44,11 @@
 #include "glmixer.h"
 #include "WorkspaceManager.h"
 
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
+#include "SnapshotView.h"
+#endif
+
 GLuint ViewRenderWidget::vertex_array_coords = 0;
 GLuint ViewRenderWidget::border_thin_shadow = 0,
         ViewRenderWidget::border_large_shadow = 0;
@@ -189,6 +194,12 @@ ViewRenderWidget::ViewRenderWidget() :
     _catalogView = new CatalogView;
     Q_CHECK_PTR(_catalogView);
 
+#ifdef GLM_SNAPSHOT
+    // create the snapshot view
+    _snapshotView = new SnapshotView;
+    Q_CHECK_PTR(_snapshotView);
+#endif
+
     // create the cursors
     _springCursor = new SpringCursor;
     Q_CHECK_PTR(_springCursor);
@@ -264,6 +275,10 @@ ViewRenderWidget::~ViewRenderWidget()
     delete _lineCursor;
     delete _fuzzyCursor;
     delete _magnetCursor;
+
+#ifdef GLM_SNAPSHOT
+    delete _snapshotView;
+#endif
 }
 
 
@@ -521,6 +536,13 @@ void ViewRenderWidget::triggerFlash()
     flashIntensity = 240;
 }
 
+#ifdef GLM_SNAPSHOT
+void ViewRenderWidget::setSnapshotVisible(bool on)
+{
+    _snapshotView->setVisible(on, _currentView);
+}
+#endif
+
 void ViewRenderWidget::setCursorMode(cursorMode m){
 
     switch(m) {
@@ -598,6 +620,10 @@ Cursor *ViewRenderWidget::getCursor(cursorMode m)
 
 void ViewRenderWidget::resizeGL(int w, int h)
 {
+#ifdef GLM_SNAPSHOT
+    // modify snapshot view
+    _snapshotView->resize(w, h);
+#endif
     // modify catalog view
     _catalogView->resize(w, h);
 
@@ -615,6 +641,12 @@ void ViewRenderWidget::refresh()
     gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
     glGetDoublev(GL_PROJECTION_MATRIX, _renderView->projection);
     glGetDoublev(GL_PROJECTION_MATRIX, _catalogView->projection);
+
+
+#ifdef GLM_SNAPSHOT
+    // modify snapshot view
+    _snapshotView->resize(width(), height());
+#endif
 
     // default resize ; will refresh everything
     _currentView->resize(width(), height());
@@ -678,8 +710,7 @@ void ViewRenderWidget::paintGL()
         // the fading overlay is in a single call list with given color
         glColor4ub(COLOR_FLASHING, flashIntensity);
         glCallList(ViewRenderWidget::fading);
-        flashIntensity /= 2;
-        flashIntensity = flashIntensity < 10 ? 0 : flashIntensity;
+        flashIntensity = flashIntensity < 10 ? 0 : flashIntensity / 2;
     }
     // if not faded, means the area is active
     else
@@ -709,6 +740,14 @@ void ViewRenderWidget::paintGL()
     // Catalog : show if visible
     if (_catalogView->visible())
         _catalogView->paint();
+
+#ifdef GLM_SNAPSHOT
+    // Snapshot : show if visible
+    if (_snapshotView->visible()) {
+        _snapshotView->paint();
+        return;
+    }
+#endif
 
     // FPS computation
     if (++fpsCounter_ == 3)
@@ -794,6 +833,11 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     // inform mouse was pressed
     emit mousePressed(true);
 
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->mousePressEvent(event))
+        return;
+#endif
+
     // ask the catalog view if it wants this mouse press event and then
     // inform the view of the mouse press event
     if (!_catalogView->mousePressEvent(event) )
@@ -827,6 +871,11 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
     makeCurrent();
     event->accept();
+
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->mouseMoveEvent(event))
+        return;
+#endif
 
     // ask the catalog view if it wants this mouse move event
     if ( (_currentView->currentAction == View::NONE ||
@@ -886,6 +935,11 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
         setCursorEnabled(false);
     }
 
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->mouseReleaseEvent(event))
+        return;
+#endif
+
     // ask the catalog view if it wants this mouse release event
     if ( !_catalogView->mouseReleaseEvent(event)) {
 
@@ -911,6 +965,11 @@ void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
     makeCurrent();
     event->accept();
 
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->mouseDoubleClickEvent(event))
+        return;
+#endif
+
     if (_catalogView->mouseDoubleClickEvent(event))
         return;
 
@@ -930,6 +989,11 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 {
     makeCurrent();
     event->accept();
+
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->wheelEvent(event))
+        return;
+#endif
 
     if (_catalogView->wheelEvent(event))
         return;
@@ -1053,7 +1117,9 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
     _currentView->setAction(View::NONE);
     // set the catalog  off
     _catalogView->setTransparent(true);
-
+#ifdef GLM_SNAPSHOT
+    setSnapshotVisible(false);
+#endif
 }
 
 void ViewRenderWidget::enterEvent ( QEvent * event ){
@@ -2736,6 +2802,7 @@ void ViewRenderWidget::dragMoveEvent(QDragMoveEvent *event)
 
 void ViewRenderWidget::dropEvent(QDropEvent *event)
 {
+#ifdef GLM_SNAPSHOT
     // detect internal drop events
     if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist")) {
             event->accept();
@@ -2744,10 +2811,14 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
             if (model.dropMimeData(event->mimeData(), Qt::CopyAction, 0,0, QModelIndex()) ) {
                 // read the id of the attached data
                 QString snapshotid = model.item(0,0)->data(Qt::UserRole).toString();
-
+                // dispatch snapshot target to current view
+                _currentView->setTargetSnapshot(snapshotid);
+                // activate the snapshot view
+                setSnapshotVisible();
             }
     }
     else
+#endif
         // external drop events
         GLMixer::getInstance()->drop(event);
 }

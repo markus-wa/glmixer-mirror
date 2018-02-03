@@ -304,6 +304,13 @@ public:
      */
     virtual void transformSelection(Transformation t, Axis a, Reference r) {}
 
+
+    /**
+     * snapshot actions
+     */
+    virtual void setTargetSnapshot(QString id) {}
+    virtual void applyTargetSnapshot(double percent) {}
+
     /**
      * CONFIGURATION
      */

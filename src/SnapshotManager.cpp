@@ -74,12 +74,7 @@ void SnapshotManager::addConfiguration(QDomElement xmlconfig)
             _snapshotsList[id] = QImage(QString::fromUtf8(":/glmixer/icons/snapshot.png"));
 
         // create new entry
-        QDomElement childnew = _snapshotsDescription.createElement(id);
-        childnew.setAttribute("label", child.attribute("label"));
-        // copy content of the snapshot
-        childnew.appendChild( child.firstChildElement("SourceList") );
-        // add snapshot to description list
-        _snapshotsDescription.appendChild(childnew);
+        appendSnapshotDescrition(id, child.attribute("label"), child.firstChildElement("SourceList"));
 
         // inform GUI
         emit newSnapshot(id);
@@ -158,18 +153,9 @@ void SnapshotManager::addSnapshot()
     _snapshotsList[id] = capture;
 
     // create node
-    QDomElement root = _snapshotsDescription.createElement( id );
+    appendSnapshotDescrition(id, id, RenderingManager::getInstance()->getConfiguration(_snapshotsDescription));
 
-    // Default Label
-    root.setAttribute("label", id);
-
-    // add the configuration
-    QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_snapshotsDescription);
-    root.appendChild(renderConfig);
-
-    // add node
-    _snapshotsDescription.appendChild(root);
-
+    // inform GUI
     emit snap();
     emit newSnapshot(id);
 }
@@ -188,7 +174,10 @@ void SnapshotManager::restoreSnapshot(QString id)
             while (!child.isNull()) {
 
                 QString sourcename = child.attribute("name");
-                SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
+                // access source configuration by id (not by name)
+                // to access sources even after renaming
+                GLuint id = child.attribute("id", "0").toUInt();
+                SourceSet::iterator sit = RenderingManager::getInstance()->getById(id);
                 if ( RenderingManager::getInstance()->isValid(sit) )  {
 
                     // apply configuration
@@ -211,3 +200,68 @@ void SnapshotManager::restoreSnapshot(QString id)
 }
 
 
+
+void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomElement config)
+{
+    QDomElement root = _snapshotsDescription.createElement( id );
+
+    // set Label
+    root.setAttribute("label", label);
+    // copy content of the config
+    root.appendChild( config );
+
+    // post process list to add identifiers to each source
+    QDomElement renderConfig = root.firstChildElement("SourceList");
+    if ( !renderConfig.isNull()) {
+
+        // browse the list of source in history
+        QDomElement child = renderConfig.firstChildElement("Source");
+        while (!child.isNull()) {
+            // add an attribute with id to follow source after renaming
+            QString sourcename = child.attribute("name");
+            SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
+            if ( RenderingManager::getInstance()->isValid(sit) )
+                child.setAttribute("id", (*sit)->getId() );
+
+            // read next source
+            child = child.nextSiblingElement();
+        }
+    }
+    // add snapshot to description list
+    _snapshotsDescription.appendChild(root);
+}
+
+
+QMap<Source *, QPointF > SnapshotManager::getAlphaCoordinates(QString id)
+{
+    QMap<Source *, QPointF > list;
+
+    QDomElement root = _snapshotsDescription.firstChildElement(id);
+    if ( !root.isNull()) {
+
+        // read source list
+        QDomElement renderConfig = root.firstChildElement("SourceList");
+        if ( !renderConfig.isNull()) {
+            // browse the list of source in history
+            QDomElement child = renderConfig.firstChildElement("Source");
+            while (!child.isNull()) {
+
+                GLuint sid = child.attribute("id", "0").toUInt();
+                SourceSet::iterator sit = RenderingManager::getInstance()->getById(sid);
+                if ( RenderingManager::getInstance()->isValid(sit) )  {
+
+                    if ( !child.firstChildElement("Alpha").isNull()) {
+                        QDomElement tmp = child.firstChildElement("Alpha");
+                        list[*sit] = QPointF( tmp.attribute("X", "0").toDouble(),
+                                              tmp.attribute("Y", "0").toDouble() );
+                    }
+                }
+                // read next source
+                child = child.nextSiblingElement();
+            }
+        }
+
+    }
+
+    return list;
+}

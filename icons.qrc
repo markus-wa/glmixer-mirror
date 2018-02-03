@@ -204,5 +204,6 @@
         <file>icons/uparrow.png</file>
         <file>icons/snapshot.png</file>
         <file>icons/snapshot_new.png</file>
+        <file>icons/snapshot_selection.png</file>
     </qresource>
 </RCC>

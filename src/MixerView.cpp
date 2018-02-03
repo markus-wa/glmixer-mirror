@@ -33,6 +33,10 @@
 #include "CatalogView.h"
 #include "WorkspaceManager.h"
 
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
+#endif
+
 #define MINZOOM 0.04
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.075
@@ -297,7 +301,7 @@ void MixerView::paint()
                 continue;
         }
         a *= (WorkspaceManager::getInstance()->current() == w ? 1.0 : WORKSPACE_MAX_ALPHA);
-        
+
         // use color of the group
         glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), a);
 
@@ -741,7 +745,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         // return true as we modified a source
         return true;
     }
-    
+
 
     // else Show mouse over cursor only if no user input
     if ( isUserInput(event, View::INPUT_NONE ) )
@@ -1492,3 +1496,48 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 
 }
 
+#ifdef GLM_SNAPSHOT
+
+void MixerView::setTargetSnapshot(QString id)
+{
+    // reset targets
+    _snapshots.clear();
+
+    // read destination
+    QMap<Source *, QPointF> destinations = SnapshotManager::getInstance()->getAlphaCoordinates(id);
+
+    // create snapshot coordinate target list
+    QMapIterator<Source *, QPointF> it(destinations);
+    while (it.hasNext()) {
+        it.next();
+        QPointF dest = it.value();
+        QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
+        // store delta and destination
+        _snapshots[it.key()] = qMakePair( dest - orig, dest );
+
+    }
+
+}
+
+void MixerView::applyTargetSnapshot(double percent)
+{
+    // linear interpolation to dest by percent of delta
+    double a = 1.0 - qBound(0.0, percent, 1.0);
+    a = a < EPSILON ? 0.0 : a;
+
+    // loop over all source alpha coordinates
+    QMapIterator<Source *, QPair<QPointF, QPointF> > it(_snapshots);
+    while (it.hasNext()) {
+        it.next();
+
+        QPointF coords = it.value().second - a * it.value().first;
+        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+    }
+
+    // end transition
+    if ( a < EPSILON )
+        RenderingManager::getRenderingWidget()->setSnapshotVisible(false);
+
+}
+
+#endif

@@ -57,6 +57,9 @@ class ViewRenderWidget: public glRenderWidget {
     friend class OutputRenderWidget;
     friend class SessionSwitcher;
     friend class SourceDisplayWidget;
+#ifdef GLM_SNAPSHOT
+    friend class SnapshotView;
+#endif
 
 public:
     ViewRenderWidget();
@@ -189,6 +192,9 @@ public slots:
     void setBusy(bool on = true) { busy = on; }
     void setCursorEnabled(bool on);
     void triggerFlash();
+#ifdef GLM_SNAPSHOT
+    void setSnapshotVisible(bool on = true);
+#endif
 
 public:
     // Shading
@@ -231,6 +237,9 @@ private:
     class LayersView *_layersView;
     class RenderingView *_renderingView;
     class CatalogView *_catalogView;
+#ifdef GLM_SNAPSHOT
+    class SnapshotView *_snapshotView;
+#endif
     bool faded, busy;
     int flashIntensity;
 

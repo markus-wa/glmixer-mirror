@@ -545,20 +545,12 @@ void CatalogView::setTransparent(bool on)
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-    if (isInside(event->pos())) {
-        return true;
-    }
-
-    return false;
+    return isInside(event->pos());
 }
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
-    if (isInside(event->pos())) {
-        return true;
-    }
-
-    return false;
+    return isInside(event->pos());
 }
 
 bool CatalogView::wheelEvent ( QWheelEvent * event )

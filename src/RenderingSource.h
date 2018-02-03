@@ -34,6 +34,7 @@
 class RenderingSource: public Source {
 
     friend class RenderingManager;
+    friend class SnapshotView;
 
 public:
 

@@ -244,6 +244,7 @@ if(USE_SNAPSHOT_MANAGEMENT)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         SnapshotManager.cpp
         SnapshotManagerWidget.cpp
+        SnapshotView.cpp
     )
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
         SnapshotManagerWidget.ui

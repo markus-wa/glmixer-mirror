@@ -8,6 +8,8 @@
 
 #define ICON_SIZE 128
 
+class Source;
+
 class SnapshotManager : public QObject
 {
     Q_OBJECT
@@ -27,6 +29,11 @@ public:
     void removeSnapshot(QString id);
 
     /**
+     * Access source lists
+     * */
+    QMap<Source *, QPointF > getAlphaCoordinates(QString id);
+
+    /**
      * get and set configuration
      */
     QDomElement getConfiguration(QDomDocument &doc);
@@ -42,6 +49,9 @@ signals:
 public slots:
     void addSnapshot();
     void restoreSnapshot(QString id);
+
+protected:
+    void appendSnapshotDescrition(QString id, QString label, QDomElement config);
 
 private:
     QDomDocument _snapshotsDescription;

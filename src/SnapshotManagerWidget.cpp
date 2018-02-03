@@ -86,7 +86,10 @@ void SnapshotManagerWidget::on_snapshotsList_itemSelectionChanged()
     ui->deleteSnapshot->setEnabled(false);
 
     // enable delete action only if selected icon
-    if ( ui->snapshotsList->currentItem() )
-        ui->deleteSnapshot->setEnabled( ui->snapshotsList->currentItem()->isSelected() );
+    if ( ui->snapshotsList->currentItem()
+         && ui->snapshotsList->currentItem()->isSelected() )
+        ui->deleteSnapshot->setEnabled( true );
+    else
+        ui->snapshotsList->setCurrentRow(-1);
 }
 

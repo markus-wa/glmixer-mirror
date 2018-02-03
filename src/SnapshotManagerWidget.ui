@@ -83,10 +83,7 @@
       <bool>true</bool>
      </property>
      <property name="dragDropMode">
-      <enum>QAbstractItemView::DragOnly</enum>
-     </property>
-     <property name="defaultDropAction">
-      <enum>Qt::ActionMask</enum>
+      <enum>QAbstractItemView::DragDrop</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectItems</enum>
@@ -97,14 +94,11 @@
        <height>128</height>
       </size>
      </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideMiddle</enum>
+     </property>
      <property name="movement">
       <enum>QListView::Snap</enum>
-     </property>
-     <property name="resizeMode">
-      <enum>QListView::Fixed</enum>
-     </property>
-     <property name="layoutMode">
-      <enum>QListView::SinglePass</enum>
      </property>
      <property name="spacing">
       <number>6</number>
