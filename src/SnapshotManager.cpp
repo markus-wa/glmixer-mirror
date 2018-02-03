@@ -29,7 +29,28 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
 
     QDomElement child = _snapshotsDescription.firstChildElement();
     while (!child.isNull()) {
-        config.appendChild( child.cloneNode() );
+
+        // copy config
+        QDomNode newnode = config.appendChild( child.cloneNode() );
+
+        // get icon of snapshot
+        QImage pix = _snapshotsList[newnode.nodeName()];
+
+        // Add JPEG of icon in XML
+        if (!pix.isNull()) {
+            QByteArray ba;
+            QBuffer buffer(&ba);
+            buffer.open(QIODevice::WriteOnly);
+            if (!pix.save(&buffer, "jpeg") )
+                qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
+            buffer.close();
+            QDomElement f = doc.createElement("Image");
+            QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
+            f.appendChild(img);
+
+            newnode.appendChild(f);
+        }
+
         child = child.nextSiblingElement();
     }
 
@@ -48,9 +69,9 @@ void SnapshotManager::addConfiguration(QDomElement xmlconfig)
         QImage image;
         QByteArray data =  img.text().toLatin1();
         if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
-            _snapshotsList[id] = QPixmap::fromImage(image);
+            _snapshotsList[id] = image;
         else
-            _snapshotsList[id] = QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_256x256.png"));
+            _snapshotsList[id] = QImage(QString::fromUtf8(":/glmixer/icons/snapshot.png"));
 
         // create new entry
         QDomElement childnew = _snapshotsDescription.createElement(id);
@@ -82,6 +103,10 @@ QStringList SnapshotManager::getSnapshotIdentifiers()
     return QStringList( _snapshotsList.keys() );
 }
 
+QPixmap SnapshotManager::getSnapshotPixmap(QString id)
+{
+    return QPixmap::fromImage(_snapshotsList[id] );
+}
 
 void SnapshotManager::setSnapshotLabel(QString id, QString label)
 {
@@ -124,31 +149,19 @@ void SnapshotManager::addSnapshot()
     // capture screenshot
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
     if (capture.isNull())
-        capture = QImage(QString::fromUtf8(":/glmixer/icons/glmixer_256x256.png"));
+        capture = QImage(QString::fromUtf8(":/glmixer/icons/snapshot.png"));
 
     // convert image to ICON_SIZE
     capture = capture.width() < capture.height() ? capture.scaledToWidth(ICON_SIZE, Qt::SmoothTransformation) : capture.scaledToHeight(ICON_SIZE, Qt::SmoothTransformation);
 
     // add element in list
-    _snapshotsList[id] = QPixmap::fromImage(capture);
+    _snapshotsList[id] = capture;
 
     // create node
     QDomElement root = _snapshotsDescription.createElement( id );
 
     // Default Label
     root.setAttribute("label", id);
-
-    // Add JPEG of capture
-    QByteArray ba;
-    QBuffer buffer(&ba);
-    buffer.open(QIODevice::WriteOnly);
-    if (!capture.save(&buffer, "jpeg") )
-        qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
-    buffer.close();
-    QDomElement f = _snapshotsDescription.createElement("Image");
-    QDomText img = _snapshotsDescription.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
-    f.appendChild(img);
-    root.appendChild(f);
 
     // add the configuration
     QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_snapshotsDescription);
@@ -157,6 +170,7 @@ void SnapshotManager::addSnapshot()
     // add node
     _snapshotsDescription.appendChild(root);
 
+    emit snap();
     emit newSnapshot(id);
 }
 

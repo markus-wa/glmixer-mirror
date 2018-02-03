@@ -36,21 +36,18 @@ void SnapshotManagerWidget::newSnapshot(QString id)
     ui->snapshotsList->addItem(item);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable  | Qt::ItemIsDragEnabled );
 
-    // Set as current
-    ui->snapshotsList->setCurrentItem(item);
-
 }
 
 // connected to signal removeSnapshot
 void SnapshotManagerWidget::deleteSnapshot(QString id)
 {
-    QString label = SnapshotManager::getInstance()->getSnapshotLabel(id);
-    QList<QListWidgetItem *> items = ui->snapshotsList->findItems( label, Qt::MatchFixedString );
-
-    if (!items.empty()) {
-        ui->snapshotsList->takeItem( ui->snapshotsList->row(items.first()) );
+    for (int r = 0; r < ui->snapshotsList->count(); ++r) {
+        QListWidgetItem *it = ui->snapshotsList->item(r);
+        if ( it && id == it->data(Qt::UserRole).toString() ) {
+             delete ui->snapshotsList->takeItem( r );
+             break;
+        }
     }
-
 }
 
 void SnapshotManagerWidget::clear()
@@ -82,3 +79,14 @@ void SnapshotManagerWidget::on_snapshotsList_itemChanged(QListWidgetItem *item)
 
     SnapshotManager::getInstance()->setSnapshotLabel( item->data(Qt::UserRole).toString(), item->text());
 }
+
+
+void SnapshotManagerWidget::on_snapshotsList_itemSelectionChanged()
+{
+    ui->deleteSnapshot->setEnabled(false);
+
+    // enable delete action only if selected icon
+    if ( ui->snapshotsList->currentItem() )
+        ui->deleteSnapshot->setEnabled( ui->snapshotsList->currentItem()->isSelected() );
+}
+

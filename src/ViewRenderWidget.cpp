@@ -2736,6 +2736,19 @@ void ViewRenderWidget::dragMoveEvent(QDragMoveEvent *event)
 
 void ViewRenderWidget::dropEvent(QDropEvent *event)
 {
-    GLMixer::getInstance()->drop(event);
+    // detect internal drop events
+    if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist")) {
+            event->accept();
+
+            QStandardItemModel model;
+            if (model.dropMimeData(event->mimeData(), Qt::CopyAction, 0,0, QModelIndex()) ) {
+                // read the id of the attached data
+                QString snapshotid = model.item(0,0)->data(Qt::UserRole).toString();
+
+            }
+    }
+    else
+        // external drop events
+        GLMixer::getInstance()->drop(event);
 }
 

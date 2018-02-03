@@ -21,11 +21,9 @@ public:
      * Access items
      * */
     QStringList getSnapshotIdentifiers();
-    QPixmap getSnapshotPixmap(QString id) { return _snapshotsList[id]; }
-
-    void setSnapshotLabel(QString id, QString label);
+    QPixmap getSnapshotPixmap(QString id);
     QString getSnapshotLabel(QString id);
-
+    void setSnapshotLabel(QString id, QString label);
     void removeSnapshot(QString id);
 
     /**
@@ -37,6 +35,7 @@ public:
 
 signals:
     void clear();
+    void snap();
     void newSnapshot(QString id);
     void deleteSnapshot(QString id);
 
@@ -46,7 +45,7 @@ public slots:
 
 private:
     QDomDocument _snapshotsDescription;
-    QMap< QString, QPixmap> _snapshotsList;
+    QMap< QString, QImage> _snapshotsList;
 };
 
 #endif // SNAPSHOTMANAGER_H

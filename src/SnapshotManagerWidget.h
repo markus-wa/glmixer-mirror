@@ -25,6 +25,7 @@ public slots:
     void on_deleteSnapshot_pressed();
     void on_snapshotsList_itemDoubleClicked(QListWidgetItem *);
     void on_snapshotsList_itemChanged(QListWidgetItem *);
+    void on_snapshotsList_itemSelectionChanged();
 
 private:
     Ui::SnapshotManagerWidget *ui;
