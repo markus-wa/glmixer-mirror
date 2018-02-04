@@ -232,7 +232,7 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
 }
 
 
-QMap<Source *, QPointF > SnapshotManager::getAlphaCoordinates(QString id)
+QMap<Source *, QPointF > SnapshotManager::getMixingCoordinates(QString id)
 {
     QMap<Source *, QPointF > list;
 
@@ -263,5 +263,17 @@ QMap<Source *, QPointF > SnapshotManager::getAlphaCoordinates(QString id)
 
     }
 
+    return list;
+}
+
+QMap<Source *, QMatrix3x3> SnapshotManager::getGeometryCoordinates(QString id)
+{
+    QMap<Source *, QMatrix3x3 > list;
+    return list;
+}
+
+QMap<Source *, double> SnapshotManager::getLayersCoordinates(QString id)
+{
+    QMap<Source *, double > list;
     return list;
 }

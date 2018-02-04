@@ -32,6 +32,9 @@
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 #include "WorkspaceManager.h"
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
+#endif
 
 #define MINZOOM 5.0
 #define DEFAULTZOOM 7.0
@@ -1079,3 +1082,46 @@ void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
     }
 
 }
+
+
+#ifdef GLM_SNAPSHOT
+
+void LayersView::setTargetSnapshot(QString id)
+{
+    // reset targets
+    _snapshots.clear();
+
+    // read destination
+    QMap<Source *, double> destinations = SnapshotManager::getInstance()->getLayersCoordinates(id);
+
+    // create snapshot coordinate target list
+    QMapIterator<Source *, double> it(destinations);
+    while (it.hasNext()) {
+        it.next();
+        double dest = it.value();
+        //QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
+        // store delta and destination
+       // _snapshots[it.key()] = qMakePair( dest - orig, dest );
+
+    }
+
+}
+
+void LayersView::applyTargetSnapshot(double percent)
+{
+    // linear interpolation to dest by percent of delta
+    double a = 1.0 - qBound(0.0, percent, 1.0);
+    a = a < EPSILON ? 0.0 : a;
+
+    // loop over all source alpha coordinates
+    QMapIterator<Source *, QPair<double, double> > it(_snapshots);
+    while (it.hasNext()) {
+        it.next();
+
+//        QPointF coords = it.value().second - a * it.value().first;
+//        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+    }
+
+}
+
+#endif

@@ -61,6 +61,11 @@ public:
 
     void distributeSelection(View::Axis a, View::RelativePoint p);
 
+#ifdef GLM_SNAPSHOT
+    void setTargetSnapshot(QString id);
+    void applyTargetSnapshot(double percent);
+#endif
+
 private:
     double lookatdistance;
     double forwardDisplacement;
@@ -79,6 +84,10 @@ private:
     QGLFramebufferObject *picking_fbo;
     GLfloat *picking_fbo_map;
     double picking_map_width, picking_grab_depth, picking_map_needsupdate;
+
+#ifdef GLM_SNAPSHOT
+    QMap<Source *, QPair<double, double> > _snapshots;
+#endif
 };
 
 #endif /* LAYERSVIEW_H_ */

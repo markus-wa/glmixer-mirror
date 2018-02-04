@@ -13,6 +13,7 @@ public:
 
     // View implementation
     void paint();
+    void setModelview();
     void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseDoubleClickEvent(QMouseEvent * event);
@@ -27,11 +28,11 @@ public:
 
 private:
 
-    void grabSource(Source *s, int x, int y, int dx, int dy);
+    void grabSource(Source *s, int x, int y);
 
     bool _visible;
     View *_view;
-    double _factor;
+    double _factor, _begin, _end, _y;
     QPixmap _destination;
     class Source *_renderSource;
 };

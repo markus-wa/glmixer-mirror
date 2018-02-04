@@ -32,7 +32,6 @@
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
 #include "WorkspaceManager.h"
-
 #ifdef GLM_SNAPSHOT
 #include "SnapshotManager.h"
 #endif
@@ -1504,7 +1503,7 @@ void MixerView::setTargetSnapshot(QString id)
     _snapshots.clear();
 
     // read destination
-    QMap<Source *, QPointF> destinations = SnapshotManager::getInstance()->getAlphaCoordinates(id);
+    QMap<Source *, QPointF> destinations = SnapshotManager::getInstance()->getMixingCoordinates(id);
 
     // create snapshot coordinate target list
     QMapIterator<Source *, QPointF> it(destinations);
@@ -1533,10 +1532,6 @@ void MixerView::applyTargetSnapshot(double percent)
         QPointF coords = it.value().second - a * it.value().first;
         it.key()->setAlphaCoordinates(coords.x(), coords.y());
     }
-
-    // end transition
-    if ( a < EPSILON )
-        RenderingManager::getRenderingWidget()->setSnapshotVisible(false);
 
 }
 

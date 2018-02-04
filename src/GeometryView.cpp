@@ -31,6 +31,10 @@
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 #include "WorkspaceManager.h"
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
+#endif
+
 #include <algorithm>
 
 #define MINZOOM 0.1
@@ -61,7 +65,6 @@ GeometryView::GeometryView() : View(), quadrant(0), currentSource(0)
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
     title = " Geometry view";
-
 }
 
 
@@ -1945,3 +1948,45 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
         alignSource(its.value().first, targetbox, a, p);
     }
 }
+
+#ifdef GLM_SNAPSHOT
+
+void GeometryView::setTargetSnapshot(QString id)
+{
+    // reset targets
+    _snapshots.clear();
+
+    // read destination
+    QMap<Source *, QMatrix3x3> destinations = SnapshotManager::getInstance()->getGeometryCoordinates(id);
+
+    // create snapshot coordinate target list
+    QMapIterator<Source *, QMatrix3x3> it(destinations);
+    while (it.hasNext()) {
+        it.next();
+        QMatrix3x3 dest = it.value();
+        //QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
+        // store delta and destination
+       // _snapshots[it.key()] = qMakePair( dest - orig, dest );
+
+    }
+
+}
+
+void GeometryView::applyTargetSnapshot(double percent)
+{
+    // linear interpolation to dest by percent of delta
+    double a = 1.0 - qBound(0.0, percent, 1.0);
+    a = a < EPSILON ? 0.0 : a;
+
+    // loop over all source alpha coordinates
+    QMapIterator<Source *, QPair<QMatrix3x3, QMatrix3x3> > it(_snapshots);
+    while (it.hasNext()) {
+        it.next();
+
+//        QPointF coords = it.value().second - a * it.value().first;
+//        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+    }
+
+}
+
+#endif
