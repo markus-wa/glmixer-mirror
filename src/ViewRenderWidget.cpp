@@ -64,7 +64,7 @@ GLuint ViewRenderWidget::fading = 0;
 GLuint ViewRenderWidget::stipplingMode = 100;
 GLuint ViewRenderWidget::black_texture = 0, ViewRenderWidget::white_texture = 0;
 GLuint ViewRenderWidget::center_pivot = 0;
-double ViewRenderWidget::iconSize = 0.5;
+double ViewRenderWidget::iconSize = DEFAULT_ICON_SIZE;
 
 GLubyte ViewRenderWidget::stippling[] = {
         // stippling fine
