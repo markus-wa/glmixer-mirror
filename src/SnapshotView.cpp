@@ -422,9 +422,9 @@ void SnapshotView::setTargetSnapshot(QString id)
         snap << qMakePair( dest[4], dest[4] - it.key()->getScaleX() );
         snap << qMakePair( dest[5], dest[5] - it.key()->getScaleY() );
         // special case for angles ; make sure we turn left or right to minimize angle
-        double da = dest[6] - it.key()->getRotationAngle();
-        if ( da > 180.0 )
-            da = -(360.0 - da);
+        double da = fmod( 360.0 + dest[6] - it.key()->getRotationAngle(), 360.0);
+        if ( ABS(da) > 180.0 )
+            da = -(360.0 - ABS(da));
         snap << qMakePair( dest[6], da );
 
         // texture coordinates
@@ -434,7 +434,7 @@ void SnapshotView::setTargetSnapshot(QString id)
         snap << qMakePair( dest[9], dest[9] - tc.width() );
         snap << qMakePair( dest[10], dest[10] - tc.height() );
 
-        // layer
+        // layers
         snap << qMakePair( dest[11], dest[11] - it.key()->getDepth() );
 
         _snapshots[it.key()] = snap;
