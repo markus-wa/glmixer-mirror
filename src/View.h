@@ -308,8 +308,10 @@ public:
     /**
      * snapshot actions
      */
-    virtual void setTargetSnapshot(QString id) {}
-    virtual void applyTargetSnapshot(double percent) {}
+#ifdef GLM_SNAPSHOT
+    virtual void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
+    {}
+#endif
 
     /**
      * CONFIGURATION
@@ -372,6 +374,7 @@ private:
 
     static QMap<View::UserInput,Qt::MouseButtons> _buttonmap;
     static QMap<View::UserInput,Qt::KeyboardModifiers> _modifiermap;
+
 };
 
 class SelectionArea {
@@ -390,6 +393,7 @@ public:
     void markStart(QPointF s);
     void markEnd(QPointF e);
     double surface();
+
 };
 
 

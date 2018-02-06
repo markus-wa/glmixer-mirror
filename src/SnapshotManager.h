@@ -5,7 +5,7 @@
 #include <QPixmap>
 #include <QMap>
 #include <QDomDocument>
-#include <QMatrix3x3>
+#include <QVector>
 
 #define ICON_SIZE 128
 
@@ -32,9 +32,7 @@ public:
     /**
      * Access source lists
      * */
-    QMap<Source *, QPointF> getMixingCoordinates(QString id);
-    QMap<Source *, QMatrix3x3> getGeometryCoordinates(QString id);
-    QMap<Source *, double> getLayersCoordinates(QString id);
+    QMap<Source *, QVector <double> > getSnapshot(QString id);
 
     /**
      * get and set configuration

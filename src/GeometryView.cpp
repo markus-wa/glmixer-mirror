@@ -1951,40 +1951,31 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 
 #ifdef GLM_SNAPSHOT
 
-void GeometryView::setTargetSnapshot(QString id)
-{
-    // reset targets
-    _snapshots.clear();
-
-    // read destination
-    QMap<Source *, QMatrix3x3> destinations = SnapshotManager::getInstance()->getGeometryCoordinates(id);
-
-    // create snapshot coordinate target list
-    QMapIterator<Source *, QMatrix3x3> it(destinations);
-    while (it.hasNext()) {
-        it.next();
-        QMatrix3x3 dest = it.value();
-        //QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
-        // store delta and destination
-       // _snapshots[it.key()] = qMakePair( dest - orig, dest );
-
-    }
-
-}
-
-void GeometryView::applyTargetSnapshot(double percent)
+void GeometryView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
 {
     // linear interpolation to dest by percent of delta
     double a = 1.0 - qBound(0.0, percent, 1.0);
     a = a < EPSILON ? 0.0 : a;
 
     // loop over all source alpha coordinates
-    QMapIterator<Source *, QPair<QMatrix3x3, QMatrix3x3> > it(_snapshots);
+    QMapIterator<Source *, QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
 
-//        QPointF coords = it.value().second - a * it.value().first;
-//        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+        double x = it.value()[2].first - a * it.value()[2].second;
+        double y = it.value()[3].first - a * it.value()[3].second;
+        double sx = it.value()[4].first - a * it.value()[4].second;
+        double sy = it.value()[5].first - a * it.value()[5].second;
+        double an = it.value()[6].first - a * it.value()[6].second;
+        it.key()->_setGeometry(x, y, sx, sy, 0.0, 0.0, an);
+
+        QRectF tc;
+        tc.setX( it.value()[7].first - a * it.value()[7].second );
+        tc.setY( it.value()[8].first - a * it.value()[8].second );
+        tc.setWidth( it.value()[9].first - a * it.value()[9].second );
+        tc.setHeight( it.value()[10].first - a * it.value()[10].second );
+        it.key()->_setTextureCoordinates(tc);
+
     }
 
 }

@@ -182,8 +182,7 @@ void LayersView::paint()
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
         Source *s = *its;
-
-        if (s->isStandby())
+        if (!s || s->isStandby())
             continue;
 
         //
@@ -1086,40 +1085,20 @@ void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 
 #ifdef GLM_SNAPSHOT
 
-void LayersView::setTargetSnapshot(QString id)
-{
-    // reset targets
-    _snapshots.clear();
-
-    // read destination
-    QMap<Source *, double> destinations = SnapshotManager::getInstance()->getLayersCoordinates(id);
-
-    // create snapshot coordinate target list
-    QMapIterator<Source *, double> it(destinations);
-    while (it.hasNext()) {
-        it.next();
-        double dest = it.value();
-        //QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
-        // store delta and destination
-       // _snapshots[it.key()] = qMakePair( dest - orig, dest );
-
-    }
-
-}
-
-void LayersView::applyTargetSnapshot(double percent)
+void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
 {
     // linear interpolation to dest by percent of delta
     double a = 1.0 - qBound(0.0, percent, 1.0);
     a = a < EPSILON ? 0.0 : a;
 
     // loop over all source alpha coordinates
-    QMapIterator<Source *, QPair<double, double> > it(_snapshots);
+    QMapIterator<Source *, QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
 
-//        QPointF coords = it.value().second - a * it.value().first;
-//        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+        SourceSet::iterator sit = RenderingManager::getInstance()->getById( it.key()->getId() );
+        double d = it.value()[11].first - a * it.value()[11].second;
+        RenderingManager::getInstance()->changeDepth( sit, d);
     }
 
 }

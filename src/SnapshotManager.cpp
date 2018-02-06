@@ -232,9 +232,9 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
 }
 
 
-QMap<Source *, QPointF > SnapshotManager::getMixingCoordinates(QString id)
+QMap<Source *, QVector <double> > SnapshotManager::getSnapshot(QString id)
 {
-    QMap<Source *, QPointF > list;
+    QMap<Source *, QVector <double>  > list;
 
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
@@ -250,11 +250,21 @@ QMap<Source *, QPointF > SnapshotManager::getMixingCoordinates(QString id)
                 SourceSet::iterator sit = RenderingManager::getInstance()->getById(sid);
                 if ( RenderingManager::getInstance()->isValid(sit) )  {
 
-                    if ( !child.firstChildElement("Alpha").isNull()) {
-                        QDomElement tmp = child.firstChildElement("Alpha");
-                        list[*sit] = QPointF( tmp.attribute("X", "0").toDouble(),
-                                              tmp.attribute("Y", "0").toDouble() );
-                    }
+                    QVector <double>  snap;
+                    snap << child.firstChildElement("Alpha").attribute("X", "0").toDouble(); // index 0
+                    snap << child.firstChildElement("Alpha").attribute("Y", "0").toDouble(); // index 1
+                    snap << child.firstChildElement("Position").attribute("X", "0").toDouble(); // index 2
+                    snap << child.firstChildElement("Position").attribute("Y", "0").toDouble(); // index 3
+                    snap << child.firstChildElement("Scale").attribute("X", "1").toDouble(); // index 4
+                    snap << child.firstChildElement("Scale").attribute("Y", "1").toDouble(); // index 5
+                    snap << child.firstChildElement("Angle").attribute("A", "0").toDouble(); // index 6
+                    snap << child.firstChildElement("Crop").attribute("X", "0").toDouble(); // index 7
+                    snap << child.firstChildElement("Crop").attribute("Y", "0").toDouble(); // index 8
+                    snap << child.firstChildElement("Crop").attribute("W", "0").toDouble(); // index 9
+                    snap << child.firstChildElement("Crop").attribute("H", "0").toDouble(); // index 10
+                    snap << child.firstChildElement("Depth").attribute("Z", "0").toDouble(); // index 11
+
+                    list[*sit] = snap;
                 }
                 // read next source
                 child = child.nextSiblingElement();
@@ -263,17 +273,6 @@ QMap<Source *, QPointF > SnapshotManager::getMixingCoordinates(QString id)
 
     }
 
-    return list;
-}
 
-QMap<Source *, QMatrix3x3> SnapshotManager::getGeometryCoordinates(QString id)
-{
-    QMap<Source *, QMatrix3x3 > list;
-    return list;
-}
-
-QMap<Source *, double> SnapshotManager::getLayersCoordinates(QString id)
-{
-    QMap<Source *, double > list;
     return list;
 }

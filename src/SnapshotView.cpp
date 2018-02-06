@@ -68,13 +68,14 @@ void SnapshotView::setVisible(bool on, View *activeview){
         if (activeview) {
             // set view to manipulate
             _view = activeview;
-            // back to no action
-            setAction(View::NONE);
         }
         // cannot be visible without a valid view
         else
             _visible = false;
     }
+
+    // no action by default
+    setAction(View::NONE);
 }
 
 void SnapshotView::resize(int w, int h)
@@ -107,6 +108,11 @@ void SnapshotView::setModelview()
 
 void SnapshotView::paint()
 {
+    // discard if not visible
+    if (!_visible)
+        return;
+
+    // opengl tools
     static double renderingAspectRatio = 1.0;
     static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
     static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
@@ -126,48 +132,43 @@ void SnapshotView::paint()
         }
     }
 
-    // discard if not visible
-    if (!_visible)
-        return;
+    // setup drawing for background
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glScaled(zoom, zoom, zoom);
 
     // 0) background fading
-    glColor4ub(COLOR_FADING, 200 - (int) (_factor * 50.0));
-    glCallList(ViewRenderWidget::fading);
+    glColor4ub(COLOR_FADING, 100 - (int) (_factor * 90.0));
+    glCallList(ViewRenderWidget::snapshot);
 
     // 1) draw line
-    glLineWidth(15.0);
-    glColor4ub(250, 250, 250, 20);
-    glBegin(GL_LINES);
-    glVertex3d(_begin, _y, 0.0);
-    glVertex3d(_end, _y, 0.0);
-    glEnd();
-    glLineWidth(2.0);
-    glColor4ub(250, 250, 250, 230);
-    glBegin(GL_LINES);
-    glVertex3d(_begin, _y, 0.0);
-    glVertex3d(_end, _y, 0.0);
-    glEnd();
-    glPointSize(13);
-    glBegin(GL_POINTS);
-    glVertex3d(_begin, _y, 0.0);
-    glVertex3d(_end, _y, 0.0);
-    glEnd();
+
+    // setup drawing for source
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMultMatrixd(projection);
+
+    glMatrixMode(GL_MODELVIEW);
+    glMultMatrixd(modelview);
+
+    glPushMatrix();
+    glScaled(ABS(_begin), ABS(_y), 1.0);
+    glCallList(ViewRenderWidget::snapshot + 1);
+    glPopMatrix();
+
+    // 2) draw cursor (render preview with loopback)
 
     // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
-
-    // 3) draw destination icon
-
-    // 4) draw cursor
+    ViewRenderWidget::resetShaderAttributes();
 
     // bind the source textures
     _renderSource->bind();
-    _renderSource->setShaderAttributes();
 
     // draw the source cursor at the position for given factor
     double ax = _begin + _factor * (_end - _begin) ;
@@ -176,9 +177,9 @@ void SnapshotView::paint()
 
     renderingAspectRatio = _renderSource->getAspectRatio();
     if ( ABS(renderingAspectRatio) > 1.0)
-        glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT, ViewRenderWidget::iconSize * SOURCE_UNIT / renderingAspectRatio,  1.0);
+        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT, DEFAULT_ICON_SIZE * SOURCE_UNIT / renderingAspectRatio,  1.0);
     else
-        glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
+        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT * renderingAspectRatio, DEFAULT_ICON_SIZE * SOURCE_UNIT,  1.0);
 
     // draw flat version of the source
     ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
@@ -191,11 +192,16 @@ void SnapshotView::paint()
     else
         glCallList(ViewRenderWidget::border_large_shadow);
 
-    // done geometry
-    glPopMatrix();
-
     // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
+
+    // done drawing
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
 }
 
 bool SnapshotView::mousePressEvent(QMouseEvent *event)
@@ -226,7 +232,7 @@ bool SnapshotView::mouseMoveEvent(QMouseEvent *event)
         // grab source under cursor
         grabSource(_renderSource, event->x(), viewport[3] - event->y());
         // apply factor change
-        _view->applyTargetSnapshot(_factor);
+        _view->applyTargetSnapshot(_factor, _snapshots);
     }
     // else Show mouse over cursor only if no user input
     else if ( isUserInput(event, View::INPUT_NONE ) )
@@ -284,7 +290,34 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
 
     // increment factor
     _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
-    _view->applyTargetSnapshot(_factor);
+    _view->applyTargetSnapshot(_factor, _snapshots);
+
+    return true;
+}
+
+bool SnapshotView::keyPressEvent ( QKeyEvent * event ){
+
+    double factor = 0.01;
+    // ALTERNATE ACTION
+    if ( QApplication::keyboardModifiers() & Qt::AltModifier )
+        factor *= 10.0;
+
+    switch (event->key()) {
+    case Qt::Key_Down:
+    case Qt::Key_Left:
+        _factor = qBound(0.0, _factor - factor, 1.0);
+        break;
+    case Qt::Key_Up:
+    case Qt::Key_Right:
+        _factor = qBound(0.0, _factor + factor, 1.0);
+        break;
+    case Qt::Key_Escape:
+        _visible = false;
+    default:
+        return false;
+    }
+
+    _view->applyTargetSnapshot(_factor, _snapshots);
 
     return true;
 }
@@ -323,9 +356,9 @@ bool SnapshotView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glTranslated(_renderSource->getAlphaX(), _renderSource->getAlphaY(), 0.0);
     double renderingAspectRatio = _renderSource->getAspectRatio();
     if ( ABS(renderingAspectRatio) > 1.0)
-        glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT, ViewRenderWidget::iconSize * SOURCE_UNIT / renderingAspectRatio,  1.0);
+        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT, DEFAULT_ICON_SIZE * SOURCE_UNIT / renderingAspectRatio,  1.0);
     else
-        glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
+        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT * renderingAspectRatio, DEFAULT_ICON_SIZE * SOURCE_UNIT,  1.0);
 
     _renderSource->draw(GL_SELECT);
     glPopMatrix();
@@ -342,3 +375,70 @@ bool SnapshotView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     return (hits != 0);
 
 }
+
+
+void SnapshotView::setAction(ActionType a){
+
+    View::setAction(a);
+
+    switch(a) {
+    case View::OVER:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+        break;
+    case View::TOOL:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+        break;
+    default:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+        break;
+    }
+}
+
+
+void SnapshotView::setTargetSnapshot(QString id)
+{
+    // reset targets
+    _snapshots.clear();
+
+    // read destination
+    QMap<Source *, QVector<double> > destinations = SnapshotManager::getInstance()->getSnapshot(id);
+
+    // create snapshot coordinate target list
+    QMapIterator<Source *, QVector<double> > it(destinations);
+    while (it.hasNext()) {
+        it.next();
+
+        // read snapshot values
+        QVector<double> dest = it.value();
+        QVector < QPair<double,double> >  snap;
+
+        // alpha
+        snap << qMakePair( dest[0], dest[0] - it.key()->getAlphaX() );
+        snap << qMakePair( dest[1], dest[1] - it.key()->getAlphaY() );
+
+        // geometry
+        snap << qMakePair( dest[2], dest[2] - it.key()->getX() );
+        snap << qMakePair( dest[3], dest[3] - it.key()->getY() );
+        snap << qMakePair( dest[4], dest[4] - it.key()->getScaleX() );
+        snap << qMakePair( dest[5], dest[5] - it.key()->getScaleY() );
+        // special case for angles ; make sure we turn left or right to minimize angle
+        double da = dest[6] - it.key()->getRotationAngle();
+        if ( da > 180.0 )
+            da = -(360.0 - da);
+        snap << qMakePair( dest[6], da );
+
+        // texture coordinates
+        QRectF tc =  it.key()->getTextureCoordinates();
+        snap << qMakePair( dest[7], dest[7] - tc.x() );
+        snap << qMakePair( dest[8], dest[8] - tc.y() );
+        snap << qMakePair( dest[9], dest[9] - tc.width() );
+        snap << qMakePair( dest[10], dest[10] - tc.height() );
+
+        // layer
+        snap << qMakePair( dest[11], dest[11] - it.key()->getDepth() );
+
+        _snapshots[it.key()] = snap;
+    }
+
+}
+

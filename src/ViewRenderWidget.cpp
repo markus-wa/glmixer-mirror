@@ -64,6 +64,7 @@ GLuint ViewRenderWidget::fading = 0;
 GLuint ViewRenderWidget::stipplingMode = 100;
 GLuint ViewRenderWidget::black_texture = 0, ViewRenderWidget::white_texture = 0;
 GLuint ViewRenderWidget::center_pivot = 0;
+GLuint ViewRenderWidget::snapshot = 0;
 double ViewRenderWidget::iconSize = DEFAULT_ICON_SIZE;
 
 GLubyte ViewRenderWidget::stippling[] = {
@@ -356,6 +357,7 @@ void ViewRenderWidget::initializeGL()
     border_tooloverlay = buildBordersTools();
     fading = buildFadingList();
     center_pivot = buildPivotPointList();
+    snapshot = buildSnapshotList();
 
     // store render View matrices
     glMatrixMode(GL_PROJECTION);
@@ -537,9 +539,21 @@ void ViewRenderWidget::triggerFlash()
 }
 
 #ifdef GLM_SNAPSHOT
-void ViewRenderWidget::setSnapshotVisible(bool on)
+void ViewRenderWidget::activateSnapshot(QString id)
 {
-    _snapshotView->setVisible(on, _currentView);
+    if (id.isNull()) {
+        // make invisible
+        _snapshotView->setVisible(false);
+    }
+    else if ( _currentView != _renderingView ){
+        // dispatch snapshot target to current view
+        _snapshotView->setTargetSnapshot(id);
+        // make visible
+        _snapshotView->setVisible(true, _currentView);
+    }
+    else
+        SnapshotManager::getInstance()->restoreSnapshot(id);
+
 }
 #endif
 
@@ -1048,6 +1062,12 @@ void ViewRenderWidget::tabletEvent ( QTabletEvent * event )
 
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
+
+#ifdef GLM_SNAPSHOT
+    if (_snapshotView->keyPressEvent(event))
+        return;
+#endif
+
     if (_currentView->keyPressEvent(event))
     {
         event->accept();
@@ -1118,7 +1138,7 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
     // set the catalog  off
     _catalogView->setTransparent(true);
 #ifdef GLM_SNAPSHOT
-    setSnapshotVisible(false);
+    activateSnapshot();
 #endif
 }
 
@@ -2502,6 +2522,76 @@ GLuint ViewRenderWidget::buildFadingList()
     return id;
 }
 
+
+/**
+ * Build a display list of a black QUAD and returns its id
+ **/
+GLuint ViewRenderWidget::buildSnapshotList()
+{
+    static GLuint texid = 0;
+
+    if (texid == 0) {
+        // generate the texture with optimal performance ;
+        glEnable(GL_TEXTURE_2D);
+        glGenTextures(1, &texid);
+        glBindTexture(GL_TEXTURE_2D, texid);
+        QImage p(":/glmixer/textures/mask_linear_bottom.png");
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        GLclampf highpriority = 1.0;
+        glPrioritizeTextures(1, &texid, &highpriority);
+    }
+
+    GLuint id = glGenLists(2);
+
+    glNewList(id, GL_COMPILE);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
+        glCallList(vertex_array_coords);
+
+        // uniform background
+        glDisable(GL_TEXTURE_2D);
+        glDrawArrays(GL_QUADS, 0, 4);
+
+        // vertical gradient
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+        glColor4ub(255, 255, 255, 220);
+        glDrawArrays(GL_QUADS, 0, 4);
+
+        glDisable(GL_TEXTURE_2D);
+
+    glEndList();
+
+    glNewList(id + 1, GL_COMPILE);
+
+        glDisable(GL_TEXTURE_2D);
+        glLineWidth(15.0);
+        glColor4ub(250, 250, 250, 20);
+        glBegin(GL_LINES);
+        glVertex3d(-1.0, -1.0, 0.0);
+        glVertex3d(1.0, -1.0, 0.0);
+        glEnd();
+        glLineWidth(2.0);
+        glColor4ub(250, 250, 250, 230);
+        glBegin(GL_LINES);
+        glVertex3d(-1.0, -1.0, 0.0);
+        glVertex3d(1.0, -1.0, 0.0);
+        glEnd();
+        glPointSize(13);
+        glBegin(GL_POINTS);
+        glVertex3d(-1.0, -1.0, 0.0);
+        glVertex3d(1.0, -1.0, 0.0);
+        glEnd();
+
+    glEndList();
+
+    return id;
+}
+
 const char * rotate_top_right[] =
 { "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
         "                         ",
@@ -2811,10 +2901,12 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
             if (model.dropMimeData(event->mimeData(), Qt::CopyAction, 0,0, QModelIndex()) ) {
                 // read the id of the attached data
                 QString snapshotid = model.item(0,0)->data(Qt::UserRole).toString();
-                // dispatch snapshot target to current view
-                _currentView->setTargetSnapshot(snapshotid);
                 // activate the snapshot view
-                setSnapshotVisible();
+                activateSnapshot(snapshotid);
+                // unset current source
+                RenderingManager::getInstance()->unsetCurrentSource();
+                // set focus
+                setFocus(Qt::OtherFocusReason);
             }
     }
     else

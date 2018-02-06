@@ -193,7 +193,7 @@ public slots:
     void setCursorEnabled(bool on);
     void triggerFlash();
 #ifdef GLM_SNAPSHOT
-    void setSnapshotVisible(bool on = true);
+    void activateSnapshot(QString id = QString::null);
 #endif
 
 public:
@@ -223,6 +223,7 @@ protected:
     static GLuint vertex_array_coords;
     static GLuint black_texture, white_texture;
     static GLuint center_pivot;
+    static GLuint snapshot;
     static double iconSize;
 
     // shared mask textures
@@ -278,6 +279,7 @@ private:
     GLuint buildBordersTools();
     GLuint buildFadingList();
     GLuint buildPivotPointList();
+    GLuint buildSnapshotList();
 
     void createMask(QString description, QString texture = QString::null);
 

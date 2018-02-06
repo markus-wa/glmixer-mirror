@@ -27,7 +27,7 @@
 #define GEOMETRYVIEWWIDGET_H_
 
 #include "View.h"
-#include <QMatrix3x3>
+#include <QVector>
 
 class GeometrySelectionArea: public SelectionArea {
 public:
@@ -69,8 +69,7 @@ public:
     void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
 #ifdef GLM_SNAPSHOT
-    void setTargetSnapshot(QString id);
-    void applyTargetSnapshot(double percent);
+    void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config);
 #endif
 
 private:
@@ -102,9 +101,6 @@ private:
     bool _modeMoveFrame;
     double _geometryArea[4];
 
-#ifdef GLM_SNAPSHOT
-    QMap<Source *, QPair<QMatrix3x3, QMatrix3x3> > _snapshots;
-#endif
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */

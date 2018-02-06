@@ -76,8 +76,7 @@ public:
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
 
 #ifdef GLM_SNAPSHOT
-    void setTargetSnapshot(QString id);
-    void applyTargetSnapshot(double percent);
+    void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config);
 #endif
 
 private:
@@ -110,10 +109,6 @@ private:
 
     // actual area of work
     double _mixingArea[4];
-
-#ifdef GLM_SNAPSHOT
-    QMap<Source *, QPair<QPointF, QPointF> > _snapshots;
-#endif
 
 };
 

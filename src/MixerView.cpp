@@ -1497,40 +1497,19 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 
 #ifdef GLM_SNAPSHOT
 
-void MixerView::setTargetSnapshot(QString id)
-{
-    // reset targets
-    _snapshots.clear();
-
-    // read destination
-    QMap<Source *, QPointF> destinations = SnapshotManager::getInstance()->getMixingCoordinates(id);
-
-    // create snapshot coordinate target list
-    QMapIterator<Source *, QPointF> it(destinations);
-    while (it.hasNext()) {
-        it.next();
-        QPointF dest = it.value();
-        QPointF orig = QPointF( it.key()->getAlphaX(), it.key()->getAlphaY());
-        // store delta and destination
-        _snapshots[it.key()] = qMakePair( dest - orig, dest );
-
-    }
-
-}
-
-void MixerView::applyTargetSnapshot(double percent)
+void MixerView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
 {
     // linear interpolation to dest by percent of delta
     double a = 1.0 - qBound(0.0, percent, 1.0);
     a = a < EPSILON ? 0.0 : a;
 
-    // loop over all source alpha coordinates
-    QMapIterator<Source *, QPair<QPointF, QPointF> > it(_snapshots);
+    // loop over all sources
+    QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
-
-        QPointF coords = it.value().second - a * it.value().first;
-        it.key()->setAlphaCoordinates(coords.x(), coords.y());
+        double x = it.value()[0].first - a * it.value()[0].second;
+        double y = it.value()[1].first - a * it.value()[1].second;
+        it.key()->_setAlphaCoordinates(x, y);
     }
 
 }
