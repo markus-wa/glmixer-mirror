@@ -69,6 +69,7 @@ public:
 
     double getLimboSize();
     void setLimboSize(double s);
+    bool isInLimbo(Source *s);
 
     static QRectF getBoundingBox(const SourceList &l);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
@@ -77,6 +78,7 @@ public:
 
 #ifdef GLM_SNAPSHOT
     void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config);
+    bool usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config);
 #endif
 
 private:

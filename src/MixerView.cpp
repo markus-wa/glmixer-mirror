@@ -75,7 +75,7 @@ typedef std::map<double, Source*> mixingSourceMap;
 mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::iterator end)
 {
     mixingSourceMap map;
-    if ( !RenderingManager::getInstance()->isValid(begin))
+    if ( begin == end)
         return map;
 
     SourceList::iterator sit = begin;
@@ -90,7 +90,7 @@ mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::itera
     cy /= size;
 
     for (sit = begin; sit != end; sit++) {
-        if ( !RenderingManager::getInstance()->isValid(sit) )
+        if ( !(*sit) )
             break;
         double sx = (*sit)->getAlphaX();
         double sy = (*sit)->getAlphaY();
@@ -166,6 +166,7 @@ void MixerView::paint()
     // The icons of the sources (reversed depth order)
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
+        // prevent obvious problem
         Source *s = *its;
         if (!s)
             continue;
@@ -173,7 +174,7 @@ void MixerView::paint()
         // test if the source is passed the standby line
         ax = s->getAlphaX();
         ay = s->getAlphaY();
-        s->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
+        s->setStandby( isInLimbo(s) );
 
         //
         // 0. prepare texture
@@ -1323,9 +1324,9 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
                 QDomElement sourceelem = group.firstChildElement("Source");
                 // Add every source which name is in the list
                 while (!sourceelem.isNull()) {
-                    SourceSet::iterator s = RenderingManager::getInstance()->getByName(sourceelem.text());
-                    if (RenderingManager::getInstance()->isValid(s))
-                        newgroup.insert( *s );
+                    SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourceelem.text());
+                    if (RenderingManager::getInstance()->isValid(sit))
+                        newgroup.insert( *sit );
                     sourceelem = sourceelem.nextSiblingElement();
                 }
 
@@ -1345,6 +1346,11 @@ void MixerView::setLimboSize(double s) {
 
 double MixerView::getLimboSize() {
     return ( limboSize );
+}
+
+bool MixerView::isInLimbo(Source *s)
+{
+    return CIRCLE_SQUARE_DIST( s->getAlphaX(), s->getAlphaY() ) > (limboSize * limboSize);
 }
 
 QRectF MixerView::getBoundingBox(const SourceList &l)
@@ -1512,6 +1518,19 @@ void MixerView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPai
         it.key()->_setAlphaCoordinates(x, y);
     }
 
+    // selection might have changed
+    SelectionManager::getInstance()->updateSelectionSource();
+}
+
+bool MixerView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
+{
+    QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
+    while (it.hasNext()) {
+        it.next();
+        if ( qAbs(it.value()[0].second) > EPSILON || qAbs(it.value()[1].second) > EPSILON )
+            return true;
+    }
+    return false;
 }
 
 #endif

@@ -96,9 +96,16 @@ void GeometryView::paint()
     // loop over the sources (reversed depth order)
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
+        // prevent obvious problem
         Source *s = *its;
-        if (!s || s->isStandby())
+        if (!s)
             continue;
+
+        // do not display (and remove from selection) sources in stanby
+        if (s->isStandby()) {
+            SelectionManager::getInstance()->deselect(s);
+            continue;
+        }
 
         //
         // 0. prepare texture
@@ -1977,7 +1984,34 @@ void GeometryView::applyTargetSnapshot(double percent, QMap<Source *, QVector< Q
         it.key()->_setTextureCoordinates(tc);
 
     }
+    // selection might have changed
+    SelectionManager::getInstance()->updateSelectionSource();
 
 }
+
+
+bool GeometryView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
+{
+    QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
+    while (it.hasNext()) {
+        it.next();
+        // ignore sources in standby
+        if ( it.key()->isStandby())
+            continue;
+        // there is something to change in geometry
+        if ( qAbs(it.value()[2].second) > EPSILON ||
+             qAbs(it.value()[3].second) > EPSILON ||
+             qAbs(it.value()[4].second) > EPSILON ||
+             qAbs(it.value()[5].second) > EPSILON ||
+             qAbs(it.value()[6].second) > EPSILON ||
+             qAbs(it.value()[7].second) > EPSILON ||
+             qAbs(it.value()[8].second) > EPSILON ||
+             qAbs(it.value()[9].second) > EPSILON ||
+             qAbs(it.value()[10].second) > EPSILON )
+            return true;
+    }
+    return false;
+}
+
 
 #endif

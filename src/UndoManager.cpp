@@ -166,12 +166,13 @@ void UndoManager::restore(long int i)
 
             // delete sources which do not exist anymore (remain in list of existing).
             for (SourceSet::iterator its = sourcesBeforeRestore.begin(); its != sourcesBeforeRestore.end(); its++) {
+                SourceSet::iterator sit = RenderingManager::getInstance()->getById((*its)->getId());
                 // re-check source: clones might have been already deleted
-                if (RenderingManager::getInstance()->isValid(its)) {
+                if (RenderingManager::getInstance()->isValid(sit)) {
 #ifdef DEBUG_UNDO
                     fprintf(stderr, " -  Delete %s \n", qPrintable( (*its)->getName()) );
 #endif
-                    RenderingManager::getInstance()->_removeSource( (*its)->getId() );
+                    RenderingManager::getInstance()->_removeSource( sit );
                 }
             }
 

@@ -311,6 +311,8 @@ public:
 #ifdef GLM_SNAPSHOT
     virtual void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
     {}
+    virtual bool usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
+    { return false; }
 #endif
 
     /**

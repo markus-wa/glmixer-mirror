@@ -181,9 +181,16 @@ void LayersView::paint()
     // loop over the sources (reversed depth order)
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
+        // prevent obvious problem
         Source *s = *its;
-        if (!s || s->isStandby())
+        if (!s)
             continue;
+
+        // do not display (and remove from selection) sources in stanby
+        if (s->isStandby()) {
+            SelectionManager::getInstance()->deselect(s);
+            continue;
+        }
 
         //
         // 0. prepare Fbo texture
@@ -1102,5 +1109,22 @@ void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPa
     }
 
 }
+
+
+bool LayersView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
+{
+    QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
+    while (it.hasNext()) {
+        it.next();
+        // ignore sources in standby
+        if ( it.key()->isStandby())
+            continue;
+        // there is something to change in depth
+        if ( qAbs(it.value()[11].second) > EPSILON )
+            return true;
+    }
+    return false;
+}
+
 
 #endif

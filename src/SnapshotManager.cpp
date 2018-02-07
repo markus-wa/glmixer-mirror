@@ -184,6 +184,9 @@ void SnapshotManager::restoreSnapshot(QString id)
                     if ( ! (*sit)->setConfiguration(child) )
                         qDebug() << "restoreSnapshot" << QChar(124).toLatin1() << "failed to set configuration" << sourcename;
 
+                    // as we apply changes to alpha, source migh be standly or not
+                    (*sit)->setStandby(false);
+
                     // apply change of depth
                     double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
                     RenderingManager::getInstance()->changeDepth(sit, depth);

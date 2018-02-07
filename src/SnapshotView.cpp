@@ -37,7 +37,6 @@ SnapshotView::SnapshotView(): View(), _visible(false), _view(0), _factor(0.0), _
     zoom = 0.1;
     title = " Snapshot view";
 
-
     _begin = -8.0 * SOURCE_UNIT;
     _end = 8.0 * SOURCE_UNIT;
     _y = -8.0 * SOURCE_UNIT;
@@ -65,13 +64,16 @@ void SnapshotView::setVisible(bool on, View *activeview){
         resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 
         // update view
-        if (activeview) {
+        if (activeview && activeview->usableTargetSnapshot(_snapshots)) {
             // set view to manipulate
             _view = activeview;
         }
         // cannot be visible without a valid view
-        else
+        else {
             _visible = false;
+            // inform user
+            RenderingManager::getRenderingWidget()->showMessage( "No change to apply.", 3000 );
+        }
     }
 
     // no action by default
