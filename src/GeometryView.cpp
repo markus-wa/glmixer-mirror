@@ -151,19 +151,20 @@ void GeometryView::paint()
 
     }
 
-//        if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() )
-    {
-        // Re-Draw frame buffer in the render window
-        // With correct rendering on top of the different workspaces
-        ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
-        glPushMatrix();
-        glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
-        glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glCallList(ViewRenderWidget::vertex_array_coords);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glPopMatrix();
-    }
+    // Re-Draw frame buffer in the render window
+    // With correct rendering on top of the different workspaces
+    ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
+    // in exclusive workspace, still show the outcome, but faded
+    if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
+        ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+    // draw
+    glPushMatrix();
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
+    glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glCallList(ViewRenderWidget::vertex_array_coords);
+    glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
 
     // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
