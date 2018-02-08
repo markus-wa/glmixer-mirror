@@ -894,6 +894,9 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
     // ask the catalog view if it wants this mouse move event
     if ( (_currentView->currentAction == View::NONE ||
           _currentView->currentAction == View::OVER )
+         // do not enter catalog if already button down
+         && (! event->buttons() ^ Qt::NoButton )
+         // test catalog move event
          && _catalogView->mouseMoveEvent(event) )
         return;
 
@@ -1138,6 +1141,7 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
     // set the catalog  off
     _catalogView->setTransparent(true);
 #ifdef GLM_SNAPSHOT
+    // deactivate snapshot view
     activateSnapshot();
 #endif
 }

@@ -490,9 +490,10 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
             RenderingManager::getRenderingWidget()->showContextMenu(
                         ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
         }
-
+        setAction(View::OVER);
         return true;
     }
+    setAction(View::NONE);
     return false;
 }
 
@@ -533,7 +534,7 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
     }
 
     // indicate if event was used
-    return isin;
+    return isin && currentAction == View::NONE;
 }
 
 
@@ -545,12 +546,14 @@ void CatalogView::setTransparent(bool on)
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
+    setAction(View::NONE);
     return isInside(event->pos());
 }
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
-    return isInside(event->pos());
+    setAction(View::NONE);
+    return false;
 }
 
 bool CatalogView::wheelEvent ( QWheelEvent * event )
