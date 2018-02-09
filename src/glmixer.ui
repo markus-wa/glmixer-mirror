@@ -1722,6 +1722,7 @@ QToolButton:hover {
      <addaction name="actionWorkspaceDecrement"/>
      <addaction name="separator"/>
      <addaction name="actionWorkspaceExclusive"/>
+     <addaction name="actionWorkspaceMerge"/>
     </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -3395,7 +3396,7 @@ QToolButton:hover {
           <x>0</x>
           <y>0</y>
           <width>270</width>
-          <height>68</height>
+          <height>69</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -5539,6 +5540,17 @@ QToolButton:hover {
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionWorkspaceMerge">
+   <property name="text">
+    <string>&amp;Merge workspaces</string>
+   </property>
+   <property name="toolTip">
+    <string>Merge all workspaces into the current one</string>
+   </property>
+   <property name="statusTip">
+    <string>Place every sources into the current workspace</string>
    </property>
   </action>
  </widget>

@@ -1332,6 +1332,17 @@ void RenderingManager::setWorkspaceCount(int w)
     }
 }
 
+
+void RenderingManager::setWorkspaceAllSources()
+{
+    int w = WorkspaceManager::getInstance()->current();
+
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
+        if ( (*its)->getWorkspace() != w )
+            (*its)->setWorkspace(w);
+    }
+}
+
 void RenderingManager::toggleFixAspectRatioCurrentSource(bool on){
 
     if(isValid(_currentSource)) {

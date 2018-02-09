@@ -107,7 +107,6 @@ void WorkspaceManager::setCurrent(int n)
     }
 }
 
-
 void  WorkspaceManager::onWorkspaceAction(QAction *a)
 {
     RenderingManager::getInstance()->unsetCurrentSource();
@@ -163,6 +162,6 @@ QPixmap WorkspaceManager::getPixmap(int index, bool active)
     return pix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 #else
     return pix;
-#endif    
-    
+#endif
+
 }

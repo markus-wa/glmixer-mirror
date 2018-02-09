@@ -259,6 +259,7 @@ public slots:
     void setRenderingAspectRatioCurrentSource();
     bool setWorkspaceCurrentSource(int w = WORKSPACE_MAX);
     void setWorkspaceCount(int);
+    void setWorkspaceAllSources();
 
     void dropSource();
     void dropSourceWithAlpha(double alphax, double alphay);

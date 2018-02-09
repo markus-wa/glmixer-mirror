@@ -316,6 +316,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when increment
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setWorkspaceCurrentSource())); // move current source to latest when creating new
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when creating new
+    QObject::connect(actionWorkspaceMerge, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setWorkspaceAllSources()) ); // switch to latest when creating new
 
     // HIDDEN actions
     // for debugging and development purposes
