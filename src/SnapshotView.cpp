@@ -297,7 +297,10 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
     return true;
 }
 
-bool SnapshotView::keyPressEvent ( QKeyEvent * event ){
+bool SnapshotView::keyPressEvent ( QKeyEvent * event )
+{
+    if (!_visible || !event)
+        return false;
 
     double factor = 0.01;
     // ALTERNATE ACTION
