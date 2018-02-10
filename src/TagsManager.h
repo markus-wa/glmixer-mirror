@@ -22,16 +22,20 @@ public:
     ~TagsManager();
 
     QListWidgetItem *getTagItem(Tag *t);
+    bool useTag(Tag *t);
     void selectTag(Tag *t);
 
 public slots:
 
-    void useTag(QListWidgetItem *i);
-    void selectTag(QListWidgetItem *i);
+    // connected to List of tags
+    void tagItemClicked(QListWidgetItem *i);
+
+    // contex menu
+    void ctxMenu(const QPoint &pos);
+    void clearAll();
 
     // Source to operate
     void connectSource(SourceSet::iterator);
-//    void connectSelection(SourceSet::iterator);
 
 private:
     Ui::TagsManager *ui;

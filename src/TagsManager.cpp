@@ -14,7 +14,7 @@ TagsManager::TagsManager(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // fill the list of items with all possible tags 
+    // fill the list of items with all possible tags
     for (int i=0; i < Tag::getNumTags(); ++i) {
         // get Tag
         Tag *t = Tag::get(i);
@@ -33,14 +33,50 @@ TagsManager::TagsManager(QWidget *parent) :
         tagsMap[t] = item;
     }
 
-    // select default tag
-    ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
+    // do not keep item selected
+    ui->tagsListWidget->setCurrentRow( -1 );
 
+    // TODO : find a use for a context menu
+//    ui->tagsListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+//    connect(ui->tagsListWidget, SIGNAL(customContextMenuRequested(const QPoint &)),  SLOT(ctxMenu(const QPoint &)));
 }
 
 TagsManager::~TagsManager()
 {
     delete ui;
+}
+
+void TagsManager::ctxMenu(const QPoint &pos)
+{
+    static QMenu *contextmenu = NULL;
+    if (contextmenu == NULL) {
+        contextmenu = new QMenu(this);
+        QAction *remove = new QAction(tr("Clear all"), this);
+        connect(remove, SIGNAL(triggered()), this, SLOT(clearAll()));
+        contextmenu->addAction(remove);
+
+    }
+
+//    Tag *t = Tag::getDefault();
+//    QListWidgetItem *item = ui->tagsListWidget->itemAt(pos);
+//    if (item) {
+//        QList<Tag *> tags = tagsMap.keys(item);
+//        if (!tags.empty())
+//            t = tags.first();
+//    }
+
+    contextmenu->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
+    // do not keep item selected
+    ui->tagsListWidget->setCurrentRow( -1 );
+}
+
+
+void TagsManager::clearAll()
+{
+    Tag::remove();
+
+    // do not keep item selected
+    ui->tagsListWidget->setCurrentRow( -1 );
 }
 
 QListWidgetItem *TagsManager::getTagItem(Tag *t)
@@ -57,59 +93,74 @@ QListWidgetItem *TagsManager::getTagItem(Tag *t)
     return item;
 }
 
+
 void TagsManager::selectTag(Tag *t)
 {
-    QListWidgetItem *currentItem = getTagItem(t);
-    if (currentItem)
-        ui->tagsListWidget->setCurrentItem(currentItem);
+    if (t) {
+        // select all sources of this tag
+        SelectionManager::getInstance()->setSelection( t->getSources() );
+    }
+
 }
 
-void TagsManager::selectTag(QListWidgetItem *i)
+void TagsManager::tagItemClicked(QListWidgetItem *i)
 {
     if (i)
     {
         // get the key for the given item in the map
         QList<Tag *> tags = tagsMap.keys(i);
         if (!tags.empty()) {
-            Tag *t = tags.first();
-
-            qDebug() << "select tag "<< t->getLabel() << t->getSources().size();
-            // select all sources of this tag
-            SelectionManager::getInstance()->setSelection( t->getSources() );
+            // try to apply this tag
+            if ( !useTag( tags.first() ) )
+                // select all sources of this tag
+                selectTag( tags.first() );
         }
     }
+
+    // do not keep item selected
+    ui->tagsListWidget->setCurrentRow( -1 );
 }
 
-void TagsManager::useTag(QListWidgetItem *i)
+bool TagsManager::useTag(Tag *t)
 {
-    // apply this tag to the current source
-    if (i && currentSource)
+    bool changed = false;
+
+    if (t)
     {
-        // get the key for the given item in the map
-        QList<Tag *> tags = tagsMap.keys(i);
-        if (!tags.empty()) {
-            Tag *t = tags.first();
+        // apply this tag to the  selection
+        if ( SelectionManager::getInstance()->hasSelection() ) {
 
-            // apply the tag found
-            t->set(currentSource);
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+                // apply the tag to selected sources
+                if (*its)
+                    changed |= t->set(*its);
+            }
         }
-    }
-}
+        // apply this tag to the current source
+        else if (currentSource) {
+            // apply the tag to current source
+            changed |= t->set(currentSource);
+        }
 
+    }
+
+    return changed;
+}
 
 void TagsManager::connectSource(SourceSet::iterator csi)
 {
     if (RenderingManager::getInstance()->isValid(csi)) {
         // remember current source pointer
         currentSource = *csi;
-        // activate item 
-        selectTag( Tag::get(currentSource) );
-    } 
+        // activate item
+//        setTag( Tag::get(currentSource) );
+    }
     else {
         // disable current source
         currentSource = NULL;
         // select default tag
-        ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
+//        ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
+//        ui->tagsListWidget->setCurrentRow( -1 );
     }
 
 }

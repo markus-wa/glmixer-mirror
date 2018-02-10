@@ -26,13 +26,12 @@ public:
     static Tag *getDefault();
     static int getNumTags();
 
-    void set(Source *s);
+    bool set(Source *s);
 
     QString getLabel() const;
     QColor getColor() const;
     int getIndex() const;
     SourceList getSources() const;
 };
-
 
 #endif // TAG_H
