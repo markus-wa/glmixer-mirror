@@ -3628,21 +3628,26 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 QStringList GLMixer::getMediaFileNames(bool &smartScaling) {
 
     QStringList fileNames;
-    QString recentfile = settings.value("recentMediaFile", QDesktopServices::storageLocation(QDesktopServices::MoviesLocation)).toString();
-    QFileInfo fi( recentfile );
+    QFileInfo fi( settings.value("recentMediaFile", "").toString() );
+    QDir di(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
+
+    // check if file is ok
+    if (fi.isReadable())
+        di = fi.dir();
 
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
         // open standard dialog at location of recent file
         fileNames = QFileDialog::getOpenFileNames(this,
                                                   tr("GLMixer - Open videos or Pictures"),
-                                                  fi.dir().absolutePath(),
+                                                  di.absolutePath(),
                                                   VIDEOFILE_DIALOG_FORMATS );
     }
     else {
         // restore location and file selection at recent file
-        mfd->setDirectory( fi.dir() );
-        mfd->selectFile( fi.absoluteFilePath() );
+        mfd->setDirectory( di );
+        if (fi.isReadable())
+            mfd->selectFile( fi.absoluteFilePath() );
         // open dialog
         if (mfd->exec()) {
             fileNames = mfd->selectedFiles();
