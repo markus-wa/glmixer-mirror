@@ -9,6 +9,7 @@
 
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
+#include "MixerView.h"
 #include "GeometryView.h"
 #include "WorkspaceManager.h"
 
@@ -154,16 +155,8 @@ void SelectionManager::updateSelectionSource()
     _selectionSource->setRotationAngle( 0 );
 
     // setup the selection source alpha coordinates
-    SourceList::iterator sit = _selectedSources.begin();
-    double x = (*sit)->getAlphaX();
-    double y = (*sit)->getAlphaY();
-    for (sit++; sit != _selectedSources.end(); sit++) {
-        x += (*sit)->getAlphaX();
-        y += (*sit)->getAlphaY();
-    }
-    x /= _selectedSources.size();
-    y /= _selectedSources.size();
-    _selectionSource->setAlphaCoordinates(x, y);
+    QPointF gc = MixerView::getGravityCenter(_selectedSources);
+    _selectionSource->setAlphaCoordinates(gc.x(), gc.y());
 
 }
 

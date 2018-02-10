@@ -72,6 +72,7 @@ public:
     bool isInLimbo(Source *s);
 
     static QRectF getBoundingBox(const SourceList &l);
+    static QPointF getGravityCenter(const SourceList &l);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);

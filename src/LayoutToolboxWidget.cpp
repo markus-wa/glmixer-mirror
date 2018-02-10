@@ -16,19 +16,12 @@ LayoutToolboxWidget::~LayoutToolboxWidget()
 void LayoutToolboxWidget::setViewMode(View::viewMode a)
 {
     // set status of alignment tools depending on view
+    rotateBox->setVisible(a == View::GEOMETRY);
+    resizeBox->setVisible(a == View::GEOMETRY);
+    alignBox->setVisible(a == View::GEOMETRY || a == View::MIXING );
+    distributeBox->setVisible( a != View::RENDERING );
 
-    rotateBox->setEnabled(a == View::GEOMETRY);
-    resizeBox->setEnabled(a == View::GEOMETRY);
-    alignBox->setEnabled(a == View::GEOMETRY || a == View::MIXING );
-    distributeBox->setEnabled( a != View::RENDERING );
-
-    alignHorizontalLeftButton->setEnabled(a == View::GEOMETRY);
-    alignHorizontalCenterButton->setDisabled(a == View::LAYER);
-    alignHorizontalRightButton->setEnabled(a == View::GEOMETRY);
-    alignVerticalBottomButton->setEnabled(a == View::GEOMETRY);
-    alignVerticalCenterButton->setDisabled(a == View::LAYER);
-    alignVerticalTopButton->setEnabled(a == View::GEOMETRY);
-
+    // dristribute tools are not available for all views
     distributeHorizontalLeftButton->setEnabled(a == View::GEOMETRY);
     distributeHorizontalRightButton->setEnabled(a == View::GEOMETRY);
     distributeHorizontalGapsButton->setEnabled(a == View::GEOMETRY);
@@ -168,14 +161,14 @@ void LayoutToolboxWidget::on_sizeVerticalFrameButton_clicked(){
 }
 
 void LayoutToolboxWidget::on_sizeRenderingAspectButton_clicked(){
-    
+
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_BOTH, View::REFERENCE_FRAME);
     // update GUI
     RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void LayoutToolboxWidget::on_sizeOriginalAspectButton_clicked(){
-    
+
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_BOTH, View::REFERENCE_SOURCES);
     // update GUI
     RenderingManager::getInstance()->refreshCurrentSource();

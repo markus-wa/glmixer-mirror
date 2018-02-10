@@ -40,6 +40,7 @@
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.075
 #define DEFAULT_PANNING 0.f, 0.f
+#define MIXING_EPSILON 0.1
 
 
 bool MixerSelectionArea::contains(SourceSet::iterator s)
@@ -1161,12 +1162,29 @@ void MixerView::scaleSources(Source *s, int x, int y, int dx, int dy) {
     // grab current source in any case
     grabSource(s, x, y, dx, dy);
 
-    // remember position of s after grab (relative to C)
-    double sx_ = s->getAlphaX() -cx;
-    double sy_ = s->getAlphaY() -cy;
-
     // if the source is in the selection, scale the selection
     if ( SelectionManager::getInstance()->isInSelection(s) ){
+
+        bool requireupdate = false;
+
+        // remember position of s after grab (relative to C)
+        double sx_ = s->getAlphaX() -cx;
+        double sy_ = s->getAlphaY() -cy;
+
+        // avoid division by zero
+        if ( ABS(_sx) < MIXING_EPSILON ) {
+            sx_ = 1.0;
+            requireupdate = true;
+        }
+        else
+            sx_ /= _sx;
+
+        if (ABS(_sy) < MIXING_EPSILON) {
+            sy_ = 1.0;
+            requireupdate = true;
+        }
+        else
+            sy_ /= _sy;
 
         // grab all other sources according to center
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
@@ -1180,15 +1198,17 @@ void MixerView::scaleSources(Source *s, int x, int y, int dx, int dy) {
             _x -= cx;
             _y -= cy;
             // compute position after scaling
-            double x_ = _x * ( sx_ / _sx );
-            double y_ = _y * ( sy_ / _sy );
+            double x_ = _x *  sx_;
+            double y_ = _y *  sy_;
             // un-center
             x_ += cx;
             y_ += cy;
             // move icon
             (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
         }
-//        SelectionManager::getInstance()->updateSelectionSource();
+
+        if (requireupdate)
+            SelectionManager::getInstance()->updateSelectionSource();
     }
 
 }
@@ -1211,17 +1231,27 @@ void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
     // grab current source in any case
     grabSource(s, x, y, dx, dy);
 
-    // remember position of s after grab
-    double sx_ = s->getAlphaX();
-    double sy_ = s->getAlphaY();
-    // compute distance to center after grab
-    double sd_ = sqrt( (sx_-cx)*(sx_-cx) + (sy_-cy)*(sy_-cy) );
-
-    // compute the angle between vectors (after - before)
-    double angle = atan2(((sy_-cy)/sd_), ((sx_-cx)/sd_)) - atan2(((_sy-cy)/_sd), ((_sx-cx)/_sd) );
-
     // if the source is in the selection, scale the selection
     if ( SelectionManager::getInstance()->isInSelection(s) ){
+
+        bool requireupdate = false;
+
+        // remember position of s after grab
+        double sx_ = s->getAlphaX();
+        double sy_ = s->getAlphaY();
+
+        // compute distance to center after grab
+        double sd_ = sqrt( (sx_-cx)*(sx_-cx) + (sy_-cy)*(sy_-cy) );
+
+        // avoid division by zero
+        if (_sd < MIXING_EPSILON || sd_ < MIXING_EPSILON) {
+            _sd = MIXING_EPSILON;
+            sd_ = MIXING_EPSILON;
+            requireupdate = true;
+        }
+
+        // compute the angle between vectors (after - before)
+        double angle = atan2(((sy_-cy)/sd_), ((sx_-cx)/sd_)) - atan2(((_sy-cy)/_sd), ((_sx-cx)/_sd) );
 
         // grab all other sources according to center
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
@@ -1248,7 +1278,9 @@ void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
             (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
         }
 
-//        SelectionManager::getInstance()->updateSelectionSource();
+        if (requireupdate)
+            SelectionManager::getInstance()->updateSelectionSource();
+
     }
 
 }
@@ -1353,6 +1385,25 @@ bool MixerView::isInLimbo(Source *s)
     return CIRCLE_SQUARE_DIST( s->getAlphaX(), s->getAlphaY() ) > (limboSize * limboSize);
 }
 
+QPointF MixerView::getGravityCenter(const SourceList &l)
+{
+    QPointF c(0.0, 0.0);
+
+    if (!l.empty()) {
+        SourceList::iterator sit = l.begin();
+        double x = (*sit)->getAlphaX();
+        double y = (*sit)->getAlphaY();
+        for (sit++; sit != l.end(); sit++) {
+            x += (*sit)->getAlphaX();
+            y += (*sit)->getAlphaY();
+        }
+        c.setX( x / l.size() );
+        c.setY( y / l.size() );
+    }
+
+    return c;
+}
+
 QRectF MixerView::getBoundingBox(const SourceList &l)
 {
     double bbox[2][2];
@@ -1369,22 +1420,6 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
         bbox[1][0] = qMax( (*its)->getAlphaX(), bbox[1][0]);
         bbox[1][1] = qMax( (*its)->getAlphaY(), bbox[1][1]);
 
-//        double renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY());
-//        if ( ABS(renderingAspectRatio) > 1.0) {
-
-//            bbox[0][0] = qMin( (*its)->getAlphaX() - SOURCE_UNIT, bbox[0][0]);
-//            bbox[0][1] = qMin( (*its)->getAlphaY() - SOURCE_UNIT / renderingAspectRatio, bbox[0][1]);
-//            bbox[1][0] = qMax( (*its)->getAlphaX() + SOURCE_UNIT, bbox[1][0]);
-//            bbox[1][1] = qMax( (*its)->getAlphaY() + SOURCE_UNIT / renderingAspectRatio, bbox[1][1]);
-
-//        } else {
-//            // keep max and min
-//            bbox[0][0] = qMin( (*its)->getAlphaX() - SOURCE_UNIT * renderingAspectRatio, bbox[0][0]);
-//            bbox[0][1] = qMin( (*its)->getAlphaY() - SOURCE_UNIT, bbox[0][1]);
-//            bbox[1][0] = qMax( (*its)->getAlphaX() + SOURCE_UNIT * renderingAspectRatio, bbox[1][0]);
-//            bbox[1][1] = qMax( (*its)->getAlphaY() + SOURCE_UNIT, bbox[1][1]);
-
-//        }
     }
     // return bottom-left ; top-right
     return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
@@ -1392,19 +1427,26 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 
 void MixerView::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {
-    QRectF selectionBox = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
+    // center of selection
+    QPointF selectionCenter = MixerView::getGravityCenter(SelectionManager::getInstance()->copySelection());
+
     if (r == View::REFERENCE_SOURCES) {
+        // bopunding box for left and right extends
+        QRectF selectionBox = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
         // perform the computations
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+
+            if (!(*its))
+                continue;
 
             QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
 
             // CENTERED
             if (p==View::ALIGN_CENTER) {
                 if (a==View::AXIS_HORIZONTAL)
-                    point.setX( selectionBox.center().x());
+                    point.setX( selectionCenter.x());
                 else
-                    point.setY( selectionBox.center().y());
+                    point.setY( selectionCenter.y());
             }
             // View::ALIGN_BOTTOM_LEFT (inverted y)
             else if (p==View::ALIGN_BOTTOM_LEFT) {
@@ -1428,20 +1470,61 @@ void MixerView::alignSelection(View::Axis a, View::RelativePoint p, View::Refere
     else {
         QRectF circleBox = QRectF(-CIRCLE_SIZE * SOURCE_UNIT,-CIRCLE_SIZE * SOURCE_UNIT,2.0*CIRCLE_SIZE * SOURCE_UNIT, 2.0*CIRCLE_SIZE * SOURCE_UNIT);
 
-        QPointF delta;
+        double targetx = 0.0, targety = 0.0;
+
         // CENTERED
-        if (p==View::ALIGN_CENTER)
-            delta = circleBox.center() -selectionBox.center();
+        // Nothing to compute: target at (0,0)
+
         // View::ALIGN_BOTTOM_LEFT (inverted y)
-        else if (p==View::ALIGN_BOTTOM_LEFT)
-            delta = circleBox.topLeft() - selectionBox.topLeft();
+        if (p==View::ALIGN_BOTTOM_LEFT) {
+
+            if (a==View::AXIS_HORIZONTAL){
+                // try to push the source to the border of the mixing circle
+                double sina = selectionCenter.y() / (CIRCLE_SIZE * SOURCE_UNIT);
+                if ( ABS(sina) < 1.0)
+                    // geometric solution inside the circle
+                    // trigonometric formula cos2 = 1 - sin2
+                    targetx = - sqrt( 1.0 - (sina * sina) ) * (CIRCLE_SIZE * SOURCE_UNIT);
+                else
+                    // outside the circle
+                    targetx = circleBox.topLeft().x();
+            }
+            else {
+                double cosa = selectionCenter.x() / (CIRCLE_SIZE * SOURCE_UNIT);
+                if ( ABS(cosa) < 1.0)
+                    targety = - sqrt( 1.0 - (cosa * cosa) ) * (CIRCLE_SIZE * SOURCE_UNIT);
+                else
+                    targety = circleBox.topLeft().y();
+            }
+        }
         // View::ALIGN_TOP_RIGHT (inverted y)
-        else if (p==View::ALIGN_TOP_RIGHT)
-            delta = circleBox.bottomRight() - selectionBox.bottomRight();
+        else if (p==View::ALIGN_TOP_RIGHT) {
+
+            if (a==View::AXIS_HORIZONTAL){
+                double sina = selectionCenter.y() / (CIRCLE_SIZE * SOURCE_UNIT);
+                if ( ABS(sina) < 1.0)
+                    targetx = sqrt( 1.0 - (sina * sina) ) * (CIRCLE_SIZE * SOURCE_UNIT);
+                else
+                    targetx = circleBox.bottomRight().x();
+            }
+            else {
+                double cosa = selectionCenter.x() / (CIRCLE_SIZE * SOURCE_UNIT);
+                if ( ABS(cosa) < 1.0)
+                    targety = sqrt( 1.0 - (cosa * cosa) ) * (CIRCLE_SIZE * SOURCE_UNIT);
+                else
+                    targety = circleBox.bottomRight().y();
+            }
+
+        }
+
+        // compute delta
+        QPointF delta = QPointF(targetx, targety) - selectionCenter;
 
         // perform the computations
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 
+            if (!(*its))
+                continue;
             if (a==View::AXIS_HORIZONTAL)
                 (*its)->setAlphaCoordinates( (*its)->getAlphaX() + delta.x(), (*its)->getAlphaY() );
             else
@@ -1463,7 +1546,10 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
     if (a==View::AXIS_HORIZONTAL) {
         for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
             QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
-            sortedlist[int(point.x()*1000)] = qMakePair(*i, point);
+            int index = int(point.x()*100000.0);
+            while (sortedlist.contains(index))
+                ++index;
+            sortedlist[index] = qMakePair(*i, point);
         }
     }
     // do this for the vertical alignment
@@ -1471,7 +1557,10 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
         // sort the list of sources by  y (inverted)
         for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
             QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
-            sortedlist[int(point.y()*1000)] = qMakePair(*i, point);
+            int index = int(point.y()*100000.0);
+            while (sortedlist.contains(index))
+                ++index;
+            sortedlist[index] = qMakePair(*i, point);
         }
     }
 
