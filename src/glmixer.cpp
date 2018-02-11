@@ -611,6 +611,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     connect(resetMagnet, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
 
     // connect actions with selectionManager
+    buttonSelectAll->setDefaultAction(actionSelectAll);
+    buttonSelectInvert->setDefaultAction(actionSelectInvert);
+    buttonSelectClear->setDefaultAction(actionSelectNone);
     QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
     QObject::connect(actionSelectInvert, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(invertSelection()));
     QObject::connect(actionSelectCurrent, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectCurrentSource()));

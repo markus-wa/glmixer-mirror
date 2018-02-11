@@ -205,5 +205,6 @@
         <file>icons/snapshot.png</file>
         <file>icons/snapshot_new.png</file>
         <file>icons/snapshot_selection.png</file>
+        <file>icons/selectclear.png</file>
     </qresource>
 </RCC>
