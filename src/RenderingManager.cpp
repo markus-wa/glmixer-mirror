@@ -673,7 +673,7 @@ void RenderingManager::sourceRenderToFrameBuffer(Source *source) {
 Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
 
 #ifndef NDEBUG
-    qDebug() << tr("RenderingManager::newRenderingSource ")<< depth;
+    qDebug() << tr("RenderingManager::newRenderingSource ")<< depth << recursive;
 #endif
 
     RenderingSource *s = 0;

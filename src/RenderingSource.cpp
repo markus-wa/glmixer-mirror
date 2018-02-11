@@ -5,6 +5,11 @@
 void RenderingSource::setRecursive(bool on) {
     _recursive = on;
 
+    if (_sfbo) {
+        delete _sfbo;
+        _sfbo = NULL;
+    }
+
     if (_recursive)
         RenderingManager::getInstance()->_rendering_sources.insert(this);
     else

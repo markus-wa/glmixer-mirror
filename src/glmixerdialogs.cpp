@@ -186,8 +186,8 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
     nameEdit = new QLineEdit(this);
     nameEdit->setText(s->getName());
     horizontalLayout->addWidget(nameEdit);
-    connect(nameEdit, SIGNAL(textEdited(const QString &)), SLOT(validateName(const QString &)));    
-    QObject::connect(this, SIGNAL(nameChanged(QString, QString)), 
+    connect(nameEdit, SIGNAL(textEdited(const QString &)), SLOT(validateName(const QString &)));
+    QObject::connect(this, SIGNAL(nameChanged(QString, QString)),
                     RenderingManager::getPropertyBrowserWidget(), SLOT(valueChanged(QString, QString)) );
 
     verticalLayout->addLayout(horizontalLayout);
@@ -197,14 +197,17 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
     specificSourcePropertyBrowser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
 #ifdef GLM_FFGL
+    // if there is no plugin
     if (s->getFreeframeGLPluginStack()->empty()) {
         pluginBrowser = 0;
         verticalLayout->addWidget(specificSourcePropertyBrowser);
-        // in case this is a GPU Plugin source:
-        QObject::connect(specificSourcePropertyBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(accept()));
+        // in case this is a GPU Plugin source, clic on edit also accept the dialog
+        if ( s->rtti() == Source::FFGL_SOURCE ) {
+            QObject::connect(specificSourcePropertyBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(accept()));
+        }
     }
+    // show effects if there are plugins
     else {
-        // show effects if there are plugins
         sourcedisplay->setEffectsEnabled(true);
         // create plugin browser
         pluginBrowser = new FFGLPluginBrowser(this);
@@ -232,9 +235,19 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 #endif
 
     DecisionButtonBox = new QDialogButtonBox(this);
-    DecisionButtonBox->addButton("Done", QDialogButtonBox::AcceptRole);
-    if (source->rtti() != Source::CLONE_SOURCE)
-        DecisionButtonBox->addButton("Re-create", QDialogButtonBox::RejectRole);
+    DecisionButtonBox->addButton(tr(" Done "), QDialogButtonBox::AcceptRole);
+
+    // allow re-create option for all types but clone and rendering
+    if (source->rtti() != Source::CLONE_SOURCE &&
+            source->rtti() != Source::RENDERING_SOURCE ) {
+        QPushButton *b = DecisionButtonBox->addButton(tr("Re-create"), QDialogButtonBox::RejectRole);
+        // special case for capture (pixmap) source
+        if (source->rtti() == Source::CAPTURE_SOURCE ) {
+            // can be created only if there is an image in the clipboard
+            const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+            b->setEnabled(mimeData->hasImage());
+        }
+    }
     verticalLayout->addWidget(DecisionButtonBox);
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
