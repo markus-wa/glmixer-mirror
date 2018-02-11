@@ -409,7 +409,7 @@ SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
 IF(APPLE)
     set(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
-    set(qtplugin_dest_dir GLMixer.app/Contents/Plugins)
+    set(qtplugin_dest_dir GLMixer.app/Contents/Plugins/imageformats)
     set(qtconf_dest_dir GLMixer.app/Contents/Resources)
 
     set( CPACK_BINARY_DRAGNDROP ON)
@@ -505,7 +505,16 @@ IF(APPLE)
     #--------------------------------------------------------------------------------
     # Install needed Qt plugins by copying directories from the qt installation
     # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime)
+    #INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime FILES_MATCHING PATTERN "*.dylib")
+
+    FILE(GLOB files "${QT_PLUGINS_DIR}/imageformats/*")
+    SET(_qtpluginFiles "")
+    foreach (_file ${files})
+        get_filename_component(_qtpluginFile "${_file}" REALPATH)
+        list (APPEND _qtpluginFiles "${_qtpluginFile}")
+    endforeach()
+    install(FILES ${_qtpluginFiles} DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime )
+
 
     #--------------------------------------------------------------------------------
     # install a qt.conf file

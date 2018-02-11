@@ -132,6 +132,8 @@ OSX COMPILATION
 
     STEP 1 - Install programs and libraries (OSX)
 
+    Install X-Code from the App Store
+
     Install home-brew
 
         Follow instructions from http://brew.sh/
@@ -142,16 +144,22 @@ OSX COMPILATION
         brew install ninja
         brew install cmake
         brew install ffmpeg
-        brew install qt4
         brew install glew
-        brew install homebrew/science/opencv
+        brew install opencv
+
+    Install Qt4 from https://github.com/cartr/homebrew-qt4 :
+
+        brew tap cartr/qt4
+        brew tap-pin cartr/qt4
+        brew install qt@4
+        brew install qt-webkit@2.3
 
     STEPS 2 to 3 - See above
 
     STEP 4 - Compile for OSX
 
-    If you installed qt4 with brew, specify where qmake is :
-        $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=True -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DQT_QMAKE_EXECUTABLE=/usr/local/Cellar/qt/4.8.7_2/bin/qmake -G Ninja ../glmixer-Source/
+    If you installed qt@4 with brew, specify where qmake is :
+        $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=True -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DQT_QMAKE_EXECUTABLE=/usr/local/Cellar/qt@4/4.8.7_3/bin/qmake -G Ninja ../glmixer-Source/
 
     The rest is the same as in the generic instructions. To test your program;
 
