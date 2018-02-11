@@ -362,7 +362,8 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 
 #ifdef GLM_TAG
     // set tag
-    Tag::get( xmlconfig.attribute("tag","0").toInt() )->set(this);
+    if ( xmlconfig.hasAttribute("modifiable") )
+        Tag::get( xmlconfig.attribute("tag").toInt() )->set(this);
 #endif
 
 #ifdef GLM_FFGL

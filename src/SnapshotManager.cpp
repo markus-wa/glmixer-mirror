@@ -226,6 +226,12 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
             if ( RenderingManager::getInstance()->isValid(sit) )
                 child.setAttribute("id", (*sit)->getId() );
 
+            // discard properties that we do not want to be stored
+            child.removeAttribute("stanbyMode");
+            child.removeAttribute("workspace");
+#ifdef GLM_TAG
+            child.removeAttribute("tag");
+#endif
             // read next source
             child = child.nextSiblingElement();
         }
