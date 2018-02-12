@@ -11,6 +11,9 @@ extern "C"
 
 #ifdef Q_OS_UNIX
 #include <sys/mman.h>
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
 #define PICTURE_MAP
 #endif
 
