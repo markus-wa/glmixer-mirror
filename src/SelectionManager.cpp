@@ -45,7 +45,7 @@ SelectionManager::~SelectionManager() {
 
 void SelectionManager::clearSelection() {
     _selectedSources.clear();
-    // update the selection source for geometry view
+    // update the selection source
     updateSelectionSource();
 
 }
@@ -65,15 +65,16 @@ void SelectionManager::select(Source *s) {
     else
         _selectedSources.insert(s);
 
-    // update the selection source for geometry view
+    // update the selection source
     updateSelectionSource();
 }
 
 void SelectionManager::deselect(Source *s) {
-    if ( _selectedSources.count(s) > 0)
+    if ( _selectedSources.count(s) > 0) {
         _selectedSources.erase( s );
-    // update the selection source for geometry view
-    updateSelectionSource();
+        // update the selection source
+        updateSelectionSource();
+    }
 }
 
 void SelectionManager::select(SourceList l)
