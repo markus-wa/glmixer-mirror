@@ -40,6 +40,9 @@
 
 #ifdef Q_OS_UNIX
 #include <sys/mman.h>
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
 #endif
 
 EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), pictq_max_count(0),

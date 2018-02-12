@@ -297,6 +297,12 @@ QString getMonospaceFont()
 
 
 #ifdef Q_OS_MAC
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+    #define MACOS_FIXUP_URL
+#endif
+#endif
+
+#ifdef MACOS_FIXUP_URL
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFUrl.h>
 
