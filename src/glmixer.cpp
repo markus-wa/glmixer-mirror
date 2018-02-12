@@ -203,17 +203,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(previewDockWidget->toggleViewAction());
     toolBarsMenu->addAction(sourceDockWidget->toggleViewAction());
     toolBarsMenu->addAction(vcontrolDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
-
 #ifdef GLM_SESSION
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
 #endif
+    toolBarsMenu->addAction(snapshotsDockWidget->toggleViewAction());
 #ifdef GLM_TAG
     toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
 #endif
+    toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
+
 #ifdef GLM_HISTORY
     // The history widget
     QAction *showhistory = actionHistoryDockWidget->toggleViewAction();
@@ -223,9 +224,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #endif
 
     toolBarsMenu->addSeparator();
+    toolBarsMenu->addAction(fileToolBar->toggleViewAction());
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
-    toolBarsMenu->addAction(fileToolBar->toggleViewAction());
     toolBarsMenu->addAction(toolsToolBar->toggleViewAction());
     toolBarsMenu->addAction(renderingToolBar->toggleViewAction());
     toolBarsMenu->addAction(sourceControlToolBar->toggleViewAction());
