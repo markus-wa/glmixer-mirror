@@ -1866,8 +1866,8 @@ QToolButton:hover {
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
     <addaction name="separator"/>
-    <addaction name="actionFullscreen"/>
     <addaction name="aspectRatioMenu"/>
+    <addaction name="actionFullscreen"/>
     <addaction name="actionWhite_background"/>
    </widget>
    <widget class="QMenu" name="menuExport">
@@ -4510,6 +4510,9 @@ QToolButton:hover {
    <property name="statusTip">
     <string>Open the preferences dialog.</string>
    </property>
+   <property name="shortcut">
+    <string>F12</string>
+   </property>
    <property name="menuRole">
     <enum>QAction::PreferencesRole</enum>
    </property>
@@ -4769,7 +4772,7 @@ QToolButton:hover {
     <string>Take a snapshot of the rendering and save the image.</string>
    </property>
    <property name="shortcut">
-    <string>F12</string>
+    <string>F7</string>
    </property>
   </action>
   <action name="actionCursorLine">
