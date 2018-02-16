@@ -2091,6 +2091,7 @@ void GLMixer::newSession()
     RenderingManager::getInstance()->clearSourceSet();
 #ifdef GLM_SNAPSHOT
     SnapshotManager::getInstance()->clearConfiguration();
+    RenderingManager::getRenderingWidget()->activateSnapshot();
 #endif
     actionWhite_background->setChecked(false);
     RenderingManager::getRenderingWidget()->clearViews();

@@ -28,18 +28,25 @@
 #include "SnapshotManager.h"
 #include "RenderingManager.h"
 #include "RenderingSource.h"
+#include "CaptureSource.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
-SnapshotView::SnapshotView(): View(), _visible(false), _view(0), _factor(0.0), _renderSource(0)
+SnapshotView::SnapshotView(): View(), _active(false), _view(0), _factor(0.0), _renderSource(0), _departureSource(0), _destinationSource(0)
 {
+    // init view
     currentAction = View::NONE;
     zoom = 0.1;
     title = " Snapshot view";
 
+    // init cursor
     _begin = -8.0 * SOURCE_UNIT;
     _end = 8.0 * SOURCE_UNIT;
     _y = -8.0 * SOURCE_UNIT;
+
+    // disable animation
+    _animationTimer.invalidate();
+    _animationSpeed = 0.0;
 }
 
 SnapshotView::~SnapshotView() {
@@ -48,32 +55,52 @@ SnapshotView::~SnapshotView() {
 }
 
 
-void SnapshotView::setVisible(bool on, View *activeview){
+void SnapshotView::deactivate()
+{
+    // do not update status if no change requested
+    if ( _active == false )
+        return;
+
+    _destination = QImage();
+
+    // disable animation
+    _animationTimer.invalidate();
+
+
+    // change status : reset
+    _active = false;
+}
+
+void SnapshotView::activate(View *activeview, QString id){
 
     // do not update status if no change requested
-    if ( _visible == on )
+    if ( _active == true )
         return;
 
     // change status : reset
     _view = 0;
     _factor = 0.0;
-    _visible = on;
+    _active = true;
 
-    // new status is ON
-    if (_visible) {
-        resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
+    resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 
-        // update view
-        if (activeview && activeview->usableTargetSnapshot(_snapshots)) {
-            // set view to manipulate
-            _view = activeview;
-        }
-        // cannot be visible without a valid view
-        else {
-            _visible = false;
-            // inform user
-            RenderingManager::getRenderingWidget()->showMessage( "No change to apply.", 3000 );
-        }
+    // test if everything is fine
+    if (setTargetSnapshot(id) && activeview && activeview->usableTargetSnapshot(_snapshots)) {
+        // set view to manipulate
+        _view = activeview;
+        // update icon for starting point
+        _departure = RenderingManager::getInstance()->captureFrameBuffer();
+        // convert image to ICON_SIZE
+        _departure = SnapshotManager::generateSnapshotIcon(_departure);
+        // update source if already created
+        if (_departureSource)
+            _departureSource->setImage(_departure);
+    }
+    // cannot be visible without a valid view
+    else {
+        _active = false;
+        // inform user
+        RenderingManager::getRenderingWidget()->showMessage( "No change to apply.", 3000 );
     }
 
     // no action by default
@@ -108,28 +135,77 @@ void SnapshotView::setModelview()
 }
 
 
+void drawSource(Source *s, double scale, GLenum mode = GL_RENDER)
+{
+    glTranslated(s->getAlphaX(), s->getAlphaY(), 0.0);
+
+    double renderingAspectRatio = s->getAspectRatio();
+    if ( ABS(renderingAspectRatio) < 1.0)
+        glScaled( scale * DEFAULT_ICON_SIZE * SOURCE_UNIT, scale * DEFAULT_ICON_SIZE * SOURCE_UNIT / renderingAspectRatio,  1.0);
+    else
+        glScaled(scale * DEFAULT_ICON_SIZE * SOURCE_UNIT * renderingAspectRatio, scale * DEFAULT_ICON_SIZE * SOURCE_UNIT,  1.0);
+
+    // draw flat version of the source
+    s->draw(mode);
+}
+
 void SnapshotView::paint()
 {
     // discard if not visible
-    if (!_visible)
+    if (!_active)
         return;
 
     // opengl tools
-    static double renderingAspectRatio = 1.0;
     static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
     static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
 
+    // create render source on first occurence
     if (!_renderSource) {
-        // create render source on first occurence
         try {
             // create a source appropriate
             _renderSource = new RenderingSource(false, 0.0);
             _renderSource->setAlphaCoordinates(_begin, _y);
 
         } catch (AllocationException &e){
-            qWarning() << "Cannot create source; " << e.message();
+            qWarning() << "Cannot create slider icon; " << e.message();
             // return an invalid pointer
             _renderSource = 0;
+            return;
+        }
+    }
+
+    // create destination source on first occurence
+    if (!_destination.isNull() && !_destinationSource) {
+        try {
+            // create the texture for this source
+            GLuint textureIndex;
+            glGenTextures(1, &textureIndex);
+            // create a source appropriate
+            _destinationSource = new CaptureSource(_destination, textureIndex, 0.0);
+            _destinationSource->setAlphaCoordinates(_end, _y);
+
+        } catch (AllocationException &e){
+            qWarning() << "Cannot create destination icon; " << e.message();
+            // return an invalid pointer
+            _destinationSource = 0;
+            return;
+        }
+    }
+
+    // create destination source on first occurence
+    if (!_departure.isNull() && !_departureSource) {
+        try {
+            // create the texture for this source
+            GLuint textureIndex;
+            glGenTextures(1, &textureIndex);
+            // create a source appropriate
+            _departureSource = new CaptureSource(_departure, textureIndex, 0.0);
+            _departureSource->setAlphaCoordinates(_begin, _y);
+
+        } catch (AllocationException &e){
+            qWarning() << "Cannot create destination icon; " << e.message();
+            // return an invalid pointer
+            _departureSource = 0;
             return;
         }
     }
@@ -168,31 +244,51 @@ void SnapshotView::paint()
     // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
     ViewRenderWidget::resetShaderAttributes();
-
-    // bind the source textures
-    _renderSource->bind();
-
-    // draw the source cursor at the position for given factor
-    double ax = _begin + _factor * (_end - _begin) ;
-    _renderSource->setAlphaCoordinates(ax, _y);
-    glTranslated(_renderSource->getAlphaX(), _renderSource->getAlphaY(), 0.0);
-
-    renderingAspectRatio = _renderSource->getAspectRatio();
-    if ( ABS(renderingAspectRatio) > 1.0)
-        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT, DEFAULT_ICON_SIZE * SOURCE_UNIT / renderingAspectRatio,  1.0);
-    else
-        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT * renderingAspectRatio, DEFAULT_ICON_SIZE * SOURCE_UNIT,  1.0);
-
-    // draw flat version of the source
+    // draw flat version of sources
     ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
-    _renderSource->draw();
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
 
+
+    //
+    //  DEPARTURE ICON
+    //
+    // bind the source destination
+    _departureSource->update();
+    _departureSource->bind();
+    // draw the source destination
+    glPushMatrix();
+    drawSource(_departureSource, ICON_BORDER_SCALE);
+    // draw border
+    glCallList(ViewRenderWidget::snapshot + 2);
+    glPopMatrix();
+
+    //
+    //  DESTINATION ICON
+    //
+    // bind the source destination
+    _destinationSource->update();
+    _destinationSource->bind();
+    // draw the source destination
+    glPushMatrix();
+    drawSource(_destinationSource, ICON_BORDER_SCALE);
+    // draw border
+    glCallList(ViewRenderWidget::snapshot + 2);
+    glPopMatrix();
+
+    //
+    //  CURSOR ICON
+    //
+    // bind the source slider (no need to update)
+    _renderSource->bind();
+    // draw the source slider at the position for given factor
+    _renderSource->setAlphaCoordinates(_begin + _factor * (_end - _begin), _y);
+    drawSource(_renderSource, ICON_CURSOR_SCALE);
     // draw border
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_FRAME));
-    if ( currentAction == View::NONE)
-        glCallList(ViewRenderWidget::border_thin_shadow);
-    else
+    if ( currentAction == View::OVER)
         glCallList(ViewRenderWidget::border_large_shadow);
+    else
+        glCallList(ViewRenderWidget::border_thin_shadow);
 
     // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
@@ -204,22 +300,60 @@ void SnapshotView::paint()
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
+    // 3) animation
+    if (_animationTimer.isValid()) {
+        // increment
+        _factor += (double) _animationTimer.restart() * _animationSpeed;
+        // end animation
+        if ( _factor > 1.0 || _factor < 0.0)
+            _animationTimer.invalidate();
+        // animate factor
+        _factor = qBound(0.0, _factor, 1.0);
+        _view->applyTargetSnapshot(_factor, _snapshots);
+    }
+
 }
 
 bool SnapshotView::mousePressEvent(QMouseEvent *event)
 {
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
     if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
-        if ( isUserInput(event, View::INPUT_TOOL) )
-            // ready for grabbing the current source
-            setAction(View::TOOL);
+        // get the top most clicked source
+        // (always one as getSourcesAtCoordinates returned true)
+        Source *clicsource =  *clickedSources.begin();
+
+        // tool action on a source
+        if ( isUserInput(event, View::INPUT_TOOL) ) {
+            // clic on the slider
+            if (clicsource == _renderSource) {
+                // ready for grabbing the slider source
+                setAction(View::GRAB);
+            }
+            // clic on the destination
+            else if (clicsource == _destinationSource) {
+                // trigger animation
+                setAction(View::TOOL);
+                // start animation
+                _animationSpeed = ANIMATION_SPEED;
+                _animationTimer.start();
+            }
+            // clic on the departure
+            else if (clicsource == _departureSource) {
+                // trigger animation
+                setAction(View::TOOL);
+                // start animation
+                _animationSpeed = -ANIMATION_SPEED;
+                _animationTimer.start();
+            }
+        }
+        // do not react to other mouse action on a source
     }
     else {
         // clic in background to escape view
-        _visible = false;
+        _active = false;
     }
 
     return true;
@@ -227,10 +361,10 @@ bool SnapshotView::mousePressEvent(QMouseEvent *event)
 
 bool SnapshotView::mouseMoveEvent(QMouseEvent *event)
 {
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
-    if ( currentAction == View::TOOL ) {
+    if ( currentAction == View::GRAB ) {
         // grab source under cursor
         grabSource(_renderSource, event->x(), viewport[3] - event->y());
         // apply factor change
@@ -239,10 +373,8 @@ bool SnapshotView::mouseMoveEvent(QMouseEvent *event)
     // else Show mouse over cursor only if no user input
     else if ( isUserInput(event, View::INPUT_NONE ) )
     {
-        if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
-            setAction(View::OVER);
-        else
-            setAction(View::NONE);
+        // set mouse cursor
+        setCursorAction(event->pos());
     }
 
     return true;
@@ -260,46 +392,64 @@ void SnapshotView::grabSource(Source *s, int x, int y) {
 }
 
 
+void SnapshotView::setCursorAction(QPoint mousepos)
+{
+    if ( getSourcesAtCoordinates(mousepos.x(), viewport[3] - mousepos.y()) ) {
+        // get the top most source
+        // (always one as getSourcesAtCoordinates returned true)
+        Source *oversource =  *clickedSources.begin();
+
+        // on the slider
+        if (oversource == _renderSource)
+            setAction(View::OVER);
+        // on the destination
+        else if (oversource == _destinationSource || oversource == _departureSource)
+            setAction(View::TOOL);
+    }
+    else
+        setAction(View::NONE);
+}
+
 bool SnapshotView::mouseReleaseEvent ( QMouseEvent * event )
 {
-    // make sure none action
-    setAction(View::NONE);
-
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
-    if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
-        setAction(View::OVER);
+    // set mouse cursor
+    setCursorAction(event->pos());
 
     return true;
 }
 
 bool SnapshotView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
     // clic in background to escape view
-    _visible = false;
+    _active = false;
 
     return true;
 }
 
 bool SnapshotView::wheelEvent ( QWheelEvent * event )
 {
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
     // increment factor
     _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
     _view->applyTargetSnapshot(_factor, _snapshots);
 
+    // set mouse cursor
+    setCursorAction(event->pos());
+
     return true;
 }
 
 bool SnapshotView::keyPressEvent ( QKeyEvent * event )
 {
-    if (!_visible || !event)
+    if (!_active || !event)
         return false;
 
     double factor = 0.01;
@@ -317,7 +467,7 @@ bool SnapshotView::keyPressEvent ( QKeyEvent * event )
         _factor = qBound(0.0, _factor + factor, 1.0);
         break;
     case Qt::Key_Escape:
-        _visible = false;
+        _active = false;
     default:
         return false;
     }
@@ -358,14 +508,24 @@ bool SnapshotView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glLoadIdentity();
     glMultMatrixd(modelview);
 
-    glTranslated(_renderSource->getAlphaX(), _renderSource->getAlphaY(), 0.0);
-    double renderingAspectRatio = _renderSource->getAspectRatio();
-    if ( ABS(renderingAspectRatio) > 1.0)
-        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT, DEFAULT_ICON_SIZE * SOURCE_UNIT / renderingAspectRatio,  1.0);
-    else
-        glScaled(DEFAULT_ICON_SIZE * SOURCE_UNIT * renderingAspectRatio, DEFAULT_ICON_SIZE * SOURCE_UNIT,  1.0);
+    // Simulate rendering
 
-    _renderSource->draw(GL_SELECT);
+    // destination source
+    if (_destinationSource) {
+        glPushMatrix();
+        drawSource(_destinationSource, ICON_BORDER_SCALE, GL_SELECT);
+        glPopMatrix();
+    }
+    // departure source
+    if (_departureSource) {
+        glPushMatrix();
+        drawSource(_departureSource, ICON_BORDER_SCALE, GL_SELECT);
+        glPopMatrix();
+    }
+
+    // slider source
+    drawSource(_renderSource, ICON_CURSOR_SCALE, GL_SELECT);
+
     glPopMatrix();
 
     // compute picking . return to rendering mode
@@ -376,9 +536,23 @@ bool SnapshotView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
+    if (clic) {
+        clickedSources.clear();
+        while (hits != 0) {
+            int id = selectBuf[ (hits-1) * 4 + 3];
+            if ( id == _renderSource->getId() )
+                clickedSources.insert( _renderSource );
+            else if ( id == _destinationSource->getId() )
+                clickedSources.insert( _destinationSource );
+            else if ( id == _departureSource->getId() )
+                clickedSources.insert( _departureSource );
+            hits--;
+        }
 
-    return (hits != 0);
-
+        return sourceClicked();
+    }
+    else
+        return (hits != 0);
 }
 
 
@@ -390,18 +564,32 @@ void SnapshotView::setAction(ActionType a){
     case View::OVER:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
         break;
-    case View::TOOL:
+    case View::GRAB:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+        break;
+    case View::TOOL:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
         break;
     default:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
-        break;
     }
 }
 
 
-void SnapshotView::setTargetSnapshot(QString id)
+bool SnapshotView::setTargetSnapshot(QString id)
 {
+    // get the target image
+    QImage image = SnapshotManager::getInstance()->getSnapshotImage(id);
+
+    // null image means there is not such snapshot: abort
+    if (image.isNull())
+        return false;
+
+    // remember dest image
+    _destination = image;
+    if (_destinationSource)
+        _destinationSource->setImage(_destination);
+
     // reset targets
     _snapshots.clear();
 
@@ -445,5 +633,6 @@ void SnapshotView::setTargetSnapshot(QString id)
         _snapshots[it.key()] = snap;
     }
 
+    return true;
 }
 

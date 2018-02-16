@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
     <number>6</number>
    </property>
    <item>
@@ -105,8 +114,8 @@
      </property>
      <property name="iconSize">
       <size>
-       <width>128</width>
-       <height>128</height>
+       <width>90</width>
+       <height>90</height>
       </size>
      </property>
      <property name="textElideMode">
@@ -116,11 +125,11 @@
       <enum>QListView::Snap</enum>
      </property>
      <property name="spacing">
-      <number>6</number>
+      <number>4</number>
      </property>
      <property name="gridSize">
       <size>
-       <width>140</width>
+       <width>110</width>
        <height>110</height>
       </size>
      </property>

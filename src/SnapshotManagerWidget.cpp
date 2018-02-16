@@ -26,7 +26,7 @@ void SnapshotManagerWidget::newSnapshot(QString id)
 {
     // new item
     QIcon icon;
-    icon.addPixmap( SnapshotManager::getInstance()->getSnapshotPixmap(id) );
+    icon.addPixmap( QPixmap::fromImage( SnapshotManager::getInstance()->getSnapshotImage(id) ) );
     QString label = SnapshotManager::getInstance()->getSnapshotLabel(id);
 
     QListWidgetItem *item = new QListWidgetItem(icon, label);

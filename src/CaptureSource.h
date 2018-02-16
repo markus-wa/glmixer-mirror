@@ -32,6 +32,7 @@ class CaptureSource: public Source {
 
     friend class RenderingManager;
     friend class OutputRenderWidget;
+    friend class SnapshotView;
 
 public:
 
@@ -43,6 +44,7 @@ protected:
     // only friends can create a source
     CaptureSource(QImage capture, GLuint texture, double d);
     ~CaptureSource();
+    void update();
 
 public:
 
@@ -51,11 +53,12 @@ public:
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
+    void setImage(QImage capture);
     QImage image() { return _capture; }
 
 private:
     QImage _capture;
-
+    bool _captureChanged;
 };
 
 #endif /* CAPTURESOURCE_H_ */

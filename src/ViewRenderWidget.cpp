@@ -543,13 +543,11 @@ void ViewRenderWidget::activateSnapshot(QString id)
 {
     if (id.isNull()) {
         // make invisible
-        _snapshotView->setVisible(false);
+        _snapshotView->deactivate();
     }
     else if ( _currentView != _renderingView ){
         // dispatch snapshot target to current view
-        _snapshotView->setTargetSnapshot(id);
-        // make visible
-        _snapshotView->setVisible(true, _currentView);
+        _snapshotView->activate(_currentView, id);
     }
     else
         SnapshotManager::getInstance()->restoreSnapshot(id);
@@ -757,7 +755,7 @@ void ViewRenderWidget::paintGL()
 
 #ifdef GLM_SNAPSHOT
     // Snapshot : show if visible
-    if (_snapshotView->visible()) {
+    if (_snapshotView->isActive()) {
         _snapshotView->paint();
         return;
     }
@@ -2547,7 +2545,7 @@ GLuint ViewRenderWidget::buildSnapshotList()
         glPrioritizeTextures(1, &texid, &highpriority);
     }
 
-    GLuint id = glGenLists(2);
+    GLuint id = glGenLists(3);
 
     glNewList(id, GL_COMPILE);
 
@@ -2574,22 +2572,31 @@ GLuint ViewRenderWidget::buildSnapshotList()
 
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15.0);
-        glColor4ub(250, 250, 250, 20);
+        glColor4ub(COLOR_DRAWINGS, 30);
         glBegin(GL_LINES);
         glVertex3d(-1.0, -1.0, 0.0);
         glVertex3d(1.0, -1.0, 0.0);
         glEnd();
         glLineWidth(2.0);
-        glColor4ub(250, 250, 250, 230);
+        glColor4ub(COLOR_DRAWINGS, 250);
         glBegin(GL_LINES);
         glVertex3d(-1.0, -1.0, 0.0);
         glVertex3d(1.0, -1.0, 0.0);
         glEnd();
-        glPointSize(13);
-        glBegin(GL_POINTS);
-        glVertex3d(-1.0, -1.0, 0.0);
-        glVertex3d(1.0, -1.0, 0.0);
+
+    glEndList();
+
+    glNewList(id + 2, GL_COMPILE);
+
+        glBindTexture(GL_TEXTURE_2D, white_texture);
+        glLineWidth(2.0);
+        glPushMatrix();
+        glScalef(1.1, 1.1, 1.0);
+        glBegin(GL_LINE_LOOP);
+        for (float i = 0; i < 2.0 * M_PI; i += 0.251)
+            glVertex2d( cos(i), sin(i));
         glEnd();
+        glPopMatrix();
 
     glEndList();
 

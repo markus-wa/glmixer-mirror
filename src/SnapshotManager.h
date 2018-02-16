@@ -24,7 +24,7 @@ public:
      * Access items
      * */
     QStringList getSnapshotIdentifiers();
-    QPixmap getSnapshotPixmap(QString id);
+    QImage getSnapshotImage(QString id);
     QString getSnapshotLabel(QString id);
     void setSnapshotLabel(QString id, QString label);
     void removeSnapshot(QString id);
@@ -40,6 +40,8 @@ public:
     QDomElement getConfiguration(QDomDocument &doc);
     void addConfiguration(QDomElement xmlconfig);
     void clearConfiguration();
+
+    static QImage generateSnapshotIcon(QImage image);
 
 signals:
     void clear();

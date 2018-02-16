@@ -41,7 +41,7 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
             QByteArray ba;
             QBuffer buffer(&ba);
             buffer.open(QIODevice::WriteOnly);
-            if (!pix.save(&buffer, "jpeg") )
+            if (!pix.save(&buffer, "png") )
                 qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
             buffer.close();
             QDomElement f = doc.createElement("Image");
@@ -98,9 +98,12 @@ QStringList SnapshotManager::getSnapshotIdentifiers()
     return QStringList( _snapshotsList.keys() );
 }
 
-QPixmap SnapshotManager::getSnapshotPixmap(QString id)
+QImage SnapshotManager::getSnapshotImage(QString id)
 {
-    return QPixmap::fromImage(_snapshotsList[id] );
+    if (_snapshotsList.contains(id))
+        return _snapshotsList[id];
+    else
+        return QImage();
 }
 
 void SnapshotManager::setSnapshotLabel(QString id, QString label)
@@ -135,6 +138,21 @@ void SnapshotManager::removeSnapshot(QString id)
     }
 }
 
+QImage SnapshotManager::generateSnapshotIcon(QImage image)
+{
+    // convert image to ICON_SIZE
+    image = image.scaled(ICON_SIZE, ICON_SIZE,  Qt::KeepAspectRatioByExpanding).copy(0,0,ICON_SIZE,ICON_SIZE);
+
+    QRegion r(QRect(0, 0, ICON_SIZE, ICON_SIZE), QRegion::Ellipse);
+    QImage target(ICON_SIZE,  ICON_SIZE, QImage::Format_ARGB32);
+    target.fill(Qt::transparent);
+    QPainter painter(&target);
+    painter.setClipRegion(r);
+    painter.drawImage(0,0,image);
+
+    return target;
+}
+
 void SnapshotManager::addSnapshot()
 {
     // create a unique id from date & time
@@ -146,11 +164,8 @@ void SnapshotManager::addSnapshot()
     if (capture.isNull())
         capture = QImage(QString::fromUtf8(":/glmixer/icons/snapshot.png"));
 
-    // convert image to ICON_SIZE
-    capture = capture.width() < capture.height() ? capture.scaledToWidth(ICON_SIZE, Qt::SmoothTransformation) : capture.scaledToHeight(ICON_SIZE, Qt::SmoothTransformation);
-
     // add element in list
-    _snapshotsList[id] = capture;
+    _snapshotsList[id] = SnapshotManager::generateSnapshotIcon(capture);
 
     // create node
     appendSnapshotDescrition(id, id, RenderingManager::getInstance()->getConfiguration(_snapshotsDescription));

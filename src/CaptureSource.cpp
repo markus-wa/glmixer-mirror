@@ -10,8 +10,9 @@
 
 Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
-CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(texture, d), _capture(capture) {
+CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(texture, d) {
 
+    setImage(capture);
     if (_capture.isNull())
         SourceConstructorException().raise();
 
@@ -19,14 +20,6 @@ CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(t
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-#if QT_VERSION >= 0x040700
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.constBits() );
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.bits() );
-#endif
 
 }
 
@@ -40,6 +33,14 @@ QString CaptureSource::getInfo() const {
     return Source::getInfo() + tr(" - Pixmap ");
 }
 
+
+void CaptureSource::setImage(QImage capture)
+{
+    if ( !capture.isNull() ) {
+        _capture = capture;
+        _captureChanged = true;
+    }
+}
 
 QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
 {
@@ -76,12 +77,25 @@ QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
 
 
 
-//	void update(){
-//		Source::update();
-//		if (frameChanged) {
-//        	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  _capture.width(),
-//                     _capture.height(), GL_BGRA, GL_UNSIGNED_BYTE,
-//                     _capture.bits() );
-//        	frameChanged = false;
-//		}
-//	}
+void CaptureSource::update()
+{
+    if (_captureChanged) {
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+    #if QT_VERSION >= 0x040700
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
+                      0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.constBits() );
+    #else
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
+                      0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.bits() );
+    #endif
+
+        _captureChanged = false;
+    }
+
+    // perform source update
+    Source::update();
+}
+
