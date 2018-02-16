@@ -641,7 +641,9 @@ ELSE(APPLE)
         message( STATUS "Generating ChangeLog from SVN (please be patient...)" )
 
         execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
-                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                        TIMEOUT 5 
+                        OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog")
         execute_process(COMMAND gzip -9 -n -c ${CMAKE_BINARY_DIR}/ChangeLog
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog.gz")
