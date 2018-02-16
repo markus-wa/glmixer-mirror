@@ -2545,7 +2545,7 @@ GLuint ViewRenderWidget::buildSnapshotList()
         glPrioritizeTextures(1, &texid, &highpriority);
     }
 
-    GLuint id = glGenLists(3);
+    GLuint id = glGenLists(4);
 
     glNewList(id, GL_COMPILE);
 
@@ -2592,6 +2592,20 @@ GLuint ViewRenderWidget::buildSnapshotList()
         glLineWidth(2.0);
         glPushMatrix();
         glScalef(1.1, 1.1, 1.0);
+        glBegin(GL_LINE_LOOP);
+        for (float i = 0; i < 2.0 * M_PI; i += 0.251)
+            glVertex2d( cos(i), sin(i));
+        glEnd();
+        glPopMatrix();
+
+    glEndList();
+
+    glNewList(id + 3, GL_COMPILE);
+
+        glBindTexture(GL_TEXTURE_2D, white_texture);
+        glLineWidth(3.0);
+        glPushMatrix();
+        glScalef(1.13, 1.13, 1.0);
         glBegin(GL_LINE_LOOP);
         for (float i = 0; i < 2.0 * M_PI; i += 0.251)
             glVertex2d( cos(i), sin(i));

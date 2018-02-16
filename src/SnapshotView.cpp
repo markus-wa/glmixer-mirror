@@ -166,17 +166,15 @@ void SnapshotView::paint()
             // create a source appropriate
             _renderSource = new RenderingSource(false, 0.0);
             _renderSource->setAlphaCoordinates(_begin, _y);
-
         } catch (AllocationException &e){
-            qWarning() << "Cannot create slider icon; " << e.message();
+            qWarning() << "Cannot create snapshot slider icon; " << e.message();
             // return an invalid pointer
             _renderSource = 0;
             return;
         }
     }
-
     // create destination source on first occurence
-    if (!_destination.isNull() && !_destinationSource) {
+    if (!_destinationSource && !_destination.isNull() ) {
         try {
             // create the texture for this source
             GLuint textureIndex;
@@ -184,17 +182,15 @@ void SnapshotView::paint()
             // create a source appropriate
             _destinationSource = new CaptureSource(_destination, textureIndex, 0.0);
             _destinationSource->setAlphaCoordinates(_end, _y);
-
         } catch (AllocationException &e){
-            qWarning() << "Cannot create destination icon; " << e.message();
+            qWarning() << "Cannot create snapshot destination icon; " << e.message();
             // return an invalid pointer
             _destinationSource = 0;
             return;
         }
     }
-
-    // create destination source on first occurence
-    if (!_departure.isNull() && !_departureSource) {
+    // create departure source on first occurence
+    if (!_departureSource && !_departure.isNull()) {
         try {
             // create the texture for this source
             GLuint textureIndex;
@@ -202,9 +198,8 @@ void SnapshotView::paint()
             // create a source appropriate
             _departureSource = new CaptureSource(_departure, textureIndex, 0.0);
             _departureSource->setAlphaCoordinates(_begin, _y);
-
         } catch (AllocationException &e){
-            qWarning() << "Cannot create destination icon; " << e.message();
+            qWarning() << "Cannot create snapshot departure icon; " << e.message();
             // return an invalid pointer
             _departureSource = 0;
             return;
@@ -236,9 +231,10 @@ void SnapshotView::paint()
     glMultMatrixd(modelview);
 
     glPushMatrix();
-    glScaled(ABS(_begin), ABS(_y), 1.0);
+    // line between circles
+    glScaled(ABS(_begin) - 1.95 * ICON_BORDER_SCALE * SOURCE_UNIT, ABS(_y), 1.0);
     glCallList(ViewRenderWidget::snapshot + 1);
-
+    // marks
     glPointSize(4);
     glBegin(GL_POINTS);
     for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
@@ -249,9 +245,10 @@ void SnapshotView::paint()
     for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
         glVertex2d( i, -1.0);
     glEnd();
+
     glPopMatrix();
 
-    // 2) draw cursor (render preview with loopback)
+    // 2) draw tools and cursor
 
     // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
@@ -271,7 +268,10 @@ void SnapshotView::paint()
     glPushMatrix();
     drawSource(_departureSource, ICON_BORDER_SCALE);
     // draw circle border
-    glCallList(ViewRenderWidget::snapshot + 2);
+    if ( *clickedSources.begin() == _departureSource)
+        glCallList(ViewRenderWidget::snapshot + 3);
+    else
+        glCallList(ViewRenderWidget::snapshot + 2);
     glPopMatrix();
 
     //
@@ -284,11 +284,14 @@ void SnapshotView::paint()
     glPushMatrix();
     drawSource(_destinationSource, ICON_BORDER_SCALE);
     // draw circle border
-    glCallList(ViewRenderWidget::snapshot + 2);
+    if ( *clickedSources.begin() == _destinationSource)
+        glCallList(ViewRenderWidget::snapshot + 3);
+    else
+        glCallList(ViewRenderWidget::snapshot + 2);
     glPopMatrix();
 
     //
-    //  CURSOR ICON
+    //  CURSOR ICON (render preview with loopback)
     //
     // bind the source slider (no need to update)
     _renderSource->bind();
@@ -439,16 +442,16 @@ bool SnapshotView::mouseReleaseEvent ( QMouseEvent * event )
     return true;
 }
 
-bool SnapshotView::mouseDoubleClickEvent ( QMouseEvent * event )
-{
-    if (!_active || !event)
-        return false;
+//bool SnapshotView::mouseDoubleClickEvent ( QMouseEvent * event )
+//{
+//    if (!_active || !event)
+//        return false;
 
-    // clic in background to escape view
-    _active = false;
+//    // clic in background to escape view
+//    _active = false;
 
-    return true;
-}
+//    return true;
+//}
 
 bool SnapshotView::wheelEvent ( QWheelEvent * event )
 {
@@ -466,7 +469,7 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
 
     }
     // background : control directly factor with scroll wheel
-    else if (currentAction == View::NONE) {
+    else /*if (currentAction == View::NONE)*/ {
         // increment factor
         _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
         _view->applyTargetSnapshot(_factor, _snapshots);

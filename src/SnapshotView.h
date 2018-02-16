@@ -24,7 +24,7 @@ public:
     void setModelview();
     void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
-    bool mouseDoubleClickEvent(QMouseEvent * event);
+//    bool mouseDoubleClickEvent(QMouseEvent * event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent(QMouseEvent * event );
     bool wheelEvent(QWheelEvent * event );

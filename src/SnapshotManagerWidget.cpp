@@ -36,6 +36,7 @@ void SnapshotManagerWidget::newSnapshot(QString id)
     ui->snapshotsList->addItem(item);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable  | Qt::ItemIsDragEnabled );
 
+    ui->snapshotsList->setCurrentItem(item);
 }
 
 // connected to signal removeSnapshot
