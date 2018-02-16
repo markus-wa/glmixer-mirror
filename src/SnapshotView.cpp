@@ -46,7 +46,7 @@ SnapshotView::SnapshotView(): View(), _active(false), _view(0), _factor(0.0), _r
 
     // disable animation
     _animationTimer.invalidate();
-    _animationSpeed = 0.0;
+    _animationSpeed = DEFAULT_ANIMATION_SPEED;
 }
 
 SnapshotView::~SnapshotView() {
@@ -105,6 +105,7 @@ void SnapshotView::activate(View *activeview, QString id){
 
     // no action by default
     setAction(View::NONE);
+    _animationTimer.invalidate();
 }
 
 void SnapshotView::resize(int w, int h)
@@ -237,6 +238,17 @@ void SnapshotView::paint()
     glPushMatrix();
     glScaled(ABS(_begin), ABS(_y), 1.0);
     glCallList(ViewRenderWidget::snapshot + 1);
+
+    glPointSize(4);
+    glBegin(GL_POINTS);
+    for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
+        glVertex2d( i, -1.0);
+    glEnd();
+    glPointSize(7);
+    glBegin(GL_POINTS);
+    for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
+        glVertex2d( i, -1.0);
+    glEnd();
     glPopMatrix();
 
     // 2) draw cursor (render preview with loopback)
@@ -245,7 +257,7 @@ void SnapshotView::paint()
     ViewRenderWidget::setSourceDrawingMode(true);
     ViewRenderWidget::resetShaderAttributes();
     // draw flat version of sources
-    ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
+    ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
 
 
@@ -258,7 +270,7 @@ void SnapshotView::paint()
     // draw the source destination
     glPushMatrix();
     drawSource(_departureSource, ICON_BORDER_SCALE);
-    // draw border
+    // draw circle border
     glCallList(ViewRenderWidget::snapshot + 2);
     glPopMatrix();
 
@@ -271,7 +283,7 @@ void SnapshotView::paint()
     // draw the source destination
     glPushMatrix();
     drawSource(_destinationSource, ICON_BORDER_SCALE);
-    // draw border
+    // draw circle border
     glCallList(ViewRenderWidget::snapshot + 2);
     glPopMatrix();
 
@@ -314,6 +326,21 @@ void SnapshotView::paint()
 
 }
 
+void SnapshotView::toggleAnimation(bool positive)
+{
+    if (_animationTimer.isValid()) {
+        // stop animation
+        setAction(View::NONE);
+        _animationTimer.invalidate();
+    } else {
+        // trigger animation
+        setAction(View::TOOL);
+        // start animation negative direction
+        _animationSpeed = positive ? ABS(_animationSpeed) : -ABS(_animationSpeed);
+        _animationTimer.start();
+    }
+}
+
 bool SnapshotView::mousePressEvent(QMouseEvent *event)
 {
     if (!_active || !event)
@@ -328,26 +355,17 @@ bool SnapshotView::mousePressEvent(QMouseEvent *event)
         // tool action on a source
         if ( isUserInput(event, View::INPUT_TOOL) ) {
             // clic on the slider
-            if (clicsource == _renderSource) {
+            if (clicsource == _renderSource)
                 // ready for grabbing the slider source
                 setAction(View::GRAB);
-            }
             // clic on the destination
-            else if (clicsource == _destinationSource) {
-                // trigger animation
-                setAction(View::TOOL);
-                // start animation
-                _animationSpeed = ANIMATION_SPEED;
-                _animationTimer.start();
-            }
+            else if (clicsource == _destinationSource)
+                // toggle on/off the animation, in positive direction
+                toggleAnimation(true);
             // clic on the departure
-            else if (clicsource == _departureSource) {
-                // trigger animation
-                setAction(View::TOOL);
-                // start animation
-                _animationSpeed = -ANIMATION_SPEED;
-                _animationTimer.start();
-            }
+            else if (clicsource == _departureSource)
+                // toggle on/off the animation, in negative direction
+                toggleAnimation(false);
         }
         // do not react to other mouse action on a source
     }
@@ -437,12 +455,23 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
     if (!_active || !event)
         return false;
 
-    // increment factor
-    _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
-    _view->applyTargetSnapshot(_factor, _snapshots);
-
-    // set mouse cursor
+    // set action from mouse cursor
     setCursorAction(event->pos());
+
+    // Tool action : control the speed of animation by scroll wheel
+    if (currentAction == View::TOOL) {
+
+        double dir = SIGN(_animationSpeed);
+        _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002, MAX_ANIMATION_SPEED);
+
+    }
+    // background : control directly factor with scroll wheel
+    else if (currentAction == View::NONE) {
+        // increment factor
+        _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
+        _view->applyTargetSnapshot(_factor, _snapshots);
+    }
+    // ignore wheel on cursor
 
     return true;
 }

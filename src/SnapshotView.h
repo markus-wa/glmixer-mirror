@@ -4,7 +4,9 @@
 #include "View.h"
 #include <QElapsedTimer>
 
-#define ANIMATION_SPEED 0.001
+#define DEFAULT_ANIMATION_SPEED 0.001
+#define MIN_ANIMATION_SPEED 0.0001
+#define MAX_ANIMATION_SPEED 0.005
 #define ICON_CURSOR_SCALE 0.75
 #define ICON_BORDER_SCALE 0.6
 
@@ -34,6 +36,7 @@ public:
     void activate(View *activeview, QString id);
     void deactivate();
     bool isActive() { return _active;}
+    void toggleAnimation(bool positive);
 
 private:
 
