@@ -2332,6 +2332,7 @@ void GLMixer::openSessionFile()
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Problem reading file; ") << file.errorString();
         qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
         currentSessionFileName = QString();
+        RenderingManager::getSessionSwitcher()->setOverlay(0.0);
         return;
     }
     // load content
@@ -2339,17 +2340,21 @@ void GLMixer::openSessionFile()
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
         qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
         currentSessionFileName = QString();
+        RenderingManager::getSessionSwitcher()->setOverlay(0.0);
         return;
     }
     // close file
     file.close();
+
     // verify it is a GLM file
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("This is not a GLMixer session file; ");
         currentSessionFileName = QString();
+        RenderingManager::getSessionSwitcher()->setOverlay(0.0);
         return;
     }
+
     QString version = XML_GLM_VERSION;
     if ( root.hasAttribute("version") )
         version = root.attribute("version");
