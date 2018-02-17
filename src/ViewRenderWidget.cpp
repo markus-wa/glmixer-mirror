@@ -541,16 +541,15 @@ void ViewRenderWidget::triggerFlash()
 #ifdef GLM_SNAPSHOT
 void ViewRenderWidget::activateSnapshot(QString id)
 {
-    if (id.isNull()) {
+    if (id.isNull())
         // make invisible
         _snapshotView->deactivate();
-    }
-    else if ( _currentView != _renderingView ){
-        // dispatch snapshot target to current view
-        _snapshotView->activate(_currentView, id);
+    else if (_currentView == _renderingView) {
+        SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
+        _snapshotView->activate(_currentView, id, false);
     }
     else
-        SnapshotManager::getInstance()->restoreSnapshot(id);
+        _snapshotView->activate(_currentView, id);
 
 }
 #endif
@@ -709,8 +708,9 @@ void ViewRenderWidget::paintGL()
         // the busy overlay is in two call lists for animation
         glCallList(ViewRenderWidget::fading + 1);
         glScalef( 800.0 / (float) width(), 800.0 / (float) height(), 1.0);
-        angle = fmod(angle + 3601.0, 360.0);
-        glRotatef( angle, 0.0, 0.0, 1.0);
+        // animation of busy circle by steps of 36 degrees (10 dots)
+        angle = fmod(angle + 3602.0, 360.0);
+        glRotatef( angle - fmod(angle, 36.0), 0.0, 0.0, 1.0);
         glCallList(ViewRenderWidget::fading + 2);
     }
     else if (faded) {

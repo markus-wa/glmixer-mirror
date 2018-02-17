@@ -30,25 +30,29 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
     QDomElement child = _snapshotsDescription.firstChildElement();
     while (!child.isNull()) {
 
-        // copy config
-        QDomNode newnode = config.appendChild( child.cloneNode() );
+        // ignore temporary node
+        if (child.attribute("label", TEMP_SNAPSHOT_NAME) != TEMP_SNAPSHOT_NAME) {
 
-        // get icon of snapshot
-        QImage pix = _snapshotsList[newnode.nodeName()];
+            // copy config
+            QDomNode newnode = config.appendChild( child.cloneNode() );
 
-        // Add JPEG of icon in XML
-        if (!pix.isNull()) {
-            QByteArray ba;
-            QBuffer buffer(&ba);
-            buffer.open(QIODevice::WriteOnly);
-            if (!pix.save(&buffer, "png") )
-                qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
-            buffer.close();
-            QDomElement f = doc.createElement("Image");
-            QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
-            f.appendChild(img);
+            // get icon of snapshot
+            QImage pix = _snapshotsList[newnode.nodeName()];
 
-            newnode.appendChild(f);
+            // Add JPEG of icon in XML
+            if (!pix.isNull()) {
+                QByteArray ba;
+                QBuffer buffer(&ba);
+                buffer.open(QIODevice::WriteOnly);
+                if (!pix.save(&buffer, "png") )
+                    qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
+                buffer.close();
+                QDomElement f = doc.createElement("Image");
+                QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
+                f.appendChild(img);
+
+                newnode.appendChild(f);
+            }
         }
 
         child = child.nextSiblingElement();
@@ -250,9 +254,53 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
             // read next source
             child = child.nextSiblingElement();
         }
+
+        // add snapshot to description list
+        _snapshotsDescription.appendChild(root);
     }
-    // add snapshot to description list
-    _snapshotsDescription.appendChild(root);
+}
+
+void SnapshotManager::storeTemporarySnapshotDescription()
+{
+    // get and clear the previous temporary element
+    QDomElement tempRoot = _snapshotsDescription.firstChildElement(TEMP_SNAPSHOT_NAME);
+    if ( tempRoot.isNull()) {
+        // create clean element
+        tempRoot = _snapshotsDescription.createElement(TEMP_SNAPSHOT_NAME);
+        tempRoot.setAttribute("label", TEMP_SNAPSHOT_NAME);
+    }
+    else
+        tempRoot.removeChild( tempRoot.firstChildElement("SourceList") );
+
+    // copy content of the config
+    tempRoot.appendChild( RenderingManager::getInstance()->getConfiguration(_snapshotsDescription) );
+
+    // post process list to add identifiers to each source
+    QDomElement renderConfig = tempRoot.firstChildElement("SourceList");
+    if ( !renderConfig.isNull()) {
+
+        // browse the list of source in history
+        QDomElement child = renderConfig.firstChildElement("Source");
+        while (!child.isNull()) {
+            // add an attribute with id to follow source after renaming
+            QString sourcename = child.attribute("name");
+            SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
+            if ( RenderingManager::getInstance()->isValid(sit) )
+                child.setAttribute("id", (*sit)->getId() );
+
+            // discard properties that we do not want to be stored
+            child.removeAttribute("stanbyMode");
+            child.removeAttribute("workspace");
+#ifdef GLM_TAG
+            child.removeAttribute("tag");
+#endif
+            // read next source
+            child = child.nextSiblingElement();
+        }
+
+        // add snapshot to description list
+        _snapshotsDescription.appendChild(tempRoot);
+    }
 }
 
 

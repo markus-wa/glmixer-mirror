@@ -33,10 +33,10 @@ public:
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
 
     // specific functions for snapshot view
-    void activate(View *activeview, QString id);
+    void activate(View *activeview, QString id, bool interpolate = true);
     void deactivate();
     bool isActive() { return _active;}
-    void toggleAnimation(bool positive);
+    void activateTarget(bool positive);
 
 private:
 
@@ -44,10 +44,11 @@ private:
     void grabSource(Source *s, int x, int y);
     void setCursorAction(QPoint mousepos);
 
-    bool _active;
+    bool _active, _interpolate;
     View *_view;
     double _factor, _begin, _end, _y;
-    QImage _destination, _departure;
+    QString _destinationId;
+    QImage _departure, _destination;
     QElapsedTimer _animationTimer;
     double _animationSpeed;
 

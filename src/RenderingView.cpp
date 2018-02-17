@@ -295,3 +295,14 @@ void RenderingView::setAction(ActionType a){
         break;
     }
 }
+
+
+#ifdef GLM_SNAPSHOT
+
+bool RenderingView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
+{
+    return true;
+}
+
+
+#endif

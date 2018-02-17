@@ -8,6 +8,7 @@
 #include <QVector>
 
 #define ICON_SIZE 128
+#define TEMP_SNAPSHOT_NAME "temp"
 
 class Source;
 
@@ -19,6 +20,7 @@ class SnapshotManager : public QObject
 
 public:
     static SnapshotManager *getInstance();
+    static QImage generateSnapshotIcon(QImage image);
 
     /**
      * Access items
@@ -41,7 +43,6 @@ public:
     void addConfiguration(QDomElement xmlconfig);
     void clearConfiguration();
 
-    static QImage generateSnapshotIcon(QImage image);
 
 signals:
     void clear();
@@ -51,7 +52,8 @@ signals:
 
 public slots:
     void addSnapshot();
-    void restoreSnapshot(QString id);
+    void storeTemporarySnapshotDescription();
+    void restoreSnapshot(QString id = TEMP_SNAPSHOT_NAME);
 
 protected:
     void appendSnapshotDescrition(QString id, QString label, QDomElement config);

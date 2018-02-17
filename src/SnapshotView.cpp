@@ -32,7 +32,7 @@
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
-SnapshotView::SnapshotView(): View(), _active(false), _view(0), _factor(0.0), _renderSource(0), _departureSource(0), _destinationSource(0)
+SnapshotView::SnapshotView(): View(), _active(false), _interpolate(true), _view(0), _factor(0.0), _renderSource(0), _departureSource(0), _destinationSource(0)
 {
     // init view
     currentAction = View::NONE;
@@ -66,12 +66,11 @@ void SnapshotView::deactivate()
     // disable animation
     _animationTimer.invalidate();
 
-
     // change status : reset
     _active = false;
 }
 
-void SnapshotView::activate(View *activeview, QString id){
+void SnapshotView::activate(View *activeview, QString id, bool interpolate){
 
     // do not update status if no change requested
     if ( _active == true )
@@ -81,11 +80,14 @@ void SnapshotView::activate(View *activeview, QString id){
     _view = 0;
     _factor = 0.0;
     _active = true;
-
-    resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
+    _interpolate = true;
+    _destinationId = QString();
 
     // test if everything is fine
     if (setTargetSnapshot(id) && activeview && activeview->usableTargetSnapshot(_snapshots)) {
+        // activate config
+        _interpolate = interpolate;
+        _destinationId = id;
         // set view to manipulate
         _view = activeview;
         // update icon for starting point
@@ -220,7 +222,6 @@ void SnapshotView::paint()
     glColor4ub(COLOR_FADING, 100 - (int) (_factor * 90.0));
     glCallList(ViewRenderWidget::snapshot);
 
-    // 1) draw line
 
     // setup drawing for source
     glMatrixMode(GL_PROJECTION);
@@ -230,23 +231,28 @@ void SnapshotView::paint()
     glMatrixMode(GL_MODELVIEW);
     glMultMatrixd(modelview);
 
-    glPushMatrix();
-    // line between circles
-    glScaled(ABS(_begin) - 1.95 * ICON_BORDER_SCALE * SOURCE_UNIT, ABS(_y), 1.0);
-    glCallList(ViewRenderWidget::snapshot + 1);
-    // marks
-    glPointSize(4);
-    glBegin(GL_POINTS);
-    for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
-        glVertex2d( i, -1.0);
-    glEnd();
-    glPointSize(7);
-    glBegin(GL_POINTS);
-    for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
-        glVertex2d( i, -1.0);
-    glEnd();
+    // 1) draw line
 
-    glPopMatrix();
+    if (_interpolate){
+
+        glPushMatrix();
+        // line between circles
+        glScaled(ABS(_begin) - 1.95 * ICON_BORDER_SCALE * SOURCE_UNIT, ABS(_y), 1.0);
+        glCallList(ViewRenderWidget::snapshot + 1);
+        // marks
+        glPointSize(4);
+        glBegin(GL_POINTS);
+        for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
+            glVertex2d( i, -1.0);
+        glEnd();
+        glPointSize(7);
+        glBegin(GL_POINTS);
+        for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
+            glVertex2d( i, -1.0);
+        glEnd();
+
+        glPopMatrix();
+    }
 
     // 2) draw tools and cursor
 
@@ -256,7 +262,6 @@ void SnapshotView::paint()
     // draw flat version of sources
     ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
-
 
     //
     //  DEPARTURE ICON
@@ -300,7 +305,7 @@ void SnapshotView::paint()
     drawSource(_renderSource, ICON_CURSOR_SCALE);
     // draw border
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_FRAME));
-    if ( currentAction == View::OVER)
+    if ( currentAction == View::OVER || currentAction == View::GRAB)
         glCallList(ViewRenderWidget::border_large_shadow);
     else
         glCallList(ViewRenderWidget::border_thin_shadow);
@@ -329,18 +334,30 @@ void SnapshotView::paint()
 
 }
 
-void SnapshotView::toggleAnimation(bool positive)
+void SnapshotView::activateTarget(bool positive)
 {
-    if (_animationTimer.isValid()) {
-        // stop animation
-        setAction(View::NONE);
-        _animationTimer.invalidate();
-    } else {
-        // trigger animation
-        setAction(View::TOOL);
-        // start animation negative direction
-        _animationSpeed = positive ? ABS(_animationSpeed) : -ABS(_animationSpeed);
-        _animationTimer.start();
+    // in interpolation mode, start the animation
+    if (_interpolate) {
+        if (_animationTimer.isValid()) {
+            // stop animation
+            setAction(View::NONE);
+            _animationTimer.invalidate();
+        }
+        else {
+            // trigger animation
+            setAction(View::TOOL);
+            // start animation negative direction
+            _animationSpeed = positive ? ABS(_animationSpeed) : -ABS(_animationSpeed);
+            _animationTimer.start();
+        }
+    }
+    // no interpolation: restore the entire snapshot
+    else {
+        if (positive)
+            SnapshotManager::getInstance()->restoreSnapshot(_destinationId);
+        else
+            SnapshotManager::getInstance()->restoreSnapshot();
+        _factor = positive ? 1.0 : 0.0;
     }
 }
 
@@ -358,17 +375,17 @@ bool SnapshotView::mousePressEvent(QMouseEvent *event)
         // tool action on a source
         if ( isUserInput(event, View::INPUT_TOOL) ) {
             // clic on the slider
-            if (clicsource == _renderSource)
+            if (clicsource == _renderSource && _interpolate)
                 // ready for grabbing the slider source
                 setAction(View::GRAB);
             // clic on the destination
             else if (clicsource == _destinationSource)
                 // toggle on/off the animation, in positive direction
-                toggleAnimation(true);
+                activateTarget(true);
             // clic on the departure
             else if (clicsource == _departureSource)
                 // toggle on/off the animation, in negative direction
-                toggleAnimation(false);
+                activateTarget(false);
         }
         // do not react to other mouse action on a source
     }
@@ -421,7 +438,7 @@ void SnapshotView::setCursorAction(QPoint mousepos)
         Source *oversource =  *clickedSources.begin();
 
         // on the slider
-        if (oversource == _renderSource)
+        if (oversource == _renderSource && _interpolate)
             setAction(View::OVER);
         // on the destination
         else if (oversource == _destinationSource || oversource == _departureSource)
@@ -461,20 +478,24 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
     // set action from mouse cursor
     setCursorAction(event->pos());
 
-    // Tool action : control the speed of animation by scroll wheel
-    if (currentAction == View::TOOL) {
+    // control interpolation with mouse wheel
+    if (_interpolate) {
 
-        double dir = SIGN(_animationSpeed);
-        _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002, MAX_ANIMATION_SPEED);
+        // Tool action : control the speed of animation by scroll wheel
+        if (currentAction == View::TOOL) {
+
+            double dir = SIGN(_animationSpeed);
+            _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002, MAX_ANIMATION_SPEED);
+
+        }
+        // background : control directly factor with scroll wheel
+        else /*if (currentAction == View::NONE)*/ {
+            // increment factor
+            _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
+            _view->applyTargetSnapshot(_factor, _snapshots);
+        }
 
     }
-    // background : control directly factor with scroll wheel
-    else /*if (currentAction == View::NONE)*/ {
-        // increment factor
-        _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
-        _view->applyTargetSnapshot(_factor, _snapshots);
-    }
-    // ignore wheel on cursor
 
     return true;
 }
@@ -484,27 +505,48 @@ bool SnapshotView::keyPressEvent ( QKeyEvent * event )
     if (!_active || !event)
         return false;
 
-    double factor = 0.01;
-    // ALTERNATE ACTION
-    if ( QApplication::keyboardModifiers() & Qt::AltModifier )
-        factor *= 10.0;
+    if (_interpolate) {
 
-    switch (event->key()) {
-    case Qt::Key_Down:
-    case Qt::Key_Left:
-        _factor = qBound(0.0, _factor - factor, 1.0);
-        break;
-    case Qt::Key_Up:
-    case Qt::Key_Right:
-        _factor = qBound(0.0, _factor + factor, 1.0);
-        break;
-    case Qt::Key_Escape:
-        _active = false;
-    default:
-        return false;
+        double factor = 0.01;
+        // ALTERNATIVE ACTION
+        if ( QApplication::keyboardModifiers() & Qt::AltModifier )
+            factor *= 10.0;
+
+        switch (event->key()) {
+        case Qt::Key_Down:
+        case Qt::Key_Left:
+            _factor = qBound(0.0, _factor - factor, 1.0);
+            break;
+        case Qt::Key_Up:
+        case Qt::Key_Right:
+            _factor = qBound(0.0, _factor + factor, 1.0);
+            break;
+        case Qt::Key_Escape:
+            _active = false;
+        default:
+            return false;
+        }
+
+        _view->applyTargetSnapshot(_factor, _snapshots);
     }
-
-    _view->applyTargetSnapshot(_factor, _snapshots);
+    else {
+        switch (event->key()) {
+        case Qt::Key_Down:
+        case Qt::Key_Left:
+            SnapshotManager::getInstance()->restoreSnapshot();
+            _factor = 0.0;
+            break;
+        case Qt::Key_Up:
+        case Qt::Key_Right:
+            SnapshotManager::getInstance()->restoreSnapshot(_destinationId);
+            _factor = 1.0;
+            break;
+        case Qt::Key_Escape:
+            _active = false;
+        default:
+            return false;
+        }
+    }
 
     return true;
 }
@@ -667,4 +709,3 @@ bool SnapshotView::setTargetSnapshot(QString id)
 
     return true;
 }
-

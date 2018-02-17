@@ -46,6 +46,10 @@ public:
 
     void setAction(ActionType a);
 
+#ifdef GLM_SNAPSHOT
+    bool usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config);
+#endif
+
 private:
     void panningBy(int x, int y, int dx, int dy);
 
