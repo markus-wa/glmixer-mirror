@@ -40,7 +40,7 @@
         <string>Take a new snapshot</string>
        </property>
        <property name="text">
-        <string>Add</string>
+        <string>Take snapshot</string>
        </property>
        <property name="icon">
         <iconset resource="../icons.qrc">
@@ -51,6 +51,9 @@
          <width>24</width>
          <height>24</height>
         </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
        </property>
       </widget>
      </item>
@@ -95,10 +98,10 @@
    <item>
     <widget class="QListWidget" name="snapshotsList">
      <property name="toolTip">
-      <string>Drop snapshot into the view, or double clic to trigger.</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Drag the snapshot into the view to partially apply.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Double clic to apply the whole snapshot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="autoScroll">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
@@ -107,7 +110,7 @@
       <bool>true</bool>
      </property>
      <property name="dragDropMode">
-      <enum>QAbstractItemView::DragDrop</enum>
+      <enum>QAbstractItemView::DragOnly</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectItems</enum>
@@ -119,22 +122,37 @@
       </size>
      </property>
      <property name="textElideMode">
-      <enum>Qt::ElideMiddle</enum>
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="horizontalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
      <property name="movement">
       <enum>QListView::Snap</enum>
      </property>
-     <property name="spacing">
-      <number>4</number>
+     <property name="resizeMode">
+      <enum>QListView::Adjust</enum>
      </property>
      <property name="gridSize">
       <size>
-       <width>110</width>
-       <height>110</height>
+       <width>100</width>
+       <height>120</height>
       </size>
      </property>
      <property name="viewMode">
       <enum>QListView::IconMode</enum>
+     </property>
+     <property name="uniformItemSizes">
+      <bool>true</bool>
+     </property>
+     <property name="selectionRectVisible">
+      <bool>false</bool>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

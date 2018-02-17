@@ -507,19 +507,19 @@ bool SnapshotView::keyPressEvent ( QKeyEvent * event )
 
     if (_interpolate) {
 
-        double factor = 0.01;
+        double delta = 100.0 * ABS(_animationSpeed);
         // ALTERNATIVE ACTION
         if ( QApplication::keyboardModifiers() & Qt::AltModifier )
-            factor *= 10.0;
+            delta *= 10.0;
 
         switch (event->key()) {
         case Qt::Key_Down:
         case Qt::Key_Left:
-            _factor = qBound(0.0, _factor - factor, 1.0);
+            _factor = qBound(0.0, _factor - delta, 1.0);
             break;
         case Qt::Key_Up:
         case Qt::Key_Right:
-            _factor = qBound(0.0, _factor + factor, 1.0);
+            _factor = qBound(0.0, _factor + delta, 1.0);
             break;
         case Qt::Key_Escape:
             _active = false;

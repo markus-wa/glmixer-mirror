@@ -10,10 +10,30 @@ SnapshotManagerWidget::SnapshotManagerWidget(QWidget *parent, QSettings *setting
 {
     ui->setupUi(this);
 
-    connect(ui->addSnapshot, SIGNAL(pressed()), SnapshotManager::getInstance(), SLOT(addSnapshot()));
+    // Create actions
+    newAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Take Snapshot"), this);
+    connect(newAction, SIGNAL(triggered()), SnapshotManager::getInstance(), SLOT(addSnapshot()));
+    ui->addSnapshot->setDefaultAction(newAction);
+
+    restoreAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Apply"), this);
+    connect(restoreAction, SIGNAL(triggered()), this, SLOT(restoreSelectedSnapshot()));
+
+    deleteAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), this);
+    deleteAction->setEnabled(false);
+    connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedSnapshot()));
+    ui->deleteSnapshot->setDefaultAction(deleteAction);
+
+    renameAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename"), this);
+    connect(renameAction, SIGNAL(triggered()), this, SLOT(renameSelectedSnapshot()));
+
+    // connect with snapshot manager
     connect(SnapshotManager::getInstance(), SIGNAL(newSnapshot(QString)), SLOT(newSnapshot(QString)));
     connect(SnapshotManager::getInstance(), SIGNAL(deleteSnapshot(QString)), SLOT(deleteSnapshot(QString)));
     connect(SnapshotManager::getInstance(), SIGNAL(clear()), SLOT(clear()));
+
+    // context menu
+    ui->snapshotsList->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->snapshotsList, SIGNAL(customContextMenuRequested(const QPoint &)),  SLOT(ctxMenu(const QPoint &)));
 }
 
 SnapshotManagerWidget::~SnapshotManagerWidget()
@@ -56,7 +76,7 @@ void SnapshotManagerWidget::clear()
     ui->snapshotsList->clear();
 }
 
-void SnapshotManagerWidget::on_deleteSnapshot_pressed()
+void SnapshotManagerWidget::deleteSelectedSnapshot()
 {
     if ( ui->snapshotsList->currentItem() )
     {
@@ -65,13 +85,19 @@ void SnapshotManagerWidget::on_deleteSnapshot_pressed()
     }
 }
 
-void SnapshotManagerWidget::on_snapshotsList_itemDoubleClicked(QListWidgetItem *item)
+void SnapshotManagerWidget::restoreSelectedSnapshot()
 {
-    QString id = item->data(Qt::UserRole).toString();
-
-    SnapshotManager::getInstance()->restoreSnapshot(id);
+    if ( ui->snapshotsList->currentItem() )
+    {
+        QString id = ui->snapshotsList->currentItem()->data(Qt::UserRole).toString();
+        SnapshotManager::getInstance()->restoreSnapshot(id);
+    }
 }
 
+void SnapshotManagerWidget::on_snapshotsList_itemDoubleClicked(QListWidgetItem *item)
+{
+    restoreSelectedSnapshot();
+}
 
 void SnapshotManagerWidget::on_snapshotsList_itemChanged(QListWidgetItem *item)
 {
@@ -84,13 +110,49 @@ void SnapshotManagerWidget::on_snapshotsList_itemChanged(QListWidgetItem *item)
 
 void SnapshotManagerWidget::on_snapshotsList_itemSelectionChanged()
 {
-    ui->deleteSnapshot->setEnabled(false);
+    deleteAction->setEnabled(false);
 
     // enable delete action only if selected icon
     if ( ui->snapshotsList->currentItem()
          && ui->snapshotsList->currentItem()->isSelected() )
-        ui->deleteSnapshot->setEnabled( true );
+        deleteAction->setEnabled( true );
     else
         ui->snapshotsList->setCurrentRow(-1);
+}
+
+
+void SnapshotManagerWidget::renameSelectedSnapshot()
+{
+    if ( ui->snapshotsList->currentItem() )
+    {
+        ui->snapshotsList->editItem(ui->snapshotsList->currentItem());
+    }
+}
+
+void SnapshotManagerWidget::ctxMenu(const QPoint &pos)
+{
+    static QMenu *contextmenu_item = NULL;
+    if (contextmenu_item == NULL) {
+        contextmenu_item = new QMenu(this);
+        contextmenu_item->addAction(restoreAction);
+        contextmenu_item->addAction(renameAction);
+        contextmenu_item->addAction(deleteAction);
+    }
+    static QMenu *contextmenu_background = NULL;
+    if (contextmenu_background == NULL) {
+        contextmenu_background = new QMenu(this);
+        contextmenu_background->addAction(newAction);
+    }
+
+    QListWidgetItem *item = ui->snapshotsList->itemAt(pos);
+    if (item) {
+        ui->snapshotsList->setCurrentItem(item);
+        contextmenu_item->popup(ui->snapshotsList->viewport()->mapToGlobal(pos));
+    }
+    else {
+        ui->snapshotsList->setCurrentRow(-1);
+        contextmenu_background->popup(ui->snapshotsList->viewport()->mapToGlobal(pos));
+    }
+
 }
 

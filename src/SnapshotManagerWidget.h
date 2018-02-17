@@ -22,14 +22,21 @@ public slots:
     void newSnapshot(QString id);
     void deleteSnapshot(QString id);
 
-    void on_deleteSnapshot_pressed();
+    void deleteSelectedSnapshot();
+    void restoreSelectedSnapshot();
+    void renameSelectedSnapshot();
+
     void on_snapshotsList_itemDoubleClicked(QListWidgetItem *);
     void on_snapshotsList_itemChanged(QListWidgetItem *);
     void on_snapshotsList_itemSelectionChanged();
 
+    // contex menu
+    void ctxMenu(const QPoint &pos);
+
 private:
     Ui::SnapshotManagerWidget *ui;
     QSettings *appSettings;
+    QAction *newAction, *restoreAction, *deleteAction, *renameAction;
 };
 
 #endif // FORM_H

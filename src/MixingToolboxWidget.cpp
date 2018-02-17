@@ -295,7 +295,9 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     presetsList->insertAction(0, removeAction);
     QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(on_presetRemove_pressed()) );
 
-    renameAction = new QAction(tr("Rename"), presetsList);
+    QIcon icon5;
+    icon5.addFile(QString::fromUtf8(":/glmixer/icons/rename.png"), QSize(), QIcon::Normal, QIcon::Off);
+    renameAction = new QAction(icon5, tr("Rename"), presetsList);
     presetsList->insertAction(0, renameAction);
     QObject::connect(renameAction, SIGNAL(triggered()), this, SLOT(renamePreset()) );
 
