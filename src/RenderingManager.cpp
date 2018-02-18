@@ -2310,7 +2310,7 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
     {
         QDomElement img = t.firstChildElement("Image");
         QImage image;
-        QByteArray data =  img.text().toLatin1();
+        QByteArray data = QByteArray::fromBase64( img.text().toLatin1() );
 
         if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
             newsource = RenderingManager::_instance->newCaptureSource(image, depth);

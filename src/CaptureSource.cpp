@@ -64,7 +64,7 @@ QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
             qWarning() << getName()  << QChar(124).toLatin1() << tr("Could not save pixmap source (JPG format).");
 
     buffer.close();
-
+    ba = ba.toBase64();
     QDomElement f = doc.createElement("Image");
     QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
 

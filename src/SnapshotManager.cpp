@@ -47,6 +47,7 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
                 if (!pix.save(&buffer, "png") )
                     qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
                 buffer.close();
+                ba = ba.toBase64();
                 QDomElement f = doc.createElement("Image");
                 QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
                 f.appendChild(img);
@@ -71,7 +72,7 @@ void SnapshotManager::addConfiguration(QDomElement xmlconfig)
         // load icon
         QDomElement img = child.firstChildElement("Image");
         QImage image;
-        QByteArray data =  img.text().toLatin1();
+        QByteArray data =  QByteArray::fromBase64( img.text().toLatin1() );
         if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
             _snapshotsList[id] = image;
         else
