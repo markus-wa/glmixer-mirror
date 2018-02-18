@@ -36,6 +36,26 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
             // copy config
             QDomNode newnode = config.appendChild( child.cloneNode() );
 
+            // restore name and remove id for every source in copy
+            QDomElement renderConfig = newnode.firstChildElement("SourceList");
+            if ( !renderConfig.isNull()) {
+                // browse the list of source in history
+                QDomElement source = renderConfig.firstChildElement("Source");
+                while (!source.isNull()) {
+                    // to access sources even after renaming
+                    GLuint id = source.attribute("id", "0").toUInt();
+                    SourceSet::iterator sit = RenderingManager::getInstance()->getById(id);
+                    if ( RenderingManager::getInstance()->isValid(sit) )  {
+                        // set name attribute
+                        source.setAttribute("name", (*sit)->getName() );
+                        // remove id attribute
+                        source.removeAttribute("id");
+                    }
+                    // read next source
+                    source = source.nextSiblingElement();
+                }
+            }
+
             // get icon of snapshot
             QImage pix = _snapshotsList[newnode.nodeName()];
 
@@ -202,7 +222,6 @@ void SnapshotManager::restoreSnapshot(QString id)
             QDomElement child = renderConfig.firstChildElement("Source");
             while (!child.isNull()) {
 
-                QString sourcename = child.attribute("name");
                 // access source configuration by id (not by name)
                 // to access sources even after renaming
                 GLuint id = child.attribute("id", "0").toUInt();
@@ -211,7 +230,7 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                     // apply configuration
                     if ( ! (*sit)->setConfiguration(child) )
-                        qDebug() << "restoreSnapshot" << QChar(124).toLatin1() << "failed to set configuration" << sourcename;
+                        qWarning() << "Snapshot" << QChar(124).toLatin1() << "failed to set configuration.";
 
                     // as we apply changes to alpha, source migh be standly or not
                     (*sit)->setStandby(false);
@@ -222,7 +241,7 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                 }
                 else
-                    qWarning() << "Snapshot" << QChar(124).toLatin1() << "Silently ignoring configuration of non-existing source " << sourcename;
+                    qWarning() << "Snapshot" << QChar(124).toLatin1() << "Silently ignoring configuration of a non-existing source.";
 
                 // read next source
                 child = child.nextSiblingElement();
@@ -255,16 +274,18 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
             // add an attribute with id to follow source after renaming
             QString sourcename = child.attribute("name");
             SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
-            if ( RenderingManager::getInstance()->isValid(sit) )
+            if ( RenderingManager::getInstance()->isValid(sit) ) {
                 child.setAttribute("id", (*sit)->getId() );
 
-            // discard properties that we do not want to be stored
-            child.removeAttribute("name");
-            child.removeAttribute("stanbyMode");
-            child.removeAttribute("workspace");
+                // discard properties that we do not want to be stored 
+                child.removeAttribute("name");
+                child.removeAttribute("stanbyMode");
+                child.removeAttribute("workspace");
 #ifdef GLM_TAG
-            child.removeAttribute("tag");
+                child.removeAttribute("tag");
 #endif
+          
+            }
             // read next source
             child = child.nextSiblingElement();
         }
@@ -299,16 +320,17 @@ void SnapshotManager::storeTemporarySnapshotDescription()
             // add an attribute with id to follow source after renaming
             QString sourcename = child.attribute("name");
             SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
-            if ( RenderingManager::getInstance()->isValid(sit) )
+            if ( RenderingManager::getInstance()->isValid(sit) ) {
                 child.setAttribute("id", (*sit)->getId() );
 
-            // discard properties that we do not want to be stored
-            child.removeAttribute("name");
-            child.removeAttribute("stanbyMode");
-            child.removeAttribute("workspace");
+                // discard properties that we do not want to be stored
+                child.removeAttribute("name");
+                child.removeAttribute("stanbyMode");
+                child.removeAttribute("workspace");
 #ifdef GLM_TAG
-            child.removeAttribute("tag");
+                child.removeAttribute("tag");
 #endif
+            }
             // read next source
             child = child.nextSiblingElement();
         }

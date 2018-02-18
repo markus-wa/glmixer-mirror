@@ -65,6 +65,8 @@ QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
 
     buffer.close();
     ba = ba.toBase64();
+    ba = ba.toBase64();
+
     QDomElement f = doc.createElement("Image");
     QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
 
