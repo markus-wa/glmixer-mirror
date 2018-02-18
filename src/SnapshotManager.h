@@ -7,7 +7,7 @@
 #include <QDomDocument>
 #include <QVector>
 
-#define ICON_SIZE 128
+#define SNAPSHOT_ICON_SIZE 128
 #define TEMP_SNAPSHOT_NAME "temp"
 
 class Source;

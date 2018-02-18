@@ -93,12 +93,25 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Take snapshots to remember the rendering configuration.&lt;/p&gt;&lt;p&gt;Double clic on a snapshot icon (or drag it into the &lt;span style=&quot; font-weight:600;&quot;&gt;Rendering&lt;/span&gt; view) to restore the entire rendering configuration.&lt;/p&gt;&lt;p&gt;Drag a snapshot into a manipulation view (&lt;span style=&quot; font-weight:600;&quot;&gt;Mixing, Geometry, Layer&lt;/span&gt;) to modulate smoothly the parameters controlled in this view (opacity, shape and depth respectively). In this case, all other rendering parameters are left unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
     <widget class="QListWidget" name="snapshotsList">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Drag the snapshot into the view to partially apply.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Double clic to apply the whole snapshot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Double clic a snapshot or drag it into the manipulation view.</string>
      </property>
      <property name="autoScroll">
       <bool>true</bool>
@@ -110,7 +123,7 @@
       <bool>true</bool>
      </property>
      <property name="dragDropMode">
-      <enum>QAbstractItemView::DragOnly</enum>
+      <enum>QAbstractItemView::DragDrop</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectItems</enum>

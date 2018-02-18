@@ -130,25 +130,31 @@ QString SnapshotManager::getSnapshotLabel(QString id)
 
 void SnapshotManager::removeSnapshot(QString id)
 {
-    if (_snapshotsList.contains(id)) {
+    if (!_snapshotsList.contains(id))
+        return;
 
-        _snapshotsList.remove(id);
+    _snapshotsList.remove(id);
 
-        QDomElement root = _snapshotsDescription.firstChildElement(id);
-        if (!root.isNull())
-            _snapshotsDescription.removeChild(root);
+    QDomElement root = _snapshotsDescription.firstChildElement(id);
+    if (!root.isNull())
+        _snapshotsDescription.removeChild(root);
 
-        emit deleteSnapshot(id);
-    }
+    emit deleteSnapshot(id);
 }
 
 QImage SnapshotManager::generateSnapshotIcon(QImage image)
 {
     // convert image to ICON_SIZE
-    image = image.scaled(ICON_SIZE, ICON_SIZE,  Qt::KeepAspectRatioByExpanding).copy(0,0,ICON_SIZE,ICON_SIZE);
+    image = image.scaled(SNAPSHOT_ICON_SIZE, SNAPSHOT_ICON_SIZE, Qt::KeepAspectRatioByExpanding);
 
-    QRegion r(QRect(0, 0, ICON_SIZE, ICON_SIZE), QRegion::Ellipse);
-    QImage target(ICON_SIZE,  ICON_SIZE, QImage::Format_ARGB32);
+    // copy centered image
+    QRect area(0,0,SNAPSHOT_ICON_SIZE,SNAPSHOT_ICON_SIZE);
+    area.moveCenter(image.rect().center());
+    image = image.copy(area);
+
+    // apply mask
+    QRegion r(QRect(0,0,SNAPSHOT_ICON_SIZE,SNAPSHOT_ICON_SIZE), QRegion::Ellipse);
+    QImage target(SNAPSHOT_ICON_SIZE,  SNAPSHOT_ICON_SIZE, QImage::Format_ARGB32);
     target.fill(Qt::transparent);
     QPainter painter(&target);
     painter.setClipRegion(r);
@@ -181,6 +187,9 @@ void SnapshotManager::addSnapshot()
 
 void SnapshotManager::restoreSnapshot(QString id)
 {
+    if (!_snapshotsList.contains(id))
+        return;
+
     // get status of sources at given id snaphot
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
@@ -212,7 +221,7 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                 }
                 else
-                    qDebug() << "restoreSnapshot" << QChar(124).toLatin1() << "no such  configuration" << sourcename;
+                    qWarning() << "Snapshot" << QChar(124).toLatin1() << "Silently ignoring configuration of non-existing source " << sourcename;
 
                 // read next source
                 child = child.nextSiblingElement();
@@ -225,8 +234,11 @@ void SnapshotManager::restoreSnapshot(QString id)
 
 void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomElement config)
 {
-    QDomElement root = _snapshotsDescription.createElement( id );
+    if (!_snapshotsList.contains(id))
+        return;
 
+    // create description
+    QDomElement root = _snapshotsDescription.createElement( id );
     // set Label
     root.setAttribute("label", label);
     // copy content of the config
@@ -246,6 +258,7 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
                 child.setAttribute("id", (*sit)->getId() );
 
             // discard properties that we do not want to be stored
+            child.removeAttribute("name");
             child.removeAttribute("stanbyMode");
             child.removeAttribute("workspace");
 #ifdef GLM_TAG
@@ -289,6 +302,7 @@ void SnapshotManager::storeTemporarySnapshotDescription()
                 child.setAttribute("id", (*sit)->getId() );
 
             // discard properties that we do not want to be stored
+            child.removeAttribute("name");
             child.removeAttribute("stanbyMode");
             child.removeAttribute("workspace");
 #ifdef GLM_TAG
@@ -307,6 +321,9 @@ void SnapshotManager::storeTemporarySnapshotDescription()
 QMap<Source *, QVector <double> > SnapshotManager::getSnapshot(QString id)
 {
     QMap<Source *, QVector <double>  > list;
+
+    if (!_snapshotsList.contains(id))
+        return list;
 
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
@@ -344,7 +361,6 @@ QMap<Source *, QVector <double> > SnapshotManager::getSnapshot(QString id)
         }
 
     }
-
 
     return list;
 }

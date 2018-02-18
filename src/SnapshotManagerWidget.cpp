@@ -9,6 +9,7 @@ SnapshotManagerWidget::SnapshotManagerWidget(QWidget *parent, QSettings *setting
     appSettings(settings)
 {
     ui->setupUi(this);
+    ui->snapshotsList->setAcceptDrops(false);
 
     // Create actions
     newAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Take Snapshot"), this);
@@ -101,21 +102,32 @@ void SnapshotManagerWidget::on_snapshotsList_itemDoubleClicked(QListWidgetItem *
 
 void SnapshotManagerWidget::on_snapshotsList_itemChanged(QListWidgetItem *item)
 {
+    // ensure unique name
     if ( ui->snapshotsList->findItems( item->text(), Qt::MatchFixedString ).length() > 1 )
         item->setText( item->text() + "_bis" );
 
-    SnapshotManager::getInstance()->setSnapshotLabel( item->data(Qt::UserRole).toString(), item->text());
+    // rename snapshot in manager
+    QString id = item->data(Qt::UserRole).toString();
+    SnapshotManager::getInstance()->setSnapshotLabel(id, item->text());
+
+    // set tooltip
+    QString tip = tr("Snapshot '%1'").arg(item->text());
+    tip += tr("\nContains %1 sources").arg(SnapshotManager::getInstance()->getSnapshot(id).size());
+    tip += tr("\nCreated on %1/%2/%3").arg(id.left(9).right(2)).arg(id.left(7).right(2)).arg(id.left(5).right(4));
+    item->setToolTip(tip);
 }
 
 
 void SnapshotManagerWidget::on_snapshotsList_itemSelectionChanged()
 {
     deleteAction->setEnabled(false);
+    QListWidgetItem *current = ui->snapshotsList->currentItem();
 
     // enable delete action only if selected icon
-    if ( ui->snapshotsList->currentItem()
-         && ui->snapshotsList->currentItem()->isSelected() )
+    if ( current && current->isSelected() ) {
         deleteAction->setEnabled( true );
+        qDebug() << "current snapshot "<< ui->snapshotsList->row(current);
+    }
     else
         ui->snapshotsList->setCurrentRow(-1);
 }
