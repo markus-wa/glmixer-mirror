@@ -44,13 +44,14 @@ public slots:
     void on_presetsList_itemDoubleClicked(QListWidgetItem *);
     void on_presetsList_currentItemChanged(QListWidgetItem *item);
     void on_presetsList_itemChanged(QListWidgetItem *item);
-    void on_presetApply_pressed();
-    void on_presetReApply_pressed();
     void on_presetAdd_pressed();
-    void on_presetRemove_pressed();
-    void removeAllUserPresets();
-    void renamePreset();
     void on_presetButton_clicked(bool);
+
+    void applyPreset();
+    void reApplyPreset();
+    void removePreset();
+    void removeAllPresets();
+    void renamePreset();
 
     // Blending Page
     void on_blendingBox_currentIndexChanged(int);

@@ -274,38 +274,48 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     pluginButton->hide();
 #endif
 
-
+    // enable context menu
     presetsList->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-    QIcon icon;
-    icon.addFile(QString::fromUtf8(":/glmixer/icons/paint.png"), QSize(), QIcon::Normal, QIcon::Off);
-    applyAction = new QAction(icon, tr("Apply"), presetsList);
+    // Action to apply current preset
+    applyAction = new QAction(QIcon(":/glmixer/icons/paint.png"), tr("Apply"), presetsList);
+    applyAction->setToolTip(tr("Apply preset to the current source"));
     presetsList->insertAction(0, applyAction);
-    QObject::connect(applyAction, SIGNAL(triggered()), this, SLOT(on_presetApply_pressed()) );
+    QObject::connect(applyAction, SIGNAL(triggered()), this, SLOT(applyPreset()) );
+    presetApply->setDefaultAction(applyAction);
 
-    QIcon icon2;
-    icon2.addFile(QString::fromUtf8(":/glmixer/icons/re-apply.png"), QSize(), QIcon::Normal, QIcon::Off);
-    reapplyAction = new QAction(icon2, tr("Update"), presetsList);
+    // Action to re-apply and update preset
+    reapplyAction = new QAction(QIcon(":/glmixer/icons/re-apply.png"), tr("Update"), presetsList);
+    reapplyAction->setToolTip(tr("Update preset with the current source"));
     presetsList->insertAction(0, reapplyAction);
-    QObject::connect(reapplyAction, SIGNAL(triggered()), this, SLOT(on_presetReApply_pressed()) );
+    QObject::connect(reapplyAction, SIGNAL(triggered()), this, SLOT(reApplyPreset()) );
+    presetReApply->setDefaultAction(reapplyAction);
 
-    QIcon icon3;
-    icon3.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
-    removeAction = new QAction(icon3, tr("Remove"), presetsList);
-    presetsList->insertAction(0, removeAction);
-    QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(on_presetRemove_pressed()) );
-
-    QIcon icon5;
-    icon5.addFile(QString::fromUtf8(":/glmixer/icons/rename.png"), QSize(), QIcon::Normal, QIcon::Off);
-    renameAction = new QAction(icon5, tr("Rename"), presetsList);
+    // Action to rename
+    renameAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename"), presetsList);
+    renameAction->setToolTip(tr("Rename the preset"));
     presetsList->insertAction(0, renameAction);
     QObject::connect(renameAction, SIGNAL(triggered()), this, SLOT(renamePreset()) );
 
-    QIcon icon4;
-    icon4.addFile(QString::fromUtf8(":/glmixer/icons/clean.png"), QSize(), QIcon::Normal, QIcon::Off);
-    clearAction = new QAction(icon4, tr("Remove all user presets"), presetsList);
+    // Action to remove preset
+    removeAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), presetsList);
+    removeAction->setToolTip(tr("Delete the preset"));
+    presetsList->insertAction(0, removeAction);
+    QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePreset()) );
+    presetRemove->setDefaultAction(removeAction);
+
+    // Action to clear all user presets
+    clearAction = new QAction(QIcon(":/glmixer/icons/clean.png"), tr("Delete all user presets"), presetsList);
+    clearAction->setToolTip(tr("Delete all user presets"));
     presetsList->insertAction(0, clearAction);
-    QObject::connect(clearAction, SIGNAL(triggered()), this, SLOT(removeAllUserPresets()) );
+    QObject::connect(clearAction, SIGNAL(triggered()), this, SLOT(removeAllPresets()) );
+    presetClear->setDefaultAction(clearAction);
+
+    // no action enabled at start
+    applyAction->setEnabled(false);
+    reapplyAction->setEnabled(false);
+    removeAction->setEnabled(false);
+    renameAction->setEnabled(false);
 
     // create default presets
     QDomDocument doc;
@@ -640,12 +650,12 @@ void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item
     applyPreset( source, item );
 }
 
-void MixingToolboxWidget::on_presetApply_pressed()
+void MixingToolboxWidget::applyPreset()
 {
     applyPreset( source, presetsList->currentItem() );
 }
 
-void MixingToolboxWidget::on_presetReApply_pressed()
+void MixingToolboxWidget::reApplyPreset()
 {
     if (source && presetsList->currentItem()->flags() & Qt::ItemIsEditable) {
 
@@ -686,11 +696,11 @@ void MixingToolboxWidget::on_presetAdd_pressed()
         presetsList->editItem(presetsList->currentItem());
 
         // associate the properties of a source imported from the current source
-        on_presetReApply_pressed();
+        reApplyPreset();
 
         // ready GUI
-        presetRemove->setEnabled(true);
-        presetReApply->setEnabled(true);
+        removeAction->setEnabled(true);
+        reapplyAction->setEnabled(true);
     }
 }
 
@@ -702,7 +712,7 @@ void MixingToolboxWidget::renamePreset()
     }
 }
 
-void MixingToolboxWidget::on_presetRemove_pressed()
+void MixingToolboxWidget::removePreset()
 {
     // take the element out of the list
     if ( presetsList->item( presetsList->currentRow() )->flags() & Qt::ItemIsEditable ) {
@@ -734,28 +744,21 @@ void MixingToolboxWidget::on_presetsList_itemChanged(QListWidgetItem *item){
 void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *item){
 
     if (item) {
-        presetApply->setEnabled(true);
+        applyAction->setEnabled(true);
 
         if ( item->flags() & Qt::ItemIsEditable  ) {
-            presetRemove->setEnabled(true);
-            presetReApply->setEnabled(true);
             reapplyAction->setEnabled(true);
             removeAction->setEnabled(true);
             renameAction->setEnabled(true);
-
         }
         else {
-            presetRemove->setEnabled(false);
-            presetReApply->setEnabled(false);
             reapplyAction->setEnabled(false);
             removeAction->setEnabled(false);
             renameAction->setEnabled(false);
         }
     }
     else {
-        presetApply->setEnabled(false);
-        presetRemove->setEnabled(false);
-        presetReApply->setEnabled(false);
+        applyAction->setEnabled(false);
         reapplyAction->setEnabled(false);
         removeAction->setEnabled(false);
         renameAction->setEnabled(false);
@@ -857,7 +860,7 @@ void MixingToolboxWidget::on_resetFilter_pressed()
     filterList->setCurrentRow(0);
 }
 
-void MixingToolboxWidget::removeAllUserPresets()
+void MixingToolboxWidget::removeAllPresets()
 {
     while (presetsList->item(0)->flags() & Qt::ItemIsEditable ) {
         QListWidgetItem *it = presetsList->takeItem( 0 );

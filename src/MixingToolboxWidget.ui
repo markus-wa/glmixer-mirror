@@ -127,6 +127,19 @@
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QToolButton" name="presetButton">
        <property name="text">
         <string>...</string>
@@ -142,19 +155,6 @@
         <bool>true</bool>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
@@ -521,9 +521,6 @@ QSpinBox {
          </property>
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
-         </property>
-         <property name="spacing">
-          <number>2</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -1485,9 +1482,6 @@ border:0px
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
          </property>
-         <property name="spacing">
-          <number>2</number>
-         </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
          </property>
@@ -1741,9 +1735,6 @@ border:0px
          </property>
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
-         </property>
-         <property name="spacing">
-          <number>2</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -2178,27 +2169,9 @@ border:0px
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_7">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Presets remember all mixing options, allowing to apply blending, filters, etc., in one clic.&lt;/p&gt;&lt;p&gt;Use buttons (&lt;img src=&quot;:/glmixer/icons/apply.png&quot;/&gt;Apply, &lt;img src=&quot;:/glmixer/icons/plus_source.png&quot;/&gt; New, &lt;img src=&quot;:/glmixer/icons/re-apply.png&quot;/&gt; Update) to manipulate presets in the list (or context menu). Default presets (&lt;span style=&quot; font-style:italic;&quot;&gt;in italic&lt;/span&gt;) cannot be edited.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
+          <widget class="QToolButton" name="presetClear">
            <property name="text">
-            <string/>
-           </property>
-           <property name="textFormat">
-            <enum>Qt::PlainText</enum>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <string>...</string>
            </property>
           </widget>
          </item>
@@ -2212,6 +2185,35 @@ border:0px
          <property name="sizeConstraint">
           <enum>QLayout::SetFixedSize</enum>
          </property>
+         <item>
+          <widget class="QToolButton" name="presetAdd">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>New preset from current source</string>
+           </property>
+           <property name="statusTip">
+            <string>Create a new preset from the settings of the current source.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/plus_source.png</normaloff>:/glmixer/icons/plus_source.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QToolButton" name="presetApply">
            <property name="enabled">
@@ -2250,35 +2252,6 @@ border:0px
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QToolButton" name="presetAdd">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>New preset from current source</string>
-           </property>
-           <property name="statusTip">
-            <string>Create a new preset from the settings of the current source.</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/plus_source.png</normaloff>:/glmixer/icons/plus_source.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QToolButton" name="presetReApply">
@@ -2329,6 +2302,31 @@ border:0px
              <width>24</width>
              <height>24</height>
             </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelInfoPreset">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Presets remember all mixing options, allowing to apply blending, filters, etc., in one clic.&lt;/p&gt;&lt;p&gt;Use buttons (&lt;img src=&quot;:/glmixer/icons/apply.png&quot;/&gt;Apply, &lt;img src=&quot;:/glmixer/icons/plus_source.png&quot;/&gt; New, &lt;img src=&quot;:/glmixer/icons/re-apply.png&quot;/&gt; Update) to manipulate presets in the list (or context menu). Default presets (&lt;span style=&quot; font-style:italic;&quot;&gt;in italic&lt;/span&gt;) cannot be edited.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::PlainText</enum>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
