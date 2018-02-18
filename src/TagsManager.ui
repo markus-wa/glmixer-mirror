@@ -35,7 +35,7 @@
       <enum>Qt::NoContextMenu</enum>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply a color tag to the selected source(s).&lt;/p&gt;&lt;p&gt;On next clic, select all sources with this tag.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply a color tag to the selected source(s).&lt;/p&gt;&lt;p&gt;OR&lt;/p&gt;&lt;p&gt;Select all sources with this tag if all are not already selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="statusTip">
       <string>Apply a color tag to the current source or the selection. Select all sources with this tag.</string>
@@ -44,7 +44,7 @@
       <string notr="true">font-size: 10px;</string>
      </property>
      <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOn</enum>
+      <enum>Qt::ScrollBarAsNeeded</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -67,6 +67,9 @@
      <property name="selectionMode">
       <enum>QAbstractItemView::NoSelection</enum>
      </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <property name="iconSize">
       <size>
        <width>42</width>
@@ -88,6 +91,12 @@
      <property name="resizeMode">
       <enum>QListView::Adjust</enum>
      </property>
+     <property name="gridSize">
+      <size>
+       <width>50</width>
+       <height>60</height>
+      </size>
+     </property>
      <property name="viewMode">
       <enum>QListView::IconMode</enum>
      </property>
@@ -99,24 +108,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>tagsListWidget</sender>
-   <signal>itemClicked(QListWidgetItem*)</signal>
-   <receiver>TagsManager</receiver>
-   <slot>tagItemClicked(QListWidgetItem*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>149</x>
-     <y>170</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>244</x>
-     <y>184</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>tagItemClicked(QListWidgetItem*)</slot>
  </slots>

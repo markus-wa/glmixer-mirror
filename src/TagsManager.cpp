@@ -34,11 +34,11 @@ TagsManager::TagsManager(QWidget *parent) :
     }
 
     // do not keep item selected
-    ui->tagsListWidget->setCurrentRow( -1 );
+    deselectItem();
 
-    // TODO : find a use for a context menu
-//    ui->tagsListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-//    connect(ui->tagsListWidget, SIGNAL(customContextMenuRequested(const QPoint &)),  SLOT(ctxMenu(const QPoint &)));
+    // context menu
+    ui->tagsListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tagsListWidget, SIGNAL(customContextMenuRequested(const QPoint &)),  SLOT(ctxMenu(const QPoint &)));
 }
 
 TagsManager::~TagsManager()
@@ -51,32 +51,40 @@ void TagsManager::ctxMenu(const QPoint &pos)
     static QMenu *contextmenu = NULL;
     if (contextmenu == NULL) {
         contextmenu = new QMenu(this);
-        QAction *remove = new QAction(tr("Clear all"), this);
-        connect(remove, SIGNAL(triggered()), this, SLOT(clearAll()));
-        contextmenu->addAction(remove);
-
+        connect(contextmenu, SIGNAL(aboutToHide()), this, SLOT(deselectItem()));
+        // clear selection
+        QAction *clearselection = new QAction(QIcon(":/glmixer/icons/selectclear.png"), tr("Clear selection"), this);
+        connect(clearselection, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(clearSelection()));
+        connect(clearselection, SIGNAL(triggered()), this, SLOT(deselectItem()));
+        contextmenu->addAction(clearselection);
+        // clear all tags
+        QAction *clearall = new QAction(QIcon(":/glmixer/icons/cleanbig.png"), tr("Cancel tags of all Sources"), this);
+        connect(clearall, SIGNAL(triggered()), this, SLOT(clearAllTags()));
+        connect(clearall, SIGNAL(triggered()), this, SLOT(deselectItem()));
+        contextmenu->addAction(clearall);
     }
 
-//    Tag *t = Tag::getDefault();
-//    QListWidgetItem *item = ui->tagsListWidget->itemAt(pos);
-//    if (item) {
-//        QList<Tag *> tags = tagsMap.keys(item);
-//        if (!tags.empty())
-//            t = tags.first();
-//    }
+    // offer context menu only in background
+    QListWidgetItem *item = ui->tagsListWidget->itemAt(pos);
+    if (!item)
+        contextmenu->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
 
-    contextmenu->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
     // do not keep item selected
-    ui->tagsListWidget->setCurrentRow( -1 );
+    deselectItem();
 }
 
 
-void TagsManager::clearAll()
+void TagsManager::deselectItem()
+{
+    ui->tagsListWidget->setCurrentRow( -1 );
+}
+
+void TagsManager::clearAllTags()
 {
     Tag::remove();
 
     // do not keep item selected
-    ui->tagsListWidget->setCurrentRow( -1 );
+    deselectItem();
 }
 
 QListWidgetItem *TagsManager::getTagItem(Tag *t)
@@ -103,7 +111,8 @@ void TagsManager::selectTag(Tag *t)
 
 }
 
-void TagsManager::tagItemClicked(QListWidgetItem *i)
+
+void TagsManager::on_tagsListWidget_itemClicked(QListWidgetItem *i)
 {
     if (i)
     {
@@ -118,7 +127,7 @@ void TagsManager::tagItemClicked(QListWidgetItem *i)
     }
 
     // do not keep item selected
-    ui->tagsListWidget->setCurrentRow( -1 );
+    deselectItem();
 }
 
 bool TagsManager::useTag(Tag *t)
@@ -152,15 +161,10 @@ void TagsManager::connectSource(SourceSet::iterator csi)
     if (RenderingManager::getInstance()->isValid(csi)) {
         // remember current source pointer
         currentSource = *csi;
-        // activate item
-//        setTag( Tag::get(currentSource) );
     }
     else {
         // disable current source
         currentSource = NULL;
-        // select default tag
-//        ui->tagsListWidget->setCurrentItem( tagsMap[Tag::getDefault()] );
-//        ui->tagsListWidget->setCurrentRow( -1 );
     }
 
 }

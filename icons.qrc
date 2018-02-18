@@ -207,5 +207,6 @@
         <file>icons/snapshot_selection.png</file>
         <file>icons/selectclear.png</file>
         <file>icons/rename.png</file>
+        <file>icons/cleanbig.png</file>
     </qresource>
 </RCC>

@@ -28,14 +28,17 @@ public:
 public slots:
 
     // connected to List of tags
-    void tagItemClicked(QListWidgetItem *i);
+    void on_tagsListWidget_itemClicked(QListWidgetItem *i);
 
     // contex menu
     void ctxMenu(const QPoint &pos);
-    void clearAll();
+    void clearAllTags();
 
     // Source to operate
     void connectSource(SourceSet::iterator);
+
+protected slots:
+    void deselectItem();
 
 private:
     Ui::TagsManager *ui;
