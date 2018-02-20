@@ -2309,10 +2309,21 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
     else if ( type == Source::CAPTURE_SOURCE)
     {
         QDomElement img = t.firstChildElement("Image");
+        bool imageloaded = false;
         QImage image;
-        QByteArray data = QByteArray::fromBase64( img.text().toLatin1() );
 
+        // try to create image from text
+        QByteArray data = QByteArray::fromBase64( img.text().toLatin1() );
         if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
+            imageloaded = true;
+        // compatibility with old format : try to read without Base64
+        else {
+            data = img.text().toLatin1();
+            if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
+                imageloaded = true;
+        }
+        // try to create the capture source
+        if (imageloaded)
             newsource = RenderingManager::_instance->newCaptureSource(image, depth);
 
         if (!newsource) {

@@ -60,7 +60,7 @@ QDomElement CaptureSource::getConfiguration(QDomDocument &doc, QDir current)
             qWarning() << getName() << QChar(124).toLatin1() << tr("Could not save pixmap source (XPM format).");
     }
     else
-        if (!_capture.save(&buffer, "jpeg") )
+        if (!_capture.save(&buffer, "jpeg", 70) )
             qWarning() << getName()  << QChar(124).toLatin1() << tr("Could not save pixmap source (JPG format).");
 
     buffer.close();
