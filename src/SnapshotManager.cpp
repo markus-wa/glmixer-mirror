@@ -64,7 +64,7 @@ QDomElement SnapshotManager::getConfiguration(QDomDocument &doc)
                 QByteArray ba;
                 QBuffer buffer(&ba);
                 buffer.open(QIODevice::WriteOnly);
-                if (!pix.save(&buffer, "png") )
+                if (!pix.save(&buffer, "png", 70) )
                     qWarning() << "SnapshotManager"  << QChar(124).toLatin1() << tr("Could not save icon.");
                 buffer.close();
                 ba = ba.toBase64();
@@ -208,8 +208,10 @@ void SnapshotManager::addSnapshot()
 
 void SnapshotManager::restoreSnapshot(QString id)
 {
-    if (!_snapshotsList.contains(id))
+    if ( id != TEMP_SNAPSHOT_NAME && !_snapshotsList.contains(id)) {
+        qWarning() << "Snapshot" << QChar(124).toLatin1() << "Snapshot " << id << "not found.";
         return;
+    }
 
     // get status of sources at given id snaphot
     QDomElement root = _snapshotsDescription.firstChildElement(id);
@@ -248,6 +250,7 @@ void SnapshotManager::restoreSnapshot(QString id)
             }
         }
     }
+
 }
 
 
@@ -277,41 +280,41 @@ void SnapshotManager::appendSnapshotDescrition(QString id, QString label, QDomEl
             if ( RenderingManager::getInstance()->isValid(sit) ) {
                 child.setAttribute("id", (*sit)->getId() );
 
-                // discard properties that we do not want to be stored 
+                // discard properties that we do not want to be stored
                 child.removeAttribute("name");
                 child.removeAttribute("stanbyMode");
                 child.removeAttribute("workspace");
 #ifdef GLM_TAG
                 child.removeAttribute("tag");
 #endif
-          
             }
             // read next source
             child = child.nextSiblingElement();
         }
-
-        // add snapshot to description list
-        _snapshotsDescription.appendChild(root);
     }
+
+    // add snapshot to description list
+    _snapshotsDescription.appendChild(root);
 }
 
 void SnapshotManager::storeTemporarySnapshotDescription()
 {
+    QDomElement config = RenderingManager::getInstance()->getConfiguration(_snapshotsDescription);
+
     // get and clear the previous temporary element
-    QDomElement tempRoot = _snapshotsDescription.firstChildElement(TEMP_SNAPSHOT_NAME);
-    if ( tempRoot.isNull()) {
+    QDomElement root = _snapshotsDescription.firstChildElement(TEMP_SNAPSHOT_NAME);
+    if ( root.isNull()) {
         // create clean element
-        tempRoot = _snapshotsDescription.createElement(TEMP_SNAPSHOT_NAME);
-        tempRoot.setAttribute("label", TEMP_SNAPSHOT_NAME);
+        root = _snapshotsDescription.createElement(TEMP_SNAPSHOT_NAME);
+        root.setAttribute("label", TEMP_SNAPSHOT_NAME);
+        // copy content of the config
+        root.appendChild( config );
     }
     else
-        tempRoot.removeChild( tempRoot.firstChildElement("SourceList") );
-
-    // copy content of the config
-    tempRoot.appendChild( RenderingManager::getInstance()->getConfiguration(_snapshotsDescription) );
+        root.replaceChild( root.firstChildElement("SourceList"), config );
 
     // post process list to add identifiers to each source
-    QDomElement renderConfig = tempRoot.firstChildElement("SourceList");
+    QDomElement renderConfig = root.firstChildElement("SourceList");
     if ( !renderConfig.isNull()) {
 
         // browse the list of source in history
@@ -334,10 +337,10 @@ void SnapshotManager::storeTemporarySnapshotDescription()
             // read next source
             child = child.nextSiblingElement();
         }
-
-        // add snapshot to description list
-        _snapshotsDescription.appendChild(tempRoot);
     }
+
+    // add snapshot to description list
+    _snapshotsDescription.appendChild(root);
 }
 
 
