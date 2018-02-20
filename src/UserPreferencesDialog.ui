@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>689</width>
-    <height>583</height>
+    <width>610</width>
+    <height>584</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -151,7 +151,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -169,7 +169,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -187,7 +187,7 @@ p, li { white-space: pre-wrap; }
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -205,7 +205,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -223,7 +223,7 @@ p, li { white-space: pre-wrap; }
            <string>System and user preferences</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -1324,14 +1324,128 @@ the user to select a file name</string>
            <item>
             <widget class="QGroupBox" name="groupBoxSource">
              <property name="toolTip">
-              <string>Initial properties at the creation of sources</string>
+              <string>Initial properties at the creation of a source</string>
              </property>
              <property name="title">
               <string>Source default properties</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
-               <widget class="SourcePropertyBrowser" name="defaultProperties" native="true"/>
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QLabel" name="label_17">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Name prefix</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="sourceDefaultName">
+                  <property name="toolTip">
+                   <string>Default name prefix at the creation of a source</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_12">
+                <item>
+                 <widget class="QLabel" name="label_28">
+                  <property name="text">
+                   <string>Aspect Ratio</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="sourceDefaultAspectRatio">
+                  <property name="toolTip">
+                   <string>Default rescale mode at creation of a source</string>
+                  </property>
+                  <property name="text">
+                   <string>Fixed</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item>
+                 <widget class="QLabel" name="label_29">
+                  <property name="text">
+                   <string>Blending</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="sourceDefaultBlending">
+                  <property name="toolTip">
+                   <string>Default blending mode at the creation of a source</string>
+                  </property>
+                  <property name="currentIndex">
+                   <number>0</number>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>Add</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../images.qrc">
+                     <normaloff>:/glmixer/images/blend_colormix.png</normaloff>:/glmixer/images/blend_colormix.png</iconset>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Subtract</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../images.qrc">
+                     <normaloff>:/glmixer/images/blend_inversecolormix.png</normaloff>:/glmixer/images/blend_inversecolormix.png</iconset>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Add Layer</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../images.qrc">
+                     <normaloff>:/glmixer/images/blend_layercolormix.png</normaloff>:/glmixer/images/blend_layercolormix.png</iconset>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Subtract layer</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../images.qrc">
+                     <normaloff>:/glmixer/images/blend_layerinversecolormix.png</normaloff>:/glmixer/images/blend_layerinversecolormix.png</iconset>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Opacity</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../images.qrc">
+                     <normaloff>:/glmixer/images/blend_layeropacity.png</normaloff>:/glmixer/images/blend_layeropacity.png</iconset>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -1372,24 +1486,46 @@ the user to select a file name</string>
                   <property name="toolTip">
                    <string>Select how the source scale will be adjusted when dropped.</string>
                   </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
+                  </property>
                   <item>
                    <property name="text">
                     <string>Cropped (keep source aspect ratio)</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/scale-source-cropped.png</normaloff>:/glmixer/icons/scale-source-cropped.png</iconset>
                    </property>
                   </item>
                   <item>
                    <property name="text">
                     <string>Centered (keep source aspect ratio)</string>
                    </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/scale-source-centered.png</normaloff>:/glmixer/icons/scale-source-centered.png</iconset>
+                   </property>
                   </item>
                   <item>
                    <property name="text">
                     <string>Scaled (use rendering aspect ratio)</string>
                    </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/scale-source-scaled.png</normaloff>:/glmixer/icons/scale-source-scaled.png</iconset>
+                   </property>
                   </item>
                   <item>
                    <property name="text">
                     <string>Pixel (original size inside rendering buffer)</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/scale-source-pixel.png</normaloff>:/glmixer/icons/scale-source-pixel.png</iconset>
                    </property>
                   </item>
                  </widget>
@@ -2082,12 +2218,6 @@ the user to select a file name</string>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>SourcePropertyBrowser</class>
-   <extends>QWidget</extends>
-   <header>SourcePropertyBrowser.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>TestButtonFrame</class>
    <extends>QWidget</extends>

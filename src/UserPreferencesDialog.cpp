@@ -44,9 +44,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     warningSlowFps->setVisible(false);
     QObject::connect(previewOutput, SIGNAL(slowFps(bool)), SLOT(showWarningSlowFps(bool)));
 
-    // the default source property browser
+    // the default source properties
     defaultSource = new Source();
-    defaultProperties->setContextMenuPolicy(Qt::NoContextMenu);
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
     disableBlitFrameBuffer->setEnabled( glewIsSupported("GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample") );
@@ -86,13 +85,6 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
     on_updatePeriod_valueChanged( updatePeriod->value() );
     on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
     on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
-
-    defaultProperties->showProperties(defaultSource);
-    defaultProperties->setPropertyEnabled("Resolution", false);
-    defaultProperties->setPropertyEnabled("Frame rate", false);
-    defaultProperties->setPropertyEnabled("Aspect ratio", false);
-    defaultProperties->setPropertyEnabled("Scale", false);
-    defaultProperties->setPropertyEnabled("Depth", false);
 
     // (re)set number of available monitors
     if (OutputRenderWindow::getInstance()->getFullScreenCount() != fullscreenMonitor->count()) {
@@ -162,7 +154,9 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         if(defaultSource)
             delete defaultSource;
         defaultSource = new Source();
-        defaultProperties->showProperties(defaultSource);
+        sourceDefaultName->setText(defaultSource->getName());
+        sourceDefaultAspectRatio->setChecked( defaultSource->isFixedAspectRatio());
+        sourceDefaultBlending->setCurrentIndex( intFromBlendingPreset( defaultSource->getBlendFuncDestination(), defaultSource->getBlendEquation() ) - 1);
 
         defaultStartPlaying->setChecked(true);
         scalingModeSelection->setCurrentIndex(0);
@@ -223,7 +217,9 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 
     // b. Read and setup the default source properties
     stream >> defaultSource;
-    defaultProperties->showProperties(defaultSource);
+    sourceDefaultName->setText(defaultSource->getName());
+    sourceDefaultAspectRatio->setChecked( defaultSource->isFixedAspectRatio());
+    sourceDefaultBlending->setCurrentIndex( intFromBlendingPreset( defaultSource->getBlendFuncDestination(), defaultSource->getBlendEquation() ) - 1 );
 
     // c. Default scaling mode
     uint sm = 0;
@@ -520,3 +516,19 @@ void UserPreferencesDialog::on_recordingBufferSize_valueChanged(int percent)
     recordingBuffersizeString->setText(getByteSizeString(RenderingEncoder::computeBufferSize(percent)));
 }
 
+void UserPreferencesDialog::on_sourceDefaultBlending_currentIndexChanged(int i)
+{
+    QPair<int, int> preset = blendingPresetFromInt(i+1);
+    defaultSource->setBlendFunc(GL_SRC_ALPHA, blendfunctionFromInt( preset.first ) );
+    defaultSource->setBlendEquation( blendequationFromInt( preset.second ) );
+}
+
+void UserPreferencesDialog::on_sourceDefaultAspectRatio_toggled(bool on)
+{
+    defaultSource->setFixedAspectRatio(on);
+}
+
+void UserPreferencesDialog::on_sourceDefaultName_textEdited(const QString & text)
+{
+    defaultSource->setName(text);
+}

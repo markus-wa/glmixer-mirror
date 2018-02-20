@@ -61,6 +61,9 @@ public slots:
     void on_MemoryUsagePolicySlider_valueChanged(int mem);
     void on_loopbackSkippedFrames_valueChanged(int i);
     void on_outputSkippedFrames_valueChanged(int i);
+    void on_sourceDefaultBlending_currentIndexChanged(int i);
+    void on_sourceDefaultAspectRatio_toggled(bool on);
+    void on_sourceDefaultName_textEdited(const QString & text);
     void showWarningSlowFps(bool);
 
 protected:
