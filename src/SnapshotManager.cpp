@@ -1,5 +1,6 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
+#include "UndoManager.h"
 
 #include "SnapshotManager.moc"
 
@@ -213,6 +214,11 @@ void SnapshotManager::restoreSnapshot(QString id)
         return;
     }
 
+#ifdef GLM_UNDO
+    // inform undo manager
+    UndoManager::getInstance()->store();
+#endif
+
     // get status of sources at given id snaphot
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
@@ -350,6 +356,11 @@ QMap<Source *, QVector <double> > SnapshotManager::getSnapshot(QString id)
 
     if (!_snapshotsList.contains(id))
         return list;
+
+#ifdef GLM_UNDO
+    // inform undo manager
+    UndoManager::getInstance()->store();
+#endif
 
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {

@@ -375,9 +375,13 @@ bool SnapshotView::mousePressEvent(QMouseEvent *event)
         // tool action on a source
         if ( isUserInput(event, View::INPUT_TOOL) ) {
             // clic on the slider
-            if (clicsource == _renderSource && _interpolate)
+            if (clicsource == _renderSource && _interpolate) {
+                // interrupt animation
+                if (_animationTimer.isValid())
+                    _animationTimer.invalidate();
                 // ready for grabbing the slider source
                 setAction(View::GRAB);
+            }
             // clic on the destination
             else if (clicsource == _destinationSource)
                 // toggle on/off the animation, in positive direction
@@ -389,9 +393,14 @@ bool SnapshotView::mousePressEvent(QMouseEvent *event)
         }
         // do not react to other mouse action on a source
     }
+    // clic in background
     else {
-        // clic in background to escape view
-        _active = false;
+        // interrupt animation
+        if (_animationTimer.isValid())
+            _animationTimer.invalidate();
+        // or escape view
+        else
+            _active = false;
     }
 
     return true;
