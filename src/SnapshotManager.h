@@ -15,6 +15,7 @@ class Source;
 class SnapshotManager : public QObject
 {
     Q_OBJECT
+
     explicit SnapshotManager(QObject *parent = nullptr);
     static SnapshotManager *_instance;
 
@@ -23,7 +24,7 @@ public:
     static QImage generateSnapshotIcon(QImage image);
 
     /**
-     * Access items
+     * Access snapshot list
      * */
     QStringList getSnapshotIdentifiers();
     QImage getSnapshotImage(QString id);
@@ -32,9 +33,10 @@ public:
     void removeSnapshot(QString id);
 
     /**
-     * Access source lists
+     * Access content of snapshots
      * */
     QMap<Source *, QVector <double> > getSnapshot(QString id);
+    void restoreSnapshot(QString id = TEMP_SNAPSHOT_NAME);
 
     /**
      * get and set configuration
@@ -43,6 +45,10 @@ public:
     void addConfiguration(QDomElement xmlconfig);
     void clearConfiguration();
 
+    /**
+     * store the temporary snapshot
+     */
+    void storeTemporarySnapshotDescription();
 
 signals:
     void clear();
@@ -52,8 +58,6 @@ signals:
 
 public slots:
     void addSnapshot();
-    void storeTemporarySnapshotDescription();
-    void restoreSnapshot(QString id = TEMP_SNAPSHOT_NAME);
 
 protected:
     void appendSnapshotDescrition(QString id, QString label, QDomElement config);

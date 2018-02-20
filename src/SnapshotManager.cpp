@@ -357,11 +357,6 @@ QMap<Source *, QVector <double> > SnapshotManager::getSnapshot(QString id)
     if (!_snapshotsList.contains(id))
         return list;
 
-#ifdef GLM_UNDO
-    // inform undo manager
-    UndoManager::getInstance()->store();
-#endif
-
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
 

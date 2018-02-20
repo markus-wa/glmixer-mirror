@@ -31,6 +31,7 @@
 #include "CaptureSource.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
+#include "UndoManager.h"
 
 SnapshotView::SnapshotView(): View(), _active(false), _interpolate(true), _view(0), _factor(0.0), _renderSource(0), _departureSource(0), _destinationSource(0)
 {
@@ -85,6 +86,12 @@ void SnapshotView::activate(View *activeview, QString id, bool interpolate){
 
     // test if everything is fine
     if (setTargetSnapshot(id) && activeview && activeview->usableTargetSnapshot(_snapshots)) {
+
+#ifdef GLM_UNDO
+    // inform undo manager
+    UndoManager::getInstance()->store();
+#endif
+
         // activate config
         _interpolate = interpolate;
         _destinationId = id;
