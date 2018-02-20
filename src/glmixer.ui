@@ -4763,7 +4763,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
    </property>
    <property name="text">
-    <string>Sa&amp;ve snapshot</string>
+    <string>Sa&amp;ve screenshot</string>
    </property>
    <property name="toolTip">
     <string>Capture and save current rendered frame</string>
@@ -5097,7 +5097,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/photo.png</normaloff>:/glmixer/icons/photo.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Copy snapshot</string>
+    <string>&amp;Copy screenshot</string>
    </property>
    <property name="toolTip">
     <string>Capture and copy current rendered frame</string>
