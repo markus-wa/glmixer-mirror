@@ -268,7 +268,6 @@ void SnapshotView::paint()
     ViewRenderWidget::resetShaderAttributes();
     // draw flat version of sources
     ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
-    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
 
     //
     //  DEPARTURE ICON
@@ -278,8 +277,10 @@ void SnapshotView::paint()
     _departureSource->bind();
     // draw the source destination
     glPushMatrix();
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));
     drawSource(_departureSource, ICON_BORDER_SCALE);
     // draw circle border
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
     if ( *clickedSources.begin() == _departureSource)
         glCallList(ViewRenderWidget::snapshot + 3);
     else
@@ -294,8 +295,10 @@ void SnapshotView::paint()
     _destinationSource->bind();
     // draw the source destination
     glPushMatrix();
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));
     drawSource(_destinationSource, ICON_BORDER_SCALE);
     // draw circle border
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_DRAWINGS));
     if ( *clickedSources.begin() == _destinationSource)
         glCallList(ViewRenderWidget::snapshot + 3);
     else
@@ -309,6 +312,7 @@ void SnapshotView::paint()
     _renderSource->bind();
     // draw the source slider at the position for given factor
     _renderSource->setAlphaCoordinates(_begin + _factor * (_end - _begin), _y);
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));
     drawSource(_renderSource, ICON_CURSOR_SCALE);
     // draw border
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(COLOR_FRAME));
