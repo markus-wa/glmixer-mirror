@@ -1602,6 +1602,12 @@ void MixerView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPai
     QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
+        // if in exclusive workspace mode, do not apply changes to sources in other workspaces
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+                continue;
+        }
+        // interpolate change for this source
         double x = it.value()[0].first - a * it.value()[0].second;
         double y = it.value()[1].first - a * it.value()[1].second;
         it.key()->_setAlphaCoordinates(x, y);
@@ -1616,6 +1622,12 @@ bool MixerView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double
     QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
+        // if in exclusive workspace mode, do not apply changes to sources in other workspaces
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+                continue;
+        }
+        // return true whenever a source can be modified
         if ( qAbs(it.value()[0].second) > EPSILON || qAbs(it.value()[1].second) > EPSILON )
             return true;
     }

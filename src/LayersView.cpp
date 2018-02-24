@@ -1102,7 +1102,12 @@ void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPa
     QMapIterator<Source *, QVector< QPair<double,double> > > it(config);
     while (it.hasNext()) {
         it.next();
-
+        // if in exclusive workspace mode, do not apply changes to sources in other workspaces
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+                continue;
+        }
+        // interpolate change for this source
         SourceSet::iterator sit = RenderingManager::getInstance()->getById( it.key()->getId() );
         double d = it.value()[11].first - a * it.value()[11].second;
         RenderingManager::getInstance()->changeDepth( sit, d);
@@ -1119,7 +1124,12 @@ bool LayersView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,doubl
         // ignore sources in standby
         if ( it.key()->isStandby())
             continue;
-        // there is something to change in depth
+        // if in exclusive workspace mode, do not apply changes to sources in other workspaces
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+                continue;
+        }
+        // return true whenever a source can be modified
         if ( qAbs(it.value()[11].second) > EPSILON )
             return true;
     }
