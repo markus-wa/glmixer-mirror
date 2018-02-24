@@ -259,7 +259,10 @@ ViewRenderWidget::ViewRenderWidget() :
 //    createMask("Custom", ":/glmixer/textures/mask_custom.png");
 //        ViewRenderWidget::mask_description[100] = QPair<QString, QString>("Custom", ":/glmixer/textures/mask_custom.png");
 
-    installEventFilter(this);
+    // events input
+    grabGesture(Qt::PinchGesture);
+    connect(this, SIGNAL(gestureEvent(QGestureEvent *)), SLOT(onGestureEvent(QGestureEvent *)));
+    connect(this, SIGNAL(specialKeyboardEvent(QKeyEvent *)), SLOT(onSpecialKeyboardEvent(QKeyEvent *)));
 }
 
 ViewRenderWidget::~ViewRenderWidget()
@@ -405,7 +408,7 @@ void ViewRenderWidget::setViewMode(View::viewMode mode)
     makeCurrent();
     refresh();
 
-    zoomPercentChanged((int) _currentView->getZoomPercent());
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 
 }
 
@@ -1018,7 +1021,7 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 
     if (_currentView->wheelEvent(event)) {
         showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
-        zoomPercentChanged((int) _currentView->getZoomPercent());
+        emit zoomPercentChanged((int) _currentView->getZoomPercent());
     }
 }
 
@@ -1102,34 +1105,6 @@ void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
         QGLWidget::keyPressEvent(event);
 }
 
-/**
- * Tab key switches to the next source, CTRl-Tab the previous.
- *
- * NB: I wanted SHIFT-Tab for the previous, but this event is captured
- * by the main application.
- */
-bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
-{
-    if (object == (QObject *) (this) && event->type() == QEvent::KeyPress)
-    {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
-        if (keyEvent->key() == Qt::Key_Tab)
-        {
-            if (QApplication::keyboardModifiers() & Qt::ControlModifier)
-                RenderingManager::getInstance()->setCurrentPrevious();
-            else
-                RenderingManager::getInstance()->setCurrentNext();
-            return true;
-        }
-        else if (keyEvent->key() == Qt::Key_Escape)
-        {
-            RenderingManager::getInstance()->unsetCurrentSource();
-        }
-    }
-
-    // standard event processing
-     return QWidget::eventFilter(object, event);
-}
 
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
@@ -1155,15 +1130,14 @@ void ViewRenderWidget::enterEvent ( QEvent * event ){
 
 void ViewRenderWidget::zoom(int percent)
 {
-    makeCurrent();
     _currentView->setZoomPercent( double(percent) );
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    // emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::zoomIn()
 {
-    makeCurrent();
     _currentView->zoomIn();
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
@@ -1172,7 +1146,6 @@ void ViewRenderWidget::zoomIn()
 
 void ViewRenderWidget::zoomOut()
 {
-    makeCurrent();
     _currentView->zoomOut();
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
@@ -1181,7 +1154,6 @@ void ViewRenderWidget::zoomOut()
 
 void ViewRenderWidget::zoomReset()
 {
-    makeCurrent();
     _currentView->zoomReset();
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
@@ -1190,7 +1162,6 @@ void ViewRenderWidget::zoomReset()
 
 void ViewRenderWidget::zoomBestFit()
 {
-    makeCurrent();
     _currentView->zoomBestFit();
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
@@ -1199,7 +1170,6 @@ void ViewRenderWidget::zoomBestFit()
 
 void ViewRenderWidget::zoomCurrentSource()
 {
-    makeCurrent();
     _currentView->zoomBestFit(true);
 
     showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
@@ -2940,3 +2910,66 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
         GLMixer::getInstance()->drop(event);
 }
 
+bool ViewRenderWidget::event(QEvent *event)
+{
+    // event() is called at every event, even DRAW event
+    // DO NOT perform computations here to ensure smooth rendering 
+    // Instead, emit signals to stack events for later 
+
+    // handling of gesture events
+    if (event->type() == QEvent::Gesture) {
+        emit gestureEvent(static_cast<QGestureEvent*>(event));
+        event->accept();
+        return true;
+    }
+    // handling of special keyboard events
+    else if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
+        if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Escape)
+        {
+            emit specialKeyboardEvent(keyEvent);
+            keyEvent->accept();
+            return true;
+        }
+    }
+
+    return QGLWidget::event(event);
+}
+
+void ViewRenderWidget::onGestureEvent(QGestureEvent *event)
+{
+    // only deal with Pinch Gesture (2 fingers in or out)
+    if (QGesture *g = event->gesture(Qt::PinchGesture)) {
+        QPinchGesture *pinch = static_cast<QPinchGesture *>(g);
+        // only consider scaling for pinch
+        if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged) {
+            // zoom in or out (scale factor = 1.0 for no change)
+            _currentView->setZoom( _currentView->getZoom() * pinch->scaleFactor() );
+            showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+            emit zoomPercentChanged((int) _currentView->getZoomPercent());
+            // reset pinch scale; we only need delta of gesture 
+            pinch->setScaleFactor( 1.0 );
+        }
+    }
+}
+
+void ViewRenderWidget::onSpecialKeyboardEvent(QKeyEvent *event)
+{
+    // Tab key switches to the next source, CTRl-Tab the previous (ALT-Tab under OSX).
+    if (event->key() == Qt::Key_Tab)
+    {
+#ifdef Q_OS_MAC
+        if (event->modifiers() & Qt::AltModifier)
+#else
+        if (event->modifiers() & Qt::ControlModifier)
+#endif
+            RenderingManager::getInstance()->setCurrentPrevious();
+        else
+            RenderingManager::getInstance()->setCurrentNext();
+    }
+    // Esc to cancel selection
+    else if (event->key() == Qt::Key_Escape)
+    {
+        RenderingManager::getInstance()->unsetCurrentSource();
+    }
+}

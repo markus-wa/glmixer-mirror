@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QLabel>
 #include <QEvent>
+#include <QGestureEvent>
 #include <QString>
 
 #include "glRenderWidget.h"
@@ -79,7 +80,6 @@ public:
     void tabletEvent ( QTabletEvent * event );
     void keyPressEvent ( QKeyEvent * event );
     void keyReleaseEvent ( QKeyEvent * event );
-    bool eventFilter(QObject *object, QEvent *event);
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
     void leaveEvent ( QEvent * event );
     void enterEvent ( QEvent * event );
@@ -87,6 +87,7 @@ public:
     void dragMoveEvent(QDragMoveEvent *event);
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent *event);
+    bool event(QEvent *event);
 
     /**
      * CONTEXT MENUS
@@ -170,6 +171,9 @@ signals:
     void mousePressed(bool);
     void tick();
 
+    void gestureEvent(QGestureEvent *event);
+    void specialKeyboardEvent(QKeyEvent *event);
+
 public slots:
 
     void clearViews();
@@ -195,6 +199,10 @@ public slots:
 #ifdef GLM_SNAPSHOT
     void activateSnapshot(QString id = QString::null);
 #endif
+    // Gesture interpretation
+    void onGestureEvent(QGestureEvent *event);
+    // Special keys
+    void onSpecialKeyboardEvent(QKeyEvent *event);
 
 public:
     // Shading
