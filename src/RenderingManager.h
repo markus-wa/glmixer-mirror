@@ -157,8 +157,8 @@ public:
         return _currentSource;
     }
     void updateCurrentSource();
-    bool setCurrentNext();
-    bool setCurrentPrevious();
+    void setCurrentNext();
+    void setCurrentPrevious();
     void unsetCurrentSource() { setCurrentSource( getEnd() ); }
 
 

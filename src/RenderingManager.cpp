@@ -1754,47 +1754,33 @@ void RenderingManager::updateCurrentSource()
 }
 
 
-bool RenderingManager::setCurrentNext(){
+void RenderingManager::setCurrentNext(){
 
     if (_front_sources.empty() )
-        return false;
+        return;
 
-    // disconnect current source from play actions
-    if ( isValid(_currentSource) )
-        (*_currentSource)->disconnect(SIGNAL(playing(bool)));
+    SourceSet::iterator next = std::next(_currentSource, 1);
+    // if at the end, go to the begining
+    if (next == _front_sources.end())
+        next = _front_sources.begin();
 
-    if (_currentSource != _front_sources.end()) {
-        // increment to next source
-        _currentSource++;
-        // loop to begin if at end
-        if (_currentSource == _front_sources.end())
-            _currentSource = _front_sources.begin();
-    } else
-        _currentSource = _front_sources.begin();
-
-    emit currentSourceChanged(_currentSource);
-    return true;
+    setCurrentSource(next);
 }
 
-bool RenderingManager::setCurrentPrevious(){
+void RenderingManager::setCurrentPrevious(){
 
     if (_front_sources.empty() )
-        return false;
+        return;
 
-    // disconnect current source from play actions
-    if ( isValid(_currentSource) )
-        (*_currentSource)->disconnect(SIGNAL(playing(bool)));
+    SourceSet::iterator previous;
 
-    if (_currentSource != _front_sources.end()) {
-        // if at the beginning, go to the end
-        if (_currentSource == _front_sources.begin())
-            _currentSource = _front_sources.end();
-    }
+    // if at the begining, go to the end
+    if (_currentSource == _front_sources.begin())
+        previous = std::prev(_front_sources.end(), 1);
+    else
+        previous = std::prev(_currentSource, 1);
 
-    // decrement to previous source
-    _currentSource--;
-    emit currentSourceChanged(_currentSource);
-    return true;
+    setCurrentSource(previous);
 }
 
 
