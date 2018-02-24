@@ -746,8 +746,13 @@ void GLMixer::on_addDateToNotes_clicked() {
 
 void GLMixer::on_addListToNotes_clicked() {
 
-    QStringList list = RenderingManager::getInstance()->getSourceNameList();
-    blocNoteEdit->append(list.join("\n"));
+    QStringList list;
+
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+        list << QString("* ") + (*its)->getInfo();
+    }
+
+    blocNoteEdit->append(list.join("\n\n"));
 }
 
 
@@ -764,9 +769,7 @@ void GLMixer::on_timeLineEdit_clicked() {
 
         TimeInputDialog tid(this, time, min, max, fps, _displayTimeAsFrame);
         if (tid.exec() == QDialog::Accepted) {
-
             currentVideoFile->seekToPosition(tid.getTime());
-
         }
     }
 }
@@ -1309,6 +1312,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                 } // end video file
             } // end video source
         }
+
+        // show information
+        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*csi)->getName() ), 3000 );
     }
     else {  // it is not a valid source
 
@@ -1323,6 +1329,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         currentSourceMenu->setEnabled(false);
         actionCloneSource->setEnabled(false);
         toolButtonZoomCurrent->setEnabled(false);
+
+        // show information
+        RenderingManager::getRenderingWidget()->hideMessage();
     }
 
     // update gui content from timings
@@ -1724,7 +1733,7 @@ void GLMixer::on_actionCopy_snapshot_triggered(){
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
     QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
 
-    RenderingManager::getRenderingWidget()->showMessage( tr("Snapshot copied to clipboard."), 3000 );
+    RenderingManager::getRenderingWidget()->showMessage( tr("Screenshot copied to clipboard."), 3000 );
 }
 
 void GLMixer::on_actionSave_snapshot_triggered(){
@@ -1740,7 +1749,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
     }
     else {
         // display and request action with this capture
-        CaptureDialog cd(this, capture, tr("Save this snapshot ?"));
+        CaptureDialog cd(this, capture, tr("Save this screenshot ?"));
 
         if (cd.exec() == QDialog::Accepted) {
 
@@ -1748,7 +1757,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
             if (width)
                 capture = capture.scaledToWidth(width);
 
-            fileName = getFileName(tr("Save snapshot"), tr("Image") + " (*.png *.jpg)",
+            fileName = getFileName(tr("Save screenshot"), tr("Image") + " (*.png *.jpg)",
                                    QString("png"), suggestion);
 
         }
@@ -1758,7 +1767,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
         if (!capture.save(fileName)) {
             qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
         } else {
-            qDebug() << fileName << QChar(124).toLatin1() << tr("Snapshot saved.");
+            qDebug() << fileName << QChar(124).toLatin1() << tr("Screenshot saved.");
             RenderingManager::getRenderingWidget()->showMessage( tr("Snapshot %1 saved.").arg(fileName), 3000 );
         }
     }
@@ -1876,15 +1885,12 @@ void GLMixer::on_actionDeleteSource_triggered()
 
 void GLMixer::on_actionSelect_Next_triggered(){
 
-    if (RenderingManager::getInstance()->setCurrentNext())
-        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+    RenderingManager::getInstance()->setCurrentNext();
 }
 
 void GLMixer::on_actionSelect_Previous_triggered(){
 
-    if (RenderingManager::getInstance()->setCurrentPrevious())
-        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
-
+    RenderingManager::getInstance()->setCurrentPrevious();
 }
 
 void GLMixer::refreshTiming(){
@@ -2122,7 +2128,7 @@ void GLMixer::newSession()
 
 QString GLMixer::getNotes()
 {
-    return blocNoteEdit->toPlainText();
+    return blocNoteEdit->toPlainText().trimmed();
 }
 
 SessionSaver::SessionSaver(QString filename) : QThread(), _filename(filename)
@@ -3313,6 +3319,7 @@ void GLMixer::updateStatusControlActions() {
     actionSourcePause->setEnabled( controlsEnabled );
     actionSourceSeekForward->setEnabled( controlsEnabled );
 
+    actionDeleteSource->setEnabled(clipboardEnabled);
     actionCopy->setEnabled(clipboardEnabled);
     actionCut->setEnabled(clipboardEnabled);
  }

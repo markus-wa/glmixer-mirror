@@ -92,7 +92,7 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     QString tooltip = filename;
     QDomElement notes = root.firstChildElement("Notes");
     if ( !notes.isNull() && !notes.text().isEmpty())
-        tooltip = notes.text();
+        tooltip = notes.text().split("\n").first();
 
     file.close();
 
@@ -609,7 +609,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
         transitionTab->widget(1)->setEnabled(false);
 
     }
-        
+
 
 }
 
@@ -739,7 +739,7 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
         painter.drawLine(0, xAxis, pix.width(),  xAxis);
         painter.drawLine(yAxis, 0, yAxis, pix.height());
 
-        // curve 
+        // curve
         QEasingCurve curve((QEasingCurve::Type)i);
 
         // start point
@@ -755,11 +755,11 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
         // curve points
         QPainterPath curvePath;
         curvePath.moveTo(start);
-        for (qreal t = 0; t < 1.0 + inc; t += inc) 
+        for (qreal t = 0; t < 1.0 + inc; t += inc)
             curvePath.lineTo( QPoint(yAxis + curveScale * t, xAxis - curveScale * curve.valueForProgress(t)) );
         painter.strokePath(curvePath, QPen(QApplication::palette().text().color(), zoom));
 
-        // add icon 
+        // add icon
         QListWidgetItem *item = new QListWidgetItem;
         item->setIcon(QIcon(pix));
         // scaling not needed (improves rendering quality in retina displays)

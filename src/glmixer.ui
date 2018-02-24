@@ -2369,6 +2369,9 @@ QToolButton:hover {
            <height>33</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Magnet cursor</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -3496,26 +3499,6 @@ QToolButton:hover {
         <number>3</number>
        </property>
        <item>
-        <widget class="QToolButton" name="addDateToNotes">
-         <property name="toolTip">
-          <string>Add date</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/calendar.png</normaloff>:/glmixer/icons/calendar.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QToolButton" name="addListToNotes">
          <property name="toolTip">
           <string>Add list of sources</string>
@@ -3526,6 +3509,26 @@ QToolButton:hover {
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/listsources.png</normaloff>:/glmixer/icons/listsources.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="addDateToNotes">
+         <property name="toolTip">
+          <string>Add date</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/calendar.png</normaloff>:/glmixer/icons/calendar.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -4153,7 +4156,7 @@ QToolButton:hover {
   </action>
   <action name="actionDeleteSource">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -4163,10 +4166,10 @@ QToolButton:hover {
     <string>&amp;Delete</string>
    </property>
    <property name="toolTip">
-    <string>Delete current source</string>
+    <string>Delete source(s)</string>
    </property>
    <property name="statusTip">
-    <string>Removes the current source from the session.</string>
+    <string>Removes the selected sources from the session.</string>
    </property>
    <property name="shortcut">
     <string>Backspace</string>
@@ -4325,7 +4328,7 @@ QToolButton:hover {
     <string>&amp;Normal cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor follows the mouse (default)</string>
+    <string>Normal cursor follows the mouse (default)</string>
    </property>
    <property name="shortcut">
     <string>N</string>
@@ -4346,7 +4349,7 @@ QToolButton:hover {
     <string>&amp;Elastic cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor is attracted by the mouse but is more 'heavy'.</string>
+    <string>Elastic cursor is physically attracted by the mouse</string>
    </property>
    <property name="shortcut">
     <string>E</string>
@@ -4370,7 +4373,7 @@ QToolButton:hover {
     <string>Delay cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor follows the mouse with a latency</string>
+    <string>Delay cursor follows the mouse with a latency</string>
    </property>
    <property name="shortcut">
     <string>D</string>
@@ -4391,7 +4394,7 @@ QToolButton:hover {
     <string>&amp;Fuzzy cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor makes fuzzy movements around the mouse</string>
+    <string>Fuzzy cursor jitters around the mouse</string>
    </property>
    <property name="shortcut">
     <string>F</string>
@@ -4424,10 +4427,10 @@ QToolButton:hover {
     <string>&amp;Previous</string>
    </property>
    <property name="toolTip">
-    <string>Select previous source (Ctrl + Tab)</string>
+    <string>Select previous source</string>
    </property>
    <property name="statusTip">
-    <string>Select the previous source in the list (shortcut is Ctrl + Tab)</string>
+    <string>Select the previous source in the list</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -4551,7 +4554,7 @@ QToolButton:hover {
     <string>Enable / Disable rendering</string>
    </property>
    <property name="statusTip">
-    <string>Toggle Enabled / Disabled the output window</string>
+    <string>Toggle Enabled / Disabled the rendering in the output window</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -4600,7 +4603,7 @@ QToolButton:hover {
     <string>&amp;Axis cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor follows the axis</string>
+    <string>Axis cursor follows vertical or horizontal axis</string>
    </property>
    <property name="shortcut">
     <string>A</string>
@@ -4769,7 +4772,7 @@ QToolButton:hover {
     <string>Capture and save current rendered frame</string>
    </property>
    <property name="statusTip">
-    <string>Take a snapshot of the rendering and save the image.</string>
+    <string>Take a screenshot of the rendering and save the image.</string>
    </property>
    <property name="shortcut">
     <string>F7</string>
@@ -4787,7 +4790,7 @@ QToolButton:hover {
     <string>&amp;Line cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor moves on a line to reach the mouse position.</string>
+    <string>Line cursor follows a line to reach a target position.</string>
    </property>
    <property name="shortcut">
     <string>L</string>
@@ -5070,7 +5073,7 @@ QToolButton:hover {
     <string>&amp;Close session</string>
    </property>
    <property name="statusTip">
-    <string>Close current session</string>
+    <string>Delete all sources in the current session</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
@@ -5103,7 +5106,7 @@ QToolButton:hover {
     <string>Capture and copy current rendered frame</string>
    </property>
    <property name="statusTip">
-    <string>Take a snapshot of the rendering and copy the image.</string>
+    <string>Take a screenshot of the rendering and copy the image.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
@@ -5600,6 +5603,9 @@ QToolButton:hover {
    </property>
    <property name="text">
     <string>&amp;Magnet cursor</string>
+   </property>
+   <property name="statusTip">
+    <string>Magnet cursor operates only inside its attraction area</string>
    </property>
    <property name="shortcut">
     <string>M</string>
