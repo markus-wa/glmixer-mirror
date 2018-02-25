@@ -331,6 +331,12 @@ int OutputRenderWindow::getFullScreenMonitor()
     return  qBound(0, fullscreenMonitorIndex, fullscreenMonitorCount-1);;
 }
 
+QRect OutputRenderWindow::getFullScreenMonitorGeometry()
+{
+    return QApplication::desktop()->screenGeometry(fullscreenMonitorIndex);
+}
+
+
 void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {
 
     // toggle fullscreen / window on double clic

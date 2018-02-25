@@ -71,11 +71,13 @@ void SnapshotView::deactivate()
     _active = false;
 }
 
-void SnapshotView::activate(View *activeview, QString id, bool interpolate){
+bool SnapshotView::activate(View *activeview, QString id, bool interpolate)
+{
+    bool ret = false;
 
     // do not update status if no change requested
     if ( _active == true )
-        return;
+        return ret;
 
     // change status : reset
     _view = 0;
@@ -104,17 +106,19 @@ void SnapshotView::activate(View *activeview, QString id, bool interpolate){
         // update source if already created
         if (_departureSource)
             _departureSource->setImage(_departure);
+
+        // success
+        ret = true;
     }
     // cannot be visible without a valid view
-    else {
+    else
         _active = false;
-        // inform user
-        RenderingManager::getRenderingWidget()->showMessage( "No change to apply.", 3000 );
-    }
 
     // no action by default
     setAction(View::NONE);
     _animationTimer.invalidate();
+
+    return ret;
 }
 
 void SnapshotView::resize(int w, int h)
@@ -479,17 +483,6 @@ bool SnapshotView::mouseReleaseEvent ( QMouseEvent * event )
     return true;
 }
 
-//bool SnapshotView::mouseDoubleClickEvent ( QMouseEvent * event )
-//{
-//    if (!_active || !event)
-//        return false;
-
-//    // clic in background to escape view
-//    _active = false;
-
-//    return true;
-//}
-
 bool SnapshotView::wheelEvent ( QWheelEvent * event )
 {
     if (!_active || !event)
@@ -541,8 +534,6 @@ bool SnapshotView::keyPressEvent ( QKeyEvent * event )
         case Qt::Key_Right:
             _factor = qBound(0.0, _factor + delta, 1.0);
             break;
-        case Qt::Key_Escape:
-            _active = false;
         default:
             return false;
         }
@@ -561,8 +552,6 @@ bool SnapshotView::keyPressEvent ( QKeyEvent * event )
             SnapshotManager::getInstance()->restoreSnapshot(_destinationId);
             _factor = 1.0;
             break;
-        case Qt::Key_Escape:
-            _active = false;
         default:
             return false;
         }

@@ -54,6 +54,11 @@ public:
     void keyPressEvent ( QKeyEvent * event );
     void keyReleaseEvent ( QKeyEvent * event );
 
+    // gets
+    bool useSystemDialogs();
+    QString getRestorelastSessionFilename();
+    QString getNotes();
+
 public slots:
 
     // menu and actions
@@ -122,17 +127,15 @@ public slots:
     void refreshTiming();
     void switchToSessionFile(QString filename);
     void actionLoad_RecentSession_triggered();
-    QString getRestorelastSessionFilename();
     void confirmSessionFileName();
-    bool useSystemDialogs();
     void updateStatusControlActions();
     void startButton_toogled(bool);
     void replaceCurrentSource();
     void undoChanged(bool, bool);
-    QString getNotes();
     void updateWorkspaceActions();
     void setBusy(bool busy = true);
     void resetCurrentCursor();
+    void disable() { setDisabled(true); }
 
     // source config
     void connectSource(SourceSet::iterator csi);
@@ -143,6 +146,7 @@ public slots:
     void closeSession();
     void saveSession(bool close = false, bool quit = false);
     void postSaveSession();
+    void postNewSession();
 
     // app settings
     void readSettings(QString pathtobin = QString::null);
@@ -169,19 +173,17 @@ public slots:
     void saveLogsToFile();
 #endif
 
-    void disable() { setDisabled(true); }
 
 signals:
     void sessionLoaded();
     void keyPressed(int, bool);
+    void status(QString, int);
 
 protected:
-
     void closeEvent(QCloseEvent * event);
-
     void restorePreferences(const QByteArray & state);
+    void selectAspectRatio(int);
     QByteArray getPreferences() const;
-
 
 private:
     GLMixer(QWidget *parent = 0);
@@ -202,6 +204,12 @@ private:
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;
 
+    bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
+    bool _disableOutputWhenRecord;
+
+    QSettings settings;
+    QAction *recentFileActs[MAX_RECENT_FILES];
+
 #ifdef GLM_SESSION
     class SessionSwitcherWidget *switcherSession;
 #endif
@@ -217,13 +225,6 @@ private:
 #ifdef GLM_FFGL
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
-
-    bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
-    bool _disableOutputWhenRecord;
-
-    QSettings settings;
-    QAction *recentFileActs[MAX_RECENT_FILES];
-
 #ifdef GLM_LOGS
     static QFile *logFile;
     static QTextStream logStream;

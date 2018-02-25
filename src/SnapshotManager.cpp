@@ -205,12 +205,13 @@ void SnapshotManager::addSnapshot()
     // inform GUI
     emit snap();
     emit newSnapshot(id);
+    emit status(tr("Snapshot %1 created.").arg(id), 2000);
 }
 
 void SnapshotManager::restoreSnapshot(QString id)
 {
     if ( id != TEMP_SNAPSHOT_NAME && !_snapshotsList.contains(id)) {
-        qWarning() << "Snapshot" << QChar(124).toLatin1() << "Snapshot " << id << "not found.";
+        qWarning() << "Snapshot" << QChar(124).toLatin1() << "Snapshot " << id << tr("not found.");
         return;
     }
 
@@ -219,9 +220,13 @@ void SnapshotManager::restoreSnapshot(QString id)
     UndoManager::getInstance()->store();
 #endif
 
+    QString label;
     // get status of sources at given id snaphot
     QDomElement root = _snapshotsDescription.firstChildElement(id);
     if ( !root.isNull()) {
+
+        label = root.attribute("label");
+
         // get the list of sources at index
         QDomElement renderConfig = root.firstChildElement("SourceList");
         if ( !renderConfig.isNull()) {
@@ -232,13 +237,13 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                 // access source configuration by id (not by name)
                 // to access sources even after renaming
-                GLuint id = child.attribute("id", "0").toUInt();
-                SourceSet::iterator sit = RenderingManager::getInstance()->getById(id);
+                GLuint sid = child.attribute("id", "0").toUInt();
+                SourceSet::iterator sit = RenderingManager::getInstance()->getById(sid);
                 if ( RenderingManager::getInstance()->isValid(sit) )  {
 
                     // apply configuration
                     if ( ! (*sit)->setConfiguration(child) )
-                        qWarning() << "Snapshot" << QChar(124).toLatin1() << "failed to set configuration.";
+                        qWarning() << "Snapshot" << QChar(124).toLatin1() << tr("failed to set configuration.");
 
                     // as we apply changes to alpha, source migh be standly or not
                     (*sit)->setStandby(false);
@@ -249,7 +254,7 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                 }
                 else
-                    qWarning() << "Snapshot" << QChar(124).toLatin1() << "Silently ignoring configuration of a non-existing source.";
+                    qWarning() << "Snapshot" << QChar(124).toLatin1() << tr("Silently ignoring configuration of a non-existing source.");
 
                 // read next source
                 child = child.nextSiblingElement();
@@ -257,6 +262,8 @@ void SnapshotManager::restoreSnapshot(QString id)
         }
     }
 
+    emit snapshotRestored();
+    emit status(tr("Snapshot %1 restored.").arg(label), 2000);
 }
 
 

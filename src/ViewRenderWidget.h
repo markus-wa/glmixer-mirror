@@ -186,7 +186,7 @@ public slots:
     void refresh();
     void showZoom(QString s);
     void hideZoom();
-    void showMessage(const QString &s, int timeout);
+    void showMessage(const QString &s, int timeout = 1000);
     void hideMessage();
     void setCatalogVisible(bool on = false);
     void setCatalogSizeSmall();

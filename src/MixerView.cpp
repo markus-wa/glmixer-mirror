@@ -30,7 +30,6 @@
 #include "RenderingManager.h"
 #include "SelectionManager.h"
 #include "ViewRenderWidget.h"
-#include "CatalogView.h"
 #include "WorkspaceManager.h"
 #ifdef GLM_SNAPSHOT
 #include "SnapshotManager.h"

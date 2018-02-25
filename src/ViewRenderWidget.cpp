@@ -263,6 +263,11 @@ ViewRenderWidget::ViewRenderWidget() :
     grabGesture(Qt::PinchGesture);
     connect(this, SIGNAL(gestureEvent(QGestureEvent *)), SLOT(onGestureEvent(QGestureEvent *)));
     connect(this, SIGNAL(specialKeyboardEvent(QKeyEvent *)), SLOT(onSpecialKeyboardEvent(QKeyEvent *)));
+
+
+#ifdef GLM_SNAPSHOT
+    connect(SnapshotManager::getInstance(), SIGNAL(clear()), SLOT(activateSnapshot(QString)));
+#endif
 }
 
 ViewRenderWidget::~ViewRenderWidget()
@@ -547,13 +552,16 @@ void ViewRenderWidget::activateSnapshot(QString id)
     if (id.isNull())
         // make invisible
         _snapshotView->deactivate();
-    else if (_currentView == _renderingView) {
-        SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
-        _snapshotView->activate(_currentView, id, false);
+    else {
+        // special case for rendering View
+        if (_currentView == _renderingView) {
+            SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
+            _snapshotView->activate(_currentView, id, false);
+        }
+        // general case (mixing, geometry and layer view)
+        else if ( !_snapshotView->activate(_currentView, id) )
+            showMessage( tr("No change to apply in this view."), 3000 );
     }
-    else
-        _snapshotView->activate(_currentView, id);
-
 }
 #endif
 
@@ -2913,8 +2921,8 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
 bool ViewRenderWidget::event(QEvent *event)
 {
     // event() is called at every event, even DRAW event
-    // DO NOT perform computations here to ensure smooth rendering 
-    // Instead, emit signals to stack events for later 
+    // DO NOT perform computations here to ensure smooth rendering
+    // Instead, emit signals to stack events for later
 
     // handling of gesture events
     if (event->type() == QEvent::Gesture) {
@@ -2947,7 +2955,7 @@ void ViewRenderWidget::onGestureEvent(QGestureEvent *event)
             _currentView->setZoom( _currentView->getZoom() * pinch->scaleFactor() );
             showZoom(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
             emit zoomPercentChanged((int) _currentView->getZoomPercent());
-            // reset pinch scale; we only need delta of gesture 
+            // reset pinch scale; we only need delta of gesture
             pinch->setScaleFactor( 1.0 );
         }
     }
@@ -2971,5 +2979,8 @@ void ViewRenderWidget::onSpecialKeyboardEvent(QKeyEvent *event)
     else if (event->key() == Qt::Key_Escape)
     {
         RenderingManager::getInstance()->unsetCurrentSource();
+#ifdef GLM_SNAPSHOT
+        _snapshotView->deactivate();
+#endif
     }
 }

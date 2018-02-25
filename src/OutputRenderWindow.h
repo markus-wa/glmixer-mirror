@@ -70,6 +70,7 @@ public:
     static void deleteInstance();
 
     int getFullScreenMonitor();
+    QRect getFullScreenMonitorGeometry();
     int getFullScreenCount() { return fullscreenMonitorCount; }
 
     void initializeGL();

@@ -368,6 +368,38 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutToolBox = new LayoutToolboxWidget(this);
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
+    // Set the docking tab vertical
+    setDockOptions( dockOptions() | QMainWindow::VerticalTabs);
+
+    // Setup status bar
+    infobar = new QLabel(this);
+    statusbar->addPermanentWidget(infobar);
+
+    // Setup the central widget
+    centralViewLayout->removeWidget(mainRendering);
+    delete mainRendering;
+    mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
+    mainRendering->setParent(centralwidget);
+    centralViewLayout->addWidget(mainRendering);
+    //activate the default view & share labels to display in
+    setView(actionMixingView);
+    RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
+    // share menus as context menus of the main view
+    RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
+    RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
+    RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
+    currentSourceMenu->setEnabled(false);
+
+    QObject::connect(this, SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget() , SLOT(showMessage(const QString &, int)));
+
+    // setup render window
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
+    setWindowIcon(icon);
+    OutputRenderWindow::getInstance()->setWindowIcon(icon);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
+
+
 #ifdef GLM_OSC
     // special link between OSC and MixingToolbox to call for presets
     QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, QString)), mixingToolBox, SLOT(applyPreset(QString, QString)) );
@@ -396,7 +428,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifdef GLM_SNAPSHOT
     // setup snapshot manager
-    QObject::connect(SnapshotManager::getInstance(), SIGNAL(snap()), RenderingManager::getRenderingWidget(), SLOT(triggerFlash() ) );
+    QObject::connect(SnapshotManager::getInstance(), SIGNAL(snap()), RenderingManager::getRenderingWidget(), SLOT(triggerFlash()) );
+    QObject::connect(SnapshotManager::getInstance(), SIGNAL(snapshotRestored()), SelectionManager::getInstance(), SLOT(clearSelection()) );
+    QObject::connect(SnapshotManager::getInstance(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget(), SLOT(showMessage(const QString &, int)));
     // setup the snapshot toolbox
     snapshotManager = new SnapshotManagerWidget(this, &settings);
     snapshotsDockWidgetContentsLayout->addWidget(snapshotManager);
@@ -421,43 +455,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 //    QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(nextSession, SIGNAL(triggered()), SLOT(openNextSession()));
     QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
+
+    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
+    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
+
 #else
     delete switcherDockWidget;
 #endif
 
-    // Set the docking tab vertical
-    setDockOptions( dockOptions() | QMainWindow::VerticalTabs);
-
-    // Setup status bar
-    infobar = new QLabel(this);
-    statusbar->addPermanentWidget(infobar);
-
-    // Setup the central widget
-    centralViewLayout->removeWidget(mainRendering);
-    delete mainRendering;
-    mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
-    mainRendering->setParent(centralwidget);
-    centralViewLayout->addWidget(mainRendering);
-    //activate the default view & share labels to display in
-    setView(actionMixingView);
-    RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
-    // share menus as context menus of the main view
-    RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
-    RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
-    RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
-    currentSourceMenu->setEnabled(false);
-
-    // setup render window
-    QIcon icon;
-    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
-    setWindowIcon(icon);
-    OutputRenderWindow::getInstance()->setWindowIcon(icon);
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
-
-#ifdef GLM_SESSION
-    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
-    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
-#endif
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "GLMixer - Open videos or pictures");
@@ -955,6 +960,10 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 
 void GLMixer::setView(QAction *a){
 
+#ifdef GLM_SNAPSHOT
+    RenderingManager::getRenderingWidget()->activateSnapshot();
+#endif
+
     // setup the rendering Widget to the requested view
     if (a == actionMixingView) {
         RenderingManager::getRenderingWidget()->setViewMode(View::MIXING);
@@ -1119,7 +1128,7 @@ void GLMixer::on_actionMediaSource_triggered(){
     setBusy(false);
 
     if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
-        RenderingManager::getRenderingWidget()->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
+        emit status( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
 }
 
 
@@ -1314,7 +1323,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         }
 
         // show information
-        RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 selected.").arg( (*csi)->getName() ), 3000 );
+        emit status( tr("Source %1 selected.").arg( (*csi)->getName() ), 3000 );
     }
     else {  // it is not a valid source
 
@@ -1405,10 +1414,10 @@ void GLMixer::on_actionCameraSource_triggered() {
                 CloneSource *cs = dynamic_cast<CloneSource*> (s);
                 if (cs) {
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
-                    RenderingManager::getRenderingWidget()->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
+                    emit status( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
                 } else {
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
-                    RenderingManager::getRenderingWidget()->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
+                    emit status( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
                 }
             } else
                 qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
@@ -1439,7 +1448,7 @@ void GLMixer::on_actionWebSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Web source created with location ")<< web.toString();
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the web location %1.").arg( web.toString() ), 3000 );
+            emit status( tr("Source created with the web location %1.").arg( web.toString() ), 3000 );
         } else
             qCritical() << web.toString() <<  QChar(124).toLatin1() << tr("Could not create a web source with this location.");
 
@@ -1470,7 +1479,7 @@ void GLMixer::on_actionSvgSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New vector Graphics source created with file ")<< fileName;
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
+            emit status( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
         } else
             qCritical() << fileName <<  QChar(124).toLatin1() << tr("Could not create a vector graphics source with this file.");
     }
@@ -1490,7 +1499,7 @@ void GLMixer::on_actionShmSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
+            emit status( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
         } else
             qCritical() << shmd->getSelectedProcess() <<  QChar(124).toLatin1() << tr("Could not create shared memory source.");
     }
@@ -1515,7 +1524,7 @@ void GLMixer::on_actionStreamSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Network Stream source created with URL ")<< vsd->getUrl();
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with network stream %1.").arg( vsd->getUrl() ), 3000 );
+            emit status( tr("Source created with network stream %1.").arg( vsd->getUrl() ), 3000 );
         } else {
 
             qCritical() << vsd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a streaming source from this network URL.");
@@ -1555,7 +1564,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
                     // shadertoy info
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy GPU plugin source created.");
-                    RenderingManager::getRenderingWidget()->showMessage( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
+                    emit status( tr("Shadertoy GPU plugin source %1 created.").arg( s->getName() ), 3000 );
 
                     // connect the signal from the rendering manager to show the code editor after source drop
                     QObject::connect(RenderingManager::getInstance(), SIGNAL(sourceDropped(Source *)), this, SLOT(editShaderToySource(Source *)) );
@@ -1564,7 +1573,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 else {
                     // freeframe info (filename)
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Freeframe GPU plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
-                    RenderingManager::getRenderingWidget()->showMessage( tr("Freeframe GPU plugin source %1 created.").arg( s->getName() ), 3000 );
+                    emit status( tr("Freeframe GPU plugin source %1 created.").arg( s->getName() ), 3000 );
                 }
 
                 // add source
@@ -1642,7 +1651,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
             s->setPixelated( asd->getPixelated() );
 
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
+            emit status( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
         } else
             qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) <<  QChar(124).toLatin1() << tr("Could not create algorithm source.");
     }
@@ -1663,7 +1672,7 @@ void GLMixer::on_actionRenderingSource_triggered(){
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
-            RenderingManager::getRenderingWidget()->showMessage( tr("Source created with the rendering output loopback."), 3000 );
+            emit status( tr("Source created with the rendering output loopback."), 3000 );
         } else
             qCritical() << tr("Could not create rendering loopback source.");
 
@@ -1687,7 +1696,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
-            RenderingManager::getRenderingWidget()->showMessage( tr("The current source has been cloned."), 3000);
+            emit status( tr("The current source has been cloned."), 3000);
         } else
             qCritical() << (*RenderingManager::getInstance()->getCurrentSource())->getName()<< QChar(124).toLatin1() << tr("Could not clone source %1.");
     }
@@ -1733,7 +1742,7 @@ void GLMixer::on_actionCopy_snapshot_triggered(){
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
     QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
 
-    RenderingManager::getRenderingWidget()->showMessage( tr("Screenshot copied to clipboard."), 3000 );
+    emit status( tr("Screenshot copied to clipboard."), 3000 );
 }
 
 void GLMixer::on_actionSave_snapshot_triggered(){
@@ -1768,7 +1777,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
             qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
         } else {
             qDebug() << fileName << QChar(124).toLatin1() << tr("Screenshot saved.");
-            RenderingManager::getRenderingWidget()->showMessage( tr("Snapshot %1 saved.").arg(fileName), 3000 );
+            emit status( tr("Snapshot %1 saved.").arg(fileName), 3000 );
         }
     }
 }
@@ -1876,7 +1885,7 @@ void GLMixer::on_actionDeleteSource_triggered()
             if ( !numclones ){
                 QString d = (*sit)->getName();
                 RenderingManager::getInstance()->removeSource(sit);
-                RenderingManager::getRenderingWidget()->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
+                emit status( tr("Source %1 deleted.").arg( d ), 3000 );
             }
         }
     }
@@ -2021,20 +2030,11 @@ void GLMixer::confirmSessionFileName(){
 
 void GLMixer::on_actionNew_Session_triggered()
 {
+    // the only difference with close session is the post cleanup afterwards
+    QObject::connect(this, SIGNAL(sessionLoaded()), this, SLOT(postNewSession()) );
+
+    // close session
     on_actionClose_Session_triggered();
-
-    actionMixingView->trigger();
-}
-
-void GLMixer::closeSession()
-{
-    // make a new session
-    currentSessionFileName = QString();
-
-    // trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
-    actionToggleRenderingVisible->setEnabled(false);
-    QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
-    RenderingManager::getSessionSwitcher()->startTransition(false);
 
 }
 
@@ -2081,6 +2081,17 @@ void GLMixer::on_actionClose_Session_triggered()
 
 }
 
+void GLMixer::closeSession()
+{
+    // make a new session
+    currentSessionFileName = QString();
+
+    // trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
+    actionToggleRenderingVisible->setEnabled(false);
+    QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+    RenderingManager::getSessionSwitcher()->startTransition(false);
+
+}
 
 void GLMixer::newSession()
 {
@@ -2094,22 +2105,14 @@ void GLMixer::newSession()
 
     // reset
     RenderingManager::getInstance()->clearSourceSet();
+    RenderingManager::getRenderingWidget()->clearViews();
+
 #ifdef GLM_SNAPSHOT
     SnapshotManager::getInstance()->clearConfiguration();
-    RenderingManager::getRenderingWidget()->activateSnapshot();
 #endif
-    actionWhite_background->setChecked(false);
-    RenderingManager::getRenderingWidget()->clearViews();
-    QString note = tr("Created on ");
-    note.append(QDateTime::currentDateTime().toString("dddd d MMMM yyyy"));
-    note.append(" by ");
-#ifdef Q_OS_WIN
-    note.append(getenv("USERNAME"));
-#else
-    note.append(getenv("USER"));
-#endif
-    note.append(".\n");
-    blocNoteEdit->setPlainText(note);
+
+    // reset notes
+    blocNoteEdit->setPlainText(QString());
 
     // refreshes the rendering areas
     outputpreview->refresh();
@@ -2126,9 +2129,39 @@ void GLMixer::newSession()
     qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
 }
 
-QString GLMixer::getNotes()
+
+void GLMixer::postNewSession()
 {
-    return blocNoteEdit->toPlainText().trimmed();
+    // if coming from session loading, discunnect
+    QObject::disconnect(this, SIGNAL(sessionLoaded()), this, SLOT(postNewSession()) );
+
+    //
+    // Setup defaults after a new session request
+    //
+
+    // select mixing view
+    actionMixingView->trigger();
+
+    // default black background
+    actionWhite_background->setChecked(false);
+
+    // apply rendering aspect ratio matching rendering output
+    QRect g = OutputRenderWindow::getInstance()->getFullScreenMonitorGeometry();
+    selectAspectRatio( doubleToAspectRatio( double(g.width()) / double(g.height()) ) );
+
+    // new session given default notes
+    QString note = tr("Created on ");
+    note.append(QDateTime::currentDateTime().toString("dddd d MMMM yyyy"));
+    note.append(" by ");
+#ifdef Q_OS_WIN
+    note.append(getenv("USERNAME"));
+#else
+    note.append(getenv("USER"));
+#endif
+    note.append(".\n");
+    blocNoteEdit->setPlainText(note);
+
+    emit status( tr("New session ready!"), 1500);
 }
 
 SessionSaver::SessionSaver(QString filename) : QThread(), _filename(filename)
@@ -2190,7 +2223,7 @@ void GLMixer::postSaveSession()
     switcherSession->fileChanged( currentSessionFileName );
 #endif
     // log
-    RenderingManager::getRenderingWidget()->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+    emit status( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
 
     // broadcast session file ready
@@ -2235,7 +2268,7 @@ void GLMixer::saveSession(bool close, bool quit){
             connect(workerThread, SIGNAL(finished()), actionQuit, SLOT(trigger()));
 
         // start saving
-        RenderingManager::getRenderingWidget()->showMessage( tr("Saving %1...").arg( currentSessionFileName ), 3000 );
+        emit status( tr("Saving %1...").arg( currentSessionFileName ), 3000 );
         workerThread->start();
 
     }
@@ -2386,28 +2419,8 @@ void GLMixer::openSessionFile()
     if (renderConfig.isNull())
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load!");
     else {
-        standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
-
-        switch(ar) {
-        case ASPECT_RATIO_FREE:
-            actionFree_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_16_10:
-            action16_10_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_16_9:
-            action16_9_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_3_2:
-            action3_2_aspect_ratio->trigger();
-            break;
-        default:
-        case ASPECT_RATIO_4_3:
-            action4_3_aspect_ratio->trigger();
-            break;
-        }
-
-        RenderingManager::getInstance()->resetFrameBuffer();
+        // apply rendering aspect ratio
+        selectAspectRatio( renderConfig.attribute("aspectRatio", "0").toInt() );
 
         // read the list of sources
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
@@ -2417,6 +2430,7 @@ void GLMixer::openSessionFile()
         if ( errors > 0)
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
 
+        QCoreApplication::processEvents();
     }
 
     // read and apply the views configuration
@@ -2460,6 +2474,8 @@ void GLMixer::openSessionFile()
             actionCatalogLarge->trigger();
             break;
         }
+
+        QCoreApplication::processEvents();
     }
 
     // read the rendering configuration
@@ -2500,9 +2516,36 @@ void GLMixer::openSessionFile()
 #endif
 
     // message
-    RenderingManager::getRenderingWidget()->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
+    emit status( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
 
+}
+
+
+void GLMixer::selectAspectRatio(int aspectratio)
+{
+    standardAspectRatio ar = (standardAspectRatio) CLAMP(aspectratio, ASPECT_RATIO_4_3,  ASPECT_RATIO_FREE );
+
+    switch(ar) {
+    case ASPECT_RATIO_FREE:
+        actionFree_aspect_ratio->trigger();
+        break;
+    case ASPECT_RATIO_16_10:
+        action16_10_aspect_ratio->trigger();
+        break;
+    case ASPECT_RATIO_16_9:
+        action16_9_aspect_ratio->trigger();
+        break;
+    case ASPECT_RATIO_3_2:
+        action3_2_aspect_ratio->trigger();
+        break;
+    default:
+    case ASPECT_RATIO_4_3:
+        action4_3_aspect_ratio->trigger();
+        break;
+    }
+
+    RenderingManager::getInstance()->resetFrameBuffer();
 }
 
 void GLMixer::on_actionReload_Session_triggered(){
@@ -2569,7 +2612,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
         // confirm the loading of the file
-        RenderingManager::getRenderingWidget()->showMessage( tr("Sources from %1 added to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
+        emit status( tr("Sources from %1 added to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
         qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Sources from %1 added.").arg( fileName );
     }
 
@@ -3761,4 +3804,9 @@ void GLMixer::resetCurrentCursor()
     default:
         break;
     }
+}
+
+QString GLMixer::getNotes()
+{
+    return blocNoteEdit->toPlainText().trimmed();
 }

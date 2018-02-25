@@ -24,7 +24,6 @@ public:
     void setModelview();
     void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
-//    bool mouseDoubleClickEvent(QMouseEvent * event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent(QMouseEvent * event );
     bool wheelEvent(QWheelEvent * event );
@@ -33,7 +32,7 @@ public:
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
 
     // specific functions for snapshot view
-    void activate(View *activeview, QString id, bool interpolate = true);
+    bool activate(View *activeview, QString id, bool interpolate = true);
     void deactivate();
     bool isActive() { return _active;}
     void activateTarget(bool positive);

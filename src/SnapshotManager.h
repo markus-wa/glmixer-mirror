@@ -55,6 +55,8 @@ signals:
     void snap();
     void newSnapshot(QString id);
     void deleteSnapshot(QString id);
+    void snapshotRestored();
+    void status(QString, int);
 
 public slots:
     void addSnapshot();
