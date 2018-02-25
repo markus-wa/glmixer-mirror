@@ -111,11 +111,6 @@ void  WorkspaceManager::onWorkspaceAction(QAction *a)
 {
     RenderingManager::getInstance()->unsetCurrentSource();
     SelectionManager::getInstance()->clearSelection();
-
-    // in exclusive mode, select all sources in workspace
-    if (_exclusive) {
-        SelectionManager::getInstance()->selectAll();
-    }
 }
 
 void  WorkspaceManager::onSourceWorkspaceAction(QAction *a)
