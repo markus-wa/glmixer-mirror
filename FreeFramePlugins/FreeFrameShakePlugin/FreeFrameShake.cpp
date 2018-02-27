@@ -46,7 +46,7 @@ FreeFrameShake::FreeFrameShake()
 
     deltaTime = 0.01;
     m_curTime = 0.0;
-    tx = ty = 0;
+    tx = ty = sx = sy = 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,15 +121,39 @@ FFResult FreeFrameShake::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
     double amplitude = distort * 0.1;
-    srand((unsigned) (m_curTime * 1000));
+    srand((unsigned int) (m_curTime * 1000));
+    // first call to rand is often a bad pick
+    rand();
 
-    double speed = amplitude * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) - 1.0);
-    tx = CLAMP( tx + deltaTime * speed * 2.0, 0, amplitude);
+    // attract to the center
+    double attractor =  tx - (0.5 * amplitude);
+    // horizontal shake is a random acceleration factor
+    double shake =  distort * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) - 1.0);
+    // speed and position mecanics
+    sx += deltaTime * (shake - attractor);
+    tx += deltaTime * sx;
+    // bounce with damping on border
+    if (tx < 0.0 || tx > amplitude)
+        sx = -sx * 0.1;
 
-    speed = amplitude * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) -1.0 );
-    ty = CLAMP( ty + deltaTime * speed * 2.0, 0, amplitude);
+    // attract to the center
+    attractor = ty - (0.5 * amplitude);
+    // vertical shake is a random acceleration, but larger than horizontal
+    shake =  2.0 * distort * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) - 1.0);
+    // speed and position mecanics
+    sy += deltaTime * (shake - attractor);
+    ty += deltaTime * sy;
+    // bounce with damping on border
+    if (ty < 0.0 || ty > amplitude)
+        sy = -sy * 0.1;
 
-    glBegin(GL_QUADS);
+// fprintf(stderr, "%f, %f, %f, %f %f \n", tx, sx, ty, sy, attractor );
+
+    // ensure values are clamped in valid range
+    tx = CLAMP( tx, 0.0, amplitude);
+    ty = CLAMP( ty, 0.0, amplitude);
+
+    glBegin(GL_QUADS); 
 
     //lower left
     glTexCoord2d(amplitude-tx, amplitude-ty);
@@ -188,6 +212,7 @@ FFResult FreeFrameShake::SetFloatParameter(unsigned int index, float value)
 {
     if (index == FFPARAM_DISTORT) {
         distort = value;
+        sx = sy = 0.0;
         return FF_SUCCESS;
     }
 

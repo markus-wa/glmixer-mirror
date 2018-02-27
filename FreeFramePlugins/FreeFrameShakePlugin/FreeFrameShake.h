@@ -52,7 +52,7 @@ protected:
     double m_curTime, deltaTime;
     // params
     float distort;
-    double tx, ty;
+    double tx, ty, sx, sy;
 };
 
 
