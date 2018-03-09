@@ -88,6 +88,7 @@ QList<QListWidgetItem*> ImageFilesList::selectedImages()
 void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
 {
     int c = count();
+    QStringList invalidfiles;
 
     for (int i = 0; i < urlList.size(); ++i) {
 
@@ -97,7 +98,6 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
 
             // get filename
             QString filename = urlname.absoluteFilePath();
-            qDebug() << "Dropped "<<filename;
 
             // prepare to create a new item
             QListWidgetItem *newitem = 0;
@@ -115,8 +115,10 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
             //    }
                 // try to make an image: accept if not null
                 QPixmap image(filename);
-                if (image.isNull())
+                if (image.isNull()) {
+                    invalidfiles<< filename;
                     continue;
+                }
 
                 // no more need for drop hint
                 if ( item(0) == dropHintItem)
@@ -150,6 +152,10 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
     // inform & update source preview
     if ( count() != c )
         emit changed( count() );
+
+    if (!invalidfiles.empty())
+        emit unsupportedFilesDropped(invalidfiles);
+
 }
 
 void ImageFilesList::dropEvent(QDropEvent *event)
@@ -369,6 +375,9 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
 
     // enable / disable actions for selection
     connect(basket, SIGNAL(itemSelectionChanged()), SLOT(updateActions()));
+
+    // error handling
+    connect(basket, SIGNAL(unsupportedFilesDropped(QStringList)), SLOT(errorLoadingFiles(QStringList)));
 }
 
 BasketSelectionDialog::~BasketSelectionDialog()
@@ -377,9 +386,20 @@ BasketSelectionDialog::~BasketSelectionDialog()
 }
 
 
+void BasketSelectionDialog::errorLoadingFiles(QStringList l)
+{
+    QStringList e;
+    QList<QByteArray> F = QImageReader::supportedImageFormats();
+    foreach (QByteArray f, F)
+        e << f;
+
+    QMessageBox::warning(this, tr("Basket Source error"), tr("Only image files (%2) can be used in a Basket Source.\nThe following files have been ignored:\n\n%1").arg(l.join("\n")).arg(e.join(", ")) );
+
+}
+
 void BasketSelectionDialog::updateSourcePreview(){
 
-    if(s) {
+    if (s) {
         // remove source from preview: this deletes the texture in the preview
         ui->preview->setSource(0);
         // delete the source:
@@ -484,23 +504,35 @@ bool BasketSelectionDialog::getSelectedShuffle(){
 
 void BasketSelectionDialog::on_addImages_pressed() {
 
-     bool generatePowerOfTwoRequested = false;
-     QStringList fileNames = GLMixer::getInstance()->getMediaFileNames(generatePowerOfTwoRequested);
+    QFileInfo fi( appSettings->value("recentImageFile", "").toString() );
+    QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
+    if (fi.isReadable())
+        di = fi.dir();
 
-     QList<QUrl> urlList;
-     foreach (QString filename, fileNames) {
-         urlList.append(QUrl(filename));
-     }
+    QStringList fileNames = QFileDialog::getOpenFileNames(this,
+                                                          tr("GLMixer - Open Pictures"),
+                                                          di.absolutePath(),
+                                                          "Images (*.png *.jpg *.jpeg *.bmp)" );
+    // add selected file names
+    if (!fileNames.empty()) {
 
-     setEnabled(false);
-     QCoreApplication::processEvents();
+        QList<QUrl> urlList;
+        foreach (QString filename, fileNames) {
+            urlList.append(QUrl(filename));
+        }
 
-     // deal with all the urls selected
-     basket->appendImageFiles(urlList);
+        setEnabled(false);
+        QCoreApplication::processEvents();
 
-     // done
-     setEnabled(true);
-     QCoreApplication::processEvents();
+        // deal with all the urls selected
+        basket->appendImageFiles(urlList);
+
+        // remember last image location
+        appSettings->setValue("recentImageFile", fileNames.front());
+    }
+    // done
+    setEnabled(true);
+    QCoreApplication::processEvents();
 }
 
 

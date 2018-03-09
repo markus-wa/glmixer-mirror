@@ -28,6 +28,7 @@ public:
 
 signals:
     void changed(int);
+    void unsupportedFilesDropped(QStringList);
 
 public slots:
     void duplicateSelectedImages();
@@ -82,6 +83,9 @@ public slots:
     void displayCount(int v);
     void updateSourcePreview();
     void updateActions();
+
+    // error management
+    void errorLoadingFiles(QStringList l);
 
 protected:
     void showEvent(QShowEvent *);
