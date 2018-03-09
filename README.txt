@@ -47,7 +47,7 @@ Libav (or ffmpeg)
 OpenCV (optionnal)
 
 
-COMPILATION OVERVIEW 
+COMPILATION OVERVIEW
 
   STEP 1. Install the dependencies
 
@@ -61,7 +61,7 @@ COMPILATION OVERVIEW
 
   STEP 3. Create a folder for building (e.g. glmixer-Build)
 
-  STEP 4. Compilation ; Run CMake and compile 
+  STEP 4. Compilation ; Run CMake and compile
 
   STEP 5 - Packaging
 
@@ -91,7 +91,7 @@ STEP 4 - COMPILATION GENERIC INSTRUCTIONS
 
      It should end with a message like (ignore warnings):
 
-        [128/128] Linking CXX executable src/glmixer
+        [148/148] Linking CXX executable src/glmixer
 
      You can run the program directly :
         $ ./src/glmixer
@@ -170,7 +170,7 @@ OSX COMPILATION
     After compiling the program, build the package :
 
         $ sudo cpack
- 
+
     This will generate the DragNDrop package (pkg) containing the Bundle (actual application) that can be dropped to the Application folder.
 
 
@@ -201,7 +201,7 @@ WINDOWS COMPILATION
 
     To configure for Windows Release packaging:
         $ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -DUSE_UNDO=True -D USE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source/
-    
+
     The rest is the same as in the generic instructions. To test your program;
 
         $ ./src/glmixer.exe
@@ -216,5 +216,13 @@ WINDOWS COMPILATION
 
         $ cmake .
         $ cpack
- 
+
     This will generate the installer for windows (file GLMixer_1.6-XXXX_Windows.exe)
+
+
+COMPILATION PROBLEMS
+
+   *  "error: ‘next’ is not a member of ‘std’"
+
+   -> Just add '-std=c++11' to CMAKE_CXX_FLAGS.
+

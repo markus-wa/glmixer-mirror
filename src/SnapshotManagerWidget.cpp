@@ -124,10 +124,8 @@ void SnapshotManagerWidget::on_snapshotsList_itemSelectionChanged()
     QListWidgetItem *current = ui->snapshotsList->currentItem();
 
     // enable delete action only if selected icon
-    if ( current && current->isSelected() ) {
+    if ( current && current->isSelected() )
         deleteAction->setEnabled( true );
-        qDebug() << "current snapshot "<< ui->snapshotsList->row(current);
-    }
     else
         ui->snapshotsList->setCurrentRow(-1);
 }
