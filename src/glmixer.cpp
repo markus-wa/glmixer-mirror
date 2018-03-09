@@ -1740,7 +1740,7 @@ void GLMixer::on_actionCopy_snapshot_triggered(){
 
     // capture screen
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
-    QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
+    QApplication::clipboard()->setImage( capture );
 
     emit status( tr("Screenshot copied to clipboard."), 3000 );
 }
@@ -1772,14 +1772,8 @@ void GLMixer::on_actionSave_snapshot_triggered(){
         }
     }
 
-    if ( !fileName.isEmpty() ) {
-        if (!capture.save(fileName)) {
-            qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
-        } else {
-            qDebug() << fileName << QChar(124).toLatin1() << tr("Screenshot saved.");
-            emit status( tr("Snapshot %1 saved.").arg(fileName), 3000 );
-        }
-    }
+    // threaded saving of image
+    ImageSaver::saveImage(capture, fileName);
 }
 
 
@@ -3809,4 +3803,32 @@ void GLMixer::resetCurrentCursor()
 QString GLMixer::getNotes()
 {
     return blocNoteEdit->toPlainText().trimmed();
+}
+
+ImageSaver::ImageSaver(QImage image, QString filename) : QThread(), _image(image), _filename(filename)
+{
+
+}
+
+void ImageSaver::run()
+{
+    if ( !_filename.isEmpty() && !_image.isNull()) {
+        if (!_image.save(_filename)) {
+            qCritical() << _filename << QChar(124).toLatin1()<< tr("Could not save file.");
+        } else {
+            qDebug() << _filename << QChar(124).toLatin1() << tr("Image saved.");
+        }
+    }
+}
+
+void ImageSaver::saveImage(QImage image, QString filename)
+{
+    // create working thread
+    ImageSaver *workerThread = new ImageSaver(image, filename);
+
+    // kill thread when done
+    QObject::connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+
+    // start saving
+    workerThread->start();
 }

@@ -693,12 +693,9 @@ Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
     return ( (Source *) s );
 }
 
-QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
+QImage RenderingManager::captureFrameBuffer() {
 
     QImage img = _fbo ? _fbo->toImage() : QImage();
-
-    if (format != QImage::Format_RGB888)
-        img = img.convertToFormat(format);
 
     return img;
 }

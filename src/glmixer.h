@@ -245,4 +245,19 @@ public:
 
 };
 
+class ImageSaver : public QThread
+ {
+     Q_OBJECT
+
+     void run();
+     QImage _image;
+     QString _filename;
+
+public:
+     ImageSaver(QImage image, QString filename);
+
+     static void saveImage(QImage image, QString filename);
+
+};
+
 #endif /* GLV_H_ */

@@ -209,7 +209,8 @@ public:
         return output_frame_period;
     }
 
-    QImage captureFrameBuffer(QImage::Format format = QImage::Format_RGB888);
+    QImage captureFrameBuffer();
+
     inline bool clearToWhite() const {
         return clearWhite;
     }
