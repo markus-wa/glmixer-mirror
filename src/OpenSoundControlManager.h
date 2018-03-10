@@ -58,6 +58,7 @@
 #define OSC_REQUEST_NAME "name"
 #define OSC_REQUEST_CURRENT "current"
 #define OSC_REQUEST_CONNECT "connection"
+#define OSC_SNAPSHOT "snapshot"
 
 
 /**
@@ -141,6 +142,9 @@ private:
     void executeSource(class Source *s, QString property, QVariantList args);
     void executeRender(QString property, QVariantList args);
     void executeRequest(QString property, QVariantList args);
+#ifdef GLM_SNAPSHOT
+    void executeSnapshot(QString property, QVariantList args);
+#endif
 
     QUdpSocket *_udpReceive;
     QUdpSocket *_udpBroadcast;

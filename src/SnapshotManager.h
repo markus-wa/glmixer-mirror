@@ -27,6 +27,7 @@ public:
      * Access snapshot list
      * */
     QStringList getSnapshotIdentifiers();
+    QString getSnapshotIdentifier(QString label);
     QImage getSnapshotImage(QString id);
     QString getSnapshotLabel(QString id);
     void setSnapshotLabel(QString id, QString label);

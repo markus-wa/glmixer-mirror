@@ -124,6 +124,27 @@ QStringList SnapshotManager::getSnapshotIdentifiers()
     return QStringList( _snapshotsList.keys() );
 }
 
+QString SnapshotManager::getSnapshotIdentifier(QString label)
+{
+    QString id;
+
+    // search for a snapshot with the given label
+    QDomElement child = _snapshotsDescription.firstChildElement();
+    while (!child.isNull()) {
+        // test label
+        if (child.attribute("label", TEMP_SNAPSHOT_NAME) == label) {
+            // found it !
+            id = child.nodeName();
+            // break loop
+            break;
+        }
+        // loop
+        child = child.nextSiblingElement();
+    }
+
+    return id;
+}
+
 QImage SnapshotManager::getSnapshotImage(QString id)
 {
     if (_snapshotsList.contains(id))

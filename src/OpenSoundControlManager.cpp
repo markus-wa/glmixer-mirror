@@ -11,6 +11,9 @@
 #include "glmixer.h"
 #include "VideoSource.h"
 
+#ifdef GLM_SNAPSHOT
+#include "SnapshotManager.h"
+#endif
 
 namespace osc{
 
@@ -348,7 +351,7 @@ void invoke(Source *s, QString property, QVariantList args)
 
         // invoke the method with all arguments
         QMetaMethod method = s->metaObject()->method(methodIndex);
-        method.invoke(s, Qt::AutoConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
+        method.invoke(s, Qt::QueuedConnection, arguments[0].argument(), arguments[1].argument(), arguments[2].argument(), arguments[3].argument(), arguments[4].argument(), arguments[5].argument(), arguments[6].argument() );
 
     }
     else
@@ -496,6 +499,13 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
 
         executeRequest(property, args);
     }
+#ifdef GLM_SNAPSHOT
+    // Target OBJECT "snapshot" (control snapshots)
+    else if ( object.compare(OSC_SNAPSHOT, Qt::CaseInsensitive) == 0 ) {
+
+        executeSnapshot(property, args);
+    }
+#endif
     // Target OBJECT "select" (switch next or previous current source)
     else if ( object.compare(OSC_SELECT, Qt::CaseInsensitive) == 0 ) {
         // Target ATTRIBUTE next source
@@ -659,6 +669,22 @@ void OpenSoundControlManager::executeRequest(QString property, QVariantList args
     else
         throw osc::InvalidAttributeException();
 }
+
+#ifdef GLM_SNAPSHOT
+void OpenSoundControlManager::executeSnapshot(QString property, QVariantList args)
+{
+    // get the id of the requested snapshot
+    QString snapshotid = SnapshotManager::getInstance()->getSnapshotIdentifier(property);
+
+    if (snapshotid.isNull()) {
+        emit error(QString("No snapshot named %1 ").arg(property) );
+    }
+    else {
+        SnapshotManager::getInstance()->restoreSnapshot(snapshotid);
+        emit log(QString("Snapshot %1 restored.").arg(property) );
+    }
+}
+#endif
 
 void OpenSoundControlManager::addTranslation(QString before, QString after)
 {
