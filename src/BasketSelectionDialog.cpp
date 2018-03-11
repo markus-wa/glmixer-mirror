@@ -150,8 +150,7 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
     }
 
     // inform & update source preview
-    if ( count() != c )
-        emit changed( count() );
+    emit changed( count() );
 
     if (!invalidfiles.empty())
         emit unsupportedFilesDropped(invalidfiles);
