@@ -90,6 +90,9 @@ void CameraThread::run(){
         }
         cvs->mutex->unlock();
 
+        // give time to the display thread to lock mutex
+        msleep(5);
+
         // exponential moving average to compute FPS
         cvs->framerate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * cvs->framerate;
 
@@ -279,35 +282,39 @@ void OpencvSource::update(){
             // copy pixels from PBO to texture object
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
 
-            mutex->lock();
+            // non blocking access to image
+            if (mutex->tryLock()) {
 
-            // bind PBO to update pixel values
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+                // bind PBO to update pixel values
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
 
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+                glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
 
-            // map the buffer object into client's memory
-            GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr) {
-                // update data directly on the mapped buffer
-                memmove(ptr, frame->imageData, imgsize);
-                // release pointer to mapping buffer
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+                // map the buffer object into client's memory
+                GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+                if (ptr) {
+                    // update data directly on the mapped buffer
+                    memmove(ptr, frame->imageData, imgsize);
+                    // release pointer to mapping buffer
+                    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+                }
+
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+                frameChanged = false;
+                cond->wakeAll();
+                mutex->unlock();
             }
-
-            frameChanged = false;
-            cond->wakeAll();
-            mutex->unlock();
-
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
         } else {
 
-            mutex->lock();
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
-            frameChanged = false;
-            cond->wakeAll();
-            mutex->unlock();
+            // non blocking access to image
+            if (mutex->tryLock()) {
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+                frameChanged = false;
+                cond->wakeAll();
+                mutex->unlock();
+            }
         }
 
     }
