@@ -591,6 +591,20 @@ ELSE(APPLE)
         # IF(MINGW)
             # INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
         # ENDIF(MINGW)
+        
+        #--------------------------------------------------------------------------------
+        # Install Qt plugins by copying directories from the qt installation
+        # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+        #INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir} COMPONENT Runtime FILES_MATCHING PATTERN "*.dylib")
+
+        FILE(GLOB files "${QT_PLUGINS_DIR}/imageformats/*")
+        SET(_qtpluginFiles "")
+        foreach (_file ${files})
+            get_filename_component(_qtpluginFile "${_file}" REALPATH)
+            list (APPEND _qtpluginFiles "${_qtpluginFile}")
+            message(STATUS "  - ${_qtpluginFile}")
+        endforeach()
+        install(FILES ${_qtpluginFiles} DESTINATION bin COMPONENT Runtime )
 
     ELSE( EXISTS ${GLMIXER_BINARY_LOCATION} )
 
