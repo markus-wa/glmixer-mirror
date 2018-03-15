@@ -134,21 +134,21 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     // flush
     cvGrabFrame( capture );
     cvGrabFrame( capture );
-    cvGrabFrame( capture );
 
     // fill first frame
-    IplImage *raw = cvQueryFrame( capture );
-    if (!raw)
-        brokenCameraException().raise();
+    if ( cvGrabFrame( capture )) {
+        IplImage *raw = cvRetrieveFrame( capture );
+        if (!raw)
+            brokenCameraException().raise();
 
-    if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
-        qDebug()<< tr("Image format conversion required: Video capture might be slow!");
-        frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
-        cvCopy(raw, frame);
-        needFrameCopy = true;
-    } else
-        frame = raw;
-
+        if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
+            qDebug()<< tr("Image format conversion required: Video capture might be slow!");
+            frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
+            cvCopy(raw, frame);
+            needFrameCopy = true;
+        } else
+            frame = raw;
+    }
 
     // init texture
     glActiveTexture(GL_TEXTURE0);
