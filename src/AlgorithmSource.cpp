@@ -231,7 +231,7 @@ void AlgorithmThread::run() {
         as->_mutex->unlock();
 
         // computing time
-        e = CLAMP( (unsigned long) t.elapsed() * 1000, 1000, as->period ) ;
+        e = CLAMP( (unsigned long) t.elapsed() * 1000, 1000, as->period - 500 ) ;
 
         // wait for the period duration minus time spent before updating next frame
         usleep( as->period - e);
