@@ -54,6 +54,7 @@ public slots:
 
     // GUI actions
     void on_updatePeriod_valueChanged(int period);
+    void on_recordingFormatSelection_currentIndexChanged(int i);
     void on_recordingUpdatePeriod_valueChanged(int period);
     void on_recordingBufferSize_valueChanged(int percent);
     void on_recordingFolderButton_clicked();

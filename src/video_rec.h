@@ -27,32 +27,39 @@
 #define FFVHUFF_REC_H__
 
 typedef enum {
-	FORMAT_AVI_RAW = 0,
-	FORMAT_AVI_FFVHUFF,
-	FORMAT_MPG_MPEG1,
-	FORMAT_MPG_MPEG2,
-	FORMAT_MP4_MPEG4,
-	FORMAT_WMV_WMV2,
-	FORMAT_FLV_FLV1
+    FORMAT_AVI_RAW = 0,
+    FORMAT_AVI_FFVHUFF,
+    FORMAT_MPG_MPEG1,
+    FORMAT_MPG_MPEG2,
+    FORMAT_MP4_MPEG4,
+    FORMAT_WMV_WMV2,
+    FORMAT_FLV_FLV1
 } encodingformat;
+
+typedef enum {
+    QUALITY_AUTO = 0,
+    QUALITY_LOW,
+    QUALITY_MEDIUM,
+    QUALITY_HIGH,
+} encodingquality;
 
 typedef struct video_rec video_rec_t;
 
 struct video_rec {
-	int width;
-	int height;
-	int fps;
+    int width;
+    int height;
+    int fps;
     int framenum;
     long int previous_dts;
-	char suffix[6];
-	char description[64];
+    char suffix[6];
+    char description[64];
     void(*pt2RecordingFunction)(video_rec_t *, void *, int);
-	struct encoder *enc;
-	struct converter *conv;
+    struct encoder *enc;
+    struct converter *conv;
 };
 
 
-video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage);
+video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, encodingquality quality, char *errormessage);
 int video_rec_stop(video_rec_t *);
 void video_rec_free(video_rec_t *);
 

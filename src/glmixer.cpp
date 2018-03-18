@@ -480,6 +480,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     Q_CHECK_PTR(outputpreview);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), outputpreview, SLOT(refresh()));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputpreview, SLOT(displayRecordingTimer(bool)));
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -3170,6 +3171,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> display_frame_period;
     RenderingManager::getInstance()->setDisplayFramePeriodicity(display_frame_period);
 
+    // y. recording quality
+    uint recquality = 4;
+    stream >> recquality;
+    RenderingManager::getRecorder()->setEncodingQuality((encodingquality) recquality);
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3273,6 +3279,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // x.  output frame periodicity
     stream << RenderingManager::getInstance()->getDisplayFramePeriodicity();
+
+    // y. recording quality
+    stream << (uint) RenderingManager::getRecorder()->encodingQuality();
 
     return data;
 }

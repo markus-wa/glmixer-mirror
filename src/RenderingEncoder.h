@@ -104,6 +104,8 @@ public:
     void setUpdatePeriod(uint ms) { update=ms; }
     uint updatePeriod() { return update; }
     void setFrameSize(QSize s) { if (!started) framesSize = s; }
+    void setEncodingQuality(encodingquality q);
+    encodingquality encodingQuality() { return quality; }
 
     // preferences saving mode
     void setAutomaticSavingMode(bool on);
@@ -137,7 +139,6 @@ signals:
     void selectAspectRatio(const standardAspectRatio );
 
 protected:
-    void timerEvent(QTimerEvent *event);
     bool start();
 
 private:
@@ -149,7 +150,8 @@ private:
     // state machine
     bool started, paused;
     QTime timer;
-    int elapseTimer, skipframecount;
+    int elapsed_time;
+    int skipframecount;
 
     // encoder
     QSize framesSize;
@@ -157,6 +159,7 @@ private:
 
     uint update, displayupdate;
     encodingformat format;
+    encodingquality quality;
     video_rec_t *recorder;
     char errormessage[256];
     unsigned long bufferSize;

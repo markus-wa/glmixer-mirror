@@ -2447,7 +2447,9 @@ GLuint ViewRenderWidget::buildFadingList()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
 
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     glRectf(-1, -1, 1, 1);
@@ -2456,6 +2458,7 @@ GLuint ViewRenderWidget::buildFadingList()
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+    glPopAttrib();
 
     glEndList();
 

@@ -99,7 +99,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="dragDropMode">
-          <enum>QAbstractItemView::DropOnly</enum>
+          <enum>QAbstractItemView::NoDragDrop</enum>
          </property>
          <property name="alternatingRowColors">
           <bool>false</bool>
@@ -154,7 +154,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -172,7 +172,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -190,7 +190,7 @@ p, li { white-space: pre-wrap; }
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -208,7 +208,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -226,7 +226,7 @@ p, li { white-space: pre-wrap; }
            <string>System and user preferences</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -264,7 +264,7 @@ p, li { white-space: pre-wrap; }
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="PageRendering">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -986,35 +986,7 @@ p, li { white-space: pre-wrap; }
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
                <layout class="QGridLayout" name="gridLayout_3">
-                <item row="0" column="2">
-                 <widget class="QLabel" name="label_info">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;RAW and FFVHUFF are looseless but produce large files (slower).&lt;/p&gt;&lt;p&gt;Other codecs are lossy but are compressed and more portable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="layoutDirection">
-                   <enum>Qt::RightToLeft</enum>
-                  </property>
-                  <property name="pixmap">
-                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
-                  </property>
-                  <property name="scaledContents">
-                   <bool>false</bool>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
+                <item row="2" column="0">
                  <widget class="QLabel" name="targetfps">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
@@ -1046,7 +1018,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="0">
+                <item row="3" column="0">
                  <widget class="QLabel" name="label_18">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -1065,7 +1037,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
+                <item row="3" column="1">
                  <widget class="QSlider" name="recordingBufferSize">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How much RAM can be used to store images before writing to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1138,7 +1110,7 @@ p, li { white-space: pre-wrap; }
                   </item>
                  </widget>
                 </item>
-                <item row="2" column="2">
+                <item row="3" column="2">
                  <widget class="QLabel" name="recordingBuffersizeString">
                   <property name="minimumSize">
                    <size>
@@ -1154,7 +1126,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
+                <item row="2" column="1">
                  <widget class="QSlider" name="recordingUpdatePeriod">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -1185,10 +1157,69 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="2">
+                <item row="2" column="2">
                  <widget class="QLabel" name="recordingFrameRateString">
                   <property name="text">
                    <string notr="true">25 fps</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_30">
+                  <property name="text">
+                   <string>Compression</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QComboBox" name="recordingQualitySelection">
+                  <item>
+                   <property name="text">
+                    <string>Auto (optimal quality)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>High (low quality)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Medium</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Low (high quality)</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_info">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string/>
+                  </property>
+                  <property name="layoutDirection">
+                   <enum>Qt::RightToLeft</enum>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

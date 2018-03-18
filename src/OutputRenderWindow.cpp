@@ -26,6 +26,7 @@
 #include "glmixer.h"
 #include "OutputRenderWindow.moc"
 #include "RenderingManager.h"
+#include "RenderingEncoder.h"
 #include "ViewRenderWidget.h"
 
 #include <QGLFramebufferObject>
@@ -36,7 +37,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false) {
 
     rx = 0;
     ry = 0;
@@ -174,7 +175,7 @@ void OutputRenderWidget::paintGL()
         resizeGL();
 
     // avoid drawing if not visible
-    if (!isEnabled() || !isVisible() || !output_active)
+    if ( !isVisible() || !output_active)
         return;
 
     // use the accelerated GL_EXT_framebuffer_blit if available
@@ -187,8 +188,9 @@ void OutputRenderWidget::paintGL()
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(), rx, ry, rw, rh, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-    } else
-        // 	Draw quad with fbo texture in a more basic OpenGL way
+    }
+    // or Draw quad with fbo texture in a more basic OpenGL way
+    else
     {
         // apply the texture of the frame buffer
         glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
@@ -196,6 +198,21 @@ void OutputRenderWidget::paintGL()
 
         // draw the polygon with texture
         glCallList(ViewRenderWidget::quad_texured);
+    }
+
+    // filter to show it is disabled
+    if (!isEnabled()) {
+        glColor4ub(COLOR_FADING, 128);
+        glCallList(ViewRenderWidget::fading);
+    }
+    // display recording timer
+    else if (rec_timer_active)
+    {
+        static QFont monofont("", 20, QFont::Bold);
+        static QColor red(Qt::red);
+        QString time = getStringFromTime( (double) RenderingManager::getRecorder()->getRecodingTime() / 1000.0 );
+        qglColor( red );
+        renderText(20, height() - 20, time, monofont);
     }
 
 }

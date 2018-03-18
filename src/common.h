@@ -76,6 +76,8 @@ QString getByteSizeString(double numbytes);
 
 void initApplicationFonts();
 QString getMonospaceFont();
+QString getStringFromTime(double time);
+double getTimeFromString(QString line);
 
 QFileInfo getFileInfoFromURL(QUrl url);
 

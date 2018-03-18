@@ -143,6 +143,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         outputSkippedFrames->setValue(1);
         on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
         recordingFormatSelection->setCurrentIndex(4);
+        recordingQualitySelection->setCurrentIndex(0);
         recordingUpdatePeriod->setValue(40);
         recordingFolderBox->setChecked(false);
         recordingFolderLine->clear();
@@ -346,6 +347,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> display_frame_period;
     outputSkippedFrames->setValue( (int) display_frame_period);
 
+    // y. recording quality
+    uint recquality = 0;
+    stream >> recquality;
+    recordingQualitySelection->setCurrentIndex(recquality);
+    recordingQualitySelection->setEnabled(recformat == 4);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -434,6 +441,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // x. output frame periodicity
     stream << (uint) outputSkippedFrames->value();
 
+    // y. recording quality
+    stream << (uint) recordingQualitySelection->currentIndex();
+
     return data;
 }
 
@@ -444,6 +454,11 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
     on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
 }
 
+
+void UserPreferencesDialog::on_recordingFormatSelection_currentIndexChanged(int i)
+{
+    recordingQualitySelection->setEnabled(i == 4);
+}
 
 void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
 {

@@ -49,7 +49,38 @@ struct converter {
     struct SwsContext *img_convert_ctx;
 };
 
-video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage)
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
+int getbuffersizefrombitrate(int64_t br, enum CodecID codec)
+#else
+int getbuffersizefrombitrate(int64_t br, enum AVCodecID codec)
+#endif
+{
+    int bufsize = 40;
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    if ( codec == CODEC_ID_MPEG4)
+#else
+    if ( codec == AV_CODEC_ID_MPEG4)
+#endif
+    {
+        // compute VBV buffer size ( snipet from mpegvideo_enc.c in ffmpeg )
+        if (br >= 15000000)
+            bufsize = 320 + (br - 15000000L) * (760-320) / (38400000 - 15000000);
+        else if(br >=  2000000)
+            bufsize =  80 + (br -  2000000L) * (320- 80) / (15000000 - 2000000);
+        else if(br >=   384000)
+            bufsize =  40 + (br -   384000L) * ( 80- 40) / (2000000 - 384000);
+    }
+    else {
+        bufsize = FFMAX(br, 15000000) * 112L / 15000000;
+    }
+
+    bufsize *= 16384;
+    return bufsize;
+}
+
+video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, encodingquality quality, char *errormessage)
 {
     AVCodec *c = NULL;
 
@@ -232,7 +263,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     }
 
     // set time base for the stream
-    rec->enc->video_stream->time_base = (AVRational) {1,fps};
+    rec->enc->video_stream->time_base = (AVRational){1,fps};
 
     // get codec context
     rec->enc->codec_context = rec->enc->video_stream->codec;
@@ -248,40 +279,49 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context->width = width;
     rec->enc->codec_context->height = height;
     rec->enc->codec_context->flags = CODEC_FLAG_GLOBAL_HEADER;
-    rec->enc->codec_context->time_base = (AVRational) {1,fps};
+    rec->enc->codec_context->time_base = (AVRational){1, fps};
     rec->enc->codec_context->gop_size = fps / 2;
-    rec->enc->codec_context->coder_type = 1;
-    // multithreaded encoding is much faster :)
-    rec->enc->codec_context->thread_count = 2;
+
+    // multithreaded encoding is much faster
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    if ( f_codec_id == CODEC_ID_FFVHUFF)
+#else
+    if ( f_codec_id == AV_CODEC_ID_FFVHUFF)
+#endif
+        rec->enc->codec_context->thread_count = 1; // does not support multithread
+    else
+        rec->enc->codec_context->thread_count = 2; // 2 threads by default
+
     // bit_rate is measured in units of 400 bits/second, rounded upwards
     rec->enc->codec_context->bit_rate = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(f_pix_fmt)) * (fps+1)) / 400;
-    // classic 9.8 Mb/s for DVD
-    rec->enc->codec_context->rc_max_rate = 9800000;
-    // parameters dependent on codec
-    switch(f_codec_id) {
-    case AV_CODEC_ID_FFVHUFF:
-        rec->enc->codec_context->thread_count = 1; // does not support multithread
-        break;
-        // compute VBV buffer size ( snipet from mpegvideo_enc.c in ffmpeg )
-    case AV_CODEC_ID_MPEG1VIDEO:
-    case AV_CODEC_ID_MPEG2VIDEO:
-        rec->enc->codec_context->rc_buffer_size = FFMAX(rec->enc->codec_context->rc_max_rate, 15000000) * 112L / 15000000 * 16384;
-        break;
-    case AV_CODEC_ID_MPEG4:
-        if       (rec->enc->codec_context->rc_max_rate >= 15000000) {
-            rec->enc->codec_context->rc_buffer_size = 320 + (rec->enc->codec_context->rc_max_rate - 15000000L) * (760-320) / (38400000 - 15000000);
-        } else if(rec->enc->codec_context->rc_max_rate >=  2000000) {
-            rec->enc->codec_context->rc_buffer_size =  80 + (rec->enc->codec_context->rc_max_rate -  2000000L) * (320- 80) / (15000000 -  2000000);
-        } else if(rec->enc->codec_context->rc_max_rate >=   384000) {
-            rec->enc->codec_context->rc_buffer_size =  40 + (rec->enc->codec_context->rc_max_rate -   384000L) * ( 80- 40) / ( 2000000 -   384000);
-        } else
-            rec->enc->codec_context->rc_buffer_size = 40;
-        rec->enc->codec_context->rc_buffer_size *= 16384;
-        break;
-    default:
-        rec->enc->codec_context->rc_buffer_size =  0;
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    if ( f_codec_id == CODEC_ID_MPEG4)
+#else
+    if ( f_codec_id == AV_CODEC_ID_MPEG4)
+#endif
+    {
+        // compute maximum bit rate and buffer suze if quality is provided
+        switch (quality) {
+        case QUALITY_LOW:
+            rec->enc->codec_context->rc_max_rate = 4 * rec->enc->codec_context->bit_rate;
+            rec->enc->codec_context->rc_buffer_size = getbuffersizefrombitrate(rec->enc->codec_context->rc_max_rate, f_codec_id);
+            break;
+        case QUALITY_MEDIUM:
+            rec->enc->codec_context->rc_max_rate = 10 * rec->enc->codec_context->bit_rate;
+            rec->enc->codec_context->rc_buffer_size = getbuffersizefrombitrate(rec->enc->codec_context->rc_max_rate, f_codec_id);
+            break;
+        case QUALITY_HIGH:
+            rec->enc->codec_context->rc_max_rate = 32 * rec->enc->codec_context->bit_rate;
+            rec->enc->codec_context->rc_buffer_size = getbuffersizefrombitrate(rec->enc->codec_context->rc_max_rate, f_codec_id);
+            break;
+        case QUALITY_AUTO:
+        default:
+            break;
+        }
     }
 
+//    fprintf(stderr, "libav encoder  quality;%d, bit rate;%ld, max bit rate;%ld, buffer;%d", (int)quality, rec->enc->codec_context->bit_rate, rec->enc->codec_context->rc_max_rate, rec->enc->codec_context->rc_buffer_size);
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
     if(avcodec_open(rec->enc->codec_context, c) < 0) {
@@ -311,7 +351,8 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
     av_write_header(rec->enc->format_context);
 #else
-    avformat_write_header(rec->enc->format_context, NULL);
+    if ( avformat_write_header(rec->enc->format_context, NULL) < 0)
+        return NULL;
 #endif
     // if converter was created, we will need it !
     if (rec->conv != NULL) {
@@ -425,6 +466,9 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     AVFrame frame;
     memset(&frame, 0, sizeof(frame));
+    frame.width = rec->width;
+    frame.height = rec->height;
+    frame.format = (int) AV_PIX_FMT_BGRA;
     int linesize = rec->width * 4;
     frame.data[0] = data + linesize * (rec->height - 1);
     frame.linesize[0] = -linesize;
