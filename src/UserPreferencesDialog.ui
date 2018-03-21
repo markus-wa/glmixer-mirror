@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>614</width>
-    <height>584</height>
+    <height>587</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -154,7 +154,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -172,7 +172,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -190,7 +190,7 @@ p, li { white-space: pre-wrap; }
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -208,7 +208,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -226,7 +226,7 @@ p, li { white-space: pre-wrap; }
            <string>System and user preferences</string>
           </property>
           <property name="textAlignment">
-           <set>AlignCenter</set>
+           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -264,7 +264,7 @@ p, li { white-space: pre-wrap; }
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="PageRendering">
           <layout class="QVBoxLayout" name="verticalLayout_6">
