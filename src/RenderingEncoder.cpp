@@ -481,7 +481,7 @@ void RenderingEncoder::close(){
          msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
                  "Playback of the movie might be jerky.\n"
                  "To avoid this, change the preferences to:\n"
-                 " - a lower rendering resolution\n"
+                 " - another rendering resolution\n"
                  " - a lower recording frame rate\n"
                  " - a larger recording buffer size\n"
                  " - another recording codec").arg(framecount).arg(framecount + skipframecount));

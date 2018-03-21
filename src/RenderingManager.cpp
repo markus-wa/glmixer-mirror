@@ -85,6 +85,10 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include <QGLFramebufferObject>
 #include <QElapsedTimer>
 
+// use glReadPixel or glGetTextImage ?
+#define RECORDING_READ_PIXEL 1
+// see here for discussion on best performance:
+// http://lektiondestages.blogspot.ch/2013/01/reading-opengl-backbuffer-to-system.html
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
@@ -493,17 +497,30 @@ void RenderingManager::postRenderToFrameBuffer() {
      #endif
          ) {
 
+
+#ifdef RECORDING_READ_PIXEL
+        // bind fbo context for ReadPixel        
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+#else
         // read texture from the framebuferobject and record this frame (the recorder knows if it is active or not)
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+#endif
 
         // use pixel buffer object if initialized
         if (pboIds[0] && pboIds[1]) {
 
+            // bind a PBO for asynchronous get of buffer
             glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
+
+#ifdef RECORDING_READ_PIXEL
+            // ReadPixel of _fbo    
+            glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+#else
             // read pixels from texture
             glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+#endif
 
-            // map the PBO to process its data by CPU
+            // map the other PBO to process its data by CPU
             glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
             unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
             if(ptr)  {
