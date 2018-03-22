@@ -487,6 +487,11 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
     lastClicPos = event->pos();
 
+    // remember coordinates of clic in background for selection area
+    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+    _selectionArea.markStart(QPointF(cursorx,cursory));
+
     //  panning
     if (  isUserInput(event, View::INPUT_NAVIGATE) ||  isUserInput(event, View::INPUT_DRAG) || _specialMode == MODE_MOVE_CIRCLE ) {
         // priority to panning of the view (even in drop mode)
@@ -569,10 +574,6 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
         setAction(View::NONE);
     }
 
-    // remember coordinates of clic in background for selection area
-    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
-    _selectionArea.markStart(QPointF(cursorx,cursory));
 
     return false;
 }
@@ -788,6 +789,9 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 
     // end of selection area in any case
     _selectionArea.setEnabled(false);
+
+    // reset list of clicked sources
+    clickedSources.clear();
 
     return true;
 }

@@ -387,6 +387,9 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
 {
     lastClicPos = event->pos();
 
+    // initial depth of selection area
+    _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
+
     // MIDDLE BUTTON ; panning cursor
     if ( isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) ) {
         setAction(View::PANNING);
@@ -440,9 +443,6 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
         return true;
     }
     // else = click in background
-
-    // initial depth of selection area
-    _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
 
 
     // context menu on the background
@@ -580,6 +580,9 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
         picking_map_width = 0;
         picking_map_needsupdate = true;
     }
+
+    // reset list of clicked sources
+    clickedSources.clear();
 
     return true;
 }

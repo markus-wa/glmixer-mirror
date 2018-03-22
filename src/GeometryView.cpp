@@ -333,6 +333,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
     lastClicPos = event->pos();
 
+    // remember coordinates of clic
+    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+    _selectionArea.markStart(QPointF(cursorx,cursory));
+
     //  panning
     if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveFrame) {
         // priority to panning of the view (even in drop mode)
@@ -440,10 +445,6 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
         setAction(View::NONE);
     }
 
-    // remember coordinates of clic
-    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
-    _selectionArea.markStart(QPointF(cursorx,cursory));
 
     return false;
 }
@@ -618,6 +619,9 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
         _selectionArea.setEnabled(false);
         setCurrentSource(SelectionManager::getInstance()->selectionSource());
     }
+
+    // reset list of clicked sources
+    clickedSources.clear();
 
     return true;
 }
