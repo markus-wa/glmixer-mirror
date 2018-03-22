@@ -221,6 +221,8 @@ RenderingManager::RenderingManager() :
 #ifdef GLM_UNDO
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
 #endif
+
+    elapsed_time = 0;
 }
 
 RenderingManager::~RenderingManager() {
@@ -576,6 +578,11 @@ void RenderingManager::postRenderToFrameBuffer() {
     glDisable(GL_TEXTURE_2D);
 
     needsUpdate = false;
+
+    // elapsed time
+    static QTime timer;
+    int t = timer.restart();
+    elapsed_time += paused ? 0 : t;
 }
 
 void RenderingManager::preRenderToFrameBuffer()
@@ -1678,6 +1685,9 @@ void RenderingManager::clearSourceSet() {
     // restore default Workspaces
     WorkspaceManager::getInstance()->setCount();
     WorkspaceManager::getInstance()->setCurrent(0);
+
+    // reset time
+    elapsed_time = 0;
 
     // inform of change
     emit countSourceChanged(_front_sources.size());

@@ -385,7 +385,7 @@ TimeInputDialog::TimeInputDialog(QWidget *parent, double time, double min, doubl
         }
         else {
             Question->setText(tr("Please enter target time"));
-            Guide->setText(tr("Format must be '__h __m __s'\nValues must be between %1 and %2").arg(getStringFromTime(_min)).arg(getStringFromTime(_max)));
+            Guide->setText(tr("Format must be 'HH:MM:SS'\nValues must be between %1 and %2").arg(getStringFromTime(_min)).arg(getStringFromTime(_max)));
             Entry->setText( getStringFromTime(_t) );
             timeValidator *validator = new timeValidator(this);
             Entry->setValidator(validator);

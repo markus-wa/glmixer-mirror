@@ -478,6 +478,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
     Q_CHECK_PTR(outputpreview);
+    outputpreview->displayElapsedTimer(true);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), outputpreview, SLOT(refresh()));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputpreview, SLOT(displayRecordingTimer(bool)));
@@ -630,6 +631,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
 
     // Setup the timeline
+    timeLineEdit->setFont( QFont(getMonospaceFont(), 9) );
     timeline->setLabelFont(getMonospaceFont(), 7);
     QObject::connect(markInButton, SIGNAL(clicked()), timeline, SLOT(setBeginToCurrent()));
     QObject::connect(markOutButton, SIGNAL(clicked()), timeline, SLOT(setEndToCurrent()));

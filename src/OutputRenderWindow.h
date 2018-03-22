@@ -53,13 +53,14 @@ public slots:
     void setActive(bool on) { output_active = on; }
     void setInactive(bool off) { output_active = !off; }
     void displayRecordingTimer(bool on) { rec_timer_active = on; }
+    void displayElapsedTimer(bool on) { up_timer_active = on; }
 
 protected:
     bool useAspectRatio, useWindowAspectRatio;
     int rx, ry, rw, rh;
     bool need_resize;
     bool output_active;
-    bool rec_timer_active;
+    bool rec_timer_active, up_timer_active;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

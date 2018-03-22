@@ -37,7 +37,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false), up_timer_active(false) {
 
     rx = 0;
     ry = 0;
@@ -208,13 +208,21 @@ void OutputRenderWidget::paintGL()
     // display recording timer
     else if (rec_timer_active)
     {
-        static QFont monofont("", 20, QFont::Bold);
+        static QFont monofont(getMonospaceFont(), 20, QFont::Bold);
         static QColor red(Qt::red);
         QString time = getStringFromTime( (double) RenderingManager::getRecorder()->getRecodingTime() / 1000.0 );
         qglColor( red );
-        renderText(20, height() - 20, time, monofont);
+        renderText(10, height() - 20, time, monofont);
     }
 
+    if (up_timer_active) {
+        static QFont monofont(getMonospaceFont(), 14, QFont::Bold);
+        QString time = getStringFromTime( (double) RenderingManager::getInstance()->getUpTime() / 1000.0 );
+        qglColor( Qt::black );
+        renderText(10, 20, time, monofont);
+        qglColor( Qt::white );
+        renderText(9, 19, time, monofont);
+    }
 }
 
 

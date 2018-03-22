@@ -303,7 +303,7 @@ QString getStringFromTime(double time)
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
     int ds = (int) (time * 100.0);
-    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
+    return QString("%1:%2:%3.%4").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
 }
 
 double getTimeFromString(QString line)
@@ -311,16 +311,13 @@ double getTimeFromString(QString line)
     bool ok = false;
     double h, m, s;
 
-    QStringList parts = line.split('h', QString::SkipEmptyParts);
-    if (parts.size()!=2)    return -1;
+    QStringList parts = line.split(':', QString::SkipEmptyParts);
+    if (parts.size()!=3)    return -1;
     h = (double) parts[0].toInt(&ok);
     if (!ok) return -1;
-    parts = parts[1].split('m', QString::SkipEmptyParts);
-    if (parts.size()!=2)    return -1;
-    m = (double) parts[0].toInt(&ok);
+    m = (double) parts[1].toInt(&ok);
     if (!ok) return -1;
-    parts = parts[1].split('s', QString::SkipEmptyParts);
-    s = parts[0].toDouble(&ok);
+    s = parts[2].toDouble(&ok);
     if (!ok) return -1;
 
     return (h * 3600.0) + (m * 60.0) + s;
