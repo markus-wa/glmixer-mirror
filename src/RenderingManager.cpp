@@ -85,11 +85,6 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include <QGLFramebufferObject>
 #include <QElapsedTimer>
 
-// use glReadPixel or glGetTextImage ?
-#define RECORDING_READ_PIXEL 1
-// see here for discussion on best performance:
-// http://lektiondestages.blogspot.ch/2013/01/reading-opengl-backbuffer-to-system.html
-
 // static members
 RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
@@ -499,7 +494,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 
 #ifdef RECORDING_READ_PIXEL
-        // bind fbo context for ReadPixel        
+        // bind fbo context for ReadPixel
         glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
 #else
         // read texture from the framebuferobject and record this frame (the recorder knows if it is active or not)
@@ -513,7 +508,7 @@ void RenderingManager::postRenderToFrameBuffer() {
             glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
 
 #ifdef RECORDING_READ_PIXEL
-            // ReadPixel of _fbo    
+            // ReadPixel of _fbo
             glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 #else
             // read pixels from texture
@@ -544,8 +539,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 
             _sharedMemory->unlock();
         }
-
-
 #endif // SHM
 
         // restore state if using PBO

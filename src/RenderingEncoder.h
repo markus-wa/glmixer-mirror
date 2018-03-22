@@ -40,6 +40,8 @@
 #define MAX_RECORDING_BUFFER_SIZE 4294967296
 // 5% of range, approx 200 MB
 #define DEFAULT_RECORDING_BUFFER_SIZE 209505485
+// use glReadPixel or glGetTextImage ?
+#define RECORDING_READ_PIXEL 1
 
 extern "C" {
 #include "video_rec.h"

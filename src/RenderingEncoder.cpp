@@ -431,8 +431,13 @@ void RenderingEncoder::addFrame(unsigned char *data){
         memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
 
     } else
+#ifdef RECORDING_READ_PIXEL
+        // ReadPixel of _fbo
+        glReadPixels(0, 0, recorder->width, recorder->height, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
+#else
         // read the pixels from the texture
         glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
+#endif
 
     // inform the thread that a picture was pushed into the queue
     encoder->pictq_push( elapsed_time );
