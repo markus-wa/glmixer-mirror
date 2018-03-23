@@ -244,8 +244,10 @@ RenderingManager::~RenderingManager() {
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 
-    if (_recorder)
+    if (_recorder) {
+        _recorder->kill();
         delete _recorder;
+    }
 
     if (_switcher)
         delete _switcher;

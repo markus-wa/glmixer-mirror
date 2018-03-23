@@ -130,6 +130,7 @@ public slots:
     void saveFile(QString suffix, QString filename = QString::null);
     void saveFileAs(QString suffix, QString description);
     void close();
+    void kill();
 
     void setBufferSize(unsigned long bytes);
     unsigned long getBufferSize();

@@ -446,6 +446,15 @@ void RenderingEncoder::addFrame(unsigned char *data){
     elapsed_time += timer.restart();
 }
 
+void RenderingEncoder::kill(){
+    // deactivate if previously started
+    if (started) {
+        // request stop to encoder
+        encoder->terminate();
+        encoder->wait(1000);
+    }
+}
+
 // Close the encoding process
 void RenderingEncoder::close(){
 
