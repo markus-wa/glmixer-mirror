@@ -154,7 +154,7 @@ p, li { white-space: pre-wrap; }
            <string>Rendering and performance</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -172,7 +172,7 @@ p, li { white-space: pre-wrap; }
            <string>Video output and recording</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -190,7 +190,7 @@ p, li { white-space: pre-wrap; }
            <string>Default source properties</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -208,7 +208,7 @@ p, li { white-space: pre-wrap; }
            <string>User interface</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -226,7 +226,7 @@ p, li { white-space: pre-wrap; }
            <string>System and user preferences</string>
           </property>
           <property name="textAlignment">
-           <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+           <set>AlignCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -2080,24 +2080,58 @@ the user to select a file name</string>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="displayFramerate">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the rendering framerate in the upper right corner.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Display framerate</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_14">
+                <item>
+                 <widget class="QCheckBox" name="displayFramerate">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the rendering framerate in the upper right corner.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Display framerate</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="displayTimeAsFrame">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows time information of videos as frame count instead of hh:mm:ss.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Time as frame numbers</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QCheckBox" name="displayTimeAsFrame">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows time information of videos as frame count instead of hh:mm:ss.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Time as frame numbers</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_15">
+                <item>
+                 <widget class="QLabel" name="label_31">
+                  <property name="text">
+                   <string>Display Clock</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="displayTimer">
+                  <item>
+                   <property name="text">
+                    <string>None</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Small</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Large</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <layout class="QGridLayout" name="gridLayout_4">

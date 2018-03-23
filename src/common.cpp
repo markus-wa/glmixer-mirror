@@ -302,8 +302,8 @@ QString getStringFromTime(double time)
     int h = s / 3600;
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
-    int ds = (int) (time * 100.0);
-    return QString("%1:%2:%3.%4").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
+    int ds = (int) (time * 10.0);
+    return QString("%1:%2:%3.%4").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 1, 10, QChar('0'));
 }
 
 double getTimeFromString(QString line)

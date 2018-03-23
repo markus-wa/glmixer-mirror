@@ -37,7 +37,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false), up_timer_active(false) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false), up_timer_active(false), labelpointsize(20), labelheight(20), labelwidthpercent(100) {
 
     rx = 0;
     ry = 0;
@@ -143,7 +143,15 @@ void OutputRenderWidget::resizeGL(int w, int h)
         }
     }
 
+    // Adjust size of font :
+    // - how much percept of the widget width to use
+    // - the label "00:00:00.0" has 10 characters
+    // - minus 2 points for margins
+    labelpointsize = (w*labelwidthpercent/100) / 10 - 2;
+    labelfont = QFont(getMonospaceFont(), labelpointsize, QFont::Bold);
+    labelheight = QFontMetrics(labelfont).height();
 
+    // done resize
     need_resize = false;
 }
 
@@ -169,6 +177,8 @@ void OutputRenderWidget::refresh()
 
 void OutputRenderWidget::paintGL()
 {
+    static QColor shadow = QColor(50, 50, 50, 100);
+
     glRenderWidget::paintGL();
 
     if (need_resize)
@@ -208,20 +218,21 @@ void OutputRenderWidget::paintGL()
     // display recording timer
     else if (rec_timer_active)
     {
-        static QFont monofont(getMonospaceFont(), 20, QFont::Bold);
-        static QColor red(Qt::red);
+        static QColor red = QColor(250, 20, 20, 230);
         QString time = getStringFromTime( (double) RenderingManager::getRecorder()->getRecodingTime() / 1000.0 );
+        qglColor( shadow );
+        renderText(7, height() - 9, time, labelfont);
         qglColor( red );
-        renderText(10, height() - 20, time, monofont);
+        renderText(6, height() - 10, time, labelfont);
     }
 
     if (up_timer_active) {
-        static QFont monofont(getMonospaceFont(), 14, QFont::Bold);
+        static QColor white = QColor(250, 250, 250, 230);
         QString time = getStringFromTime( (double) RenderingManager::getInstance()->getUpTime() / 1000.0 );
-        qglColor( Qt::black );
-        renderText(10, 20, time, monofont);
-        qglColor( Qt::white );
-        renderText(9, 19, time, monofont);
+        qglColor( shadow );
+        renderText(7, labelheight+1, time, labelfont);
+        qglColor( white );
+        renderText(6, labelheight, time, labelfont);
     }
 }
 

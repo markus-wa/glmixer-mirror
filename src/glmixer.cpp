@@ -478,7 +478,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
     Q_CHECK_PTR(outputpreview);
-    outputpreview->displayElapsedTimer(true);
+    outputpreview->setTimerDisplayEnabled(true);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), outputpreview, SLOT(refresh()));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputpreview, SLOT(displayRecordingTimer(bool)));
@@ -3178,6 +3178,13 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> recquality;
     RenderingManager::getRecorder()->setEncodingQuality((encodingquality) recquality);
 
+    // z. Timers display preferences
+    bool showtimer = true;
+    percent = 100;
+    stream >> showtimer >> percent;
+    outputpreview->setTimerDisplayEnabled(showtimer);
+    outputpreview->setTimerDisplayLabelWidth(percent);
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3284,6 +3291,10 @@ QByteArray GLMixer::getPreferences() const {
 
     // y. recording quality
     stream << (uint) RenderingManager::getRecorder()->encodingQuality();
+
+    // z. Timers display preferences
+    stream << outputpreview->getTimerDisplayEnabled();
+    stream << outputpreview->getTimerDisplayLabelWidth();
 
     return data;
 }

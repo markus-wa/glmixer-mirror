@@ -353,6 +353,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     recordingQualitySelection->setCurrentIndex(recquality);
     recordingQualitySelection->setEnabled(recformat == 4);
 
+    // z. Timers display preferences
+    bool showtimer = true;
+    percent = 100;
+    stream >> showtimer >> percent;
+    displayTimer->setCurrentIndex( !showtimer ? 0 : percent < 60 ? 1 : 2);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -443,6 +449,13 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // y. recording quality
     stream << (uint) recordingQualitySelection->currentIndex();
+
+    // z. Timers display preferences
+    bool showtimer = displayTimer->currentIndex() > 0;
+    int percent = displayTimer->currentIndex() == 1 ? 50 : 100;
+    stream << showtimer;
+    stream << percent;
+
 
     return data;
 }
