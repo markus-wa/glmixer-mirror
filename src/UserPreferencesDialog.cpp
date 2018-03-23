@@ -130,7 +130,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
     if (stackedPreferences->currentWidget() == PageRendering) {
         resolutionTable->selectRow(3);
-        updatePeriod->setValue(16); // default fps at 60
+        updatePeriod->setValue(20); // default fps at 50
         on_updatePeriod_valueChanged( updatePeriod->value() );
         disableFiltering->setChecked(false);
         disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
@@ -184,6 +184,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         saveExitSession->setChecked(true);
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
+        displayTimer->setCurrentIndex(1);
     }
 }
 

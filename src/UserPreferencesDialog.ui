@@ -705,10 +705,10 @@ p, li { white-space: pre-wrap; }
                    <number>2</number>
                   </property>
                   <property name="value">
-                   <number>16</number>
+                   <number>20</number>
                   </property>
                   <property name="sliderPosition">
-                   <number>16</number>
+                   <number>20</number>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -1040,7 +1040,7 @@ p, li { white-space: pre-wrap; }
                 <item row="3" column="1">
                  <widget class="QSlider" name="recordingBufferSize">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How much RAM can be used to store images before writing to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How much RAM can be used to store recorded images before writing to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="minimum">
                    <number>0</number>
@@ -1118,6 +1118,9 @@ p, li { white-space: pre-wrap; }
                     <height>0</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>RAM buffer for recording</string>
+                  </property>
                   <property name="text">
                    <string notr="true">300 MB</string>
                   </property>
@@ -1159,6 +1162,9 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="2" column="2">
                  <widget class="QLabel" name="recordingFrameRateString">
+                  <property name="toolTip">
+                   <string>Recording frequency</string>
+                  </property>
                   <property name="text">
                    <string notr="true">25 fps</string>
                   </property>
@@ -1176,6 +1182,9 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="1" column="1">
                  <widget class="QComboBox" name="recordingQualitySelection">
+                  <property name="toolTip">
+                   <string>Select MPEG4 compression level</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>Auto (optimal quality)</string>
@@ -1210,7 +1219,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string/>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* RAW and FFUV are loosless (produce large files).&lt;br&gt;* Others are compressed and standard. &lt;br&gt;* MPEG4 is recommended and allows selecting compression level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>
@@ -2108,12 +2117,15 @@ the user to select a file name</string>
                 <item>
                  <widget class="QLabel" name="label_31">
                   <property name="text">
-                   <string>Display Clock</string>
+                   <string>Show clock in preview:</string>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QComboBox" name="displayTimer">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display timing of current session in output preview.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>None</string>
