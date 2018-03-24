@@ -1777,6 +1777,9 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
     // threaded saving of image
     ImageSaver::saveImage(capture, fileName);
+
+    // show information
+    emit status( tr("File %1 saved.").arg( fileName ), 3000 );
 }
 
 
