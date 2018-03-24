@@ -79,6 +79,8 @@ public:
         height = 0;
         mutex = PTHREAD_MUTEX_INITIALIZER;
         stop = true;
+        _glbuffer[0] = 0;
+        _glbuffer[1] = 0;
     }
 
 };
@@ -394,6 +396,9 @@ bool uninit_device(video4LinuxFreeFrameGLData *current)
 {
     unsigned int i;
 
+    if (!current || -1 == current->fd)
+        return false;
+
     switch (current->io) {
     case IO_METHOD_READ:
         free(current->buffers[0].start);
@@ -546,6 +551,9 @@ bool init_device(video4LinuxFreeFrameGLData *current)
     struct v4l2_crop crop;
     struct v4l2_format fmt;
     unsigned int min;
+
+    if (-1 == current->fd)
+        return false;
 
     if (-1 == xioctl(current->fd, VIDIOC_QUERYCAP, &cap)) {
         if (EINVAL == errno) {
