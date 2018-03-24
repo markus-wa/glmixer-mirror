@@ -222,6 +222,7 @@ RenderingManager::RenderingManager() :
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
 #endif
 
+    // reset timer
     elapsed_time = 0;
 }
 
@@ -583,6 +584,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
     // elapsed time
     static QTime timer;
+    if (timer.isNull()) timer.start();
     int t = timer.restart();
     elapsed_time += paused ? 0 : t;
 }
