@@ -1,11 +1,15 @@
 #include "glTestWidget.moc"
 #include "RenderingManager.h"
+#include <QTimer>
 
 #include <QImage>
 
-glTestWidget::glTestWidget(QWidget *parent) :  glRenderWidget(parent), _use_blit(true), _use_pbo(true), _use_filters(true), _texture(0), _fbo(NULL), _pbo(0)
+glTestWidget::glTestWidget(QWidget *parent) : QGLWidget(glRenderWidgetFormat(), parent), _use_blit(true), _use_pbo(true), _use_filters(true), _texture(0), _fbo(NULL), _pbo(0), aspectRatio(1.0)
 {
-    f_p_s_ = 0.0;
+    f_p_s_ = 50.0;
+    fpsTime_.invalidate();
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    timer.setInterval(20);
 }
 
 
@@ -17,18 +21,67 @@ void glTestWidget::disablePBO(bool off) {
     _use_pbo = !off && glewIsSupported("GL_ARB_pixel_buffer_object");
 }
 
-void glTestWidget::initializeGL() {
+void glTestWidget::setUpdatePeriod(int miliseconds) {
 
-    glRenderWidget::initializeGL();
+    if (miliseconds > 10)
+        timer.start(miliseconds);
+    else {
+        timer.stop();
+        fpsTime_.invalidate();
+    }
+}
+
+int glTestWidget::updatePeriod() {
+    return timer.interval();
+}
+
+void glTestWidget::initializeGL()
+{
+    // Set flat color shading without dithering
+    glShadeModel(GL_FLAT);
+    glDisable(GL_DITHER);
+    glDisable(GL_POLYGON_SMOOTH);
+
+    // disable depth and lighting by default
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_NORMALIZE);
+
+    // Enables texturing
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+
+    // default texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);//We add these two lines
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); //because we don't have mipmaps.
+
+    // ensure alpha channel is modulated ; otherwise the source is not mixed by its alpha channel
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+
+    // Turn blending on
+    glEnable(GL_BLEND);
+
+    // Blending Function For transparency Based On Source Alpha Value
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    // This hint can improve the speed of shading when dFdx dFdy aren't needed in GLSL
+    glHint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_FASTEST);
 
 #ifdef Q_OS_MAC
-    setBackgroundColor( palette().color(QPalette::Window).darker(105) );
+    qglClearColor( palette().color(QPalette::Window).darker(105) );
 #else
-    setBackgroundColor(palette().color(QPalette::Window));
+    qglClearColor(palette().color(QPalette::Window));
 #endif
 
     // test image
-//    _image = QImage(":/glmixer/images/glmixer_splash.png");
     _image = QImage(":/glmixer/icons/glmixer_256x256.png");
     _img_ar = (float) _image.width() / (float)_image.height();
 
@@ -64,14 +117,18 @@ void glTestWidget::initializeGL() {
 
     glPointSize(10);
 
-    // fps counter
-    fpsTime_.start();
 }
 
 void glTestWidget::resizeGL(int w, int h)
 {
-    // generic widget resize (also computes aspectRatio)
-    glRenderWidget::resizeGL(w, h);
+    glViewport(0, 0, w, h);
+    aspectRatio = (float) w / (float) h;
+
+    // Setup specific projection and view for this window
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
 
     // rescale fbo
     if (_fbo)
@@ -83,11 +140,13 @@ void glTestWidget::resizeGL(int w, int h)
 
 void glTestWidget::paintGL()
 {
-    glRenderWidget::paintGL();
+    glClear(GL_COLOR_BUFFER_BIT);
 
     if (!isEnabled() || !_fbo)
         return;
 
+    if (!fpsTime_.isValid())
+        fpsTime_.start();
 
     // render image in FBO
     if (_fbo->bind())
@@ -96,9 +155,9 @@ void glTestWidget::paintGL()
         glLoadIdentity();
 
         glBegin(GL_POINTS);
-        glColor4ub(_use_blit ? 0 :250, _use_blit ? 250 : 0,0,250);
+        glColor4ub(_use_blit ? 0 :255, _use_blit ? 255 : 0, 0, 255);
         glVertex2f(0.85, 0.3);
-        glColor4ub(_use_pbo ? 0 :250, _use_pbo ? 250 : 0,0,250);
+        glColor4ub(_use_pbo ? 0 :255, _use_pbo ? 255 : 0, 0, 255);
         glVertex2f(0.85, 0.8);
         glEnd();
 
@@ -137,19 +196,22 @@ void glTestWidget::paintGL()
     }
     else {
         // standard opengl draw
+        glColor4ub(255, 255, 255, 255);
         glLoadIdentity();
         drawTexture(QRectF(-1.0, 1.0, 2.0, -2.0), _fbo->texture() );
     }
 
 
     // compute fps
-    f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 1000.0 / float(fpsTime_.restart()) );
+    f_p_s_ = qRound( 0.8f * f_p_s_ + 0.2f * ( 1000.f / (float) qBound(10, (int) fpsTime_.restart(), 100) ) );
+
     if (f_p_s_ < 800.f / (float) updatePeriod())
         // show warning on slow FPS if bellow 80% of requested rendering fps
         emit slowFps(true);
     else
         emit slowFps(false);
 
-    glColor4ub(80, 80, 80, 200);
-    renderText(10, height() - 10, QString("%1 fps").arg((int) f_p_s_));
+    glColor4ub(60, 60, 60, 200);
+    renderText(10, height() - 10, QString("%1 fps").arg(f_p_s_) );
+    qDebug()<<".";
 }

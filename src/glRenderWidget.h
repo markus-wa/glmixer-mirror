@@ -32,7 +32,7 @@ class glRenderWidget  : public QGLWidget
 {
 
 public:
-	glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
+    glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
 
     // QGLWidget implementation
     virtual void initializeGL();
@@ -44,6 +44,7 @@ public:
     inline bool antiAliasing() { return antialiasing; }
     void setAntiAliasing(bool on);
 
+    // global control of update
     static int updatePeriod();
     static void setUpdatePeriod(int miliseconds);
 
@@ -52,10 +53,11 @@ public:
 
 protected:
 
-	float aspectRatio;
-	bool antialiasing;
+    float aspectRatio;
+    bool antialiasing;
 
-	static class QTimer *timer;
+    // global update timer
+    static class QTimer *timer;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

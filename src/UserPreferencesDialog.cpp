@@ -59,6 +59,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     // connect to output preview
     QObject::connect(disablePixelBufferObject, SIGNAL(toggled(bool)), previewOutput, SLOT(disablePBO(bool)));
     QObject::connect(disableBlitFrameBuffer, SIGNAL(toggled(bool)), previewOutput, SLOT(disableBlitFBO(bool)));
+    QObject::connect(updatePeriod, SIGNAL(valueChanged(int)), previewOutput, SLOT(setUpdatePeriod(int)));
 
     // TODO fill in the list of available languages
 
@@ -83,8 +84,6 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
 
     // update labels
     on_updatePeriod_valueChanged( updatePeriod->value() );
-    on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
-    on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
 
     // (re)set number of available monitors
     if (OutputRenderWindow::getInstance()->getFullScreenCount() != fullscreenMonitor->count()) {
@@ -96,7 +95,18 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
     int qwe = OutputRenderWindow::getInstance()->getFullScreenMonitor();
     fullscreenMonitor->setCurrentIndex(qwe);
 
+    // refresh opengl preview
+    previewOutput->setUpdatePeriod(updatePeriod->value());
+
     QWidget::showEvent(e);
+}
+
+void UserPreferencesDialog::hideEvent(QHideEvent *e){
+
+    // suspend opengl preview
+    previewOutput->setUpdatePeriod(0);
+
+    QWidget::hideEvent(e);
 }
 
 void UserPreferencesDialog::setModeMinimal(bool on)
@@ -107,7 +117,6 @@ void UserPreferencesDialog::setModeMinimal(bool on)
 
     if (on){
         stackedPreferences->setCurrentIndex(0);
-        restoreDefaultPreferences();
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
     } else {
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
@@ -466,6 +475,7 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 {
     frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
     on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
+    on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
 }
 
 

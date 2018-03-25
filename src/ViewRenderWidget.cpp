@@ -266,7 +266,7 @@ ViewRenderWidget::ViewRenderWidget() :
 
 
 #ifdef GLM_SNAPSHOT
-    connect(SnapshotManager::getInstance(), SIGNAL(clear()), SLOT(activateSnapshot(QString)));
+    connect(SnapshotManager::getInstance(), SIGNAL(clear()), SLOT(activateSnapshot()));
 #endif
 }
 

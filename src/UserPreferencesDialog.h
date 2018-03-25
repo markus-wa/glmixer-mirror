@@ -70,6 +70,7 @@ public slots:
 protected:
 
     void showEvent(QShowEvent *);
+    void hideEvent(QHideEvent *);
 
 private:
     class Source *defaultSource;

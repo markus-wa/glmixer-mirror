@@ -2946,7 +2946,7 @@ void GLMixer::saveSettings()
 
     // make sure system saves settings NOW
     settings.sync();
-    qDebug() << QApplication::applicationName()  << QChar(124).toLatin1() << tr("Settings saved (") << settings.fileName() << ").";
+    qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings saved.");
 }
 
 
@@ -3018,6 +3018,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 
         // show the dialog and apply preferences
         upd->exec();
+
         restorePreferences( upd->getUserPreferences() );
 
         upd->setModeMinimal(false);
@@ -3035,7 +3036,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
     RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
 
-    int targetPeriod = 16;
+    int targetPeriod = 20;
     stream >> targetPeriod;
     if (targetPeriod > 0)
         glRenderWidget::setUpdatePeriod( targetPeriod );
