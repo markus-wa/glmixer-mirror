@@ -139,6 +139,7 @@ signals:
     void activated(bool);
     void processing(bool);
     void status(const QString &, int);
+    void timing(const QString &);
     void selectAspectRatio(const standardAspectRatio );
 
 protected:

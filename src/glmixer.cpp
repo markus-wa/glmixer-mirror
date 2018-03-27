@@ -151,7 +151,8 @@ void GLMixer::deleteInstance() {
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), previousSource(NULL), currentVideoFile(NULL),
     _displayTimeAsFrame(false), _restoreLastSession(true),
-    _saveExitSession(true), _disableOutputWhenRecord(false)
+    _saveExitSession(true), _disableOutputWhenRecord(false),
+    _displayTimerEnabled(false)
 {
     setupUi ( this );
 
@@ -478,10 +479,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
     Q_CHECK_PTR(outputpreview);
-    outputpreview->setTimerDisplayEnabled(true);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), outputpreview, SLOT(refresh()));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputpreview, SLOT(displayRecordingTimer(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputpreview, SLOT(displayRecordingLabel(bool)));
+    QObject::connect(actionPause, SIGNAL(toggled(bool)), outputpreview, SLOT(displayInformationLabel(bool)));
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -533,6 +534,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #endif
     output_onair->setDefaultAction(actionToggleRenderingVisible);
     output_pause->setDefaultAction(actionPause);
+    output_recording_pause->setDefaultAction(actionPause_recording);
     output_aspectratio->setMenu(aspectRatioMenu);
     output_fullscreen->setDefaultAction(actionFullscreen);
     QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
@@ -544,7 +546,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Recording triggers
     QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecord, SLOT(setChecked(bool)));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget() , SLOT(showMessage(const QString &, int)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget(), SLOT(showMessage(const QString &, int)));
     QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
@@ -3184,10 +3186,8 @@ void GLMixer::restorePreferences(const QByteArray & state){
 
     // z. Timers display preferences
     bool showtimer = true;
-    percent = 100;
-    stream >> showtimer >> percent;
-    outputpreview->setTimerDisplayEnabled(showtimer);
-    outputpreview->setTimerDisplayLabelWidth(percent);
+    stream >> showtimer;
+    setDisplayTimeEnabled(showtimer);
 
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
@@ -3297,8 +3297,7 @@ QByteArray GLMixer::getPreferences() const {
     stream << (uint) RenderingManager::getRecorder()->encodingQuality();
 
     // z. Timers display preferences
-    stream << outputpreview->getTimerDisplayEnabled();
-    stream << outputpreview->getTimerDisplayLabelWidth();
+    stream << _displayTimerEnabled;
 
     return data;
 }
@@ -3830,6 +3829,42 @@ QString GLMixer::getNotes()
 {
     return blocNoteEdit->toPlainText().trimmed();
 }
+
+
+void GLMixer::timerEvent ( QTimerEvent * event )
+{
+    output_elapsed_label->setText( getStringFromTime( RenderingManager::getInstance()->getElapsedTime()) );
+}
+
+void GLMixer::setDisplayTimeEnabled(bool on)
+{
+    static int timerId = 0;
+
+    // kill timer anyway
+    if (timerId > 0) {
+        killTimer(timerId);
+        timerId = 0;
+    }
+
+    // labels visibility
+    _displayTimerEnabled = on;
+    output_elapsed_widget->setVisible(on);
+    output_recording_label->setText("");
+    output_recording_widget->setVisible(false);
+
+    // activate display update
+    if (on) {
+        timerId = startTimer(200);
+
+        QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_recording_widget, SLOT(setVisible(bool)));
+        QObject::connect(RenderingManager::getRecorder(), SIGNAL(timing(QString)), output_recording_label, SLOT(setText(QString)));
+    }
+    else {
+        QObject::disconnect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_recording_widget, SLOT(setVisible(bool)));
+        QObject::disconnect(RenderingManager::getRecorder(), SIGNAL(timing(QString)), output_recording_label, SLOT(setText(QString)));
+    }
+}
+
 
 ImageSaver::ImageSaver(QImage image, QString filename) : QThread(), _image(image), _filename(filename)
 {

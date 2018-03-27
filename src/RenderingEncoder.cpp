@@ -270,6 +270,7 @@ void RenderingEncoder::setActive(bool on)
                 qCritical() << tr("Error starting video recording; ") << errormessage;
         }
         emit activated(started);
+        emit timing( "" );
     }
     else {
         // deactivate if previously started
@@ -444,6 +445,8 @@ void RenderingEncoder::addFrame(unsigned char *data){
 
     // elapsed time
     elapsed_time += timer.restart();
+
+    emit timing( getStringFromTime( (double) elapsed_time / 1000.0) );
 }
 
 void RenderingEncoder::kill(){
@@ -469,6 +472,7 @@ void RenderingEncoder::close(){
     started = false;
     emit selectAspectRatio(ASPECT_RATIO_FREE);
     emit activated(false);
+    emit timing( "" );
 
     // free encoder and stop all
     encoder->clear();

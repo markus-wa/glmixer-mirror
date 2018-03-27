@@ -204,14 +204,6 @@ void glTestWidget::paintGL()
 
     // compute fps
     f_p_s_ = qRound( 0.8f * f_p_s_ + 0.2f * ( 1000.f / (float) qBound(10, (int) fpsTime_.restart(), 100) ) );
-
-    if (f_p_s_ < 800.f / (float) updatePeriod())
-        // show warning on slow FPS if bellow 80% of requested rendering fps
-        emit slowFps(true);
-    else
-        emit slowFps(false);
-
     glColor4ub(60, 60, 60, 200);
     renderText(10, height() - 10, QString("%1 fps").arg(f_p_s_) );
-    qDebug()<<".";
 }

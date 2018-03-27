@@ -215,6 +215,8 @@ public:
         return clearWhite;
     }
 
+    double getElapsedTime();
+
 #ifdef GLM_SHM
     uint getSharedMemoryColorDepth();
     void setSharedMemoryColorDepth(uint mode);
@@ -234,7 +236,6 @@ public:
     inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
     inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
     inline bool isPaused () { return paused; }
-    inline int getUpTime() { return elapsed_time; }
 
     static inline bool useFboBlitExtension() { return blit_fbo_extension; }
     static void setUseFboBlitExtension(bool on);
@@ -312,6 +313,8 @@ protected:
     bool clearWhite;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
+    QTime _displayTime;
+    int _elapsedTime;
 
     // the set of sources for display (front)
     SourceSet _front_sources;
@@ -330,9 +333,6 @@ protected:
     int maxSourceCount;
     // set of sources using previousframe_fbo
     SourceSet _rendering_sources;
-
-    // timer
-    int elapsed_time;
 
 #ifdef GLM_SHM
     // The shared memory buffer

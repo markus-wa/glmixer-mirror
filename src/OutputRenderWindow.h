@@ -41,29 +41,29 @@ public:
     virtual void paintGL();
     virtual void resizeGL(int w = 0, int h = 0);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
+    void timerEvent ( QTimerEvent * event );
 
     float getAspectRatio() const;
     inline bool freeAspectRatio() const { return !useAspectRatio; }
     void useFreeAspectRatio(bool on);
     bool isActive() const { return output_active; }
 
-    bool getTimerDisplayEnabled() { return up_timer_active; }
-    void setTimerDisplayEnabled(bool on) { up_timer_active = on; }
-    int getTimerDisplayLabelWidth() const { return labelwidthpercent; }
-    void setTimerDisplayLabelWidth(int w) { labelwidthpercent = w; }
+    int getLabelWidth() const { return labelwidthpercent; }
+    void setLabelWidth(int w) { labelwidthpercent = w; }
 
 public slots:
     void refresh();
     void setActive(bool on) { output_active = on; }
     void setInactive(bool off) { output_active = !off; }
-    void displayRecordingTimer(bool on) { rec_timer_active = on; }
+    void displayRecordingLabel(bool on);
+    void displayInformationLabel(bool on) { info_label_active = on; need_resize = true;}
 
 protected:
     bool useAspectRatio, useWindowAspectRatio;
     int rx, ry, rw, rh;
     bool need_resize;
     bool output_active;
-    bool rec_timer_active, up_timer_active;
+    bool rec_label_active, info_label_active;
     QFont labelfont;
     int labelpointsize, labelheight, labelwidthpercent;
 };

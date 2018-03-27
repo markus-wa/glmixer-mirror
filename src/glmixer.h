@@ -53,6 +53,7 @@ public:
     // catch keyboard events
     void keyPressEvent ( QKeyEvent * event );
     void keyReleaseEvent ( QKeyEvent * event );
+    void timerEvent ( QTimerEvent * event );
 
     // gets
     bool useSystemDialogs();
@@ -157,6 +158,9 @@ public slots:
     QString getFileName(QString title, QString filters, QString saveExtention = QString(), QString suggestion = QString());
     QStringList getMediaFileNames(bool &generatePowerOfTwoRequest);
 
+    // timer display
+    void setDisplayTimeEnabled(bool on);
+
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
@@ -206,6 +210,7 @@ private:
 
     bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
+    bool  _displayTimerEnabled;
 
     QSettings settings;
     QAction *recentFileActs[MAX_RECENT_FILES];

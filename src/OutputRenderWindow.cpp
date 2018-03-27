@@ -37,7 +37,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_timer_active(false), up_timer_active(false), labelpointsize(20), labelheight(20), labelwidthpercent(100) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_label_active(false), info_label_active(false), labelpointsize(20), labelheight(20), labelwidthpercent(100) {
 
     rx = 0;
     ry = 0;
@@ -139,15 +139,12 @@ void OutputRenderWidget::resizeGL(int w, int h)
             else
                 glScalef(windowAspectRatio / aspectRatio, -1.f, 1.f);
         } else {
-            glScalef(1.f, -1.0, 1.f);
+            glScalef(1.f, -1.f, 1.f);
         }
     }
 
-    // Adjust size of font :
-    // - how much percept of the widget width to use
-    // - the label "00:00:00.0" has 10 characters
-    // - minus 2 points for margins
-    labelpointsize = (w*labelwidthpercent/100) / 10 - 2;
+    // Adjust size of font
+    labelpointsize = (w*labelwidthpercent/100) / 10;
     labelfont = QFont(getMonospaceFont(), labelpointsize, QFont::Bold);
     labelheight = QFontMetrics(labelfont).height();
 
@@ -173,7 +170,6 @@ void OutputRenderWidget::refresh()
 {
     need_resize = true;
 }
-
 
 void OutputRenderWidget::paintGL()
 {
@@ -215,27 +211,46 @@ void OutputRenderWidget::paintGL()
         glColor4ub(COLOR_FADING, 128);
         glCallList(ViewRenderWidget::fading);
     }
-    // display recording timer
-    else if (rec_timer_active)
-    {
-        static QColor red = QColor(250, 20, 20, 230);
-        QString time = getStringFromTime( (double) RenderingManager::getRecorder()->getRecodingTime() / 1000.0 );
+    else if (info_label_active) {
+        static QColor white = QColor(250, 250, 250, 230);
+        QString label = " Pause";
         qglColor( shadow );
-        renderText(7, height() - 9, time, labelfont);
-        qglColor( red );
-        renderText(6, height() - 10, time, labelfont);
+        renderText(1, labelheight+1, label, labelfont);
+        qglColor( white );
+        renderText(0, labelheight, label, labelfont);
     }
 
-    if (up_timer_active) {
-        static QColor white = QColor(250, 250, 250, 230);
-        QString time = getStringFromTime( (double) RenderingManager::getInstance()->getUpTime() / 1000.0 );
+    // display recording Label
+    if (rec_label_active) {
+        static QColor red = QColor(200, 10, 10, 240);
+        QString label = " Rec";
         qglColor( shadow );
-        renderText(7, labelheight+1, time, labelfont);
-        qglColor( white );
-        renderText(6, labelheight, time, labelfont);
+        renderText(1, height() - labelheight / 2 + 1, label, labelfont);
+        qglColor( red );
+        renderText(0, height() - labelheight / 2, label, labelfont);
+    }
+
+}
+
+void OutputRenderWidget::displayRecordingLabel(bool on)
+{
+    static int timerid = 0;
+
+    if (timerid)
+        killTimer(timerid);
+
+    rec_label_active = false;
+
+    if (on) {
+        timerid = startTimer(250);
+        need_resize = true;
     }
 }
 
+void OutputRenderWidget::timerEvent ( QTimerEvent * event )
+{
+    rec_label_active = !rec_label_active;
+}
 
 void OutputRenderWidget::mouseDoubleClickEvent(QMouseEvent *) {
 

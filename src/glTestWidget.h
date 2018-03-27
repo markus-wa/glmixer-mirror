@@ -16,12 +16,7 @@ public:
     void initializeGL();
     void paintGL();
     void resizeGL(int w = 0, int h = 0);
-
-    // global control of update
     int updatePeriod();
-
-signals:
-    void slowFps(bool);
 
 public slots:
     void disableBlitFBO(bool off);

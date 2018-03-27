@@ -801,7 +801,6 @@ void ViewRenderWidget::paintGL()
         qglColor(Qt::lightGray);
         glRecti(15, height() - 5, 25, height() - 30);
         glRecti(30, height() - 5, 40, height() - 30);
-        renderText(55, 25, "Paused");
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();

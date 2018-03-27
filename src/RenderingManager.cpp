@@ -171,7 +171,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _elapsedTime(0), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
 {
     // idenfity for event
     setObjectName("RenderingManager");
@@ -222,8 +222,9 @@ RenderingManager::RenderingManager() :
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
 #endif
 
-    // reset timer
-    elapsed_time = 0;
+    // elapsed clocks
+    _displayTime.start();
+
 }
 
 RenderingManager::~RenderingManager() {
@@ -581,12 +582,6 @@ void RenderingManager::postRenderToFrameBuffer() {
     glDisable(GL_TEXTURE_2D);
 
     needsUpdate = false;
-
-    // elapsed time
-    static QTime timer;
-    if (timer.isNull()) timer.start();
-    int t = timer.restart();
-    elapsed_time += paused ? 0 : t;
 }
 
 void RenderingManager::preRenderToFrameBuffer()
@@ -1690,8 +1685,8 @@ void RenderingManager::clearSourceSet() {
     WorkspaceManager::getInstance()->setCount();
     WorkspaceManager::getInstance()->setCurrent(0);
 
-    // reset time
-    elapsed_time = 0;
+    // restart elapsed clock
+    _displayTime.start();
 
     // inform of change
     emit countSourceChanged(_front_sources.size());
@@ -2647,11 +2642,25 @@ standardAspectRatio doubleToAspectRatio(double ar)
         return ASPECT_RATIO_FREE;
 }
 
-void RenderingManager::pause(bool on){
-
+void RenderingManager::pause(bool on)
+{
     // setup status
     paused = on;
 
+    if (paused)
+        _elapsedTime = _displayTime.elapsed();
+    else {
+        int e = _displayTime.elapsed();
+        _displayTime = _displayTime.addMSecs( e - _elapsedTime );
+    }
+}
+
+
+double RenderingManager::getElapsedTime()
+{
+    if (!paused)
+        _elapsedTime = _displayTime.elapsed();
+    return (double) _elapsedTime / 1000.0;
 }
 
 void RenderingManager::onSourceFailure() {

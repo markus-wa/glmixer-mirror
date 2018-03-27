@@ -41,8 +41,6 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
     IntroTextLabel->setVisible(false);
-    warningSlowFps->setVisible(false);
-    QObject::connect(previewOutput, SIGNAL(slowFps(bool)), SLOT(showWarningSlowFps(bool)));
 
     // the default source properties
     defaultSource = new Source();
@@ -72,12 +70,6 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 UserPreferencesDialog::~UserPreferencesDialog()
 {
     delete defaultSource;
-}
-
-void UserPreferencesDialog::showWarningSlowFps(bool on) {
-
-    if (warningSlowFps->isVisible() != on)
-        warningSlowFps->setVisible(on);
 }
 
 void UserPreferencesDialog::showEvent(QShowEvent *e){
@@ -174,6 +166,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
 
         MemoryUsagePolicySlider->setValue(DEFAULT_MEMORY_USAGE_POLICY);
+        displayTimeAsFrame->setChecked(false);
     }
 
     if (stackedPreferences->currentWidget() == PageInterface){
@@ -188,12 +181,11 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         antiAliasing->setChecked(true);
         displayFramerate->setChecked(false);
         restoreLastSession->setChecked(true);
-        displayTimeAsFrame->setChecked(false);
         useCustomDialogs->setChecked(true);
         saveExitSession->setChecked(true);
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
-        displayTimer->setCurrentIndex(1);
+        displayTimer->setChecked(false);
     }
 }
 
@@ -365,9 +357,8 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 
     // z. Timers display preferences
     bool showtimer = true;
-    percent = 100;
-    stream >> showtimer >> percent;
-    displayTimer->setCurrentIndex( !showtimer ? 0 : percent < 60 ? 1 : 2);
+    stream >> showtimer;
+    displayTimer->setChecked(showtimer);
 
 }
 
@@ -461,11 +452,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << (uint) recordingQualitySelection->currentIndex();
 
     // z. Timers display preferences
-    bool showtimer = displayTimer->currentIndex() > 0;
-    int percent = displayTimer->currentIndex() == 1 ? 50 : 100;
-    stream << showtimer;
-    stream << percent;
-
+    stream << displayTimer->isChecked();
 
     return data;
 }
