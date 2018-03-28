@@ -3833,7 +3833,7 @@ QString GLMixer::getNotes()
 
 void GLMixer::timerEvent ( QTimerEvent * event )
 {
-    output_elapsed_label->setText( getStringFromTime( RenderingManager::getInstance()->getElapsedTime()) );
+    output_elapsed_label->setText( getStringFromTime( qRound( RenderingManager::getInstance()->getElapsedTime())) );
 }
 
 void GLMixer::setDisplayTimeEnabled(bool on)
@@ -3854,7 +3854,7 @@ void GLMixer::setDisplayTimeEnabled(bool on)
 
     // activate display update
     if (on) {
-        timerId = startTimer(200);
+        timerId = startTimer(1000);
 
         QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_recording_widget, SLOT(setVisible(bool)));
         QObject::connect(RenderingManager::getRecorder(), SIGNAL(timing(QString)), output_recording_label, SLOT(setText(QString)));

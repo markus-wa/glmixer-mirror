@@ -223,6 +223,7 @@ RenderingManager::RenderingManager() :
 #endif
 
     // elapsed clocks
+    _elapsedTime = 0;
     _displayTime.start();
 
 }
@@ -1686,6 +1687,7 @@ void RenderingManager::clearSourceSet() {
     WorkspaceManager::getInstance()->setCurrent(0);
 
     // restart elapsed clock
+    _elapsedTime = 0;
     _displayTime.start();
 
     // inform of change
