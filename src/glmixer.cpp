@@ -3833,7 +3833,7 @@ QString GLMixer::getNotes()
 
 void GLMixer::timerEvent ( QTimerEvent * event )
 {
-    output_elapsed_label->setText( getStringFromTime( qRound( RenderingManager::getInstance()->getElapsedTime())) );
+    output_elapsed_label->setText( getStringFromTime( (int) RenderingManager::getInstance()->getElapsedTime()) );
 }
 
 void GLMixer::setDisplayTimeEnabled(bool on)

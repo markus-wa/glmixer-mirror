@@ -76,6 +76,7 @@ QString getByteSizeString(double numbytes);
 
 void initApplicationFonts();
 QString getMonospaceFont();
+QString getStringFromTime(int s);
 QString getStringFromTime(double time);
 double getTimeFromString(QString line);
 
