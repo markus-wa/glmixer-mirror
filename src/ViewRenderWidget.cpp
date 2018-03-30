@@ -1288,6 +1288,7 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
     config.setAttribute("workspace", WorkspaceManager::getInstance()->current());
     config.setAttribute("workspaceCount", WorkspaceManager::getInstance()->count());
+    config.setAttribute("workspaceExclusive", WorkspaceManager::getInstance()->isExclusiveDisplay());
 
     QDomElement mix = _mixingView->getConfiguration(doc);
     mix.setAttribute("name", "Mixing");
@@ -1317,10 +1318,12 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
 void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
-    int wc = xmlconfig.attribute("workspaceCount", "3").toInt();
-    WorkspaceManager::getInstance()->setCount(wc);
-    int ws = xmlconfig.attribute("workspace", "0").toInt();
-    WorkspaceManager::getInstance()->setCurrent(ws);
+    int tmp = xmlconfig.attribute("workspaceCount", "3").toInt();
+    WorkspaceManager::getInstance()->setCount(tmp);
+    tmp = xmlconfig.attribute("workspace", "0").toInt();
+    WorkspaceManager::getInstance()->setCurrent(tmp);
+    tmp = xmlconfig.attribute("workspaceExclusive", "0").toInt();
+    WorkspaceManager::getInstance()->setExclusiveDisplay( (bool) tmp);
 
     QDomElement child = xmlconfig.firstChildElement("View");
     while (!child.isNull()) {

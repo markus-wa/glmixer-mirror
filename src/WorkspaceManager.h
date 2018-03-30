@@ -31,6 +31,7 @@ public:
 signals:
     void currentChanged(int);
     void countChanged(int);
+    void changed();
 
 public slots:
 
@@ -38,7 +39,7 @@ public slots:
     void incrementCount();
     void decrementCount();
     void setCurrent(int n = WORKSPACE_MAX);
-    void setExclusiveDisplay(bool on) { _exclusive = on; }
+    void setExclusiveDisplay(bool on);
 
     void onWorkspaceAction(QAction *a);
     void onSourceWorkspaceAction(QAction *a);

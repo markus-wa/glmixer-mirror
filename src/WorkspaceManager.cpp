@@ -64,6 +64,8 @@ void WorkspaceManager::decrementCount()
 
 void WorkspaceManager::setCount(int n)
 {
+    int previous = _count;
+
     // minimum is 2 workspaces
     _count = qBound(WORKSPACE_MIN, n, WORKSPACE_MAX);
 
@@ -88,12 +90,24 @@ void WorkspaceManager::setCount(int n)
 
     // broadcast
     emit countChanged(_count);
+
+    if (_count != previous)
+        emit changed();
 }
 
 
 int WorkspaceManager::current() const
 {
     return _actions->checkedAction()->data().toInt();
+}
+
+void WorkspaceManager::setExclusiveDisplay(bool on)
+{
+    bool previous = _exclusive;
+    _exclusive = on;
+
+    if (_exclusive != previous)
+        emit changed();
 }
 
 void WorkspaceManager::setCurrent(int n)

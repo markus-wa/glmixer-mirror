@@ -308,12 +308,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     menuSendToWorkspace->insertActions(sep, WorkspaceManager::getInstance()->getSourceActions());
 
     // Workspace Management
-    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), this, SLOT(updateWorkspaceActions()) );
+    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(changed()), this, SLOT(updateWorkspaceActions()) );
     QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), RenderingManager::getInstance(), SLOT(setWorkspaceCount(int)) );
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
     QObject::connect(actionWorkspaceDecrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(decrementCount()));
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
-    QObject::connect(actionWorkspaceExclusive, SIGNAL(toggled(bool)), WorkspaceManager::getInstance(), SLOT(setExclusiveDisplay(bool)));
+    QObject::connect(actionWorkspaceExclusive, SIGNAL(triggered(bool)), WorkspaceManager::getInstance(), SLOT(setExclusiveDisplay(bool)));
     // special behavior when adding workspace
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(setCurrent()) ); // switch to latest when increment
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setWorkspaceCurrentSource())); // move current source to latest when creating new
@@ -3765,6 +3765,7 @@ void GLMixer::updateWorkspaceActions()
     actionWorkspaceIncrement->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
     actionWorkspaceDecrement->setEnabled(WorkspaceManager::getInstance()->count()>WORKSPACE_MIN);
     actionNewWorkspace->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
+    actionWorkspaceExclusive->setChecked(WorkspaceManager::getInstance()->isExclusiveDisplay());
 }
 
 void GLMixer::on_actionOSCTranslator_triggered()
