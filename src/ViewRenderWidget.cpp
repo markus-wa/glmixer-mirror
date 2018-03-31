@@ -59,6 +59,7 @@ GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0
 GLuint ViewRenderWidget::frame_screen_thin = 0, ViewRenderWidget::frame_screen_mask = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::circle_limbo = 0, ViewRenderWidget::layerbg = 0;
 QMap<int, GLuint>  ViewRenderWidget::mask_textures;
+int ViewRenderWidget::mask_custom = 0;
 QMap<int, QPair<QString, QString> >  ViewRenderWidget::mask_description;
 GLuint ViewRenderWidget::fading = 0;
 GLuint ViewRenderWidget::stipplingMode = 100;
@@ -256,8 +257,7 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Gabor H", ":/glmixer/textures/mask_gabor_h.png");
     createMask("Gabor V", ":/glmixer/textures/mask_gabor_v.png");
     createMask("GaborGrid", ":/glmixer/textures/mask_grid.png");
-//    createMask("Custom", ":/glmixer/textures/mask_custom.png");
-//        ViewRenderWidget::mask_description[100] = QPair<QString, QString>("Custom", ":/glmixer/textures/mask_custom.png");
+    ViewRenderWidget::mask_custom = createMask("Custom", ":/glmixer/textures/mask_custom.png");
 
     // events input
     grabGesture(Qt::PinchGesture);
@@ -291,10 +291,13 @@ ViewRenderWidget::~ViewRenderWidget()
 }
 
 
-void ViewRenderWidget::createMask(QString description, QString texture)
+int ViewRenderWidget::createMask(QString description, QString texture)
 {
+    int mask = ViewRenderWidget::mask_description.size();
     // store desription string & texture filename
-    ViewRenderWidget::mask_description[ViewRenderWidget::mask_description.size()] = QPair<QString, QString>(description, texture);
+    ViewRenderWidget::mask_description[mask] = QPair<QString, QString>(description, texture);
+
+    return mask;
 }
 
 const QMap<int, QPair<QString, QString> > ViewRenderWidget::getMaskDecription()
@@ -302,10 +305,12 @@ const QMap<int, QPair<QString, QString> > ViewRenderWidget::getMaskDecription()
     return ViewRenderWidget::mask_description;
 }
 
-//GLuint ViewRenderWidget::getMaskTexture(Source::maskType mt)
-//{
-//    return ViewRenderWidget::mask_textures[mt];
-//}
+const GLuint ViewRenderWidget::getMaskTexture(int mask)
+{
+    if (mask == ViewRenderWidget::mask_custom)
+        return 0;
+    return ViewRenderWidget::mask_textures[mask];
+}
 
 void ViewRenderWidget::initializeGL()
 {

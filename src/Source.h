@@ -158,6 +158,10 @@ public:
     inline void setWorkspace(int w) { workspace = w; }
     inline int getWorkspace() const { return workspace; }
 
+    // custom mask
+    void setCustomMaskTexture(QString filename);
+    inline QString getCustomMaskTexture() const { return customMaskFilename; }
+
     /**
      *  Geometry and deformation
      */
@@ -311,6 +315,11 @@ protected:
 
     // GL Stuff
     GLuint textureIndex;
+
+    // Custom Mask
+    GLuint customMaskTextureIndex;
+    QString customMaskFilename;
+    QImage customMaskImage;
 
     // workspace it belongs to
     int workspace;

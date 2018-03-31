@@ -254,7 +254,8 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     while (i.hasNext()) {
         i.next();
         enumNames << i.value().first;
-        enumIcons[ i.key() ] = QIcon( i.value().second );
+        QImage texture( i.value().second );
+        enumIcons[ i.key() ] = QIcon( QPixmap::fromImage(texture.mirrored()) );
     }
     enumManager->setEnumNames(property, enumNames);
     enumManager->setEnumIcons(property, enumIcons);
@@ -650,6 +651,27 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
     }
     else if ( property == idToProperty["Mask"] ) {
 
+        // special case of Custom Mask (no mask texture)
+        if ( !ViewRenderWidget::getMaskTexture( value ) ) {
+
+            // try to re-open where previous mask texture was
+            QFileInfo fi( currentItem->getCustomMaskTexture() );
+            QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
+            if (fi.isReadable())
+                di = fi.dir();
+            // open file
+            QString fileName = QFileDialog::getOpenFileName(this, tr("Open Custom Mask image"), di.absolutePath(), tr("Portable Network Graphics (*.png)") );
+             // check validity of file
+             QFileInfo fileInfo(fileName);
+             if (fileInfo.isFile() && fileInfo.isReadable())
+                 // set custome file
+                 currentItem->setCustomMaskTexture( fileInfo.absoluteFilePath() );
+             else
+                 // set custome file
+                 currentItem->setCustomMaskTexture( "" );
+        }
+
+        // apply change to mask
         currentItem->setMask( value );
     }
     else if ( property == idToProperty["Filter"] ) {

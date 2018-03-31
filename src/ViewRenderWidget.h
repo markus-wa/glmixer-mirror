@@ -214,6 +214,7 @@ public:
     static GLfloat filter_kernel[10][3][3];
     static bool disableFiltering;
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
+    static const GLuint getMaskTexture(int);
     static void setSourceDrawingMode(bool on);
     static void resetShaderAttributes();
     static void setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename = QString());
@@ -237,6 +238,7 @@ protected:
     // shared mask textures
     static QMap<int, GLuint> mask_textures;
     static QMap<int, QPair<QString, QString> > mask_description;
+    static int mask_custom;
 
 private:
     // V i e w s
@@ -289,7 +291,7 @@ private:
     GLuint buildPivotPointList();
     GLuint buildSnapshotList();
 
-    void createMask(QString description, QString texture = QString::null);
+    int createMask(QString description, QString texture = QString::null);
 
 };
 

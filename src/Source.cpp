@@ -51,7 +51,7 @@ bool Source::playable = false;
 Source::Source(GLuint texture, double depth): ProtoSource(),
     standby(NOT_STANDBY), culled(false),
     clones(NULL), textureIndex(texture),
-    workspace(0)
+    customMaskTextureIndex(0), workspace(0)
 {
     // give it a unique identifier
     id = Source::lastid++;
@@ -62,6 +62,8 @@ Source::Source(GLuint texture, double depth): ProtoSource(),
 
     // apply depth
     z = CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
+    glGenTextures(1, &customMaskTextureIndex);
 }
 
 Source::~Source() {
@@ -324,9 +326,19 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
 {
     // get the config from proto source
     QDomElement sourceElem = ProtoSource::getConfiguration(doc);
+
     // set more config from Source
     sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
     sourceElem.setAttribute("workspace", getWorkspace());
+
+    // if the mask type is for custom texture
+    if ( !ViewRenderWidget::getMaskTexture(mask_type)) {
+        // store the filename of the custom mask image
+        QDomElement m = doc.createElement("Mask");
+        QDomText filename = doc.createTextNode( customMaskFilename );
+        m.appendChild(filename);
+        sourceElem.appendChild(m);
+    }
 
 #ifdef GLM_TAG
     sourceElem.setAttribute("tag", Tag::get(this)->getIndex());
@@ -359,6 +371,11 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         // non modifiable source are simply moved to another workspace
         setWorkspace( modifiable > 0 ? 0 : 1);
     }
+
+    // read the configuration of the custom mask
+    QDomElement m = xmlconfig.firstChildElement("Mask");
+    if (!m.isNull())
+        setCustomMaskTexture(m.text());
 
 #ifdef GLM_TAG
     // set tag
@@ -739,12 +756,66 @@ void Source::setShaderAttributes() const {
 
 }
 
+void Source::setCustomMaskTexture(QString filename)
+{
+    // reset custom image
+    customMaskImage = QImage();
+
+    // if we are provided with a filename
+    if ( !filename.isEmpty() ) {
+        // try to create an image with it
+        QImage tmpimage(filename);
+        // if the image is valid, it will be used in bind()
+        if (!tmpimage.isNull()) {
+            // make sure it is at the right format
+            customMaskImage = tmpimage.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+            // store requested filename
+            customMaskFilename = filename;
+        }
+    }
+
+    // if failed, just create an inoperant mask texture
+    if (customMaskImage.isNull()){
+        customMaskImage = QImage(8,8,QImage::Format_ARGB32_Premultiplied);
+        customMaskImage.fill(Qt::black);
+        customMaskFilename = "";
+    }
+
+}
+
 void Source::bind() {
+
+    GLuint texid = ViewRenderWidget::getMaskTexture(mask_type);
 
     // activate texture 1 ; double texturing of the mask
     glActiveTexture(GL_TEXTURE1);
-    // select and enable the texture corresponding to the mask
-    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[mask_type]);
+
+    // bind the texture corresponding to the mask
+    if (texid)
+        glBindTexture(GL_TEXTURE_2D, texid);
+    else
+    {
+        // bind custom mask texture
+        glBindTexture(GL_TEXTURE_2D, customMaskTextureIndex);
+
+        // if we have a new image to build the custom mask with
+        if ( !customMaskImage.isNull()) {
+            // fill texture with valid image
+#if QT_VERSION >= 0x040700
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  customMaskImage.width(), customMaskImage.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, customMaskImage.constBits() );
+#else
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, customMaskImage.width(), customMaskImage.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, customMaskImage.bits() );
+#endif
+            // setup texturing parameters
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+            // no more use for the image; reset to null image
+            customMaskImage = QImage();
+        }
+    }
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
 
