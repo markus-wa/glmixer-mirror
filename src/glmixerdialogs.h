@@ -4,9 +4,9 @@
 #include <QtGui>
 #include "Source.h"
 
-QString getStringFromTime(double time);
-double getTimeFromString(QString line);
 void setupAboutDialog(QDialog *AboutGLMixer);
+
+QString getPNGFile(QString previous);
 
 class CaptureDialog: public QDialog {
 
@@ -111,7 +111,7 @@ public:
     LoggingWidget(QWidget *parent = 0);
     virtual void closeEvent ( QCloseEvent * event );
     QByteArray saveState() const;
-    bool restoreState(const QByteArray &state);    
+    bool restoreState(const QByteArray &state);
 
     QSize sizeHint() const {
         return QSize(600, 250);
@@ -133,7 +133,7 @@ public slots:
 private:
 
     void setupui();
-    
+
     QVBoxLayout *logsVerticalLayout;
     QHBoxLayout *logsHorizontalLayout;
     QSpacerItem *logsHorizontalSpacer;

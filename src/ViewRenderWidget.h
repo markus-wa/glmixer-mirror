@@ -291,7 +291,7 @@ private:
     GLuint buildPivotPointList();
     GLuint buildSnapshotList();
 
-    int createMask(QString description, QString texture = QString::null);
+    int createMask(QString description, GLuint filter, QString texture = QString::null);
 
 };
 

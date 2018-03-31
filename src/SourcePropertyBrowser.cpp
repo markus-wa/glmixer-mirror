@@ -625,6 +625,8 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
+    qDebug() << "Mask " << value;
+
     if (!canChange())
             return;
 
@@ -653,22 +655,10 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
         // special case of Custom Mask (no mask texture)
         if ( !ViewRenderWidget::getMaskTexture( value ) ) {
-
-            // try to re-open where previous mask texture was
-            QFileInfo fi( currentItem->getCustomMaskTexture() );
-            QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
-            if (fi.isReadable())
-                di = fi.dir();
-            // open file
-            QString fileName = QFileDialog::getOpenFileName(this, tr("Open Custom Mask image"), di.absolutePath(), tr("Portable Network Graphics (*.png)") );
-             // check validity of file
-             QFileInfo fileInfo(fileName);
-             if (fileInfo.isFile() && fileInfo.isReadable())
-                 // set custome file
-                 currentItem->setCustomMaskTexture( fileInfo.absoluteFilePath() );
-             else
-                 // set custome file
-                 currentItem->setCustomMaskTexture( "" );
+            QString filename = currentItem->getCustomMaskTexture();
+            if (filename.isEmpty())
+                filename = getPNGFile(filename);
+            currentItem->setCustomMaskTexture( filename );
         }
 
         // apply change to mask

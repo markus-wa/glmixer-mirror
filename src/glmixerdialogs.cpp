@@ -9,6 +9,23 @@
 #include "FFGLPluginBrowser.h"
 #endif
 
+
+QString getPNGFile(QString previous)
+{
+    // try to re-open where previous
+    QFileInfo fi( previous );
+    QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
+    QString selectedfile = fi.isReadable() ? fi.absoluteFilePath() : di.absolutePath();
+    // open file
+    QString fileName = QFileDialog::getOpenFileName(NULL, "Open Custom Mask image", selectedfile, "Portable Network Graphics (*.png)" );
+    // check validity of file
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.isFile() && fileInfo.isReadable())
+        return fileInfo.absoluteFilePath() ;
+    else
+        return QString("");
+}
+
 int CaptureDialog::getWidth()
 {
     return presetsSizeComboBox->itemData(presetsSizeComboBox->currentIndex()).toInt();

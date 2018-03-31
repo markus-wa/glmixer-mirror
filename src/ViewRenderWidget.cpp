@@ -230,34 +230,36 @@ ViewRenderWidget::ViewRenderWidget() :
     f_p_s_ = 1000.0 / updatePeriod();
 
     // declare masks
-    createMask("None");
-    createMask("Round", ":/glmixer/textures/mask_roundcorner.png");
-    createMask("Circle", ":/glmixer/textures/mask_circle.png");
-    createMask("Halo", ":/glmixer/textures/mask_linear_circle.png");
-    createMask("Square", ":/glmixer/textures/mask_linear_square.png");
-    createMask("Left-right", ":/glmixer/textures/mask_linear_left.png");
-    createMask("Right-left", ":/glmixer/textures/mask_linear_right.png");
-    createMask("Top-down", ":/glmixer/textures/mask_linear_bottom.png");
-    createMask("Bottom-up", ":/glmixer/textures/mask_linear_top.png");
-    createMask("Horizontal", ":/glmixer/textures/mask_linear_horizontal.png");
-    createMask("Vertical", ":/glmixer/textures/mask_linear_vertical.png");
-    createMask("1 pixel", ":/glmixer/textures/mask_antialiasing.png");
-    createMask("Scratch", ":/glmixer/textures/mask_scratch.png"); // 12
-    createMask("Dirty", ":/glmixer/textures/mask_dirty.png");
-    createMask("TV", ":/glmixer/textures/mask_tv.png");
-    createMask("Paper", ":/glmixer/textures/mask_paper.png");
-    createMask("Towel", ":/glmixer/textures/mask_towel.png");
-    createMask("Sand", ":/glmixer/textures/mask_sand.png");
-    createMask("Diapo", ":/glmixer/textures/mask_diapo.png");
-    createMask("Ink", ":/glmixer/textures/mask_ink.png");
-    createMask("Movie", ":/glmixer/textures/mask_think.png");
-    createMask("Pixel H", ":/glmixer/textures/mask_pixel_horizontal.png");
-    createMask("Pixel V", ":/glmixer/textures/mask_pixel_vertical.png");
-    createMask("PixelGrid", ":/glmixer/textures/mask_says.png");
-    createMask("Gabor H", ":/glmixer/textures/mask_gabor_h.png");
-    createMask("Gabor V", ":/glmixer/textures/mask_gabor_v.png");
-    createMask("GaborGrid", ":/glmixer/textures/mask_grid.png");
-    ViewRenderWidget::mask_custom = createMask("Custom", ":/glmixer/textures/mask_custom.png");
+    createMask("None", GL_NEAREST);
+    createMask("Round", GL_LINEAR, ":/glmixer/textures/mask_roundcorner.png");
+    createMask("Circle", GL_LINEAR, ":/glmixer/textures/mask_circle.png");
+    createMask("Halo", GL_LINEAR, ":/glmixer/textures/mask_linear_circle.png");
+    createMask("Square", GL_LINEAR, ":/glmixer/textures/mask_linear_square.png");
+    createMask("Left-right", GL_LINEAR, ":/glmixer/textures/mask_linear_left.png");
+    createMask("Right-left", GL_LINEAR, ":/glmixer/textures/mask_linear_right.png");
+    createMask("Top-down", GL_LINEAR, ":/glmixer/textures/mask_linear_bottom.png");
+    createMask("Bottom-up", GL_LINEAR, ":/glmixer/textures/mask_linear_top.png");
+    createMask("Horizontal", GL_LINEAR, ":/glmixer/textures/mask_linear_horizontal.png");
+    createMask("Vertical", GL_LINEAR, ":/glmixer/textures/mask_linear_vertical.png");
+    createMask("Border", GL_LINEAR, ":/glmixer/textures/mask_antialiasing.png");
+    createMask("Scratch", GL_LINEAR, ":/glmixer/textures/mask_scratch.png"); // 12
+    createMask("Dirty", GL_LINEAR, ":/glmixer/textures/mask_dirty.png");
+    createMask("TV", GL_LINEAR, ":/glmixer/textures/mask_tv.png");
+    createMask("Paper", GL_LINEAR, ":/glmixer/textures/mask_paper.png");
+    createMask("Towel", GL_LINEAR, ":/glmixer/textures/mask_towel.png");
+    createMask("Sand", GL_LINEAR, ":/glmixer/textures/mask_sand.png");
+    createMask("Diapo", GL_LINEAR, ":/glmixer/textures/mask_diapo.png");
+    createMask("Ink", GL_LINEAR, ":/glmixer/textures/mask_ink.png");
+    createMask("Movie", GL_NEAREST, ":/glmixer/textures/mask_think.png");
+    createMask("Pixel H", GL_NEAREST, ":/glmixer/textures/mask_pixel_horizontal.png");
+    createMask("Pixel V", GL_NEAREST, ":/glmixer/textures/mask_pixel_vertical.png");
+    createMask("PixelGrid", GL_NEAREST, ":/glmixer/textures/mask_says.png");
+    createMask("Gabor H", GL_LINEAR, ":/glmixer/textures/mask_gabor_h.png");
+    createMask("Gabor V", GL_LINEAR, ":/glmixer/textures/mask_gabor_v.png");
+    createMask("GaborGrid", GL_LINEAR, ":/glmixer/textures/mask_grid.png");
+    createMask("Checker", GL_NEAREST, ":/glmixer/textures/mask_checker.png");
+    createMask("Bubbles", GL_LINEAR, ":/glmixer/textures/mask_bubble.png");
+    ViewRenderWidget::mask_custom = createMask("Custom", GL_LINEAR, ":/glmixer/textures/mask_custom.png");
 
     // events input
     grabGesture(Qt::PinchGesture);
@@ -291,11 +293,12 @@ ViewRenderWidget::~ViewRenderWidget()
 }
 
 
-int ViewRenderWidget::createMask(QString description, QString texture)
+int ViewRenderWidget::createMask(QString description, GLuint filter, QString texture)
 {
     int mask = ViewRenderWidget::mask_description.size();
     // store desription string & texture filename
     ViewRenderWidget::mask_description[mask] = QPair<QString, QString>(description, texture);
+    ViewRenderWidget::mask_textures[mask] = filter;
 
     return mask;
 }
@@ -307,8 +310,10 @@ const QMap<int, QPair<QString, QString> > ViewRenderWidget::getMaskDecription()
 
 const GLuint ViewRenderWidget::getMaskTexture(int mask)
 {
+    // custom mask texture
     if (mask == ViewRenderWidget::mask_custom)
         return 0;
+    // all other textures
     return ViewRenderWidget::mask_textures[mask];
 }
 
@@ -326,15 +331,16 @@ void ViewRenderWidget::initializeGL()
     while (i.hasNext()) {
         // loop
         i.next();
+        GLint filter = ViewRenderWidget::mask_textures[i.key()];
         // create and store texture index
         if (i.value().second.isNull()) {
             ViewRenderWidget::mask_textures[i.key()] = black_texture;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
         } else {
             ViewRenderWidget::mask_textures[i.key()] = bindTexture(QPixmap(i.value().second), GL_TEXTURE_2D);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
         }
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);

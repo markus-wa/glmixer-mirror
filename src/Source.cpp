@@ -779,6 +779,8 @@ void Source::setCustomMaskTexture(QString filename)
         customMaskImage = QImage(8,8,QImage::Format_ARGB32_Premultiplied);
         customMaskImage.fill(Qt::black);
         customMaskFilename = "";
+        qWarning() << name << QChar(124).toLatin1()
+                   << tr("Could not set custom texture ") << filename;
     }
 
 }

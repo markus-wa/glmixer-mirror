@@ -59,6 +59,7 @@ public slots:
     void on_blendingCustomButton_pressed();
     void on_blendingPixelatedButton_toggled(bool);
     void on_blendingMaskList_currentRowChanged(int);
+    void on_blendingMaskList_itemDoubleClicked(QListWidgetItem * item);
     void on_resetBlending_pressed();
     void on_blendingButton_clicked(bool);
 

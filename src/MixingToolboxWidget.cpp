@@ -21,6 +21,7 @@
 #include "SourceDisplayWidget.h"
 #include "ViewRenderWidget.h"
 #include "glmixer.h"
+#include "glmixerdialogs.h"
 #include "UndoManager.h"
 
 #ifdef GLM_FFGL
@@ -474,6 +475,13 @@ void MixingToolboxWidget::on_blendingMaskList_currentRowChanged(int value)
     emit(enumChanged("Mask", value));
 }
 
+void MixingToolboxWidget::on_blendingMaskList_itemDoubleClicked(QListWidgetItem * item)
+{
+    // special case of Custom Mask (no mask texture)
+    if ( !ViewRenderWidget::getMaskTexture( blendingMaskList->currentRow() ) ) {
+        source->setCustomMaskTexture( getPNGFile(source->getCustomMaskTexture()) );
+    }
+}
 
 void MixingToolboxWidget::on_blendingBox_currentIndexChanged(int value)
 {
