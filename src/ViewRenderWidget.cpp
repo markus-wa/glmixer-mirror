@@ -250,15 +250,15 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Sand", GL_LINEAR, ":/glmixer/textures/mask_sand.png");
     createMask("Diapo", GL_LINEAR, ":/glmixer/textures/mask_diapo.png");
     createMask("Ink", GL_LINEAR, ":/glmixer/textures/mask_ink.png");
-    createMask("Movie", GL_NEAREST, ":/glmixer/textures/mask_think.png");
+    createMask("Grungy", GL_LINEAR, ":/glmixer/textures/mask_think.png");
     createMask("Pixel H", GL_NEAREST, ":/glmixer/textures/mask_pixel_horizontal.png");
     createMask("Pixel V", GL_NEAREST, ":/glmixer/textures/mask_pixel_vertical.png");
     createMask("PixelGrid", GL_NEAREST, ":/glmixer/textures/mask_says.png");
     createMask("Gabor H", GL_LINEAR, ":/glmixer/textures/mask_gabor_h.png");
     createMask("Gabor V", GL_LINEAR, ":/glmixer/textures/mask_gabor_v.png");
     createMask("GaborGrid", GL_LINEAR, ":/glmixer/textures/mask_grid.png");
-    createMask("Checker", GL_NEAREST, ":/glmixer/textures/mask_checker.png");
-    createMask("Bubbles", GL_LINEAR, ":/glmixer/textures/mask_bubble.png");
+    createMask("Vignette", GL_LINEAR, ":/glmixer/textures/mask_checker.png");
+    createMask("Sphere", GL_LINEAR, ":/glmixer/textures/mask_bubble.png");
     ViewRenderWidget::mask_custom = createMask("Custom", GL_LINEAR, ":/glmixer/textures/mask_custom.png");
 
     // events input

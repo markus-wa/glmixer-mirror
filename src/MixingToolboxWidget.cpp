@@ -479,7 +479,9 @@ void MixingToolboxWidget::on_blendingMaskList_itemDoubleClicked(QListWidgetItem 
 {
     // special case of Custom Mask (no mask texture)
     if ( !ViewRenderWidget::getMaskTexture( blendingMaskList->currentRow() ) ) {
-        source->setCustomMaskTexture( getPNGFile(source->getCustomMaskTexture()) );
+        QString filename = getPNGFile( source->getCustomMaskTexture() );
+        if (!filename.isEmpty())
+            source->setCustomMaskTexture( filename );
     }
 }
 

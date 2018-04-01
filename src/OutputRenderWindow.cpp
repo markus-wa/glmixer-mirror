@@ -359,12 +359,8 @@ void OutputRenderWindow::setScreenCount(int count)
     // remember count
     fullscreenMonitorCount = count;
 
-    // re-apply : will change if different
-//    setFullScreenMonitor(fullscreenMonitorIndex);
-
-
+    // disable fullscreen in this monitor if it is not available anymore
     if ( fullscreenMonitorIndex > fullscreenMonitorCount-1 ) {
-        // if already fullscreen in another monitor, disable fullscreen
         if (windowState().testFlag(Qt::WindowFullScreen) )
             setFullScreen( false );
     }
