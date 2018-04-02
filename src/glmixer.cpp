@@ -2898,8 +2898,7 @@ void GLMixer::saveSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("actualGeometry", geometry());
     settings.setValue("windowState", saveState());
-    // Uncomment to copy window state to default static_windowstate :
-    qDebug() << "windowState" << saveState().toHex();
+    // Uncomment to copy window state to default static_windowstate :    qDebug() << "windowState" << saveState().toHex();
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs

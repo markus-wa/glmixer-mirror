@@ -1800,7 +1800,7 @@ QToolButton:hover {
      </property>
      <widget class="QMenu" name="menuLayout">
       <property name="title">
-       <string>Layout</string>
+       <string>&amp;Layout</string>
       </property>
       <addaction name="actionResetToolbars"/>
       <addaction name="actionMinimalToolbars"/>
@@ -4109,7 +4109,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>New source &amp;device</string>
+    <string>New source Device</string>
    </property>
    <property name="toolTip">
     <string>Create a Device source</string>
@@ -4124,7 +4124,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>New source &amp;loopback</string>
+    <string>New source Loopback</string>
    </property>
    <property name="toolTip">
     <string>Create a Loopback source</string>
@@ -4229,7 +4229,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/computer.png</normaloff>:/glmixer/icons/computer.png</iconset>
    </property>
    <property name="text">
-    <string>New so&amp;urce algorithm</string>
+    <string>New source Algorithm</string>
    </property>
    <property name="toolTip">
     <string>Create an Algorithms source</string>
@@ -4650,7 +4650,7 @@ QToolButton:hover {
      <normalon>:/glmixer/icons/on.png</normalon>:/glmixer/icons/off.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;On air</string>
+    <string>Active</string>
    </property>
    <property name="toolTip">
     <string>Enable / Disable rendering</string>
@@ -4826,7 +4826,7 @@ QToolButton:hover {
      <normalon>:/glmixer/icons/recording.png</normalon>:/glmixer/icons/record.png</iconset>
    </property>
    <property name="text">
-    <string>Start / Stop &amp;Recording</string>
+    <string>&amp;Record</string>
    </property>
    <property name="toolTip">
     <string>Start / Stop Recording</string>
@@ -4919,7 +4919,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>New Media &amp;source(s) </string>
+    <string>New Media source(s) </string>
    </property>
    <property name="toolTip">
     <string>Create a Media source</string>
@@ -5012,7 +5012,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/svg.png</normaloff>:/glmixer/icons/svg.png</iconset>
    </property>
    <property name="text">
-    <string>New source &amp;vector graphics</string>
+    <string>New source Vector graphics</string>
    </property>
    <property name="toolTip">
     <string>Create a vector graphics (SVG) source</string>
@@ -5415,7 +5415,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/networkstream.png</normaloff>:/glmixer/icons/networkstream.png</iconset>
    </property>
    <property name="text">
-    <string>New source streamin&amp;g</string>
+    <string>New source Network stream</string>
    </property>
    <property name="toolTip">
     <string>Create a Network Stream source</string>
@@ -5602,7 +5602,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/basketsource.png</normaloff>:/glmixer/icons/basketsource.png</iconset>
    </property>
    <property name="text">
-    <string>New &amp;basket source</string>
+    <string>New Basket source</string>
    </property>
    <property name="toolTip">
     <string>Create a Basket source</string>
@@ -5741,12 +5741,12 @@ QToolButton:hover {
   </action>
   <action name="actionMinimalToolbars">
    <property name="text">
-    <string>Minimal</string>
+    <string>&amp;Minimal</string>
    </property>
   </action>
   <action name="actionExtendedToolbars">
    <property name="text">
-    <string>Extended</string>
+    <string>&amp;Extended</string>
    </property>
   </action>
  </widget>
