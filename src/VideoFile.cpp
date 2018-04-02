@@ -347,6 +347,9 @@ void VideoFile::close()
     }
 
     if (pFormatCtx) {
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+        avformat_flush(pFormatCtx);
+#endif
         // close file & free context and all its contents and set it to NULL.
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
         av_close_input_file(pFormatCtx);

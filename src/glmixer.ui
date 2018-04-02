@@ -1798,7 +1798,15 @@ QToolButton:hover {
      <property name="title">
       <string>&amp;Widgets &amp;&amp; Toolbars</string>
      </property>
-     <addaction name="actionResetToolbars"/>
+     <widget class="QMenu" name="menuLayout">
+      <property name="title">
+       <string>Layout</string>
+      </property>
+      <addaction name="actionResetToolbars"/>
+      <addaction name="actionMinimalToolbars"/>
+      <addaction name="actionExtendedToolbars"/>
+     </widget>
+     <addaction name="menuLayout"/>
      <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuWorkspace">
@@ -5729,6 +5737,16 @@ QToolButton:hover {
    </property>
    <property name="statusTip">
     <string>Place every sources into the current workspace</string>
+   </property>
+  </action>
+  <action name="actionMinimalToolbars">
+   <property name="text">
+    <string>Minimal</string>
+   </property>
+  </action>
+  <action name="actionExtendedToolbars">
+   <property name="text">
+    <string>Extended</string>
    </property>
   </action>
  </widget>
