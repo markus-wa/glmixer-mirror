@@ -1398,7 +1398,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
     program->setUniformValue("maskTexture", 1);
 
     program->setUniformValue("sourceDrawing", false);
-    program->setUniformValue("gamma", 1.f);
+    program->setUniformValue("gamma", 1.f, 1.f, 1.f, 1.f);// gamma factors : red, green, blue, value
     program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
 
     program->setUniformValue("contrast", 1.f);
@@ -1482,7 +1482,7 @@ void ViewRenderWidget::resetShaderAttributes()
     ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
     ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
     // gamma
-    ViewRenderWidget::program->setUniformValue(_gamma, 1.f);
+    ViewRenderWidget::program->setUniformValue(_gamma, 1.f, 1.f, 1.f, 1.f);
     ViewRenderWidget::program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);
     // effects
     ViewRenderWidget::program->setUniformValue(_contrast, 1.f);

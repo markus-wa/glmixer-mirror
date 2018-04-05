@@ -31,8 +31,9 @@ ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
     centerx(0.0), centery(0.0), rotangle(0.0), texalpha(1.0), pixelated(false),
     filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
     brightness(0.f), contrast(1.f),	saturation(1.f),
-    gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
-    hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
+    gamma(1.0), gammaRed(1.0), gammaGreen(1.0), gammaBlue(1.0),
+    gammaMinIn(0.0), gammaMaxIn(1.0), gammaMinOut(0.0), gammaMaxOut(1.0),
+    hueShift(0.0), chromaKeyTolerance(0.1), luminanceThreshold(0), numberOfColors (0),
     useChromaKey(false)
 {
     // default name
@@ -164,10 +165,20 @@ void ProtoSource::_setChromaKeyTolerance(int t) {
     chromaKeyTolerance = CLAMP( double(t) / 100.0, 0.0, 1.0);
 }
 
-void ProtoSource::_setGamma(double g, double minI, double maxI, double minO, double maxO){
+void ProtoSource::_setGammaColor(double v, double r, double g, double b){
 
+    if (v < std::numeric_limits<double>::max())
+        gamma = CLAMP(v, 0.01, 50.0);
+    if (r < std::numeric_limits<double>::max())
+        gammaRed = CLAMP(r, 0.01, 50.0);
     if (g < std::numeric_limits<double>::max())
-        gamma = CLAMP(g, 0.001, 50.0);
+        gammaGreen = CLAMP(g, 0.01, 50.0);
+    if (b < std::numeric_limits<double>::max())
+        gammaBlue = CLAMP(b, 0.01, 50.0);
+}
+
+void ProtoSource::_setGammaLevels(double minI, double maxI, double minO, double maxO){
+
     if (minI < std::numeric_limits<double>::max())
         gammaMinIn = CLAMP(minI, 0.0, 1.0);
     if (maxI < std::numeric_limits<double>::max())
@@ -220,6 +231,9 @@ void ProtoSource::importProperties(const ProtoSource *source, bool withGeometry)
     mask_type = source->mask_type;
 
     gamma = source->gamma;
+    gammaRed = source->gammaRed;
+    gammaGreen = source->gammaGreen;
+    gammaBlue = source->gammaBlue;
     gammaMinIn = source->gammaMinIn;
     gammaMaxIn = source->gammaMaxIn;
     gammaMinOut = source->gammaMinOut;
@@ -326,6 +340,9 @@ QDomElement ProtoSource::getConfiguration(QDomDocument &doc)
 
     QDomElement Gamma = doc.createElement("Gamma");
     Gamma.setAttribute("value", QString::number(getGamma(),'f',PROPERTY_DECIMALS));
+    Gamma.setAttribute("red", QString::number(getGammaRed(),'f',PROPERTY_DECIMALS));
+    Gamma.setAttribute("green", QString::number(getGammaGreen(),'f',PROPERTY_DECIMALS));
+    Gamma.setAttribute("blue", QString::number(getGammaBlue(),'f',PROPERTY_DECIMALS));
     Gamma.setAttribute("minInput", QString::number(getGammaMinInput(),'f',PROPERTY_DECIMALS));
     Gamma.setAttribute("maxInput", QString::number(getGammaMaxInput(),'f',PROPERTY_DECIMALS));
     Gamma.setAttribute("minOutput", QString::number(getGammaMinOuput(),'f',PROPERTY_DECIMALS));
@@ -415,8 +432,11 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
 
     if ( !xmlconfig.firstChildElement("Gamma").isNull()) {
         tmp = xmlconfig.firstChildElement("Gamma");
-        _setGamma( tmp.attribute("value", "1").toDouble(),
-                   tmp.attribute("minInput", "0").toDouble(),
+        _setGammaColor(tmp.attribute("value", "1").toDouble(),
+                   tmp.attribute("red", "1").toDouble(),
+                   tmp.attribute("green", "1").toDouble(),
+                   tmp.attribute("blue", "1").toDouble());
+        _setGammaLevels(tmp.attribute("minInput", "0").toDouble(),
                    tmp.attribute("maxInput", "1").toDouble(),
                    tmp.attribute("minOutput", "0").toDouble(),
                    tmp.attribute("maxOutput", "1").toDouble());
@@ -455,6 +475,9 @@ QDataStream &operator<<(QDataStream &stream, const ProtoSource *source){
             << source->getContrast()
             << source->getSaturation()
             << source->getGamma()
+            << source->getGammaRed()
+            << source->getGammaGreen()
+            << source->getGammaBlue()
             << source->getGammaMinInput()
             << source->getGammaMaxInput()
             << source->getGammaMinOuput()
@@ -507,7 +530,8 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     stream >> intValue;		source->_setBrightness(intValue);
     stream >> intValue;		source->_setContrast(intValue);
     stream >> intValue;		source->_setSaturation(intValue);
-    stream >> v1 >> v2 >> v3 >> v4 >> v5; 	source->_setGamma(v1, v2, v3, v4, v5);
+    stream >> v1 >> v2 >> v3 >> v4; 	source->_setGammaColor(v1, v2, v3, v4);
+    stream >> v1 >> v2 >> v3 >> v4; 	source->_setGammaLevels(v1, v2, v3, v4);
     stream >> intValue;		source->_setHueShift(intValue);
     stream >> intValue;		source->_setThreshold(intValue);
     stream >> intValue;		source->_setPosterized(intValue);

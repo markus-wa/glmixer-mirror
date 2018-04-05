@@ -284,10 +284,16 @@ void Source::setChromaKeyTolerance(int t) {
     ProtoSource::_setChromaKeyTolerance(t);
 }
 
-void Source::setGamma(double g, double minI, double maxI, double minO, double maxO){
-    emit methodCalled("_setGamma(double,double,double,double,double)", S_ARG(gamma, g), S_ARG(gammaMinIn, minI), S_ARG(gammaMaxIn, maxI), S_ARG(gammaMinOut, minO), S_ARG(gammaMaxOut, maxO));
+void Source::setGammaColor(double value, double red, double green, double blue){
+    emit methodCalled("_setGammaColor(double,double,double,double)", S_ARG(gamma, value), S_ARG(gammaRed, red), S_ARG(gammaGreen, green), S_ARG(gammaBlue, blue));
 
-    ProtoSource::_setGamma(g, minI, maxI, minO, maxO);
+    ProtoSource::_setGammaColor(value, red, green, blue);
+}
+
+void Source::setGammaLevels(double minI, double maxI, double minO, double maxO){
+    emit methodCalled("_setGammaLevels(double,double,double,double)", S_ARG(gammaMinIn, minI), S_ARG(gammaMaxIn, maxI), S_ARG(gammaMinOut, minO), S_ARG(gammaMaxOut, maxO));
+
+    ProtoSource::_setGammaLevels(minI, maxI, minO, maxO);
 }
 
 void Source::setPixelated(bool on) {
@@ -724,7 +730,7 @@ void Source::setShaderAttributes() const {
     ViewRenderWidget::program->setUniformValue(_baseColor, texcolor);
     ViewRenderWidget::program->setUniformValue(_baseAlpha, (GLfloat) texalpha);
     ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
-    ViewRenderWidget::program->setUniformValue(_gamma, (GLfloat) gamma);
+    ViewRenderWidget::program->setUniformValue(_gamma, (GLfloat) gammaRed, (GLfloat) gammaGreen, (GLfloat) gammaBlue, (GLfloat) gamma);
     ViewRenderWidget::program->setUniformValue(_levels, (GLfloat) gammaMinIn, (GLfloat) gammaMaxIn, (GLfloat) gammaMinOut, (GLfloat) gammaMaxOut);
     ViewRenderWidget::program->setUniformValue(_contrast, (GLfloat) contrast);
     ViewRenderWidget::program->setUniformValue(_brightness, (GLfloat) brightness);

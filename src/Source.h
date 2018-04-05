@@ -269,7 +269,8 @@ public:
     // chroma keying tolerance
     void setChromaKeyTolerance(int t);
     // Adjust gamma and levels factors
-    void setGamma(double g, double minI, double maxI, double minO, double maxO);
+    void setGammaColor(double value, double red, double green, double blue);
+    void setGammaLevels(double minI, double maxI, double minO, double maxO);
     // display pixelated ?
     void setPixelated(bool on);
     // Blending function

@@ -21,7 +21,7 @@ TimelineSlider::TimelineSlider(QWidget *parent) :
     draw_area = QRect(margin_pixel, 0, size().width() - margin_pixel * 2, size().height());
 
     overlayFont = font();
-    labelFont.setPointSize(9);
+    overlayFont.setPointSize(9);
     overlayFont.setBold(true);
     overlayFont.setItalic(true);
     labelFont = font();

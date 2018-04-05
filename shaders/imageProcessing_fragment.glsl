@@ -29,7 +29,7 @@ uniform float stippling;
 uniform float contrast;
 uniform float saturation;
 uniform float brightness;
-uniform float gamma;
+uniform vec4 gamma;
 uniform vec4 levels;
 uniform float hueshift;
 uniform vec4 chromakey;
@@ -232,7 +232,7 @@ void main(void)
     vec3 transformedRGB;
 
     transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
-    transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
+    transformedRGB = LevelsControl(transformedRGB, levels.x, gamma.rgb * gamma.a, levels.y, levels.z, levels.w);
 
     // RGB invert
     transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );

@@ -13,9 +13,12 @@
 #include "ui_GammaLevelsDialog.h"
 
 // convert gamma log into linear scale [0-1000]
-#define GammaToScale(gamma) (int)(200.f*log( exp(1000.f/200.f)/20.f * gamma + 0.8f ))
-#define ScaleToGamma(val) 20.f*(exp((float)(val)/200.f) -0.8f)/exp(1000.f/200.f)
-#define NUM_POINTS_PLOT 80
+#define GammaToScale(gamma) (int)(200.0*log( exp(1000.0/200.0)/24.0 * gamma + 0.8 ))
+#define ScaleToGamma(val) 24.0*(exp((float)(val)/200.0) -0.8)/exp(1000.0/200.0)
+#define DENSITY_POINTS_PLOT 6
+#define CURVE_COLOR_RED 250, 50, 50
+#define CURVE_COLOR_GREEN 50, 220, 50
+#define CURVE_COLOR_BLUE 50, 50, 250
 
 class GammaLevelsWidget : public QWidget, Ui::GammaLevelsWidget {
 
@@ -25,13 +28,8 @@ public:
 
     GammaLevelsWidget(QWidget *parent);
 
-    void setValues(float gamma, float minInput, float maxInput, float minOutput, float maxOutput);
-
-    float minOutput();
-    float maxOutput();
-    float minInput();
-    float maxInput();
-    float gamma();
+    void setGammaColor(double gamma, double red, double green, double blue);
+    void setGammaLevels(double minInput, double maxInput, double minOutput, double maxOutput);
 
     void showEvent ( QShowEvent * event );
     void setAntialiasing(bool antialiased);
@@ -41,15 +39,23 @@ public:
 public slots:
 
     void connectSource(SourceSet::iterator);
-    void updateSource();
+    void updateColor();
+    void updateLevels();
 
-    void on_inSplit_splitterMoved ( int pos, int index );
-    void on_outSplit_splitterMoved ( int pos, int index );
-    void on_resetButton_clicked ();
+    void on_curveMode_currentIndexChanged(int c);
+    void on_inSplit_splitterMoved(int pos, int index);
+    void on_outSplit_splitterMoved(int pos, int index);
+    void on_resetButton_clicked();
+    void on_curveReset_clicked();
+    void on_curvePreview_pressed();
+    void on_curvePreview_released();
 
 private:
     class GammaPlotArea *plot;
     Source *source;
+
+    double _gamma, _gammared, _gammagreen, _gammablue;
+    double _xmin, _xmax, _ymin, _ymax;
 };
 
 
@@ -68,6 +74,13 @@ public:
     void setPen(const QPen &pen);
     void setAntialiased(bool antialiased);
 
+    typedef enum {
+        CURVE_VALUE = 0,
+        CURVE_RED,
+        CURVE_GREEN,
+        CURVE_BLUE
+    } gammaCurve;
+
 signals:
     void gammaChanged();
 
@@ -76,14 +89,16 @@ protected:
     void mouseMoveEvent ( QMouseEvent * event );
     void wheelEvent ( QWheelEvent * event );
 
-    float gamma;
-    float xmin, xmax, ymin, ymax;
+    gammaCurve activeCurve;
+
+    QMap<gammaCurve, double> gamma;
+    double xmin, xmax, ymin, ymax;
 
 private:
-    QPoint points[NUM_POINTS_PLOT];
-    QPen pen;
+    QMap<gammaCurve, QPair<QPen,QPen> > pens;
     QBrush brush;
     bool antialiased;
+    QFont labelFont;
 
 };
 

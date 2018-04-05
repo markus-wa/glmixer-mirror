@@ -174,6 +174,15 @@ public:
     inline double getGamma() const {
         return gamma;
     }
+    inline double getGammaRed() const {
+        return gammaRed;
+    }
+    inline double getGammaGreen() const {
+        return gammaGreen;
+    }
+    inline double getGammaBlue() const {
+        return gammaBlue;
+    }
     inline double getGammaMinInput() const {
         return gammaMinIn;
     }
@@ -266,7 +275,8 @@ public:
     Q_INVOKABLE void _setChromaKey(bool on);
     Q_INVOKABLE void _setChromaKeyColor(QColor c);
     Q_INVOKABLE void _setChromaKeyTolerance(int t);
-    Q_INVOKABLE void _setGamma(double g, double minI, double maxI, double minO, double maxO);
+    Q_INVOKABLE void _setGammaColor(double value, double red, double green, double blue);
+    Q_INVOKABLE void _setGammaLevels(double minI, double maxI, double minO, double maxO);
     Q_INVOKABLE void _setPixelated(bool on);
     Q_INVOKABLE void _setBlending(uint sfactor, uint dfactor, uint eq);
     Q_INVOKABLE void _setInvertMode(invertModeType i);
@@ -301,7 +311,8 @@ protected:
     // Brightness, contrast and saturation
     double brightness, contrast, saturation;
     // gamma and its levels
-    double gamma, gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut;
+    double gamma, gammaRed, gammaGreen, gammaBlue;
+    double gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut;
     // color manipulation
     double hueShift, chromaKeyTolerance;
     int luminanceThreshold, numberOfColors;

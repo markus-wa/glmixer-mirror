@@ -212,5 +212,10 @@
         <file>icons/scale-source-cropped.png</file>
         <file>icons/scale-source-scaled.png</file>
         <file>icons/scale-source-pixel.png</file>
+        <file>icons/white.png</file>
+        <file>icons/green.png</file>
+        <file>icons/blue.png</file>
+        <file>icons/red.png</file>
+        <file>icons/eye.png</file>
     </qresource>
 </RCC>
