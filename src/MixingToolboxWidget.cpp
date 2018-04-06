@@ -646,8 +646,6 @@ void MixingToolboxWidget::on_colorPreview_pressed()
             source->_setInvertMode();
             break;
         }
-
-
     }
 }
 void MixingToolboxWidget::on_colorPreview_released()
@@ -680,8 +678,6 @@ void MixingToolboxWidget::on_colorPreview_released()
             source->_setInvertMode(EffectsInvertBox->currentIndex());
             break;
         }
-
-
     }
 }
 

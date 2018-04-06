@@ -160,15 +160,17 @@ void GammaLevelsWidget::on_curveReset_clicked() {
 void GammaLevelsWidget::on_curvePreview_pressed()
 {
     if (source) {
-        source->_setGammaColor(1.0, 1.0, 1.0, 1.0);
-        source->_setGammaLevels(0.0, 1.0, 0.0, 1.0);
+        source->_setGammaColor();
+        source->_setGammaLevels();
     }
 }
 
 void GammaLevelsWidget::on_curvePreview_released()
 {
-    updateColor();
-    updateLevels();
+    if (source){
+        source->_setGammaColor(plot->gamma[GammaPlotArea::CURVE_VALUE], plot->gamma[GammaPlotArea::CURVE_RED],plot->gamma[GammaPlotArea::CURVE_GREEN],plot->gamma[GammaPlotArea::CURVE_BLUE]);
+        source->_setGammaLevels(plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+    }
 }
 
 void GammaLevelsWidget::on_inSplit_splitterMoved ( int pos, int index )
