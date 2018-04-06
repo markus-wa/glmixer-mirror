@@ -160,8 +160,8 @@ void GammaLevelsWidget::on_curveReset_clicked() {
 void GammaLevelsWidget::on_curvePreview_pressed()
 {
     if (source) {
-        source->setGammaColor(1.0, 1.0, 1.0, 1.0);
-        source->setGammaLevels(0.0, 1.0, 0.0, 1.0);
+        source->_setGammaColor(1.0, 1.0, 1.0, 1.0);
+        source->_setGammaLevels(0.0, 1.0, 0.0, 1.0);
     }
 }
 

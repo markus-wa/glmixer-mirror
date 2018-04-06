@@ -266,20 +266,20 @@ public:
     Q_INVOKABLE void _setAlpha(double a);
     Q_INVOKABLE void _setMask(int maskType);
     Q_INVOKABLE void _setColor(QColor c);
-    Q_INVOKABLE void _setBrightness(int b);
-    Q_INVOKABLE void _setContrast(int c);
-    Q_INVOKABLE void _setSaturation(int s);
-    Q_INVOKABLE void _setHueShift(int h);
-    Q_INVOKABLE void _setThreshold(int l);
-    Q_INVOKABLE void _setPosterized(int n);
-    Q_INVOKABLE void _setChromaKey(bool on);
+    Q_INVOKABLE void _setBrightness(int b = 0);
+    Q_INVOKABLE void _setContrast(int c = 0);
+    Q_INVOKABLE void _setSaturation(int s = 0);
+    Q_INVOKABLE void _setHueShift(int h = 0);
+    Q_INVOKABLE void _setThreshold(int l = 0);
+    Q_INVOKABLE void _setPosterized(int n = 255);
+    Q_INVOKABLE void _setChromaKey(bool on = false);
     Q_INVOKABLE void _setChromaKeyColor(QColor c);
-    Q_INVOKABLE void _setChromaKeyTolerance(int t);
-    Q_INVOKABLE void _setGammaColor(double value, double red, double green, double blue);
-    Q_INVOKABLE void _setGammaLevels(double minI, double maxI, double minO, double maxO);
-    Q_INVOKABLE void _setPixelated(bool on);
+    Q_INVOKABLE void _setChromaKeyTolerance(int t = 10);
+    Q_INVOKABLE void _setGammaColor(double value = 1.0, double red = 1.0, double green = 1.0, double blue = 1.0);
+    Q_INVOKABLE void _setGammaLevels(double minI = 0.0, double maxI = 1.0, double minO = 0.0, double maxO = 1.0);
+    Q_INVOKABLE void _setPixelated(bool on = false);
     Q_INVOKABLE void _setBlending(uint sfactor, uint dfactor, uint eq);
-    Q_INVOKABLE void _setInvertMode(invertModeType i);
+    Q_INVOKABLE void _setInvertMode(invertModeType i = INVERT_NONE);
     Q_INVOKABLE void _setFilter(filterType c);
 
     // for type compatibility

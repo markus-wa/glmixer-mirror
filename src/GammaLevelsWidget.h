@@ -53,9 +53,6 @@ public slots:
 private:
     class GammaPlotArea *plot;
     Source *source;
-
-    double _gamma, _gammared, _gammagreen, _gammablue;
-    double _xmin, _xmax, _ymin, _ymax;
 };
 
 

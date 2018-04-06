@@ -87,6 +87,8 @@ public slots:
     void on_chromakeySlider_valueChanged(int);
     void on_resetColor_pressed();
     void on_colorButton_clicked(bool);
+    void on_colorPreview_pressed();
+    void on_colorPreview_released();
 
     // Filter page
     void on_filterList_currentRowChanged(int);

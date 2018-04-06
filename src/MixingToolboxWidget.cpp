@@ -617,6 +617,74 @@ void MixingToolboxWidget::on_posterizeReset_pressed()
     posterizeSlider->setValue(255);
 }
 
+void MixingToolboxWidget::on_colorPreview_pressed()
+{
+    if (source) {
+        switch (colorToolBox->currentIndex()) {
+        case 0: // saturation
+            source->_setSaturation();
+            break;
+        case 1: // brightness
+            source->_setBrightness();
+            break;
+        case 2: // contrast
+            source->_setContrast();
+            break;
+        case 3: // hue
+            source->_setHueShift();
+            break;
+        case 4: // Threshold
+            source->_setThreshold();
+            break;
+        case 5: // posterize
+            source->_setPosterized();
+            break;
+        case 6: // chroma key
+            source->_setChromaKey();
+            break;
+        case 7: // Invert
+            source->_setInvertMode();
+            break;
+        }
+
+
+    }
+}
+void MixingToolboxWidget::on_colorPreview_released()
+{
+    if (source) {
+
+        switch (colorToolBox->currentIndex()) {
+        case 0: // saturation
+            source->_setSaturation(saturationSlider->value());
+            break;
+        case 1: // brightness
+            source->_setBrightness(brightnessSlider->value());
+            break;
+        case 2: // contrast
+            source->_setContrast(contrastSlider->value());
+            break;
+        case 3: // hue
+            source->_setHueShift(hueSlider->value());
+            break;
+        case 4: // Threshold
+            source->_setThreshold(thresholdSlider->value());
+            break;
+        case 5: // posterize
+            source->_setPosterized(posterizeSlider->value());
+            break;
+        case 6: // chroma key
+            source->_setChromaKey(chromakeyEnable->isEnabled());
+            break;
+        case 7: // Invert
+            source->_setInvertMode(EffectsInvertBox->currentIndex());
+            break;
+        }
+
+
+    }
+}
+
 void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
 {
     emit(enumChanged("Filter", value));

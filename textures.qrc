@@ -38,5 +38,7 @@
         <file>textures/mask_pixel_vertical.png</file>
         <file>textures/mask_checker.png</file>
         <file>textures/mask_bubble.png</file>
+        <file>textures/contrast.svg</file>
+        <file>textures/saturation.svg</file>
     </qresource>
 </RCC>
