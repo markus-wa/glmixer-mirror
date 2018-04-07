@@ -130,7 +130,6 @@ SET(GLMIXER_UIS
 )
 
 
-SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
 if(USE_LOG_MANAGEMENT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_LOGS" )
     add_definitions(-DGLM_LOGS)
@@ -591,7 +590,7 @@ ELSE(APPLE)
         # IF(MINGW)
             # INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
         # ENDIF(MINGW)
-        
+
         #--------------------------------------------------------------------------------
         # Install Qt plugins by copying directories from the qt installation
         FILE(GLOB files "${QT_PLUGINS_DIR}/imageformats/*")
@@ -653,7 +652,7 @@ ELSE(APPLE)
 
         execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                        TIMEOUT 5 
+                        TIMEOUT 5
                         OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog")
         execute_process(COMMAND gzip -9 -n -c ${CMAKE_BINARY_DIR}/ChangeLog
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

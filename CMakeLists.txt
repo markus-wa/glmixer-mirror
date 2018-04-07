@@ -174,11 +174,15 @@ SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK to compile with Session switcher
 SET(USE_TAG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Tag manager")
 SET(USE_UNDO ON CACHE BOOL "CHECK if you want to compile the Undo functionnality")
 SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
+SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
+SET(USE_SNAPSHOT_MANAGEMENT ON CACHE BOOL "CHECK to compile with snapshots manager")
+set(USE_FREEFRAMEGL "1.6" CACHE STRING "Choose if you want to compile with FreeFrame GL library")
+
 # UNSTABLE MODULE : DISABLED BY DEFAULT
-SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "CHECK to compile with History manager")
-SET(USE_SNAPSHOT_MANAGEMENT OFF CACHE BOOL "CHECK to compile with snapshots manager")
-SET(USE_SHAREDMEMORY OFF CACHE BOOL "CHECK to compile with Shared Memory support")
-SET(USE_NVIDIA_CUDA OFF CACHE BOOL "CHECK to compile with NVIDIA CUDA Video Decoding")
+SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "EXPERIMENTAL History manager")
+SET(USE_SHAREDMEMORY OFF CACHE BOOL "DEPRECATED Shared Memory support")
+SET(USE_NVIDIA_CUDA OFF CACHE BOOL "EXPERIMENTAL NVIDIA CUDA Video Decoding")
+SET(USE_SPOUT OFF CACHE BOOL "EXPERIMENTAL SPout support")
 
 if( USE_SHAREDMEMORY )
 
@@ -279,7 +283,6 @@ endif(USE_OPENCV)
 
 # HERE IS THE OPTIONNAL INSTALLATION OF FREEFRAMEGL
 
-set(USE_FREEFRAMEGL "NO" CACHE STRING "Choose if you want to compile with FreeFrame GL library")
 set_property(CACHE USE_FREEFRAMEGL PROPERTY STRINGS "NO;1.5;1.6")
 
 if(USE_FREEFRAMEGL)
