@@ -543,7 +543,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     output_recording_pause->setDefaultAction(actionPause_recording);
     output_aspectratio->setMenu(aspectRatioMenu);
     output_fullscreen->setDefaultAction(actionFullscreen);
-    QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
+    QObject::connect(actionToggleRenderingVisible, SIGNAL(triggered(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
     QObject::connect(RenderingManager::getInstance()->getSessionSwitcher(), SIGNAL(alphaChanged(int)), output_alpha, SLOT(setValue(int)));
 
     // session switching
@@ -588,7 +588,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Signals between GUI and rendering widget
     QObject::connect(actionShow_Catalog, SIGNAL(triggered(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
     QObject::connect(actionWhite_background, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
-    QObject::connect(sliderZoom, SIGNAL(sliderMoved(int)), RenderingManager::getRenderingWidget(), SLOT(zoom(int)));
+    QObject::connect(sliderZoom, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget(), SLOT(zoom(int)));
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(zoomPercentChanged(int)), sliderZoom, SLOT(setValue(int)));
 
     QObject::connect(actionZoomIn, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
@@ -3339,16 +3339,8 @@ void GLMixer::on_output_alpha_valueChanged(int v){
 
     static int previous_v = 0;
 
-    if (v == 100 || previous_v == 100) {
-        QObject::disconnect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
-
-        if(previous_v < 100)
-            actionToggleRenderingVisible->setChecked(false);
-        else
-            actionToggleRenderingVisible->setChecked(true);
-
-        QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
-    }
+    if ( (v == 100 || previous_v == 100) && previous_v != v)
+        actionToggleRenderingVisible->setChecked( v < 100);
 
     RenderingManager::getInstance()->getSessionSwitcher()->setAlpha(v);
 
