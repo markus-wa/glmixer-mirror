@@ -10,6 +10,7 @@
 #include "RenderingManager.h"
 #include "SelectionManager.h"
 #include "ViewRenderWidget.h"
+#include "GeometryView.h"
 #include "OutputRenderWindow.h"
 
 
@@ -107,13 +108,9 @@ void RenderingView::paint()
         //
         // 2. Draw it into current view
         //
-        // draw only if it is the current source
-        if ( RenderingManager::getInstance()->isCurrentSource(s)
-             // OR it is selected
-             || SelectionManager::getInstance()->isInSelection(s)
-             // OR if there is no current source and no selection (i.e default case draw everything)
-             /*|| ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
-                && !SelectionManager::getInstance()->hasSelection() ) */ ) {
+        // draw only selection if there is one
+        if ( SelectionManager::getInstance()->hasSelection()
+             && SelectionManager::getInstance()->isInSelection(s)) {
 
             // place and scale
             glPushMatrix();
@@ -134,10 +131,10 @@ void RenderingView::paint()
 
     }
 
-    if (( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource()) && !SelectionManager::getInstance()->hasSelection() ))
+    // draw the whole scene if there is no selection
+    if ( !SelectionManager::getInstance()->hasSelection() )
     {
         // Re-Draw frame buffer in the render window
-        // With correct rendering on top of the different workspaces
         ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
         glPushMatrix();
         glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
@@ -272,11 +269,49 @@ void RenderingView::zoomReset() {
 
 void RenderingView::zoomBestFit( bool onlyClickedSource ) {
 
-    float percent = (float) RenderingManager::getRenderingWidget()->catalogWidth() / (float)viewport[2];
+    // nothing to do if there is no source
+    if (RenderingManager::getInstance()->empty()){
+        zoomReset();
+        return;
+    }
 
-    setZoom(DEFAULTZOOM - percent * DEFAULTZOOM);
-    setPanning(DEFAULT_PANNING);
-    panningBy(0, 0, -RenderingManager::getRenderingWidget()->catalogWidth()/2, 0);
+    // 0. consider either the clicked source, either the full list
+    SourceList l;
+    if ( onlyClickedSource ) {
+
+        if (SelectionManager::getInstance()->hasSelection())
+            // list the selection
+            l = SelectionManager::getInstance()->copySelection();
+        else if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd() )
+            // add only the current source in the list
+            l.insert(*RenderingManager::getInstance()->getCurrentSource());
+        else
+            return;
+
+    } else
+        // make a list of all the sources
+        std::copy( RenderingManager::getInstance()->getBegin(), RenderingManager::getInstance()->getEnd(), std::inserter( l, l.end() ) );
+
+    // 1. compute bounding box of every sources to consider
+    QRectF bbox = GeometryView::getBoundingBox(l);
+
+    // 2. Apply the panning to the new center
+    setPanning( -bbox.center().x(),  -bbox.center().y()  );
+
+    // 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
+    double LLcorner[3];
+    double URcorner[3];
+    gluUnProject(viewport[0], viewport[1], 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+    gluUnProject(viewport[2], viewport[3], 1, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
+
+    // 4. compute zoom factor to fit to the boundaries
+    // initial value = a margin scale of 5%
+    double scalex = 0.98 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox.width());
+    double scaley = 0.98 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox.height());
+    // depending on the axis having the largest extend
+    // apply the scaling
+    setZoom( zoom * (scalex < scaley ? scalex : scaley  ));
+
 }
 
 void RenderingView::setAction(ActionType a){
