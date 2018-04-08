@@ -1,3 +1,4 @@
+#version 120
 /*
 ** Gamma correction
 ** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/
@@ -39,7 +40,7 @@ uniform int nbColors;
 uniform int invertMode;
 
 uniform vec2 filter_step;
-uniform int filter;
+uniform int filter_type;
 uniform mat3 filter_kernel;
 
 
@@ -155,14 +156,14 @@ vec3 convolution()
 
 vec3 apply_filter() {
 
-    if (filter < 1 || filter > 15)
+    if (filter_type < 1 || filter_type > 15)
         return texture2D(sourceTexture, texc).rgb;
-    else if (filter < 10)
+    else if (filter_type < 10)
         return convolution();
-    else if (filter < 13)
-        return erosion( 3 + (filter -10) * 2 );
+    else if (filter_type < 13)
+        return erosion( 3 + (filter_type -10) * 2 );
     else
-        return dilation( 3 + (filter -13) * 2  );
+        return dilation( 3 + (filter_type -13) * 2  );
 }
 
 /*

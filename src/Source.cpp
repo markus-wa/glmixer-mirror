@@ -723,7 +723,7 @@ void Source::setShaderAttributes() const {
     static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
     static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
     static int _chromadelta  = ViewRenderWidget::program->uniformLocation("chromadelta");
-    static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
+    static int _filter  = ViewRenderWidget::program->uniformLocation("filter_type");
     static int _filter_step  = ViewRenderWidget::program->uniformLocation("filter_step");
     static int _filter_kernel  = ViewRenderWidget::program->uniformLocation("filter_kernel");
 

@@ -1413,7 +1413,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
 
     if (!disableFiltering) {
         program->setUniformValue("filter_step", 1.f / 640.f, 1.f / 480.f);
-        program->setUniformValue("filter", (GLint) 0);
+        program->setUniformValue("filter_type", (GLint) 0);
         program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[0]);
     }
 
@@ -1428,18 +1428,19 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
     makeCurrent();
 
     // if the GLSL program was already created, delete it
-    if( program ) {
-        program->release();
-        delete program;
+    if( ViewRenderWidget::program ) {
+        ViewRenderWidget::program->release();
+        delete ViewRenderWidget::program;
+        ViewRenderWidget::program = 0;
     }
     // apply flag
     disableFiltering = !on;
 
     // instanciate the GLSL program
-    program = new QGLShaderProgram(this);
+    ViewRenderWidget::program = new QGLShaderProgram(this);
 
     // configure it
-    ViewRenderWidget::setupFilteringShaderProgram(program, glslfilename);
+    ViewRenderWidget::setupFilteringShaderProgram(ViewRenderWidget::program, glslfilename);
 
 }
 
@@ -1475,7 +1476,7 @@ void ViewRenderWidget::resetShaderAttributes()
     static int _nbColors  = ViewRenderWidget::program->uniformLocation("nbColors");
     static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
     static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
-    static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
+    static int _filter  = ViewRenderWidget::program->uniformLocation("filter_type");
 
     // set color & alpha
     ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));

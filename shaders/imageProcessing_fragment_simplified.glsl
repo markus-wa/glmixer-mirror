@@ -1,3 +1,4 @@
+#version 120
 /*
 ** Gamma correction
 ** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/

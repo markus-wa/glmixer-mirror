@@ -625,8 +625,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
-    qDebug() << "Mask " << value;
-
     if (!canChange())
             return;
 
