@@ -345,7 +345,7 @@ void SnapshotManager::storeTemporarySnapshotDescription()
         root.appendChild( config );
     }
     else
-        root.replaceChild( root.firstChildElement("SourceList"), config );
+        root.replaceChild( config, root.firstChildElement("SourceList") );
 
     // post process list to add identifiers to each source
     QDomElement renderConfig = root.firstChildElement("SourceList");
