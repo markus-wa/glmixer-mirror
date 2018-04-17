@@ -107,9 +107,6 @@ void MixerView::paint()
 {
     static double renderingAspectRatio = 1.0;
     static double ax, ay;
-    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
-    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing + 2);
@@ -213,11 +210,11 @@ void MixerView::paint()
 
             if (!s->isStandby())  {
                 //   draw stippled version of the source
-                ViewRenderWidget::program->setUniformValue( _stippling, (GLfloat) ViewRenderWidget::getStipplingMode() / 100.f);
+                ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, (GLfloat) ViewRenderWidget::getStipplingMode() / 100.f);
             }
             else {
                 // draw flat version of the source
-                ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
+                ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, 1.f);
             }
 
             s->draw();
@@ -226,7 +223,7 @@ void MixerView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (larger if active)
-            ViewRenderWidget::program->setUniformValue(_baseColor, s->isStandby() ? Tag::get(s)->getColor().darker() : Tag::get(s)->getColor());
+            ViewRenderWidget::setBaseColor(s->isStandby() ? Tag::get(s)->getColor().darker() : Tag::get(s)->getColor());
             if (RenderingManager::getInstance()->isCurrentSource(s))
                 glCallList(ViewRenderWidget::border_large_shadow);
             else
@@ -237,8 +234,7 @@ void MixerView::paint()
         else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
 
             // set shadow color and alpha
-            ViewRenderWidget::program->setUniformValue( _baseColor, s->getColor().darker(WORKSPACE_COLOR_SHIFT));
-            ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+            ViewRenderWidget::setBaseColor(s->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
 
             // draw texture
             s->draw();
@@ -247,8 +243,7 @@ void MixerView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (never active)
-            ViewRenderWidget::program->setUniformValue(_baseAlpha, WORKSPACE_MAX_ALPHA);
-            ViewRenderWidget::program->setUniformValue(_baseColor, Tag::get(s)->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            ViewRenderWidget::setBaseColor(Tag::get(s)->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
             glCallList(ViewRenderWidget::border_thin_shadow + 2);
 
         }

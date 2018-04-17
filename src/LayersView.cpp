@@ -140,10 +140,6 @@ void LayersView::setModelview()
 
 void LayersView::paint()
 {
-    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
-    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-
     // First the background stuff
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
@@ -228,7 +224,7 @@ void LayersView::paint()
         if (WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
 
             //   draw stippled version of the source
-            ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
+            ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
 
             s->draw();
 
@@ -240,7 +236,7 @@ void LayersView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (larger if active)
-            ViewRenderWidget::program->setUniformValue(_baseColor, Tag::get(s)->getColor());
+            ViewRenderWidget::setBaseColor(Tag::get(s)->getColor());
             if (RenderingManager::getInstance()->isCurrentSource(s))
                 glCallList(ViewRenderWidget::border_large_shadow);
             else
@@ -251,8 +247,7 @@ void LayersView::paint()
         else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
 
             // set shadow color and alpha
-            ViewRenderWidget::program->setUniformValue( _baseColor, s->getColor().darker(WORKSPACE_COLOR_SHIFT));
-            ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+            ViewRenderWidget::setBaseColor(s->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
 
             s->draw();
 
@@ -264,17 +259,14 @@ void LayersView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (never active)
-            ViewRenderWidget::program->setUniformValue(_baseAlpha, WORKSPACE_MAX_ALPHA);
-            ViewRenderWidget::program->setUniformValue(_baseColor, Tag::get(s)->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            ViewRenderWidget::setBaseColor(Tag::get(s)->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
             glCallList(ViewRenderWidget::border_thin_shadow + 2);
         }
 
 
         // draw border for selection
         if (SelectionManager::getInstance()->isInSelection(s)) {
-
-            static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
-            ViewRenderWidget::program->setUniformValue( _baseColor, QColor(COLOR_SELECTION));
+            ViewRenderWidget::setBaseColor(QColor(COLOR_SELECTION));
             glCallList(ViewRenderWidget::frame_selection);
         }
 

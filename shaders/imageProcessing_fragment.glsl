@@ -229,7 +229,7 @@ void main(void)
 {
     // deal with alpha separately
     float ma = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a;
-    float alpha = ma  * baseAlpha;
+    float alpha = ma * baseAlpha;
     vec3 transformedRGB;
 
     transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
@@ -254,7 +254,7 @@ void main(void)
     transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
 
     // level threshold
-    transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
+    transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > EPSILON));
 
     // after operations on HSL, convert back to RGB
     transformedRGB = HSV2RGB(transformedHSL);
@@ -269,6 +269,5 @@ void main(void)
     gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );
 
 }
-
 
 

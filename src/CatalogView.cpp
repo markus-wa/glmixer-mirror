@@ -142,8 +142,7 @@ void CatalogView::drawSource(Source *s)
         glLoadIdentity();
 
         // non-transparency blending
-        static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-        ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, 1.f);
 
         // standard transparency blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -160,7 +159,7 @@ void CatalogView::drawSource(Source *s)
         glDrawArrays(GL_QUADS, 0, 4);
 
         // restore source alpha
-        ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha());
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) s->getAlpha());
 
         // done drawing
         _catalogfbo->release();

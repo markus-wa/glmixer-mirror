@@ -139,7 +139,26 @@ GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::basecolor[4] = {1.f, 1.f, 1.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
+QString ViewRenderWidget::glslShaderFile = ":/glsl/shaders/imageProcessing_fragment.glsl";
 bool ViewRenderWidget::disableFiltering = false;
+int ViewRenderWidget::_baseColor = -1;
+int ViewRenderWidget::_baseAlpha = -1;
+int ViewRenderWidget::_stippling = -1;
+int ViewRenderWidget::_gamma = -1;
+int ViewRenderWidget::_levels = -1;
+int ViewRenderWidget::_contrast = -1;
+int ViewRenderWidget::_brightness = -1;
+int ViewRenderWidget::_saturation = -1;
+int ViewRenderWidget::_hueshift = -1;
+int ViewRenderWidget::_invertMode = -1;
+int ViewRenderWidget::_nbColors = -1;
+int ViewRenderWidget::_threshold = -1;
+int ViewRenderWidget::_chromakey = -1;
+int ViewRenderWidget::_chromadelta = -1;
+int ViewRenderWidget::_filter_type = -1;
+int ViewRenderWidget::_filter_step = -1;
+int ViewRenderWidget::_filter_kernel = -1;
+
 
 const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
 const char * const white_xpm[] = { "2 2 1 1", ". c #FFFFFF", "..", ".."};
@@ -390,6 +409,8 @@ void ViewRenderWidget::initializeGL()
     glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
     glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
 
+    // create GLSL program
+    ViewRenderWidget::program = new QGLShaderProgram(this);
 }
 
 void ViewRenderWidget::setViewMode(View::viewMode mode)
@@ -703,6 +724,16 @@ void ViewRenderWidget::paintGL()
     //
     // background clear
     glRenderWidget::paintGL();
+
+    // if a GLSL fragment shader is requested, load it.
+    if (!ViewRenderWidget::glslShaderFile.isEmpty()) {
+
+        // setup GLSL program
+        setupFilteringShaderProgram(glslShaderFile);
+
+        // do not need the filename anymore
+        glslShaderFile = QString::null;
+    }
 
     // apply modelview transformations from zoom and panning only when requested
     if (_currentView->isModified()) {
@@ -1353,20 +1384,73 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
     // NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
-void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename) {
 
+void ViewRenderWidget::setBaseColor(QColor c, float alpha)
+{
+    if (_baseColor<0) return;
+
+    program->setUniformValue(_baseColor, c);
+
+    if (alpha > -1.0)
+        program->setUniformValue(_baseAlpha, alpha);
+}
+
+void ViewRenderWidget::resetShaderAttributes()
+{
+    if (_baseColor<0) return;
+
+    // set color & alpha
+    program->setUniformValue(_baseColor, QColor(Qt::white));
+    program->setUniformValue(_baseAlpha, 1.f);
+    program->setUniformValue(_stippling, 0.f);
+    // gamma
+    program->setUniformValue(_gamma, 1.f, 1.f, 1.f, 1.f);
+    program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);
+    // effects
+    program->setUniformValue(_contrast, 1.f);
+    program->setUniformValue(_saturation, 1.f);
+    program->setUniformValue(_brightness, 0.f);
+    program->setUniformValue(_hueshift, 0.f);
+    program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
+    program->setUniformValue(_threshold, 0.f);
+    program->setUniformValue(_nbColors, (GLint) -1);
+    program->setUniformValue(_invertMode, (GLint) 0);
+
+    // disable filtering
+    if (!disableFiltering) {
+        program->setUniformValue(_filter_step, 1.f / 640.f, 1.f / 480.f);
+        program->setUniformValue(_filter_type, (GLint) 0);
+        program->setUniformValue(_filter_kernel, filter_kernel[0]);
+    }
+
+    // activate texture 1 ; double texturing of the mask
+    glActiveTexture(GL_TEXTURE1);
+    // select and enable the texture corresponding to the mask
+    glBindTexture(GL_TEXTURE_2D, mask_textures[0]);
+    // back to texture 0 for the following
+    glActiveTexture(GL_TEXTURE0);
+
+    // reset texture coordinate
+    texc[0] = texc[6] = 0.f;
+    texc[1] = texc[3] = 1.f;
+    texc[2] = texc[4] = 1.f;
+    texc[5] = texc[7] = 0.f;
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
+}
+
+void ViewRenderWidget::setupFilteringShaderProgram(QString fshfile)
+{
     if (!program)
         return;
 
-    QString fshfile;
-    if (glslfilename.isNull()) {
-        if (ViewRenderWidget::disableFiltering)
-            fshfile = ":/glsl/shaders/imageProcessing_fragment_simplified.glsl";
-        else
-            fshfile = ":/glsl/shaders/imageProcessing_fragment.glsl";
-    }
-    else
-        fshfile = glslfilename;
+    if (fshfile.isEmpty())
+        return;
+
+    // delete previous program if existed
+    program->removeAllShaders();
 
     if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
@@ -1390,67 +1474,70 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
     program->enableAttributeArray("maskCoord");
     program->setAttributeArray ("maskCoord", ViewRenderWidget::maskc, 2, 0);
 
+    // get uniforms
+    _baseColor = program->uniformLocation("baseColor");
+    _baseAlpha = program->uniformLocation("baseAlpha");
+    _stippling = program->uniformLocation("stippling");
+    _gamma  = program->uniformLocation("gamma");
+    _levels  = program->uniformLocation("levels");
+    _contrast  = program->uniformLocation("contrast");
+    _brightness  = program->uniformLocation("brightness");
+    _saturation  = program->uniformLocation("saturation");
+    _hueshift  = program->uniformLocation("hueshift");
+    _invertMode  = program->uniformLocation("invertMode");
+    _nbColors  = program->uniformLocation("nbColors");
+    _threshold  = program->uniformLocation("threshold");
+    _chromakey  = program->uniformLocation("chromakey");
+    _chromadelta  = program->uniformLocation("chromadelta");
+
     // set the default values for the uniform variables
-    program->setUniformValue("baseColor", QColor(0,0,0));
-    program->setUniformValue("baseAlpha", 1.f);
-    program->setUniformValue("stippling", 0.f);
     program->setUniformValue("sourceTexture", 0);
     program->setUniformValue("maskTexture", 1);
-
     program->setUniformValue("sourceDrawing", false);
-    program->setUniformValue("gamma", 1.f, 1.f, 1.f, 1.f);// gamma factors : red, green, blue, value
-    program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
 
-    program->setUniformValue("contrast", 1.f);
-    program->setUniformValue("saturation", 1.f);
-    program->setUniformValue("brightness", 0.f);
-    program->setUniformValue("hueshift", 0.f);
-    program->setUniformValue("chromakey", 0.f, 0.f, 0.f, 0.f );
-    program->setUniformValue("chromadelta", 0.1f);
-    program->setUniformValue("threshold", 0.0f);
-    program->setUniformValue("nbColors", (GLint) -1);
-    program->setUniformValue("invertMode", (GLint) 0);
-
-    if (!disableFiltering) {
-        program->setUniformValue("filter_step", 1.f / 640.f, 1.f / 480.f);
-        program->setUniformValue("filter_type", (GLint) 0);
-        program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[0]);
+    if (!ViewRenderWidget::disableFiltering) {
+        _filter_type  = program->uniformLocation("filter_type");
+        _filter_step  = program->uniformLocation("filter_step");
+        _filter_kernel  = program->uniformLocation("filter_kernel");
     }
 
+    resetShaderAttributes();
+
+    // ready
     program->release();
 
+    qDebug() << fshfile << QChar(124).toLatin1()<< QObject::tr("OpenGL GLSL Fragment Shader loaded.");
 }
 
 
-void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
+void ViewRenderWidget::setFilteringEnabled(bool on)
 {
-    // activate opengl context
-    makeCurrent();
+    // ignore if nothing changes
+    if ( disableFiltering != on)
+        return;
 
-    // if the GLSL program was already created, delete it
-    if( ViewRenderWidget::program ) {
-        ViewRenderWidget::program->release();
-        delete ViewRenderWidget::program;
-        ViewRenderWidget::program = 0;
-    }
     // apply flag
     disableFiltering = !on;
 
-    // instanciate the GLSL program
-    ViewRenderWidget::program = new QGLShaderProgram(this);
-
-    // configure it
-    ViewRenderWidget::setupFilteringShaderProgram(ViewRenderWidget::program, glslfilename);
+    // update fragment shader
+    if (disableFiltering)
+        glslShaderFile = ":/glsl/shaders/imageProcessing_fragment_simplified.glsl";
+    else
+        glslShaderFile = ":/glsl/shaders/imageProcessing_fragment.glsl";
 
 }
 
 void ViewRenderWidget::setSourceDrawingMode(bool on)
 {
     if (on) {
+        // start using the GLSL program
         program->bind();
 
+        // texture enabled
         glEnable(GL_TEXTURE_2D);
-    } else {
+    }
+    else {
+        // end using the GLSL program
         program->release();
 
         // standard transparency blending
@@ -1460,62 +1547,6 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
     }
 
 }
-
-void ViewRenderWidget::resetShaderAttributes()
-{
-    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
-    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-    static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
-    static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
-    static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
-    static int _brightness  = ViewRenderWidget::program->uniformLocation("brightness");
-    static int _saturation  = ViewRenderWidget::program->uniformLocation("saturation");
-    static int _hueshift  = ViewRenderWidget::program->uniformLocation("hueshift");
-    static int _invertMode  = ViewRenderWidget::program->uniformLocation("invertMode");
-    static int _nbColors  = ViewRenderWidget::program->uniformLocation("nbColors");
-    static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
-    static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
-    static int _filter  = ViewRenderWidget::program->uniformLocation("filter_type");
-
-    // set color & alpha
-    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));
-    ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
-    ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
-    // gamma
-    ViewRenderWidget::program->setUniformValue(_gamma, 1.f, 1.f, 1.f, 1.f);
-    ViewRenderWidget::program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);
-    // effects
-    ViewRenderWidget::program->setUniformValue(_contrast, 1.f);
-    ViewRenderWidget::program->setUniformValue(_saturation, 1.f);
-    ViewRenderWidget::program->setUniformValue(_brightness, 0.f);
-    ViewRenderWidget::program->setUniformValue(_hueshift, 0.f);
-    ViewRenderWidget::program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
-    ViewRenderWidget::program->setUniformValue(_threshold, 0.f);
-    ViewRenderWidget::program->setUniformValue(_nbColors, (GLint) -1);
-    ViewRenderWidget::program->setUniformValue(_invertMode, (GLint) 0);
-
-    // disable filtering
-    ViewRenderWidget::program->setUniformValue(_filter, (GLint) 0);
-
-    // activate texture 1 ; double texturing of the mask
-    glActiveTexture(GL_TEXTURE1);
-    // select and enable the texture corresponding to the mask
-    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
-    // back to texture 0 for the following
-    glActiveTexture(GL_TEXTURE0);
-
-    // reset texture coordinate
-    ViewRenderWidget::texc[0] = ViewRenderWidget::texc[6] = 0.f;
-    ViewRenderWidget::texc[1] = ViewRenderWidget::texc[3] = 1.f;
-    ViewRenderWidget::texc[2] = ViewRenderWidget::texc[4] = 1.f;
-    ViewRenderWidget::texc[5] = ViewRenderWidget::texc[7] = 0.f;
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-
-}
-
 
 /**
  * Build a display lists for the line borders and returns its id

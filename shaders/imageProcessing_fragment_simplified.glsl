@@ -40,7 +40,6 @@ uniform int nbColors;
 uniform int invertMode;
 
 
-
 /*
 ** Hue, saturation, luminance <=> Red Green Blue
 */
@@ -104,7 +103,7 @@ void main(void)
 {
     // deal with alpha separately
     float ma = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a;
-    float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a * baseAlpha;
+    float alpha = ma * baseAlpha;
     vec3 transformedRGB;
 
     transformedRGB = mix(vec3(0.62), texture2D(sourceTexture, texc).rgb, contrast) + brightness;
@@ -114,7 +113,7 @@ void main(void)
     transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );
 
     // Convert to HSL
-    vec3 transformedHSL = RGB2HSV(transformedRGB);
+    vec3 transformedHSL = RGB2HSV( transformedRGB );
 
     // Luminance invert
     transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
@@ -141,7 +140,7 @@ void main(void)
     alpha += 2.0 * ma * mod( floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling), 2.0);
 
     // apply base color and alpha for final fragment color
-    gl_FragColor =  vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0)  );
+    gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );
 
 }
 

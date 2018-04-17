@@ -140,7 +140,7 @@ public:
     static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 10, 100); }
 
     static inline bool filteringEnabled() { return !disableFiltering; }
-    void setFilteringEnabled(bool on, QString glslfilename = QString());
+    static void setFilteringEnabled(bool on);
 
     static inline double getIconSize() { return iconSize; }
     static inline void setIconSize (double m) {iconSize = CLAMP(m, MIN_ICON_SIZE, MAX_ICON_SIZE);}
@@ -211,13 +211,17 @@ public:
     static GLfloat maskc[8];
     static GLfloat basecolor[4];
     static QGLShaderProgram *program;
+    static QString glslShaderFile;
     static GLfloat filter_kernel[10][3][3];
     static bool disableFiltering;
+    static int _baseColor, _baseAlpha, _stippling, _gamma, _levels, _contrast, _brightness, _saturation, _hueshift, _invertMode, _nbColors, _threshold, _chromakey, _chromadelta, _filter_type, _filter_step, _filter_kernel;
+
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static const GLuint getMaskTexture(int);
     static void setSourceDrawingMode(bool on);
     static void resetShaderAttributes();
-    static void setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename = QString());
+    static void setupFilteringShaderProgram(QString fshfile);
+    static void setBaseColor(QColor c, float alpha = -1.0);
 
 protected:
     // all the display lists

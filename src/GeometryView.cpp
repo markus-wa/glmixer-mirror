@@ -78,8 +78,6 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
-    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-
     // first the background (as the rendering black clear color) with shadow
     glPushMatrix();
     glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
@@ -138,7 +136,7 @@ void GeometryView::paint()
             // Draw source in canvas if not exclusive display
             if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
                 // draw shadow version of the source
-                ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
+                ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
                 s->draw();
             }
         }
@@ -156,7 +154,7 @@ void GeometryView::paint()
     ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
     // in exclusive workspace, still show the outcome, but faded
     if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
-        ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, WORKSPACE_MAX_ALPHA);
     // draw
     glPushMatrix();
     glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);

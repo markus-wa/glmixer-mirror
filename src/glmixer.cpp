@@ -3101,7 +3101,8 @@ void GLMixer::restorePreferences(const QByteArray & state){
     // i. disable filtering
     bool disablefilter = false;
     stream >> disablefilter;
-    RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
+    ViewRenderWidget::setFilteringEnabled(!disablefilter);
+    mixingToolBox->blendingButton->click();
 
     // j. antialiasing
     bool antialiasing = true;
@@ -3660,9 +3661,13 @@ void GLMixer::selectGLSLFragmentShader()
     QString newfile = getFileName(tr("Open GLSL File"),
                                   tr("GLSL Fragment Shader") + " (*.glsl *.fsh *.txt)" );
     if ( !newfile.isEmpty() && QFileInfo(newfile).isFile())
-        RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
-    else
-        RenderingManager::getRenderingWidget()->setFilteringEnabled(RenderingManager::getRenderingWidget()->filteringEnabled());
+        // this will cause paintGL to reload shader
+        ViewRenderWidget::glslShaderFile = newfile;
+    else {
+        // FORCE re-enable filtering
+        ViewRenderWidget::setFilteringEnabled(false);
+        ViewRenderWidget::setFilteringEnabled(true);
+    }
 }
 
 

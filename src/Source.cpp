@@ -709,56 +709,37 @@ void Source::draw(GLenum mode) const {
 
 void Source::setShaderAttributes() const {
 
-    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
-    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-    static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
-    static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
-    static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
-    static int _brightness  = ViewRenderWidget::program->uniformLocation("brightness");
-    static int _saturation  = ViewRenderWidget::program->uniformLocation("saturation");
-    static int _hueshift  = ViewRenderWidget::program->uniformLocation("hueshift");
-    static int _invertMode  = ViewRenderWidget::program->uniformLocation("invertMode");
-    static int _nbColors  = ViewRenderWidget::program->uniformLocation("nbColors");
-    static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
-    static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
-    static int _chromadelta  = ViewRenderWidget::program->uniformLocation("chromadelta");
-    static int _filter  = ViewRenderWidget::program->uniformLocation("filter_type");
-    static int _filter_step  = ViewRenderWidget::program->uniformLocation("filter_step");
-    static int _filter_kernel  = ViewRenderWidget::program->uniformLocation("filter_kernel");
-
-    ViewRenderWidget::program->setUniformValue(_baseColor, texcolor);
-    ViewRenderWidget::program->setUniformValue(_baseAlpha, (GLfloat) texalpha);
-    ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
-    ViewRenderWidget::program->setUniformValue(_gamma, (GLfloat) gammaRed, (GLfloat) gammaGreen, (GLfloat) gammaBlue, (GLfloat) gamma);
-    ViewRenderWidget::program->setUniformValue(_levels, (GLfloat) gammaMinIn, (GLfloat) gammaMaxIn, (GLfloat) gammaMinOut, (GLfloat) gammaMaxOut);
-    ViewRenderWidget::program->setUniformValue(_contrast, (GLfloat) contrast);
-    ViewRenderWidget::program->setUniformValue(_brightness, (GLfloat) brightness);
-    ViewRenderWidget::program->setUniformValue(_saturation, (GLfloat) saturation);
-    ViewRenderWidget::program->setUniformValue(_hueshift, (GLfloat) hueShift);
-    ViewRenderWidget::program->setUniformValue( _invertMode, (GLint) invertMode);
-    ViewRenderWidget::program->setUniformValue( _nbColors, (GLint) numberOfColors);
-
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseColor, texcolor);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) texalpha);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, 0.f);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_gamma, (GLfloat) gammaRed, (GLfloat) gammaGreen, (GLfloat) gammaBlue, (GLfloat) gamma);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_levels, (GLfloat) gammaMinIn, (GLfloat) gammaMaxIn, (GLfloat) gammaMinOut, (GLfloat) gammaMaxOut);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_contrast, (GLfloat) contrast);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_brightness, (GLfloat) brightness);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_saturation, (GLfloat) saturation);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_hueshift, (GLfloat) hueShift);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_invertMode, (GLint) invertMode);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_nbColors, (GLint) numberOfColors);
 
     if (luminanceThreshold > 0 )
-        ViewRenderWidget::program->setUniformValue(_threshold, (GLfloat) luminanceThreshold / 100.f);
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_threshold, (GLfloat) luminanceThreshold / 100.f);
     else
-        ViewRenderWidget::program->setUniformValue(_threshold, -1.f);
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_threshold, -1.f);
 
     if (useChromaKey) {
-        ViewRenderWidget::program->setUniformValue(_chromakey, (GLfloat) chromaKeyColor.redF(), (GLfloat) chromaKeyColor.greenF(), (GLfloat) chromaKeyColor.blueF(), 1.f );
-        ViewRenderWidget::program->setUniformValue(_chromadelta, (GLfloat) chromaKeyTolerance );
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromakey, (GLfloat) chromaKeyColor.redF(), (GLfloat) chromaKeyColor.greenF(), (GLfloat) chromaKeyColor.blueF(), 1.f );
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromadelta, (GLfloat) chromaKeyTolerance );
     } else
-        ViewRenderWidget::program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromakey, 0.f, 0.f, 0.f, 0.f );
 
+    // done if no filtering
     if (ViewRenderWidget::disableFiltering)
         return;
 
-    // else enabled filtering
-    ViewRenderWidget::program->setUniformValue(_filter, (GLint) filter);
-    ViewRenderWidget::program->setUniformValue(_filter_step, 1.f / (GLfloat)  getFrameWidth(), 1.f / (GLfloat)  getFrameHeight());
-
-    ViewRenderWidget::program->setUniformValue( _filter_kernel, ViewRenderWidget::filter_kernel[filter]);
+    // enable filtering
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_filter_type, (GLint) filter);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_filter_step, 1.f / (GLfloat)  getFrameWidth(), 1.f / (GLfloat)  getFrameHeight());
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_filter_kernel, ViewRenderWidget::filter_kernel[filter]);
 
 }
 
