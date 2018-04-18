@@ -595,7 +595,7 @@ void AlgorithmSource::initBuffer() {
         buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         CHECK_PTR_EXCEPTION(buffer);
         // CLEAR the buffer
-        memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
+        memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
@@ -603,7 +603,7 @@ void AlgorithmSource::initBuffer() {
         buffer = new unsigned char[width * height * 4];
         CHECK_PTR_EXCEPTION(buffer);
         // CLEAR the buffer
-        memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
+        memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
     }
 
     pattern = 0;
