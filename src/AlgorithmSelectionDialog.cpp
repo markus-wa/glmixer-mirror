@@ -115,6 +115,7 @@ void AlgorithmSelectionDialog::on_frequencySlider_valueChanged(int v){
 }
 
 void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
+    updateSourcePreview();
     if (s)
         s->setVariability( double ( v ) / 100.0);
 }
