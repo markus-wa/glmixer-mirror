@@ -32,6 +32,9 @@ extern "C"
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
 #include <libavfilter/avfiltergraph.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libavutil/opt.h>
 }
 
 #include "VideoFile.moc"
@@ -50,7 +53,6 @@ extern "C"
 #include <QFileInfo>
 #include <QDir>
 #include <QDate>
-
 
 /**
  * Get time using libav
@@ -172,6 +174,43 @@ double VideoFile::Clock::maxFrameDelay() const {
     return  _max_frame_delay * timeBase();
 }
 
+void VideoFile::play(bool startorstop)
+{
+    if (startorstop)
+        start();
+    else
+        stop();
+}
+
+void VideoFile::setPlaySpeedFactor(int s)
+{
+    // exponential scale of speed
+    // 0 % is x 0.1 speed (1/5)
+    // 100% is x 1.0
+    // 200% is x 10.0
+    if ( s != getPlaySpeedFactor() ){
+
+        setPlaySpeed( exp( double(s -100) / 43.42 ) );
+        emit playSpeedFactorChanged(s);
+    }
+}
+
+int VideoFile::getPlaySpeedFactor()
+{
+    return (int) ( log(getPlaySpeed()) * 43.42 + 100.0  );
+}
+
+double VideoFile::getPlaySpeed()
+{
+    return _videoClock.speed();
+}
+
+/**
+ * *
+ * *  NEW IMPLEMENTATION FOR RECENT LIBAV CODEC > 57
+ * *
+ * *
+ * */
 
 class DecodingThread: public videoFileThread
 {
@@ -179,11 +218,7 @@ public:
     DecodingThread(VideoFile *video) : videoFileThread(video)
     {
         // allocate a frame to fill
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-        _pFrame = avcodec_alloc_frame();
-#else
         _pFrame = av_frame_alloc();
-#endif
         Q_CHECK_PTR(_pFrame);
 
         av_init_packet(&_nullPacket);
@@ -193,11 +228,7 @@ public:
     ~DecodingThread()
     {
         // free the allocated frame
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-        av_free(_pFrame);
-#else
         av_frame_free(&_pFrame);
-#endif
     }
 
     void run();
@@ -221,13 +252,20 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     videoStream = -1;
     video_st = NULL;
     pFormatCtx = NULL;
-    img_convert_ctx = NULL;
+    video_dec = NULL;
+    graph = NULL;
+    in_video_filter = NULL;
+    out_video_filter = NULL;
     firstPicture = NULL;
     blackPicture = NULL;
     pictq_max_count = 0;
     duration = 0.0;
     frame_rate = 0.0;
     nb_frames = 0;
+    mark_in = 0.0;
+    mark_out = 0.0;
+    mark_stop = 0.0;
+    targetFormat = AV_PIX_FMT_RGB24;
 
     // Contruct some objects
     decod_tid = new DecodingThread(this);
@@ -254,7 +292,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     loop_video = true; // loop by default
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
-    ignoreAlpha = false; // by default ignore alpha channel
+    ignoreAlpha = false; // by default do not ignore alpha channel
     interlaced = false;  // TODO: detect and deinterlace
 
     // reset
@@ -262,40 +300,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     reset();
 }
 
-
-class CodecWorker : public QThread
-{
-    void run();
-
-    VideoFile *_vf;
-
-public:
-    CodecWorker(VideoFile *vf);
-
-};
-
-CodecWorker::CodecWorker(VideoFile *vf)
-    : QThread(vf), _vf(vf)
-{
-    setTerminationEnabled(true);
-
-}
-
-void CodecWorker::run()
-{
-    // close context
-    if (_vf->video_st && _vf->video_st->discard != AVDISCARD_ALL ) {
-
-        AVCodecContext *cdctx = _vf->video_st->codec;
-
-        // do not attempt to close codec context if
-        // codec is not valid
-        if (cdctx && cdctx->codec) {
-            // Close codec (& threads inside)
-            avcodec_close(cdctx);
-        }
-    }
-}
 
 class FirstFrameFiller : public QThread
 {
@@ -327,49 +331,39 @@ void FirstFrameFiller::run()
 
 void VideoFile::close()
 {
-    // the absence of firstPicture means file was not openned
-    if (!firstPicture)
-        return;
+#ifdef VIDEOFILE_DEBUG
+    qDebug() << filename << QChar(124).toLatin1() << tr("Closing Media...");
+#endif
 
     // Stop playing
     stop();
 
-    // close codec context
-#ifdef VIDEOFILE_DEBUG
-    qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec...");
-#endif
-    CodecWorker *cw = new CodecWorker(this);
-    cw->start();
-    // call avcodec_close in a thread for no more than 300ms
-    // (happens that function blocks)
-    if ( !cw->wait(300) ) {
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not close codec.");
-    }
+    // free filter
+    if (graph)
+        avfilter_graph_free(&graph);
 
+    if (video_dec)
+        avcodec_free_context(&video_dec);
+
+    // close context
     if (pFormatCtx) {
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         avformat_flush(pFormatCtx);
-#endif
         // close file & free context and all its contents and set it to NULL.
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
-        av_close_input_file(pFormatCtx);
-#else
         avformat_close_input(&pFormatCtx);
-#endif
     }
-
-    // free context & filter
-    if (img_convert_ctx)
-        sws_freeContext(img_convert_ctx);
 
     // free pictures
-    delete firstPicture;
+    if (firstPicture)
+        delete firstPicture;
     if (blackPicture)
         delete blackPicture;
 
     // reset pointers
     pFormatCtx = NULL;
-    img_convert_ctx = NULL;
+    video_dec = NULL;
+    graph = NULL;
+    in_video_filter = NULL;
+    out_video_filter = NULL;
     video_st = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
@@ -381,6 +375,7 @@ VideoFile::~VideoFile()
 {
     // make sure all is closed
     close();
+    clear_picture_queue();
 
     QObject::disconnect(this, 0, 0, 0);
 
@@ -398,10 +393,10 @@ void VideoFile::reset()
 {
     // reset variables to 0
     current_frame_pts = 0.0;
-    fast_forward = false;
     video_pts = 0.0;
     seek_pos = 0.0;
     parsing_mode = VideoFile::SEEKING_NONE;
+    fast_forward = false;
 
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
@@ -472,7 +467,6 @@ void VideoFile::start()
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1() << tr("Starting video...");
 #endif
-
         // reset internal state
         reset();
 
@@ -504,31 +498,6 @@ void VideoFile::start()
     emit running(!quit);
 }
 
-void VideoFile::play(bool startorstop)
-{
-    if (startorstop)
-        start();
-    else
-        stop();
-}
-
-void VideoFile::setPlaySpeedFactor(int s)
-{
-    // exponential scale of speed
-    // 0 % is x 0.1 speed (1/5)
-    // 100% is x 1.0
-    // 200% is x 10.0
-    if ( s != getPlaySpeedFactor() ){
-
-        setPlaySpeed( exp( double(s -100) / 43.42 ) );
-        emit playSpeedFactorChanged(s);
-    }
-}
-
-int VideoFile::getPlaySpeedFactor()
-{
-    return (int) ( log(getPlaySpeed()) * 43.42 + 100.0  );
-}
 
 void VideoFile::setPlaySpeed(double s)
 {
@@ -545,15 +514,10 @@ void VideoFile::setPlaySpeed(double s)
     emit playSpeedChanged(s);
 }
 
-double VideoFile::getPlaySpeed()
-{
-    return _videoClock.speed();
-}
 
 
 int VideoFile::getNumFrames() const {
-    if (video_st) return nb_frames;
-    else return 0;
+    return nb_frames;
 }
 
 bool VideoFile::isOpen() const {
@@ -564,36 +528,82 @@ bool VideoFile::isOpen() const {
 
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
 {
+    // re-open if alredy openned
     if (pFormatCtx)
         close();
+    quit = true;
 
     filename = file;
-    ignoreAlpha = ignoreAlphaChannel;
 
-    AVFormatContext *_pFormatCtx = avformat_alloc_context();
-    if ( !CodecManager::openFormatContext( &_pFormatCtx, filename) ) {
-        // free context
-        avformat_free_context(_pFormatCtx);
+    pFormatCtx = avformat_alloc_context();
+    if ( !CodecManager::openFormatContext( &pFormatCtx, filename) ) {
+        // close
+        close();
+        return false;
+    }
+
+    pFormatCtx->flags |= AVFMT_FLAG_GENPTS;
+
+    int err = avformat_find_stream_info(pFormatCtx, NULL);
+    if (err < 0) {
+        CodecManager::printError(filename, err);
+        // close
+        close();
         return false;
     }
 
     // get index of video stream
-    videoStream = CodecManager::getVideoStream(_pFormatCtx);
+
+    AVCodec *codec;
+    videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
     if (videoStream < 0) {
-        // free context
-        avformat_close_input( &_pFormatCtx);
-        //could not open Codecs (error message already sent)
+        // close
+        close();
         return false;
     }
 
-    // open the codec
-    codecname = CodecManager::openCodec( _pFormatCtx->streams[videoStream]->codec );
-    if (codecname.isNull())
-        return false;
-
     // all ok, we can set the internal pointers to the good values
-    pFormatCtx = _pFormatCtx;
     video_st = pFormatCtx->streams[videoStream];
+
+    // create video decoding context
+    video_dec = avcodec_alloc_context3(codec);
+    if (!video_dec) {
+        // close
+        close();
+        return false;
+    }
+
+    err = avcodec_parameters_to_context(video_dec, video_st->codecpar);
+    if (err < 0) {
+        CodecManager::printError(filename, err);
+        // close
+        close();
+        return false;
+    }
+
+    // options for decoder
+    video_dec->workaround_bugs   = 1;
+    video_dec->idct_algo         = FF_IDCT_AUTO;
+    video_dec->skip_frame        = AVDISCARD_DEFAULT;
+    video_dec->skip_idct         = AVDISCARD_DEFAULT;
+    video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
+    video_dec->error_concealment = 3;
+    video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
+
+    AVDictionary *opts = NULL;
+    av_dict_set(&opts, "threads", "auto", 0);
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+
+    /* init the video decoder */
+    if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
+        qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
+                   << QChar(124).toLatin1() << tr("Unsupported Codec.");
+        close();
+        return false;
+    }
+    av_dict_free(&opts);
+
+    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
 
     // read duration, number of frames and frame rate of stream
     duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
@@ -606,7 +616,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // disable multithreaded decoding for pictures
     if (nb_frames < 2)
-        video_st->codec->thread_count = 1;
+        video_dec->thread_count = 1;
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || nb_frames < 2)
@@ -625,90 +635,55 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markOutChanged(mark_out);
     }
 
-    // read picture size from video codec
-    // (NB : if available, use coded width as some files have a width which is different)
-    int actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
-    int actual_height = video_st->codec->height;
-
-    // fix non-aligned width (causing alignment problem in sws conversion)
-    actual_width -= actual_width%16;  // TODO : really needed ???
+    // read picture size from video stream
+    int actual_width = video_st->codecpar->width;
+    int actual_height = video_st->codecpar->height;
 
     // set picture size : no argument means no scaling
     if (targetWidth == 0)
         targetWidth = actual_width;
-    else
-        targetWidth = qMin(targetWidth, actual_width);
-
     if (targetHeight == 0)
         targetHeight = actual_height;
-    else
-        targetHeight = qMin(targetHeight, actual_height);
 
     // round target picture size to power of two dimensions if requested
     if (powerOfTwo)
         CodecManager::convertSizePowerOfTwo(targetWidth, targetHeight);
 
-    // Default targetFormat to PIX_FMT_RGB24, not using color palette
+    // Default targetFormat to PIX_FMT_RGB24
     targetFormat = AV_PIX_FMT_RGB24;
-    rgba_palette = false;
 
-    // Change target format to keep Alpha channel if format requires
+    // Change target format to keep Alpha channel if format requires it
+    ignoreAlpha = ignoreAlphaChannel;
     if ( hasAlphaChannel() && !ignoreAlpha )
-    {
         targetFormat = AV_PIX_FMT_RGBA;
 
-        // special case of PALETTE formats which have ALPHA channel in their colors
-        if (video_st->codec->pix_fmt == AV_PIX_FMT_PAL8) {
-            // if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
-            rgba_palette = true;
-        }
-    }
-    // format description screen (for later)
-    QString pfn = CodecManager::getPixelFormatName(targetFormat);
-
-    // Decide for optimal scaling algo
-    // NB: the algo is used only if the conversion is scaled or with filter
-    // (i.e. optimal 'unscaled' converter is used by default)
-    int conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
-    if ( nb_frames < 2 )
-        conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
-
-#ifdef VIDEOFILE_DEBUG
-    // print all info if in debug
-    conversionAlgorithm |= SWS_PRINT_INFO;
-#endif
-
-    // create conversion context
-    // (use the actual width to match with targetWidth and avoid useless scaling)
-    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
-                                           video_st->codec->height, video_st->codec->pix_fmt,
-                                           targetWidth, targetHeight, targetFormat,
-                                           conversionAlgorithm, NULL, NULL, NULL);
-    if (img_convert_ctx == NULL)
-    {
-        // Cannot initialize the conversion context!
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
+    // setup filtering
+    if ( !setupFiltering() ) {
+        // close file
+        close();
         return false;
     }
 
     // we need a picture to display when not playing (also for single frame media)
     // create firstPicture (and get actual pts of first picture)
     // (NB : seek in stream only if not reading the first frame)
+    current_frame_pts = fill_first_frame( mark_in != getBegin() );
 
-    //    current_frame_pts = fill_first_frame( mark_in != getBegin() );
-    first_picture_changed = true;
-    FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
-    fff->start();
-    // 2 seconds timeout
-    if ( !fff->wait(2000) ) {
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
-        return false;
-    }
-    current_frame_pts = fff->getValue();
+    // TODO : restore use of thread
+//    first_picture_changed = true;
+//    FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
+//    fff->start();
+//    // 2 seconds timeout
+//    if ( !fff->wait(2000) ) {
+//        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
+//        return false;
+//    }
+//    current_frame_pts = fff->getValue();
 
     // make sure the first picture was filled
     if (!firstPicture) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Could not create first picture.");
+        close();
         return false;
     }
 
@@ -725,11 +700,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         recompute_max_count_picture_queue();
 
         // tells everybody we are set !
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
+        qDebug() << filename << QChar(124).toLatin1()
+                 <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(CodecManager::getPixelFormatName(targetFormat));
 
     }
     else {
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (1 %1 frame).").arg(pfn);
+        qDebug() << filename << QChar(124).toLatin1()
+                 <<  tr("Media opened (1 %1 frame).").arg(CodecManager::getPixelFormatName(targetFormat));
     }
 
     // display a firstPicture frame ; this shows that the video is open
@@ -742,12 +719,109 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     return true;
 }
 
+bool VideoFile::setupFiltering()
+{
+    // create conversion context
+    const AVFilter *buffersrc  = avfilter_get_by_name("buffer");
+    const AVFilter *buffersink = avfilter_get_by_name("buffersink");
+    AVFilterInOut *outputs = avfilter_inout_alloc();
+    AVFilterInOut *inputs  = avfilter_inout_alloc();
+
+    graph = avfilter_graph_alloc();
+    if (!outputs || !inputs || !graph) {
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot create conversion filter.");
+        return false;
+    }
+
+    // Decide for optimal scaling algo
+    // NB: the algo is used only if the conversion is scaled or with filter
+    // (i.e. optimal 'unscaled' converter is used by default)
+    int64_t conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
+    if ( nb_frames < 2 )
+        conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
+
+    char sws_flags_str[128];
+    snprintf(sws_flags_str, sizeof(sws_flags_str), "flags=%" PRId64, conversionAlgorithm);
+    graph->scale_sws_opts = av_strdup(sws_flags_str);
+
+    // INPUT BUFFER
+    char buffersrc_args[256];
+    snprintf(buffersrc_args, sizeof(buffersrc_args),
+             "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
+             video_dec->width, video_dec->height, video_dec->pix_fmt,
+             video_st->time_base.num, video_st->time_base.den,
+             video_dec->sample_aspect_ratio.num, video_dec->sample_aspect_ratio.den);
+
+    if ( avfilter_graph_create_filter(&in_video_filter, buffersrc,
+                                      "in", buffersrc_args, NULL, graph) < 0)  {
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot create a INPUT conversion context.");
+        return false;
+    }
+
+    // OUTPUT SINK
+    if ( avfilter_graph_create_filter(&out_video_filter, buffersink,
+                                      "out", NULL, NULL, graph) < 0)  {
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot create a OUTPUT conversion context.");
+        return false;
+    }
+
+    enum AVPixelFormat pix_fmts[] = { targetFormat, AV_PIX_FMT_NONE };
+    if ( av_opt_set_int_list(out_video_filter, "pix_fmts", pix_fmts,
+                             AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN) < 0 ){
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot set output pixel format");
+        return false;
+    }
+
+    // create another filter
+    inputs->name       = av_strdup("out");
+    inputs->filter_ctx = out_video_filter;
+    inputs->pad_idx    = 0;
+    inputs->next       = NULL;
+    outputs->name       = av_strdup("in");
+    outputs->filter_ctx = in_video_filter;
+    outputs->pad_idx    = 0;
+    outputs->next       = NULL;
+
+    // performs scaling to target size if necessary
+    char filter_str[128];
+    if ( targetWidth != video_dec->width || targetHeight != video_dec->height)
+        snprintf(filter_str, sizeof(filter_str), "scale=w=%d:h=%d", targetWidth, targetHeight);
+    else
+        // null filter does nothing
+        snprintf(filter_str, sizeof(filter_str), "null");
+
+    //    // TODO : Deinterlacing filter if frame->interlaced_frame
+    // : append yadif to filter "yadif=1:-1:0"
+
+    if ( avfilter_graph_parse_ptr(graph, filter_str, &inputs, &outputs, NULL) < 0 ){
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot parse filters.");
+        return false;
+    }
+
+    // validate the filtering graph
+    if ( avfilter_graph_config(graph, NULL) < 0){
+        qWarning() << filename << QChar(124).toLatin1()
+                   << tr("Cannot configure conversion graph.");
+        return false;
+    }
+
+    avfilter_inout_free(&inputs);
+    avfilter_inout_free(&outputs);
+
+    return true;
+}
+
 bool VideoFile::hasAlphaChannel() const
 {
     if (!video_st)
         return false;
 
-    return CodecManager::pixelFormatHasAlphaChannel(video_st->codec->pix_fmt);
+    return CodecManager::pixelFormatHasAlphaChannel(video_dec->pix_fmt);
 }
 
 double VideoFile::fill_first_frame(bool seek)
@@ -759,20 +833,16 @@ double VideoFile::fill_first_frame(bool seek)
         delete firstPicture;
     firstPicture = NULL;
 
-    AVPacket packet;
+    AVPacket pkt1, *pkt   = &pkt1;
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-    AVFrame *tmpframe = avcodec_alloc_frame();
-#else
     AVFrame *tmpframe = av_frame_alloc();
-#endif
 
-    int frameFinished = 0;
+    bool frameFinished = false;
     double pts = mark_in;
     int trial = 0;
 
     // flush decoder
-    avcodec_flush_buffers(video_st->codec);
+    avcodec_flush_buffers(video_dec);
 
     int64_t seek_target = 0;
     if (seek) {
@@ -784,101 +854,79 @@ double VideoFile::fill_first_frame(bool seek)
     // loop while we didn't finish the frame, or looped for too long
     while (!frameFinished && trial < 500 )
     {
+        // unreference buffers
+        av_frame_unref(tmpframe);
 
         // read a packet
-        if (av_read_frame(pFormatCtx, &packet) < 0){
-            av_free_packet(&packet);
+        if (av_read_frame(pFormatCtx, pkt) < 0){
             continue;
         }
 
         // ignore non-video stream packets
-        if (packet.stream_index != videoStream || packet.size == 0) {
-            av_free_packet(&packet);
+        if (pkt->stream_index != videoStream || pkt->size == 0) {
             continue;
         }
 
-        if (packet.pts != AV_NOPTS_VALUE)
-            video_st->codec->reordered_opaque = packet.pts;
-
         trial++;
-        frameFinished = 0;
-        // unreference buffers
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-        av_frame_unref(tmpframe);
-#endif
+
+        if ( avcodec_send_packet(video_dec, pkt) < 0 )
+            continue;
 
         // if we can decode it
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,30,0)
-        if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
+        if ( avcodec_receive_frame(video_dec, tmpframe) >= 0)
         {
-#else
-        if ( avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, &packet) >= 0)
-        {
-#endif
-            // if the frame is full
-            if (frameFinished) {
-                // try to get a pts from the packet
-                if (packet.dts != (int64_t) AV_NOPTS_VALUE) {
-                    pts =  double(packet.dts) * av_q2d(video_st->time_base);
+            frameFinished = true;
 
-                    // if the obtained pts is before seeking mark,
-                    // read forward until reaching the mark_in (target)
-                    if (seek && pts < mark_in) {
-                        // retry
-                        frameFinished = 0;
-                    }
-                }
+            // try to get a pts from the packet
+            if (tmpframe->pts != AV_NOPTS_VALUE)
+                pts = double(tmpframe->pts) * av_q2d(video_st->time_base);
+            else if (pkt->dts != AV_NOPTS_VALUE)
+                pts =  double(pkt->dts) * av_q2d(video_st->time_base);
+
+            // if the obtained pts is before seeking mark,
+            // read forward until reaching the mark_in (target)
+            if (seek && pts < mark_in) {
+                // retry
+                frameFinished = false;
             }
         }
-        else {
-            frameFinished = 0;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-            avformat_flush(pFormatCtx);
-#endif
-        }
-
-        // free memory
-        av_free_packet(&packet);
+        av_packet_unref(pkt);
     }
 
     if (frameFinished) {
 
-        // create the picture
-        firstPicture = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat, rgba_palette);
-        firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
+        // convert
+        if ( av_buffersrc_add_frame(in_video_filter, tmpframe) >= 0 ) {
 
-        // we can now fill in the first picture with this frame
-        firstPicture->fill(tmpframe, pts);
+            try {
+                // create the picture
+                firstPicture = new VideoPicture(out_video_filter, pts);
+                firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
 
-#ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1()<< tr("First frame updated.");
-#endif
-    }
-    else {
-        qDebug() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
-    }
+            } catch (AllocationException &e){
+                qWarning() << tr("Cannot create picture; ") << e.message();
+                frameFinished = false;
+            }
+        }
+        else
+            frameFinished = false;
 
-    // cleanup decoding buffers
-    av_free_packet(&packet);
-    av_init_packet(&packet);
-    do {
-        avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, &packet);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+        // free frame
         av_frame_unref(tmpframe);
+
+    }
+
+    if (!frameFinished)
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
+#ifdef VIDEOFILE_DEBUG
+    else
+        qDebug() << filename << QChar(124).toLatin1()<< tr("First frame updated.") << pts;
 #endif
-        avcodec_flush_buffers(video_st->codec);
-    } while (frameFinished > 0);
 
-    // cleanup parsing buffers
-    avio_flush(pFormatCtx->pb);
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-    av_free(tmpframe);
-#else
     av_frame_free(&tmpframe);
-    avformat_flush(pFormatCtx);
-#endif
+    avcodec_flush_buffers(video_dec);
 
     first_picture_changed = false;
 
@@ -1115,16 +1163,16 @@ double VideoFile::getEnd() const
 
 int VideoFile::getStreamFrameWidth() const
 {
-    if (video_st)
-        return video_st->codec->width;
+    if (video_dec)
+        return video_dec->width;
     else
         return targetWidth;
 }
 
 int VideoFile::getStreamFrameHeight() const
 {
-    if (video_st)
-        return video_st->codec->height;
+    if (video_dec)
+        return video_dec->height;
     else
         return targetHeight;
 }
@@ -1267,14 +1315,14 @@ bool VideoFile::time_in_picture_queue(double time)
 double VideoFile::getStreamAspectRatio() const
 {
     // read information from the video stream if avaialble
-    if (video_st && video_st->codec) {
+    if (video_dec) {
 
         // base computation of aspect ratio
-        double aspect_ratio = (double) video_st->codec->width / (double) video_st->codec->height;
+        double aspect_ratio = (double) video_dec->width / (double) video_dec->height;
 
         // use correction of aspect ratio if available in the video stream
-        if (video_st->codec->sample_aspect_ratio.num > 1)
-            aspect_ratio *= av_q2d(video_st->codec->sample_aspect_ratio);
+        if (video_dec->sample_aspect_ratio.num > 1)
+            aspect_ratio *= av_q2d(video_dec->sample_aspect_ratio);
 
         return aspect_ratio;
     }
@@ -1298,12 +1346,10 @@ void VideoFile::clear_picture_queue() {
 
 void VideoFile::flush_picture_queue()
 {
-
     pictq_mutex->lock();
     clear_picture_queue();
     pictq_cond->wakeAll();
     pictq_mutex->unlock();
-
 }
 
 
@@ -1323,7 +1369,6 @@ void VideoFile::requestSeek(double time, bool lock)
 
     }
 }
-
 
 
 bool VideoFile::jump_in_picture_queue(double time)
@@ -1374,25 +1419,37 @@ bool VideoFile::jump_in_picture_queue(double time)
 // called exclusively in Decoding Thread
 void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
 {
-    // create vp as the picture in the queue to be written
-    VideoPicture *vp = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat, rgba_palette);
+    VideoPicture *vp = NULL;
 
-    if (!vp)
-        return;
+    try {
+        // convert given frame
+        if ( pFrame && av_buffersrc_add_frame(in_video_filter, pFrame) >= 0 ) {
 
-    // Fill the Video Picture queue with the current frame
-    vp->fill(pFrame, pts);
+            // create VP containing an AVFrame created by the buffer sink
+            vp = new VideoPicture(out_video_filter, pts);
 
-    // set the actions of this frame
-    vp->resetAction();
-    vp->addAction(a);
+//            // alternative implementation (slower), copy the data of the frame into a VP
+//            if (  av_buffersink_get_frame(out_video_filter, pFrame) >= 0 )
+//                vp = new VideoPicture(pFrame, pts);
 
-    /* now we inform our display thread that we have a pic ready */
-    pictq_mutex->lock();
-    // enqueue this picture in the queue
-    pictq.enqueue(vp);
-    // inform about the new size of the queue
-    pictq_mutex->unlock();
+        }
+        else
+            vp = new VideoPicture(targetWidth, targetHeight, pts);
+
+        // set the actions of this frame
+        vp->resetAction();
+        vp->addAction(a);
+
+        /* now we inform our display thread that we have a pic ready */
+        pictq_mutex->lock();
+        // enqueue this picture in the queue
+        pictq.enqueue(vp);
+        // inform about the new size of the queue
+        pictq_mutex->unlock();
+
+    } catch (AllocationException &e){
+        qWarning() << tr("Cannot queue picture; ") << e.message();
+    }
 
 }
 
@@ -1403,7 +1460,7 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
 {
     double pts = dts;
-    double frame_delay = av_q2d(video_st->codec->time_base);
+    double frame_delay = av_q2d(video_dec->time_base);
 
     if (pts < 0)
         /* if we aren't given a dts, set it to the clock */
@@ -1426,10 +1483,11 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
  * DecodingThread
  */
 
+
 void DecodingThread::run()
 {
-    AVPacket packet;
-    av_init_packet(&packet);
+//    AVPacket packet;
+    AVPacket pkt1, *pkt   = &pkt1;
 
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
@@ -1441,15 +1499,15 @@ void DecodingThread::run()
     _working = true;
     while (is && !is->quit && !_forceQuit)
     {
+        // start with clean frame
+        av_frame_unref(_pFrame);
+
         eof = false;
         /**
          *
          *   PARSING
          *
          * */
-
-        // free packet every time
-        av_free_packet(&packet);
 
         // seek stuff goes here
         int64_t seek_target = AV_NOPTS_VALUE;
@@ -1474,10 +1532,12 @@ void DecodingThread::run()
                          << QObject::tr("Could not seek to frame (%1).").arg(is->seek_pos);
             }
 
+            // todo replace by avformat_seek_file
+
             previous_dts = seek_target;
 
             // flush buffers after seek
-            avcodec_flush_buffers(is->video_st->codec);
+            avcodec_flush_buffers(is->video_dec);
 
             // enter the decoding seeking mode (disabled only when target reached)
             is->parsing_mode = VideoFile::SEEKING_DECODING;
@@ -1485,75 +1545,109 @@ void DecodingThread::run()
 
 
         // Read packet
-        if ( av_read_frame(is->pFormatCtx, &packet) < 0)
+        int ret = av_read_frame(is->pFormatCtx, pkt);
+        if ( ret < 0)
         {
+#ifdef VIDEOFILE_DEBUG
+            qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame.");
+#endif
+            // not an error : read_frame have reached the end of file
+            if ( ret == AVERROR_EOF || (is->pFormatCtx->pb && is->pFormatCtx->pb->eof_reached) )  {
+                eof = true;
+            }
             // if could NOT read full frame, was it an error?
-            if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
-                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
+            if (is->pFormatCtx->pb && is->pFormatCtx->pb->error) {
+#ifdef VIDEOFILE_DEBUG
+                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Error reading frame.");
+#endif
                 // forget error
                 avio_flush(is->pFormatCtx->pb);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-                // cleanup parsing buffers
-                avformat_flush(is->pFormatCtx);
+
+                error_count++;
+                if (error_count < 10) {
+                    // do not treat the error; just wait a bit for the end of the packet and continue
+                    msleep(PARSING_SLEEP_DELAY);
+                    continue;
+                }
+
+                // recurrent decoding error
+                _forceQuit = true;
+                break;
+            }
+        }
+        // we have a packet is it a video packets?
+        else if ( pkt->stream_index == is->videoStream ) {
+
+            // remember packet pts in case the decoding looses it
+            if (pkt->dts >= 0 && pkt->dts != AV_NOPTS_VALUE)
+                is->video_dec->reordered_opaque = pkt->dts;
+
+            // send the packet to the decoder
+            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+#ifdef VIDEOFILE_DEBUG
+                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not send packet.");
 #endif
-                // do not treat the error; just wait a bit for the end of the packet and continue
                 msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
 
-            // maybe not an error : read_frame might have reached the end of file
-            eof = true;
-        }
+            // get the packet from the decoder
+            frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
+            // no error, just try again
+            if ( frameFinished == AVERROR(EAGAIN) ) {
+                msleep(PARSING_SLEEP_DELAY);
+                continue;
+            }
 
-        // management of video packets
-        if ( packet.stream_index == is->videoStream ) {
-
-            // remember packet pts in case the decoding looses it
-            if (packet.dts >= 0 && packet.dts != AV_NOPTS_VALUE)
-                is->video_st->codec->reordered_opaque = packet.dts;
-
-            frameFinished = 0;
-
-            // Decode video frame
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,30,0)
-            if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
-#else
-            if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
+            // reached end of file ?
+            if ( frameFinished == AVERROR_EOF )
+                eof = true;
+            // other kind of error
+            else if ( frameFinished < 0 ) {
+#ifdef VIDEOFILE_DEBUG
+                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not decode frame");
 #endif
                 error_count++;
                 if (error_count < 10)
                     continue;
 
-                // recurrent decoding error : send failure message
+                // recurrent decoding error
                 _forceQuit = true;
-                is->video_st->discard = AVDISCARD_ALL;
-                emit failed();
-
-                // break loop
                 break;
             }
 
             // No error, but did we get a full video frame?
-            if ( frameFinished > 0)
+            if ( frameFinished >= 0 )
             {
                 // by default, a frame will be displayed
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
                 dts = 0;
-                if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
-                    dts = _pFrame->pkt_pts; // good case
-                else if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE) {
+                if (_pFrame->pts != AV_NOPTS_VALUE)
+                    dts = _pFrame->pts; // good case
+                else if (pkt->dts >= 0 && pkt->dts != AV_NOPTS_VALUE) {
                     // bad case
-                    dts = _pFrame->reordered_opaque;
-                    if (dts < previous_dts)
-                        dts = previous_dts + 1;
+                    dts = pkt->dts;
+                    _pFrame->pts = dts;
                 }
+                else {
+
+                    // TODO if no valid pts given
+                    dts = previous_dts + 1;
+                    _pFrame->pts = dts;
+                }
+
                 // remember previous dts
                 previous_dts = dts;
                 // compute presentation time stamp
                 pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
+
+                // ?? WHY ? it is in ffplay...
+                if (is->video_st->sample_aspect_ratio.num) {
+                    _pFrame->sample_aspect_ratio = is->video_st->sample_aspect_ratio;
+                }
 
                 // if seeking in decoded frames
                 if (is->parsing_mode == VideoFile::SEEKING_DECODING) {
@@ -1631,11 +1725,6 @@ void DecodingThread::run()
 
             } // end if (frameFinished)
 
-            // free internal buffers
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-            av_frame_unref(_pFrame);
-#endif
-
         } // end if (is->videoStream)
 
         // End of file detected and not handled as last video image
@@ -1651,7 +1740,13 @@ void DecodingThread::run()
                 is->queue_picture(NULL, is->duration, VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
         }
 
+        // free internal buffers
+        av_packet_unref(pkt);
+
     } // end while
+
+    // clean frame
+    av_frame_unref(_pFrame);
 
     // if normal exit
     if (is) {
@@ -1659,24 +1754,10 @@ void DecodingThread::run()
         // clear the picture queue
         is->clear_picture_queue();
 
-        // cleanup decoding buffers
-        do {
-            avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
-            avcodec_flush_buffers(is->video_st->codec);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-            av_frame_unref(_pFrame);
-#endif
-        } while (frameFinished > 0);
-
-        // cleanup parsing buffers
-        avio_flush(is->pFormatCtx->pb);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-        avformat_flush(is->pFormatCtx);
-#endif
-
-
-        if (_forceQuit)
+        if (_forceQuit) {
             qWarning() << is->filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
+            emit failed();
+        }
 #ifdef VIDEOFILE_DEBUG
         else
             qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
@@ -1684,14 +1765,9 @@ void DecodingThread::run()
 
     }
 
-    // free internal buffers
-    av_free_packet(&packet);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-    av_frame_unref(_pFrame);
-#endif
-
     _working = false;
 }
+
 
 void VideoFile::pause(bool pause)
 {
@@ -1735,7 +1811,7 @@ QString VideoFile::getPixelFormatName() const
     QString pfn = "Invalid";
 
     if (video_st)
-        pfn = CodecManager::getPixelFormatName(video_st->codec->pix_fmt);
+        pfn = CodecManager::getPixelFormatName(video_dec->pix_fmt);
 
     return pfn;
 }

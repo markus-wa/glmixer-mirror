@@ -3,9 +3,10 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
+#include <libavfilter/avfilter.h>
 }
 
+#include "defines.h"
 #include <QList>
 #include <QMutex>
 #include <QString>
@@ -29,21 +30,15 @@ extern "C" {
 #define VIDEOPICTURE_DEBUG
 #endif
 
+class VideoPictureException : public AllocationException {
+public:
+    virtual QString message() { return "Could not allocate Video Picture"; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new VideoPictureException(*this); }
+};
+
 /**
- * Frames of a VideoFile are decoded and converted to VideoPictures.
- * A VideoPicture is accessed from the VideoFile::getPictureAtIndex() method.
  *
- * The VideoPicture RGB buffer can then be used for OpenGL texturing.
- * Here is an example code:
- *
- *    <pre>
- *    const VideoPicture *vp = is->getPictureAtIndex(newtexture);
- *    if (vp->isAllocated()) {
- *        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
- *                     vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
- *                     vp->getBuffer() );
- *    }
- *    </pre>
  */
 class VideoPicture {
 
@@ -52,34 +47,15 @@ public:
     // default constructor
     VideoPicture();
 
-    /**
-     * create the VideoPicture and Allocate its av picture (w x h pixels)
-     *
-     * The pixel format is usually PIX_FMT_RGB24 or PIX_FMT_RGBA for OpenGL texturing, but depends
-     * on the format requested when instanciating the VideoFile.
-     *
-     * @param w Width of the frame
-     * @param h Height of the frame
-     * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
-     */
-    VideoPicture(int w, int h, SwsContext *img_convert_ctx = 0, enum AVPixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
+    // create a black picture
+    VideoPicture(int w, int h, double Pts = 0.0);
 
-     /**
-     * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
-     * If pFrame is not given, it fills the Picture with the formerly given one.
-     *
-     * This is done with the ffmpeg software conversion method sws_scale using the conversion context provided
-     * during allocation (SwsContext *).
-     *
-     * If the video picture uses a color palette (allocated with palettized = true), then the
-     * copy of pixels is done accordingly (slower).
-     *
-     * Finally, the timestamp given is kept into the Video Picture for later use.
-     *
-     * @param pFrame Frame containing image data, to be converted to RGB(A)
-     * @param Pts Presentation Timestamp
-     */
-    void fill(AVFrame *pFrame, double Pts = 0.0);
+    // create a picture from the frame extrated of the filter sink
+    // (av_buffersink_get_frame)
+    VideoPicture(AVFilterContext *sink, double Pts = 0.0);
+
+    // create a picture by copying the content of a frame
+    VideoPicture(AVFrame *f, double Pts = 0.0);
 
     /**
      * Get a pointer to the buffer containing the frame.
@@ -125,6 +101,17 @@ public:
         return width;
     }
     /**
+     * Get the length of a row of pixels in the picture data if different from width,
+     * 0 otherwise.
+     *
+     *   glPixelStorei(GL_UNPACK_ROW_LENGTH, vp->getRowLenght());
+     *
+     * @return Row lenght of the picture in pixels.
+     */
+    inline int getRowLength() const {
+        return rowlength;
+    }
+    /**
      * Get the height of the picture.
      *
      * @return Height of the picture in pixels.
@@ -160,7 +147,7 @@ public:
      *
      * @return PIX_FMT_RGB24 by default, PIX_FMT_RGBA if there is alpha channel
      */
-    enum AVPixelFormat getFormat() const {
+    inline enum AVPixelFormat getFormat() const {
          return pixel_format;
     }
 
@@ -183,17 +170,13 @@ public:
     inline bool hasAction(Action a) const { return (action & a); }
 
 private:
-    // LIBAV
-//    AVPicture rgb;
-    enum AVPixelFormat pixel_format;
-    SwsContext *img_convert_ctx_filtering;
 
+    enum AVPixelFormat pixel_format;
     uint8_t *data;
-    int linesize;
     double pts;
-    int width, height;
-    bool convert_rgba_palette;
+    int width, height, rowlength;
     Action action;
+    AVFrame *frame;
 
 #ifdef GLM_CUDA
     CUdeviceptr    g_pInteropFrame;
@@ -226,6 +209,7 @@ private:
 
 public:
     static void clearPictureMaps();
+    static int count;
 
 };
 

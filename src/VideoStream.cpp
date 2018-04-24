@@ -26,6 +26,13 @@
 #include "VideoStream.moc"
 #include "CodecManager.h"
 
+extern "C"
+{
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libswscale/swscale.h>
+}
+
 /**
  * Waiting time when update has nothing to do (ms)
  */
@@ -114,10 +121,6 @@ void StreamDecodingThread::run()
          *
          * */
 
-        // free packet every time
-        av_free_packet(&packet);
-        av_init_packet(&packet);
-
 
         // Read packet
         if ( av_read_frame(is->pFormatCtx, &packet) < 0)
@@ -153,15 +156,11 @@ void StreamDecodingThread::run()
          *
          * */
 
-        // remember packet pts in case the decoding looses it
-        if (packet.pts != AV_NOPTS_VALUE)
-            is->video_st->codec->reordered_opaque = packet.pts;
-
         frameFinished = 0;
 
         // Decode video frame
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
+        if ( avcodec_decode_video2(is->video_dec, _pFrame, &frameFinished, &packet) < 0 ) {
 #else
         if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
 #endif
@@ -203,17 +202,12 @@ void StreamDecodingThread::run()
         } // end if (frameFinished > 0)
 
         // free internal buffers
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         av_frame_unref(_pFrame);
-#endif
 
     } // end while
 
     // free internal buffers
-    av_free_packet(&packet);
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
     av_frame_unref(_pFrame);
-#endif
 
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << is->urlname << QChar(124).toLatin1() << tr("Decoding ended.");
@@ -233,7 +227,10 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     videoStream = -1;
     video_st = NULL;
     pFormatCtx = NULL;
-    img_convert_ctx = NULL;
+//    img_convert_ctx = NULL;
+    in_video_filter = NULL;
+    out_video_filter = NULL;
+    graph = 0;
     pictq_max_count = PICTUREMAP_SIZE - 1;
 
 
@@ -466,18 +463,65 @@ bool VideoStream::openStream()
     // Default targetFormat to PIX_FMT_RGB24
     targetFormat = AV_PIX_FMT_RGB24;
 
-    // create conversion context
-    // (use the actual width to match with targetWidth and avoid useless scaling)
-    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
-                    video_st->codec->height, video_st->codec->pix_fmt,
-                    targetWidth, targetHeight, targetFormat,
-                    SWS_POINT, NULL, NULL, NULL);
-    if (img_convert_ctx == NULL)
-    {
-        // Cannot initialize the conversion context!
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
+    graph = avfilter_graph_alloc();
+
+    int64_t conversionAlgorithm = SWS_POINT;
+    char sws_flags_str[128];
+    snprintf(sws_flags_str, sizeof(sws_flags_str), "flags=%" PRId64, conversionAlgorithm);
+    graph->scale_sws_opts = av_strdup(sws_flags_str);
+
+    char buffersrc_args[256];
+    snprintf(buffersrc_args, sizeof(buffersrc_args), "%d:%d:%d:%d:%d:%d:%d",
+                 video_dec->width, video_dec->height, video_dec->pix_fmt,
+                 video_st->time_base.num, video_st->time_base.den,
+                 video_dec->sample_aspect_ratio.num, video_dec->sample_aspect_ratio.den);
+
+    if ( avfilter_graph_create_filter(&in_video_filter, avfilter_get_by_name("buffer"),
+                                            "src", buffersrc_args, NULL, graph) < 0)  {
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a INPUT conversion context.");
         return false;
     }
+
+    if ( avfilter_graph_create_filter(&out_video_filter, avfilter_get_by_name("buffersink"),
+                                            "out", NULL, NULL, graph) < 0)  {
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a OUTPUT conversion context.");
+        return false;
+    }
+
+    AVFilterContext *filt_ctx;
+    if ( avfilter_graph_create_filter(&filt_ctx, avfilter_get_by_name("format"),
+                                            "col", "rgb24", NULL, graph) < 0)  {
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a COLOR conversion context.");
+        return false;
+    }
+
+    // chain filters
+    if ( avfilter_link(in_video_filter, 0, filt_ctx, 0) < 0 ) {
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot link INPUT conversion context.");
+        return false;
+    }
+    if ( avfilter_link(filt_ctx, 0, out_video_filter, 0) < 0 ) {
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot link OUTPUT conversion context.");
+        return false;
+    }
+
+    if ( avfilter_graph_config(graph, NULL) < 0){
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot configure conversion graph.");
+        return false;
+    }
+
+//    // create conversion context
+//    // (use the actual width to match with targetWidth and avoid useless scaling)
+//    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
+//                    video_st->codec->height, video_st->codec->pix_fmt,
+//                    targetWidth, targetHeight, targetFormat,
+//                    SWS_POINT, NULL, NULL, NULL);
+//    if (img_convert_ctx == NULL)
+//    {
+//        // Cannot initialize the conversion context!
+//        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
+//        return false;
+//    }
 
     // all ok
     return true;
@@ -521,13 +565,13 @@ void VideoStream::close()
 
     }
 
-    // free context & filter
-    if (img_convert_ctx)
-        sws_freeContext(img_convert_ctx);
+//    // free context & filter
+//    if (img_convert_ctx)
+//        sws_freeContext(img_convert_ctx);
 
     // reset pointers
     pFormatCtx = NULL;
-    img_convert_ctx = NULL;
+//    img_convert_ctx = NULL;
     video_st = NULL;
 
     qDebug() << urlname << QChar(124).toLatin1() << tr("Stream closed.");
@@ -637,14 +681,19 @@ void VideoStream::flush_picture_queue()
 // called exclusively in Decoding Thread
 void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
 {
-    // create vp as the picture in the queue to be written
-    VideoPicture *vp = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat);
+    VideoPicture *vp = NULL;
 
-    if (!vp)
-        return;
+    // convert
+    if ( pFrame && av_buffersrc_add_frame(in_video_filter, pFrame) >= 0 ) {
 
-    // Fill the Video Picture queue with the current frame
-    vp->fill(pFrame, pts);
+        // create vp as the picture in the queue to be written
+        VideoPicture *vp = new VideoPicture(out_video_filter, pts);
+
+        // free frame
+        av_frame_unref(pFrame);
+    }
+    else
+        vp = new VideoPicture(targetWidth, targetHeight, pts);
 
     // set the actions of this frame
     vp->resetAction();

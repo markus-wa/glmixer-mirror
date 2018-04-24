@@ -83,7 +83,7 @@ private:
 
     GLuint pboIds[2];
     int index, nextIndex;
-    int imgsize;
+    int imgsize, unpackrowlenght;
     bool pboNeedsUpdate;
 };
 

@@ -100,7 +100,10 @@ private:
     enum AVPixelFormat targetFormat;
     AVFormatContext *pFormatCtx;
     AVStream *video_st;
-    SwsContext *img_convert_ctx;
+    AVCodecContext *video_dec;
+    AVFilterContext *in_video_filter;   // the first filter in the video chain
+    AVFilterContext *out_video_filter;  // the last filter in the video chain
+    AVFilterGraph *graph;
     int videoStream;
 
     // picture queue management

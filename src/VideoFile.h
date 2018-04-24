@@ -29,9 +29,8 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(54,0,0)
 #include <libavutil/time.h>
-#endif
+#include <libavfilter/avfilter.h>
 }
 
 #include <QQueue>
@@ -165,7 +164,7 @@ public:
      *
      * Automatically calls stop() and waits for the threads to end before clearing memory.
      */
-    virtual ~VideoFile();
+    ~VideoFile();
 
     VideoPicture *getFirstFrame() { return firstPicture;}
 
@@ -620,6 +619,7 @@ public slots:
      */
     bool hasAlphaChannel() const;
     inline bool ignoresAlphaChannel() const { return ignoreAlpha; }
+
     /**
      *
      */
@@ -636,6 +636,7 @@ protected:
     // internal methods
     virtual void close();
     void reset();
+    bool setupFiltering();
     double fill_first_frame(bool);
     double synchronize_video(AVFrame *src_frame, double dts);
 
@@ -655,7 +656,6 @@ protected:
     bool powerOfTwo;
     int targetWidth, targetHeight;
     VideoPicture *firstPicture, *blackPicture;
-    bool rgba_palette;
     double duration;
     int64_t nb_frames;
     double frame_rate;
@@ -663,7 +663,11 @@ protected:
     // LIBAV Video stream
     AVFormatContext *pFormatCtx;
     AVStream *video_st;
-    SwsContext *img_convert_ctx;
+    AVCodecContext *video_dec;
+    AVFilterContext *in_video_filter;
+    AVFilterContext *out_video_filter;
+    AVFilterGraph *graph;
+
     int videoStream;
     bool ignoreAlpha, interlaced;
     enum AVPixelFormat targetFormat;

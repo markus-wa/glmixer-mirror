@@ -32,7 +32,8 @@
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
-    Source(texture, d), format(GL_RGBA), is(f), vp(NULL), pboNeedsUpdate(false)
+    Source(texture, d), format(GL_RGBA), is(f), vp(NULL),
+    internalFormat(AV_PIX_FMT_RGB24), imgsize(0), unpackrowlenght(0), pboNeedsUpdate(false)
 {
     if (!is)
         SourceConstructorException().raise();
@@ -45,6 +46,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     // no PBO by default
     pboIds[0] = 0;
     pboIds[1] = 0;
+    index = nextIndex = 0;
 
     // request to update the frame when sending message
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
@@ -71,6 +73,10 @@ VideoSource::~VideoSource()
     // delete picture buffer
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
+
+#ifdef VIDEOPICTURE_DEBUG
+    qDebug() << "Count Video Picture" << VideoPicture::count;
+#endif
 }
 
 QString VideoSource::getInfo() const {
@@ -161,17 +167,13 @@ QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
     return sourceElem;
 }
 
-void VideoSource::fillFramePBO(VideoPicture *vp)
+void VideoSource::fillFramePBO(VideoPicture *p)
 {
-    if ( vp->getBuffer() ) {
-
-//        // bind PBO to read pixels
-//        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
-
-//        // copy pixels from PBO to texture object
-//        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
+//    if ( vp->getBuffer() ) {
 
         // if the video picture contains a buffer, use it to fill the PBO
+        // NB : equivalent but faster than
+        // glNamedBufferSubData(pboIds[nextIndex], 0, imgsize, vp->getBuffer());
 
         // bind PBO to update pixel values
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
@@ -182,25 +184,34 @@ void VideoSource::fillFramePBO(VideoPicture *vp)
         GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         if (ptr) {
             // update data directly on the mapped buffer
-            memmove(ptr, vp->getBuffer(), imgsize);
+            memmove(ptr, p->getBuffer(), imgsize);
             // release pointer to mapping buffer
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
         }
 
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
         // In dual PBO mode, increment current index first then get the next index
         index = (index + 1) % 2;
         nextIndex = (index + 1) % 2;
-    }
-
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+//    }
 }
 
 // only Rendering Manager can call this
 void VideoSource::update()
 {
+//    // profiling tools
+//    static QElapsedTimer timeupdate;
+//    static int numupdate = 0;
+//    static qint64 nsecupdate = 0;
+//    timeupdate.start();
+
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-    if (pboNeedsUpdate && pboIds[index])
+    if (unpackrowlenght)
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, unpackrowlenght);
+
+    if (pboNeedsUpdate)
     {
         // bind PBO to read pixels
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
@@ -214,20 +225,18 @@ void VideoSource::update()
     }
 
     // update texture if given a new vp
-    if ( vp && vp->getBuffer() != NULL )
+    if ( vp && vp->getBuffer() )
     {
-
         if (internalFormat != vp->getFormat())
             setVideoFormat(vp);
 
-        if ( pboIds[0] && pboIds[1] ) {
+        if ( pboIds[nextIndex] ) {
 
             // fill the texture using Pixel Buffer Object mechanism
             fillFramePBO(vp);
 
             // Explicit request to display texture (dual buffer mechanism)
             pboNeedsUpdate = true;
-
         }
         else {
             // without PBO, use standard opengl (slower)
@@ -238,8 +247,18 @@ void VideoSource::update()
 
         // done! Cancel (free) updated frame
         updateFrame(NULL);
-
     }
+
+    if (unpackrowlenght)
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+//    nsecupdate += timeupdate.nsecsElapsed();
+//    numupdate++;
+//    if (numupdate > 100) {
+//        qDebug() << "update " << nsecupdate / 100000;
+//        nsecupdate = 0;
+//        numupdate = 0;
+//    }
 
     Source::update();
 }
@@ -265,6 +284,13 @@ bool VideoSource::setVideoFormat(VideoPicture *p)
 
         if (glewIsSupported("GL_ARB_internalformat_query2"))
             glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
+
+        // check if we need to adjust UNPACK ROW for pixel alignment:
+        unpackrowlenght = p->getRowLength() == p->getWidth() ? 0 : p->getRowLength();
+
+        // null row lenght means disabled
+        if (unpackrowlenght)
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, unpackrowlenght);
 
         // create texture and fill-in with reset picture
         glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, p->getWidth(),
@@ -312,6 +338,8 @@ bool VideoSource::setVideoFormat(VideoPicture *p)
             nextIndex = 1;
         }
 
+        if (unpackrowlenght)
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     }
     else
         return false;

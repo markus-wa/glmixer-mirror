@@ -2,6 +2,9 @@
 extern "C"
 {
 #include <libavcodec/avcodec.h>
+#include <libavutil/pixdesc.h>
+#include <libavutil/imgutils.h>
+#include <libavfilter/buffersink.h>
 }
 
 #include "VideoPicture.h"
@@ -22,6 +25,7 @@ extern "C"
 QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
 QMutex VideoPicture::VideoPictureMapLock;
 long int VideoPicture::PictureMap::_totalmemory = 0;
+int VideoPicture::count = 0;
 
 VideoPicture::PictureMap::PictureMap(int pageSize) : _pageSize(pageSize), _isFull(false)
 {
@@ -154,55 +158,119 @@ void VideoPicture::freePictureMap(PictureMap *pmap)
 }
 
 VideoPicture::VideoPicture() :
+    pixel_format(AV_PIX_FMT_RGB24),
+    data(NULL),
     pts(0),
     width(0),
     height(0),
-    convert_rgba_palette(false),
-    pixel_format(AV_PIX_FMT_NONE),
-    img_convert_ctx_filtering(0),
+    rowlength(0),
     action(0),
+    frame(NULL),
     _pictureMap(NULL)
 {
-    data = NULL;
-    linesize = 0;
 }
 
-VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
-        enum AVPixelFormat format, bool rgba_palette) :
-    pts(0),
+VideoPicture::VideoPicture(int w, int h, double Pts) :
+    pixel_format(AV_PIX_FMT_RGB24),
+    data(NULL),
+    pts(Pts),
     width(w),
     height(h),
-    convert_rgba_palette(rgba_palette),
-    pixel_format(format),
-    img_convert_ctx_filtering(img_convert_ctx),
+    rowlength(w),
     action(0),
+    frame(NULL),
     _pictureMap(NULL)
 {
-    data = NULL;
-    linesize = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
+    if (width==0 && height==0)
+        VideoPictureException().raise();
 
 #ifdef PICTURE_MAP
     VideoPicture::VideoPictureMapLock.lock();
     do {
-        _pictureMap = VideoPicture::getAvailablePictureMap(width, height, format);
+        _pictureMap = VideoPicture::getAvailablePictureMap(width, height, pixel_format);
         data = _pictureMap->getAvailablePictureMemory();
     } while (data == NULL);
     VideoPicture::VideoPictureMapLock.unlock();
 #else
-    data = (uint8_t *) malloc( sizeof(uint8_t) * linesize * height);
+    data = (uint8_t *) malloc( sizeof(uint8_t) * getBufferSize());
 #endif
 
-    // initialize buffer if no conversion context is provided
-    if (!img_convert_ctx_filtering) {
-        int nbytes = linesize * height;
-        memset((void *) data, 0,  nbytes);
-    }
-
+    // initialize buffer with zeros
+    memset((void *) data, 0,  getBufferSize());
 }
+
+VideoPicture::VideoPicture(AVFilterContext *sink, double Pts):
+    pts(Pts),
+    data(NULL),
+    action(0),
+    _pictureMap(NULL)
+{
+#ifdef VIDEOPICTURE_DEBUG
+    VideoPicture::count++;
+#endif
+    frame = av_frame_alloc();
+    if (!frame || av_buffersink_get_frame(sink, frame) < 0 )
+        VideoPictureException().raise();
+
+    // copy properties
+    width = frame->width;
+    height = frame->height;
+    pixel_format = (AVPixelFormat) frame->format;
+    if (pixel_format!=AV_PIX_FMT_RGB24 && pixel_format!=AV_PIX_FMT_RGBA)
+        VideoPictureException().raise();
+
+    // row lenght is given by frame linesize
+    rowlength = frame->linesize[0] / (pixel_format == AV_PIX_FMT_RGB24 ? 3 : 4);
+
+    // do not need to copy data
+}
+
+
+VideoPicture::VideoPicture(AVFrame *f, double Pts):
+    pts(Pts),
+    rowlength(0),
+    action(0),
+    frame(NULL),
+    _pictureMap(NULL)
+{
+    // copy properties
+    width = f->width;
+    height = f->height;
+    pixel_format = (AVPixelFormat) f->format;
+    if (pixel_format!= AV_PIX_FMT_RGB24 && pixel_format!=AV_PIX_FMT_RGBA)
+        VideoPictureException().raise();
+
+    // row lenght is given by frame linesize
+    rowlength = f->linesize[0] / (pixel_format == AV_PIX_FMT_RGB24 ? 3 : 4);
+
+    // allocate buffer
+#ifdef PICTURE_MAP
+    VideoPicture::VideoPictureMapLock.lock();
+    do {
+        _pictureMap = VideoPicture::getAvailablePictureMap(rowlength, height, pixel_format);
+        data = _pictureMap->getAvailablePictureMemory();
+    } while (data == NULL);
+    VideoPicture::VideoPictureMapLock.unlock();
+#else
+    data = (uint8_t *) malloc( sizeof(uint8_t) * getBufferSize());
+#endif
+
+    // copy memory of data
+    memmove((void *) (data), f->data[0], getBufferSize() );
+}
+
+
 
 
 VideoPicture::~VideoPicture()
 {
+    if (frame) {
+        av_frame_free(&frame);
+#ifdef VIDEOPICTURE_DEBUG
+        VideoPicture::count--;
+#endif
+    }
+
     if (data) {
 #ifdef PICTURE_MAP
         VideoPicture::VideoPictureMapLock.lock();
@@ -211,8 +279,6 @@ VideoPicture::~VideoPicture()
         VideoPicture::VideoPictureMapLock.unlock();
 #else
         free(data);
-        data = NULL;
-        linesize = 0;
 #endif
     }
 
@@ -222,11 +288,12 @@ VideoPicture::~VideoPicture()
         cuMemFree(g_pInteropFrame);
     }
 #endif
+
 }
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (linesize > 0)
+    if (rowlength > 0)
     {
         FILE *pFile;
         int y;
@@ -243,7 +310,7 @@ void VideoPicture::saveToPPM(QString filename) const
         {
           for (int i = 0; i < width; ++i)
           {
-            (void) fwrite(data + j * linesize + i * (pixel_format == AV_PIX_FMT_RGBA ? 4 : 3), 1, 3, pFile);
+            (void) fwrite(data + j * rowlength + i * (pixel_format == AV_PIX_FMT_RGBA ? 4 : 3), 1, 3, pFile);
           }
         }
 
@@ -272,61 +339,13 @@ void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
 
 int VideoPicture::getBufferSize()
 {
-    return linesize * height;
+    return height * MAXI(rowlength, width) * (pixel_format == AV_PIX_FMT_RGB24 ? 3 : 4);
 }
 
-char *VideoPicture::getBuffer() const {
-    return (char*) data;
-}
-
-
-void VideoPicture::fill(AVFrame *frame, double Pts)
+char *VideoPicture::getBuffer() const
 {
-    // ignore null frame
-    if (!frame)
-        return;
-
-    // remember pts
-    pts = Pts;
-
-    if (img_convert_ctx_filtering && !convert_rgba_palette)
-    {
-        // Convert the image with ffmpeg sws
-        if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-                            frame->height, (uint8_t**) &data, (int *) &linesize) ) {
-            // fail : set pointer to NULL (do not display)
-            data = NULL;
-            linesize = 0;
-        }
-    }
-    // I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
+    if (frame)
+        return (char *) frame->data[0];
     else
-    {
-        // get pointer to the palette
-        uint8_t *palette = frame->data[1];
-        if ( palette != 0 ) {
-            // clear RGB to zeros when alpha is 0 (optional but cleaner)
-            for (int i = 0; i < 4 * 256; i += 4)
-            {
-                if (palette[i + 3] == 0)
-                    palette[i + 0] = palette[i + 1] = palette[i + 2] = 0;
-            }
-            // copy BGR palette color from frame to RGBA buffer of VideoPicture
-            uint8_t *map = frame->data[0];
-            uint8_t *bgr = data;
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    *bgr++ = palette[4 * map[x] + 2]; // B
-                    *bgr++ = palette[4 * map[x] + 1]; // G
-                    *bgr++ = palette[4 * map[x]];     // R
-                    if (pixel_format == AV_PIX_FMT_RGBA)
-                        *bgr++ = palette[4 * map[x] + 3]; // A
-                }
-                map += frame->linesize[0];
-            }
-        }
-    }
-
+        return (char*) data;
 }

@@ -47,6 +47,29 @@ void CodecManager::registerAll()
     }
 }
 
+void CodecManager::printError(QString streamToOpen, int err)
+{
+    switch (err)
+    {
+    case AVERROR_INVALIDDATA:
+        qWarning() << streamToOpen << QChar(124).toLatin1() << tr("Error while parsing header.");
+        break;
+    case AVERROR(EIO):
+        qWarning() << streamToOpen << QChar(124).toLatin1()
+                << tr("I/O error. The file is corrupted or the stream is unavailable.");
+        break;
+    case AVERROR(ENOMEM):
+        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error.");
+        break;
+    case AVERROR(ENOENT):
+        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such entry.");
+        break;
+    default:
+        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Unsupported format.");
+        break;
+    }
+}
+
 bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen)
 {
     registerAll();
@@ -54,14 +77,10 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     int err = 0;
 
     // Check file
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
-    err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
-#else
     if ( !_pFormatCtx)
         return 0;
 
     err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
-#endif
     if (err < 0)
     {
         switch (err)
@@ -87,35 +106,6 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
         return false;
     }
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
-    err = av_find_stream_info(_pFormatCtx);
-#else
-    err = avformat_find_stream_info( *_pFormatCtx, NULL);
-#endif
-    if (err < 0)
-    {
-        switch (err)
-        {
-        case AVERROR_INVALIDDATA:
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Error while parsing header.");
-            break;
-        case AVERROR(EIO):
-            qWarning() << streamToOpen<< QChar(124).toLatin1()
-                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
-            break;
-        case AVERROR(ENOMEM):
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error");
-            break;
-        case AVERROR(ENOENT):
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such entry.");
-            break;
-        default:
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Unsupported format.");
-            break;
-        }
-
-        return false;
-    }
 
     return true;
 }
@@ -127,25 +117,7 @@ int CodecManager::getVideoStream(AVFormatContext *codeccontext)
     // Find the first video stream index
     int stream_index = -1;
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
-    for (int i = 0; i < (int) codeccontext->nb_streams; i++)
-    {
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-        if (codeccontext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-#else
-        if (codeccontext->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
-#endif
-        {
-            stream_index = i;
-            break;
-        }
-    }
-
-    if (stream_index >= (int) codeccontext->nb_streams)
-        stream_index = -1;
-#else
     stream_index = av_find_best_stream(codeccontext, AVMEDIA_TYPE_VIDEO,  -1, -1, NULL, 0);
-#endif
 
     return stream_index;
 }
@@ -155,13 +127,7 @@ QString CodecManager::openCodec(AVCodecContext *codeccontext)
     QString codecname = QString::null;
     AVCodec *codec = avcodec_find_decoder(codeccontext->codec_id);
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
-    if ( !codec || avcodec_open(codeccontext, codec) < 0 )
-    {
-        qWarning() << codeccontext->codec_name << QChar(124).toLatin1()<< tr("Unsupported Codec.");
-        return codecname;
-    }
-#else
+
     AVDictionary *opts = NULL;
     av_dict_set(&opts, "threads", "auto", 0);
     av_dict_set(&opts, "refcounted_frames", "1", 0);
@@ -170,7 +136,6 @@ QString CodecManager::openCodec(AVCodecContext *codeccontext)
         qWarning() << avcodec_descriptor_get(codeccontext->codec_id)->long_name << QChar(124).toLatin1() << tr("Unsupported Codec.");
         return codecname;
     }
-#endif
 
     codecname = avcodec_descriptor_get(codeccontext->codec_id)->long_name;
 
@@ -212,7 +177,8 @@ double CodecManager::getFrameRateStream(AVFormatContext *codeccontext, int strea
 #if FF_API_R_FRAME_RATE
     else if (codeccontext->streams[stream] &&
              codeccontext->streams[stream]->r_frame_rate.den > 0)
-        d = av_q2d(codeccontext->streams[stream]->r_frame_rate);
+        d = av_q2d( av_stream_get_r_frame_rate(codeccontext->streams[stream]) );
+
 #endif
 
     return d;
@@ -345,11 +311,7 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
                         break;
                 last_name = p2->name;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
                 if (decode && p2->type == AVMEDIA_TYPE_VIDEO)
-#else
-                if (decode && p2->type == CODEC_TYPE_VIDEO)
-#endif
                 {
                         formatitem = new QTreeWidgetItem(availableCodecsTreeWidget);
                         formatitem->setText(0, QString(p2->name));
@@ -381,9 +343,6 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
     delete ffmpegInfoDialog;
 }
 
-
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
 QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
 {
     QString pfn = "Unknown";
@@ -394,93 +353,19 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
 
     return pfn;
 }
-#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
-{
-    registerAll();
-    QString pfn(av_pix_fmt_descriptors[pix_fmt].name);
-    pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[pix_fmt]));
-
-    return pfn;
-}
-#else
-QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat)
-{
-    switch (ffmpegAVPixelFormat )
-        {
-
-                case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
-                case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
-                case PIX_FMT_RGB24:
-                case PIX_FMT_BGR24: return QString("packed RGB 8:8:8, 24bpp");
-                case PIX_FMT_YUV422P: return QString("planar YUV 4:2:2, 16bpp");
-                case PIX_FMT_YUV444P: return QString("planar YUV 4:4:4, 24bpp");
-                case PIX_FMT_RGB32: return QString("packed RGB 8:8:8, 32bpp");
-                case PIX_FMT_YUV410P: return QString("planar YUV 4:1:0,  9bpp");
-                case PIX_FMT_YUV411P: return QString("planar YUV 4:1:1, 12bpp");
-                case PIX_FMT_RGB565: return QString("packed RGB 5:6:5, 16bpp");
-                case PIX_FMT_RGB555: return QString("packed RGB 5:5:5, 16bpp");
-                case PIX_FMT_GRAY8: return QString("Y,  8bpp");
-                case PIX_FMT_MONOWHITE:
-                case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
-                case PIX_FMT_PAL8: return QString("RGB32 palette, 8bpp");
-                case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
-                case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
-                case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");
-                case PIX_FMT_XVMC_MPEG2_MC: return QString("XVideo Motion Acceleration (MPEG2)");
-                case PIX_FMT_UYVY422: return QString("packed YUV 4:2:2, 16bpp");
-                case PIX_FMT_UYYVYY411: return QString("packed YUV 4:1:1, 12bpp");
-                case PIX_FMT_BGR32: return QString("packed RGB 8:8:8, 32bpp");
-                case PIX_FMT_BGR565: return QString("packed RGB 5:6:5, 16bpp");
-                case PIX_FMT_BGR555: return QString("packed RGB 5:5:5, 16bpp");
-                case PIX_FMT_BGR8: return QString("packed RGB 3:3:2, 8bpp");
-                case PIX_FMT_BGR4: return QString("packed RGB 1:2:1, 4bpp");
-                case PIX_FMT_BGR4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-                case PIX_FMT_RGB8: return QString("packed RGB 3:3:2,  8bpp");
-                case PIX_FMT_RGB4: return QString("packed RGB 1:2:1,  4bpp");
-                case PIX_FMT_RGB4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-                case PIX_FMT_NV12:
-                case PIX_FMT_NV21: return QString("planar YUV 4:2:0, 12bpp");
-                case PIX_FMT_RGB32_1:
-                case PIX_FMT_BGR32_1: return QString("packed RGB 8:8:8, 32bpp");
-                case PIX_FMT_GRAY16BE:
-                case PIX_FMT_GRAY16LE: return QString("Y, 16bpp");
-                case PIX_FMT_YUV440P: return QString("planar YUV 4:4:0");
-                case PIX_FMT_YUVJ440P: return QString("planar YUV 4:4:0 (JPEG)");
-                case PIX_FMT_YUVA420P: return QString("planar YUV 4:2:0, 20bpp");
-                case PIX_FMT_VDPAU_H264: return QString("H.264 HW");
-                case PIX_FMT_VDPAU_MPEG1: return QString("MPEG-1 HW");
-                case PIX_FMT_VDPAU_MPEG2: return QString("MPEG-2 HW");
-                case PIX_FMT_VDPAU_WMV3: return QString("WMV3 HW");
-                case PIX_FMT_VDPAU_VC1: return QString("VC-1 HW");
-                case PIX_FMT_RGB48BE: return QString("packed RGB 16:16:16, 48bpp");
-                case PIX_FMT_RGB48LE: return QString("packed RGB 16:16:16, 48bpp");
-                case PIX_FMT_VAAPI_MOCO:
-                case PIX_FMT_VAAPI_IDCT:
-                case PIX_FMT_VAAPI_VLD: return QString("HW acceleration through VA API");
-                default:
-                return QString("unknown");
-        }
-}
-#endif
 
 bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
 {
     registerAll();
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+    if (pix_fmt < 0)
+        return false;
+
     return  (  (av_pix_fmt_desc_get(pix_fmt)->nb_components > 3)
             // does the format has ALPHA ?
             || ( av_pix_fmt_desc_get(pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
             // special case of PALLETE and GREY pixel formats(converters exist for rgba)
             || ( av_pix_fmt_desc_get(pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL ) );
-#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-    return  (av_pix_fmt_descriptors[pix_fmt].nb_components > 3)
-            // special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_descriptors[pix_fmt].flags & PIX_FMT_PAL );
-#else
-    return (pix_fmt == PIX_FMT_RGBA || pix_fmt == PIX_FMT_BGRA ||
-            pix_fmt == PIX_FMT_ARGB || pix_fmt == PIX_FMT_ABGR );
-#endif
+
 }
 

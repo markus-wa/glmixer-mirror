@@ -77,6 +77,8 @@ public:
      */
     static void convertSizePowerOfTwo(int &width, int &height);
 
+    static void printError(QString streamToOpen, int err);
+
 private:
 
     CodecManager(QObject *parent = 0);
