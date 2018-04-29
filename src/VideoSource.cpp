@@ -167,34 +167,31 @@ QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
     return sourceElem;
 }
 
-void VideoSource::fillFramePBO(VideoPicture *p)
+void VideoSource::fillFramePBO(const VideoPicture *p)
 {
-//    if ( vp->getBuffer() ) {
+    // if the video picture contains a buffer, use it to fill the PBO
+    // NB : equivalent but faster (memmove instead of memcpy ?) than
+    // glNamedBufferSubData(pboIds[nextIndex], 0, imgsize, vp->getBuffer());
 
-        // if the video picture contains a buffer, use it to fill the PBO
-        // NB : equivalent but faster than
-        // glNamedBufferSubData(pboIds[nextIndex], 0, imgsize, vp->getBuffer());
+    // bind PBO to update pixel values
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
 
-        // bind PBO to update pixel values
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
 
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+    // map the buffer object into client's memory
+    GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    if (ptr && p->getBuffer()) {
+        // update data directly on the mapped buffer
+        memmove(ptr, p->getBuffer(), imgsize);
+        // release pointer to mapping buffer
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    }
 
-        // map the buffer object into client's memory
-        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-        if (ptr) {
-            // update data directly on the mapped buffer
-            memmove(ptr, p->getBuffer(), imgsize);
-            // release pointer to mapping buffer
-            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-        // In dual PBO mode, increment current index first then get the next index
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
-//    }
+    // In dual PBO mode, increment current index first then get the next index
+    index = (index + 1) % 2;
+    nextIndex = (index + 1) % 2;
 }
 
 // only Rendering Manager can call this
@@ -273,7 +270,7 @@ void VideoSource::updateFrame(VideoPicture *p)
     vp = p;
 }
 
-bool VideoSource::setVideoFormat(VideoPicture *p)
+bool VideoSource::setVideoFormat(const VideoPicture *p)
 {
     if (p)
     {

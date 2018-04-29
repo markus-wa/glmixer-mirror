@@ -168,6 +168,9 @@ VideoPicture::VideoPicture() :
     frame(NULL),
     _pictureMap(NULL)
 {
+#ifdef VIDEOPICTURE_DEBUG
+    VideoPicture::count++;
+#endif
 }
 
 VideoPicture::VideoPicture(int w, int h, double Pts) :
@@ -197,6 +200,9 @@ VideoPicture::VideoPicture(int w, int h, double Pts) :
 
     // initialize buffer with zeros
     memset((void *) data, 0,  getBufferSize());
+#ifdef VIDEOPICTURE_DEBUG
+    VideoPicture::count++;
+#endif
 }
 
 VideoPicture::VideoPicture(AVFilterContext *sink, double Pts):
@@ -205,9 +211,6 @@ VideoPicture::VideoPicture(AVFilterContext *sink, double Pts):
     action(0),
     _pictureMap(NULL)
 {
-#ifdef VIDEOPICTURE_DEBUG
-    VideoPicture::count++;
-#endif
     frame = av_frame_alloc();
     if (!frame || av_buffersink_get_frame(sink, frame) < 0 )
         VideoPictureException().raise();
@@ -223,6 +226,9 @@ VideoPicture::VideoPicture(AVFilterContext *sink, double Pts):
     rowlength = frame->linesize[0] / (pixel_format == AV_PIX_FMT_RGB24 ? 3 : 4);
 
     // do not need to copy data
+#ifdef VIDEOPICTURE_DEBUG
+    VideoPicture::count++;
+#endif
 }
 
 
@@ -257,6 +263,9 @@ VideoPicture::VideoPicture(AVFrame *f, double Pts):
 
     // copy memory of data
     memmove((void *) (data), f->data[0], getBufferSize() );
+#ifdef VIDEOPICTURE_DEBUG
+    VideoPicture::count++;
+#endif
 }
 
 
@@ -264,11 +273,12 @@ VideoPicture::VideoPicture(AVFrame *f, double Pts):
 
 VideoPicture::~VideoPicture()
 {
-    if (frame) {
-        av_frame_free(&frame);
 #ifdef VIDEOPICTURE_DEBUG
         VideoPicture::count--;
 #endif
+
+    if (frame) {
+        av_frame_free(&frame);
     }
 
     if (data) {
@@ -337,7 +347,7 @@ void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
 
 #endif
 
-int VideoPicture::getBufferSize()
+int VideoPicture::getBufferSize() const
 {
     return height * MAXI(rowlength, width) * (pixel_format == AV_PIX_FMT_RGB24 ? 3 : 4);
 }

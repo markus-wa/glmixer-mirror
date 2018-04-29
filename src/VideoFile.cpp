@@ -220,10 +220,6 @@ public:
         // allocate a frame to fill
         _pFrame = av_frame_alloc();
         Q_CHECK_PTR(_pFrame);
-
-        av_init_packet(&_nullPacket);
-        _nullPacket.data = NULL;
-        _nullPacket.size = 0;
     }
     ~DecodingThread()
     {
@@ -235,7 +231,6 @@ public:
 
 private:
     AVFrame *_pFrame;
-    AVPacket _nullPacket;
 };
 
 
@@ -833,7 +828,7 @@ double VideoFile::fill_first_frame(bool seek)
         delete firstPicture;
     firstPicture = NULL;
 
-    AVPacket pkt1, *pkt   = &pkt1;
+    AVPacket pkt1, *pkt = &pkt1;
 
     AVFrame *tmpframe = av_frame_alloc();
 
@@ -1423,7 +1418,7 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 
     try {
         // convert given frame
-        if ( pFrame && av_buffersrc_add_frame(in_video_filter, pFrame) >= 0 ) {
+        if ( pFrame && av_buffersrc_add_frame_flags(in_video_filter, pFrame, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
 
             // create VP containing an AVFrame created by the buffer sink
             vp = new VideoPicture(out_video_filter, pts);
@@ -1463,7 +1458,7 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
     double frame_delay = av_q2d(video_dec->time_base);
 
     if (pts < 0)
-        /* if we aren't given a dts, set it to the clock */
+        /* if we aren't given a pts, set it to the clock */
         // this happens rarely (I noticed it on last frame, or in GIF files)
         pts = video_pts;
     else
@@ -1491,8 +1486,8 @@ void DecodingThread::run()
 
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
-    int64_t dts = 0; // Decoding time stamp
-    int64_t previous_dts = 0; // Previous decoding time stamp (checking for continuity)
+    int64_t intdts = 0; // Decoding time stamp
+    int64_t previous_intpts = 0; // Previous decoding time stamp (checking for continuity)
     int error_count = 0;
     bool eof = false;
 
@@ -1534,7 +1529,7 @@ void DecodingThread::run()
 
             // todo replace by avformat_seek_file
 
-            previous_dts = seek_target;
+            previous_intpts = seek_target;
 
             // flush buffers after seek
             avcodec_flush_buffers(is->video_dec);
@@ -1548,17 +1543,18 @@ void DecodingThread::run()
         int ret = av_read_frame(is->pFormatCtx, pkt);
         if ( ret < 0)
         {
-#ifdef VIDEOFILE_DEBUG
-            qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame.");
-#endif
             // not an error : read_frame have reached the end of file
             if ( ret == AVERROR_EOF || (is->pFormatCtx->pb && is->pFormatCtx->pb->eof_reached) )  {
                 eof = true;
+#ifdef VIDEOFILE_DEBUG
+            fprintf(stderr, "%s - EOF packet.", qPrintable(is->filename));
+#endif
+
             }
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error) {
 #ifdef VIDEOFILE_DEBUG
-                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Error reading frame.");
+                fprintf(stderr, "%s - Error reading frame.", qPrintable(is->filename));
 #endif
                 // forget error
                 avio_flush(is->pFormatCtx->pb);
@@ -1575,74 +1571,76 @@ void DecodingThread::run()
                 break;
             }
         }
-        // we have a packet is it a video packets?
-        else if ( pkt->stream_index == is->videoStream ) {
 
-            // remember packet pts in case the decoding looses it
-            if (pkt->dts >= 0 && pkt->dts != AV_NOPTS_VALUE)
-                is->video_dec->reordered_opaque = pkt->dts;
+        // we have a packet is it a video packets?
+        if ( pkt->stream_index == is->videoStream ) {
 
             // send the packet to the decoder
             if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
 #ifdef VIDEOFILE_DEBUG
-                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not send packet.");
+                fprintf(stderr, "%s - Could not send packet.", qPrintable(is->filename));
 #endif
-                msleep(PARSING_SLEEP_DELAY);
+                //msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
 
-            // get the packet from the decoder
-            frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
+            // read all pending frames
+            frameFinished = 0;
+            while (frameFinished >= 0) {
 
-            // no error, just try again
-            if ( frameFinished == AVERROR(EAGAIN) ) {
-                msleep(PARSING_SLEEP_DELAY);
-                continue;
-            }
+                // get the packet from the decoder
+                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
-            // reached end of file ?
-            if ( frameFinished == AVERROR_EOF )
-                eof = true;
-            // other kind of error
-            else if ( frameFinished < 0 ) {
+                // no error, just try again
+                if ( frameFinished == AVERROR(EAGAIN) ) {
 #ifdef VIDEOFILE_DEBUG
-                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not decode frame");
+                    fprintf(stderr, "%s - Decoded Error Again.", qPrintable(is->filename));
 #endif
-                error_count++;
-                if (error_count < 10)
-                    continue;
+                    // continue in main loop.
+                    break;
+                }
 
-                // recurrent decoding error
-                _forceQuit = true;
-                break;
-            }
+                // reached end of file ?
+                else if ( frameFinished == AVERROR_EOF ) {
+#ifdef VIDEOFILE_DEBUG
+                    fprintf(stderr, "%s - Decoded End of File.", qPrintable(is->filename));
+#endif
+                    eof = true;
+                    break;
+                }
+                // other kind of error
+                else if ( frameFinished < 0 ) {
+#ifdef VIDEOFILE_DEBUG
+                    fprintf(stderr, "%s - Could not decode frame.", qPrintable(is->filename));
+#endif
+                    error_count++;
+                    if (error_count < 10)
+                        continue;
 
-            // No error, but did we get a full video frame?
-            if ( frameFinished >= 0 )
-            {
+                    // recurrent decoding error
+                    _forceQuit = true;
+                    break;
+                }
+
                 // by default, a frame will be displayed
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
-                dts = 0;
+                intdts = 0;
                 if (_pFrame->pts != AV_NOPTS_VALUE)
-                    dts = _pFrame->pts; // good case
-                else if (pkt->dts >= 0 && pkt->dts != AV_NOPTS_VALUE) {
+                    intdts = _pFrame->pts; // good case
+                else if (_pFrame->pkt_dts != AV_NOPTS_VALUE)
                     // bad case
-                    dts = pkt->dts;
-                    _pFrame->pts = dts;
-                }
-                else {
-
+                    intdts = _pFrame->pkt_dts;
+                else
                     // TODO if no valid pts given
-                    dts = previous_dts + 1;
-                    _pFrame->pts = dts;
-                }
+                    intdts = previous_intpts + 1;
 
                 // remember previous dts
-                previous_dts = dts;
+                previous_intpts = intdts;
+
                 // compute presentation time stamp
-                pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
+                pts = is->synchronize_video(_pFrame, double(intdts) * av_q2d(is->video_st->time_base));
 
                 // ?? WHY ? it is in ffplay...
                 if (is->video_st->sample_aspect_ratio.num) {
@@ -1669,6 +1667,7 @@ void DecodingThread::run()
                         if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
                             // tag the frame as a MARK frame
                             actionFrame |= VideoPicture::ACTION_MARK;
+
                     }
                 }
 
@@ -1722,8 +1721,10 @@ void DecodingThread::run()
                     is->queue_picture(_pFrame, pts, actionFrame);
                 }
 
+                // clean frame
+                av_frame_unref(_pFrame);
 
-            } // end if (frameFinished)
+            } // end while (frameFinished)
 
         } // end if (is->videoStream)
 
@@ -1731,7 +1732,7 @@ void DecodingThread::run()
         if (eof) {
 
             is->requestSeek(is->mark_in);
-            previous_dts = 0;
+            previous_intpts = 0;
 
             // react according to loop mode
             if ( !is->loop_video )

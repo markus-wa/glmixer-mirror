@@ -71,8 +71,8 @@ public slots:
 
 private:
 
-    void fillFramePBO(VideoPicture *vp);
-    bool setVideoFormat(VideoPicture *vp);
+    void fillFramePBO(const VideoPicture *vp);
+    bool setVideoFormat(const VideoPicture *vp);
 
     static RTTI type;
 

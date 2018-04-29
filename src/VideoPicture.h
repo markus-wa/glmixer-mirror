@@ -151,7 +151,7 @@ public:
          return pixel_format;
     }
 
-    int getBufferSize();
+    int getBufferSize() const;
 
     /**
       * Actions to perform on the Video Picture
