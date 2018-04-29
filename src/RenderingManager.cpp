@@ -1672,7 +1672,7 @@ void RenderingManager::clearSourceSet() {
     }
 
     // cleanup VideoPicture memory map
-    VideoPicture::clearPictureMaps();
+   // VideoPicture::clearPictureMaps();
 
 #ifdef GLM_UNDO
     // cleanup & reactivate Undo Manager

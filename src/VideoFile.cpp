@@ -327,7 +327,7 @@ void FirstFrameFiller::run()
 void VideoFile::close()
 {
 #ifdef VIDEOFILE_DEBUG
-    qDebug() << filename << QChar(124).toLatin1() << tr("Closing Media...");
+    fprintf(stderr, "\n%s - Closing Media...", qPrintable(filename));
 #endif
 
     // Stop playing
@@ -364,6 +364,9 @@ void VideoFile::close()
     firstPicture = NULL;
 
     qDebug() << filename << QChar(124).toLatin1() << tr("Media closed.");
+#ifdef VIDEOFILE_DEBUG
+    fprintf(stderr, "\n%s - Media closed.", qPrintable(filename));
+#endif
 }
 
 VideoFile::~VideoFile()
@@ -382,6 +385,9 @@ VideoFile::~VideoFile()
     delete seek_cond;
     delete ptimer;
 
+#ifdef VIDEOFILE_DEBUG
+    fprintf(stderr, "\n%s - Media deleted.", qPrintable(filename));
+#endif
 }
 
 void VideoFile::reset()
@@ -403,7 +409,7 @@ void VideoFile::stop()
     if (!quit)
     {
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Stopping video...");
+        fprintf(stderr, "\n%s - Stopping video...", qPrintable(filename));
 #endif
 
         // request quit
@@ -420,15 +426,17 @@ void VideoFile::stop()
         if (!restart_where_stopped)
         {
             // recreate first picture in case begin has changed
-            // current_frame_pts = fill_first_frame(true);
-            FirstFrameFiller *fff = new FirstFrameFiller(this, true);
-            fff->start();
-            // 2 seconds timeout
-            if ( !fff->wait(2000) ) {
-                qWarning() << filename << QChar(124).toLatin1()<< tr("Failed to stop.");
-            }
-            else
-                current_frame_pts = fff->getValue();
+             current_frame_pts = fill_first_frame(true);
+
+//            FirstFrameFiller *fff = new FirstFrameFiller(this, true);
+//            fff->start();
+//            // 2 seconds timeout
+//            if ( !fff->wait(2000) ) {
+//                qWarning() << filename << QChar(124).toLatin1()<< tr("Failed to stop.");
+//            }
+//            else
+//                current_frame_pts = fff->getValue();
+
 
             emit frameReady( firstPicture );
             emit timeChanged( current_frame_pts );
@@ -440,7 +448,7 @@ void VideoFile::stop()
         ptimer->stop();
 
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Stopped.");
+        fprintf(stderr, "\n%s - Stopped.", qPrintable(filename));
 #endif
     }
 
@@ -460,7 +468,7 @@ void VideoFile::start()
     if (quit)
     {
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Starting video...");
+        fprintf(stderr, "\n%s - Starting .", qPrintable(filename));
 #endif
         // reset internal state
         reset();
@@ -485,7 +493,7 @@ void VideoFile::start()
         decod_tid->start();
 
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Started.");
+        fprintf(stderr, "\n%s - Started.", qPrintable(filename));
 #endif
     }
 
@@ -916,7 +924,7 @@ double VideoFile::fill_first_frame(bool seek)
         qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
 #ifdef VIDEOFILE_DEBUG
     else
-        qDebug() << filename << QChar(124).toLatin1()<< tr("First frame updated.") << pts;
+        fprintf(stderr, "\n%s - First frame updated.", qPrintable(filename));
 #endif
 
 
@@ -1329,11 +1337,10 @@ double VideoFile::getStreamAspectRatio() const
 
 void VideoFile::clear_picture_queue() {
 
-#ifdef VIDEOFILE_DEBUG
-    qDebug() << filename << QChar(124).toLatin1() << tr("Clear Picture queue N = %1.").arg(pictq.size());
-#endif
-
     while (!pictq.isEmpty()) {
+#ifdef VIDEOFILE_DEBUG
+    fprintf(stderr, "\n%s - Clear Picture queue N = %d.", qPrintable(filename), pictq.size());
+#endif
         VideoPicture *p = pictq.dequeue();
         delete p;
     }
@@ -1547,14 +1554,14 @@ void DecodingThread::run()
             if ( ret == AVERROR_EOF || (is->pFormatCtx->pb && is->pFormatCtx->pb->eof_reached) )  {
                 eof = true;
 #ifdef VIDEOFILE_DEBUG
-            fprintf(stderr, "%s - EOF packet.", qPrintable(is->filename));
+            fprintf(stderr, "\n%s - EOF packet.", qPrintable(is->filename));
 #endif
 
             }
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error) {
 #ifdef VIDEOFILE_DEBUG
-                fprintf(stderr, "%s - Error reading frame.", qPrintable(is->filename));
+                fprintf(stderr, "\n%s - Error reading frame.", qPrintable(is->filename));
 #endif
                 // forget error
                 avio_flush(is->pFormatCtx->pb);
@@ -1578,7 +1585,7 @@ void DecodingThread::run()
             // send the packet to the decoder
             if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
 #ifdef VIDEOFILE_DEBUG
-                fprintf(stderr, "%s - Could not send packet.", qPrintable(is->filename));
+                fprintf(stderr, "\n%s - Could not send packet.", qPrintable(is->filename));
 #endif
                 //msleep(PARSING_SLEEP_DELAY);
                 continue;
@@ -1593,9 +1600,6 @@ void DecodingThread::run()
 
                 // no error, just try again
                 if ( frameFinished == AVERROR(EAGAIN) ) {
-#ifdef VIDEOFILE_DEBUG
-                    fprintf(stderr, "%s - Decoded Error Again.", qPrintable(is->filename));
-#endif
                     // continue in main loop.
                     break;
                 }
@@ -1603,7 +1607,7 @@ void DecodingThread::run()
                 // reached end of file ?
                 else if ( frameFinished == AVERROR_EOF ) {
 #ifdef VIDEOFILE_DEBUG
-                    fprintf(stderr, "%s - Decoded End of File.", qPrintable(is->filename));
+                    fprintf(stderr, "\n%s - Decoded End of File.", qPrintable(is->filename));
 #endif
                     eof = true;
                     break;
@@ -1611,7 +1615,7 @@ void DecodingThread::run()
                 // other kind of error
                 else if ( frameFinished < 0 ) {
 #ifdef VIDEOFILE_DEBUG
-                    fprintf(stderr, "%s - Could not decode frame.", qPrintable(is->filename));
+                    fprintf(stderr, "\n%s - Could not decode frame.", qPrintable(is->filename));
 #endif
                     error_count++;
                     if (error_count < 10)
@@ -1761,7 +1765,7 @@ void DecodingThread::run()
         }
 #ifdef VIDEOFILE_DEBUG
         else
-            qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
+            fprintf(stderr, "\n%s - Decoding ended.", qPrintable(is->filename));
 #endif
 
     }

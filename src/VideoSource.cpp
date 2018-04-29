@@ -75,7 +75,7 @@ VideoSource::~VideoSource()
         glDeleteBuffers(2, pboIds);
 
 #ifdef VIDEOPICTURE_DEBUG
-    qDebug() << "Count Video Picture" << VideoPicture::count;
+    fprintf(stderr, "\nCount Video Picture %d.", VideoPicture::count);
 #endif
 }
 

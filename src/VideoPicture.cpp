@@ -36,7 +36,7 @@ VideoPicture::PictureMap::PictureMap(int pageSize) : _pageSize(pageSize), _isFul
     _totalmemory += PICTUREMAP_SIZE * _pageSize;
 
 #ifdef VIDEOPICTURE_DEBUG
-    qDebug()<< "GLMixer" << QChar(124).toLatin1() << QObject::tr("Video File Picture Maps size = %1 Mb.").arg((float)_totalmemory / (float) MEGABYTE);
+    fprintf(stderr, "\n+ Video File Picture Maps size = %.2f Mb.", (float)_totalmemory / (float) MEGABYTE);
 #endif
 
 #endif
@@ -54,7 +54,7 @@ VideoPicture::PictureMap::~PictureMap()
     _totalmemory -= PICTUREMAP_SIZE * _pageSize;
 
 #ifdef VIDEOPICTURE_DEBUG
-    qDebug()<< "GLMixer" << QChar(124).toLatin1() << QObject::tr("Video File Picture Maps size = %1 Mb.").arg((float)_totalmemory / (float) MEGABYTE);
+    fprintf(stderr, "\n- Video File Picture Maps size = %.2f Mb.", (float)_totalmemory / (float) MEGABYTE);
 #endif
 
 #endif
@@ -127,7 +127,7 @@ VideoPicture::PictureMap *VideoPicture::getAvailablePictureMap(int w, int h, enu
         m = new PictureMap(pageSize);
         VideoPicture::_pictureMaps.append(m);
 #ifdef VIDEOPICTURE_DEBUG
-        qDebug() << "VideoPicture::_pictureMaps size = " << _pictureMaps.size();
+        fprintf(stderr, "+ Video File Picture Maps size = %d.", _pictureMaps.size());
 #endif
     }
 
@@ -141,7 +141,7 @@ void VideoPicture::clearPictureMaps()
          delete _pictureMaps.takeFirst();
 
 #ifdef VIDEOPICTURE_DEBUG
-    qDebug()<< "GLMixer" << QChar(124).toLatin1() << QObject::tr("Video File Picture Map cleared.");
+    fprintf(stderr, "\n- Video File Picture Maps cleared : %d.", _pictureMaps.size());
 #endif
 }
 
@@ -152,7 +152,7 @@ void VideoPicture::freePictureMap(PictureMap *pmap)
         _pictureMaps.removeAt(i);
         delete pmap;
 #ifdef VIDEOPICTURE_DEBUG
-        qDebug() << "VideoPicture::_pictureMaps size = " << _pictureMaps.size();
+        fprintf(stderr, "\n- Video File Picture Maps size = %d.", _pictureMaps.size());
 #endif
     }
 }
