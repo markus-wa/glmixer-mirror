@@ -40,11 +40,19 @@ public:
      */
     static double getDurationStream(AVFormatContext *codeccontext, int stream);
     /**
+     *  Find number of frames of a stream
+     *  VERY SLOW : use only for special formats like GIF
+     *
+     * @return number of frames in stream
+     */
+    static int countFrames(AVFormatContext *codeccontext, int stream, AVCodecContext *decoder);
+    /**
      *  Find frame rate of a stream
      *
      * @return frame rate of the stream in second (-1 on error)
      */
     static double getFrameRateStream(AVFormatContext *codeccontext, int stream);
+
     /**
      *  Open a Codec
      *

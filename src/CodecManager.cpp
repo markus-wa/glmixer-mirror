@@ -150,10 +150,15 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
     // get duration from stream
     if (codeccontext->streams[stream] && codeccontext->streams[stream]->duration != (int64_t) AV_NOPTS_VALUE )
         d = double(codeccontext->streams[stream]->duration) * av_q2d(codeccontext->streams[stream]->time_base);
-
     // else try to get the duration from context (codec info)
     else if (codeccontext && codeccontext->duration != (int64_t) AV_NOPTS_VALUE )
         d = double(codeccontext->duration) * av_q2d(AV_TIME_BASE_Q);
+    // else try to get duration from frame rate
+    else {
+        double fps = CodecManager::getFrameRateStream(codeccontext, stream);
+        if ( fps > 0 )
+            d = 1.0 / fps;
+    }
 
     // inform in case duration of file is certainly a bad estimate
     if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE && codeccontext->streams[stream]->nb_frames > 2) {
@@ -166,7 +171,7 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
 
 double CodecManager::getFrameRateStream(AVFormatContext *codeccontext, int stream)
 {
-    double d = 0.0;
+    double d = 1.0;
 
     // get duration from stream
     if (codeccontext->streams[stream] &&
@@ -182,6 +187,59 @@ double CodecManager::getFrameRateStream(AVFormatContext *codeccontext, int strea
 #endif
 
     return d;
+}
+
+int CodecManager::countFrames(AVFormatContext *codeccontext, int stream, AVCodecContext *decoder)
+{
+    int n = 0;
+    bool eof = false;
+    AVPacket pkt1, *pkt = &pkt1;
+    AVFrame *tmpframe = av_frame_alloc();
+
+    while (!eof && n < 500 )
+    {
+        av_frame_unref(tmpframe);
+        int ret = av_read_frame(codeccontext, pkt);
+        if (ret < 0) {
+            if (ret == AVERROR_EOF)
+                eof = true;
+            else
+                continue;
+        }
+
+        if (pkt->stream_index != stream)
+            continue;
+
+        if ( avcodec_send_packet(decoder, pkt) < 0 )
+            continue;
+
+        av_packet_unref(pkt);
+
+        // read until the frame is finished
+        int frameFinished = AVERROR(EAGAIN);
+        while ( frameFinished < 0 )
+        {
+            frameFinished = avcodec_receive_frame(decoder, tmpframe);
+
+            if ( frameFinished == AVERROR(EAGAIN) )
+                break;
+            else if ( frameFinished == AVERROR_EOF ||  frameFinished < 0 ) {
+                eof = true;
+                break;
+            }
+
+            ++n;
+        }
+    }
+
+    // free frame
+    av_frame_unref(tmpframe);
+    // rewind
+    av_seek_frame(codeccontext, stream, 0, AVSEEK_FLAG_BACKWARD);
+    // flush decoder
+    avcodec_flush_buffers(decoder);
+
+    return n;
 }
 
 

@@ -594,8 +594,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
 
     // get the duration and frame rate of the video stream
-    duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
     frame_rate = CodecManager::getFrameRateStream(pFormatCtx, videoStream);
+    duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
     nb_frames = video_st->nb_frames;
 
     // make sure the numbers match !
@@ -620,6 +620,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // store name of codec
     codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
+
+    // special case of GIF : they do not indicate duration
+    if (video_dec->codec_id == AV_CODEC_ID_GIF) {
+        nb_frames = CodecManager::countFrames(pFormatCtx, videoStream, video_dec);
+        duration = nb_frames / frame_rate;
+    }
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || nb_frames < 2)
@@ -670,10 +676,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // we need a picture to display when not playing (also for single frame media)
     // create firstPicture (and get actual pts of first picture)
     // (NB : seek in stream only if not reading the first frame)
+    first_picture_changed = true;
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
 
     // TODO : restore use of thread
-//    first_picture_changed = true;
 //    FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
 //    fff->start();
 //    // 2 seconds timeout
@@ -875,6 +881,9 @@ double VideoFile::fill_first_frame(bool seek)
         if ( avcodec_send_packet(video_dec, pkt) < 0 )
             continue;
 
+        // free packet
+        av_packet_unref(pkt);
+
         // read until the frame is finished
         int frameFinished = AVERROR(EAGAIN);
         while ( frameFinished < 0 )
@@ -905,8 +914,6 @@ double VideoFile::fill_first_frame(bool seek)
 
         }
 
-        // free packet
-        av_packet_unref(pkt);
     }
 
     // we got the frame
@@ -1343,7 +1350,11 @@ double VideoFile::getStreamAspectRatio() const
     }
 
     // default case
-    return firstPicture->getAspectRatio();
+    if (video_st) {
+        return (double) video_st->codecpar->width / (double) video_st->codecpar->height;
+    }
+
+    return 1.0;
 }
 
 
