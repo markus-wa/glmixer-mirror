@@ -46,9 +46,9 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
-#ifndef NDEBUG
-#define VIDEOFILE_DEBUG
-#endif
+//#ifndef NDEBUG
+//#define VIDEOFILE_DEBUG
+//#endif
 /**
  * Default memory usage policy (in percent)
  */

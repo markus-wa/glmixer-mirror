@@ -26,9 +26,9 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
-#ifndef NDEBUG
-#define VIDEOPICTURE_DEBUG
-#endif
+//#ifndef NDEBUG
+//#define VIDEOPICTURE_DEBUG
+//#endif
 
 class VideoPictureException : public AllocationException {
 public:

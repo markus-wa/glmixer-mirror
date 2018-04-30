@@ -593,22 +593,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     video_dec->error_concealment = 3;
     video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
 
-    AVDictionary *opts = NULL;
-    av_dict_set(&opts, "threads", "auto", 0);
-    av_dict_set(&opts, "refcounted_frames", "1", 0);
-
-    /* init the video decoder */
-    if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
-        qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
-                   << QChar(124).toLatin1() << tr("Unsupported Codec.");
-        close();
-        return false;
-    }
-    av_dict_free(&opts);
-
-    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
-
-    // read duration, number of frames and frame rate of stream
+    // get the duration and frame rate of the video stream
     duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
     frame_rate = CodecManager::getFrameRateStream(pFormatCtx, videoStream);
     nb_frames = video_st->nb_frames;
@@ -617,9 +602,24 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (nb_frames == (int64_t) AV_NOPTS_VALUE || nb_frames < 1 )
         nb_frames =  (int64_t) ( duration * frame_rate );
 
-    // disable multithreaded decoding for pictures
-    if (nb_frames < 2)
-        video_dec->thread_count = 1;
+    // set options for video decoder
+    AVDictionary *opts = NULL;
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+    // do not use auto threads for single image files
+    av_dict_set(&opts, "threads", nb_frames < 2 ? "1" : "auto", 0);
+
+    // init the video decoder
+    if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
+        qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
+                   << QChar(124).toLatin1() << tr("Unsupported Codec.");
+        close();
+        av_dict_free(&opts);
+        return false;
+    }
+    av_dict_free(&opts);
+
+    // store name of codec
+    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || nb_frames < 2)
@@ -837,70 +837,83 @@ double VideoFile::fill_first_frame(bool seek)
     firstPicture = NULL;
 
     AVPacket pkt1, *pkt = &pkt1;
-
     AVFrame *tmpframe = av_frame_alloc();
 
-    bool frameFinished = false;
+    bool frameFilled = false;
     double pts = mark_in;
     int trial = 0;
 
-    // flush decoder
-    avcodec_flush_buffers(video_dec);
 
-    int64_t seek_target = 0;
     if (seek) {
+        int64_t seek_target = AV_NOPTS_VALUE;
         seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
         // seek back to begining
         av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
+        // flush decoder
+        avcodec_flush_buffers(video_dec);
     }
 
     // loop while we didn't finish the frame, or looped for too long
-    while (!frameFinished && trial < 500 )
+    while (!frameFilled && trial < 500 )
     {
         // unreference buffers
         av_frame_unref(tmpframe);
+        trial++;
 
         // read a packet
-        if (av_read_frame(pFormatCtx, pkt) < 0){
+        if (av_read_frame(pFormatCtx, pkt) < 0) {
+#ifdef VIDEOFILE_DEBUG
+            fprintf(stderr, "\n%s - Error reading frame.", qPrintable(filename));
+#endif
             continue;
         }
 
         // ignore non-video stream packets
-        if (pkt->stream_index != videoStream || pkt->size == 0) {
+        if (pkt->stream_index != videoStream)
             continue;
-        }
-
-        trial++;
 
         if ( avcodec_send_packet(video_dec, pkt) < 0 )
             continue;
 
-        // if we can decode it
-        if ( avcodec_receive_frame(video_dec, tmpframe) >= 0)
+        // read until the frame is finished
+        int frameFinished = AVERROR(EAGAIN);
+        while ( frameFinished < 0 )
         {
-            frameFinished = true;
+            // read frame
+            frameFinished = avcodec_receive_frame(video_dec, tmpframe);
+
+            if ( frameFinished == AVERROR(EAGAIN) )
+                break;
+            else if ( frameFinished == AVERROR_EOF ||  frameFinished < 0 ) {
+                trial = 500;
+                break;
+            }
+
+            // got the frame
+            frameFilled = true;
 
             // try to get a pts from the packet
             if (tmpframe->pts != AV_NOPTS_VALUE)
                 pts = double(tmpframe->pts) * av_q2d(video_st->time_base);
             else if (pkt->dts != AV_NOPTS_VALUE)
-                pts =  double(pkt->dts) * av_q2d(video_st->time_base);
+                pts =  double(tmpframe->pkt_dts) * av_q2d(video_st->time_base);
 
             // if the obtained pts is before seeking mark,
             // read forward until reaching the mark_in (target)
-            if (seek && pts < mark_in) {
-                // retry
-                frameFinished = false;
-            }
+            if (seek && pts < mark_in)
+                frameFilled = false; // retry
+
         }
 
+        // free packet
         av_packet_unref(pkt);
     }
 
-    if (frameFinished) {
+    // we got the frame
+    if (frameFilled) {
 
-        // convert
-        if ( av_buffersrc_add_frame(in_video_filter, tmpframe) >= 0 ) {
+        // convert it
+        if ( av_buffersrc_add_frame_flags(in_video_filter, tmpframe, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
 
             try {
                 // create the picture
@@ -909,27 +922,26 @@ double VideoFile::fill_first_frame(bool seek)
 
             } catch (AllocationException &e){
                 qWarning() << tr("Cannot create picture; ") << e.message();
-                frameFinished = false;
+                frameFilled = false;
             }
         }
         else
-            frameFinished = false;
+            frameFilled = false;
 
         // free frame
         av_frame_unref(tmpframe);
-
     }
 
-    if (!frameFinished)
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
+    if (!frameFilled)
+        qWarning() << filename << QChar(124).toLatin1() << tr("Could not create first frame.") << trial;
 #ifdef VIDEOFILE_DEBUG
     else
-        fprintf(stderr, "\n%s - First frame updated.", qPrintable(filename));
+        fprintf(stderr, "\n%s - First frame updated (%d).", qPrintable(filename), trial);
 #endif
 
 
     av_frame_free(&tmpframe);
-    avcodec_flush_buffers(video_dec);
+//    avcodec_flush_buffers(video_dec);
 
     first_picture_changed = false;
 
@@ -1337,10 +1349,11 @@ double VideoFile::getStreamAspectRatio() const
 
 void VideoFile::clear_picture_queue() {
 
-    while (!pictq.isEmpty()) {
 #ifdef VIDEOFILE_DEBUG
     fprintf(stderr, "\n%s - Clear Picture queue N = %d.", qPrintable(filename), pictq.size());
 #endif
+
+    while (!pictq.isEmpty()) {
         VideoPicture *p = pictq.dequeue();
         delete p;
     }
@@ -1548,7 +1561,7 @@ void DecodingThread::run()
 
         // Read packet
         int ret = av_read_frame(is->pFormatCtx, pkt);
-        if ( ret < 0)
+        if ( ret < 0 )
         {
             // not an error : read_frame have reached the end of file
             if ( ret == AVERROR_EOF || (is->pFormatCtx->pb && is->pFormatCtx->pb->eof_reached) )  {
@@ -1556,7 +1569,6 @@ void DecodingThread::run()
 #ifdef VIDEOFILE_DEBUG
             fprintf(stderr, "\n%s - EOF packet.", qPrintable(is->filename));
 #endif
-
             }
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error) {
