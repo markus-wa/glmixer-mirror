@@ -20,11 +20,6 @@
   <defs
      id="defs2">
     <pattern
-       inkscape:collect="always"
-       xlink:href="#Checkerboard"
-       id="pattern2565"
-       patternTransform="matrix(5.6935699,0,0,5.8967883,-109.09648,-168.38352)" />
-    <pattern
        inkscape:isstock="true"
        inkscape:stockid="Checkerboard"
        id="Checkerboard"
@@ -70,21 +65,6 @@
        y2="48.572971"
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(1,0,0,0.97916667,2.6619523,6.6941968)" />
-    <pattern
-       patternUnits="userSpaceOnUse"
-       width="484.8732"
-       height="23.738581"
-       patternTransform="matrix(0.26458333,0,0,0.26458333,31.52706,51.24567)"
-       id="pattern3218">
-      <rect
-         ry="0"
-         y="0"
-         x="0"
-         height="23.738581"
-         width="484.8732"
-         id="rect2500"
-         style="opacity:1;fill:url(#pattern2565);fill-opacity:1;stroke:none;stroke-width:0.44663614;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    </pattern>
   </defs>
   <sodipodi:namedview
      id="base"

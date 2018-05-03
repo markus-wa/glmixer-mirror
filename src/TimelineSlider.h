@@ -102,6 +102,7 @@ private:
     QPair<double,double> range_value;
     QPair<double,double> range_cursor;
     double mark_value;
+    double step_value_increment;
     int margin_pixel;
 
     int HEIGHT_TIME_BAR;

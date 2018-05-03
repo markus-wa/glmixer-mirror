@@ -108,6 +108,7 @@ void TimelineSlider::reset() {
     range_cursor.first = 0.0;
     range_cursor.second = 1.0;
     mark_value = 1.0;
+    step_value_increment = -1.0;
     user_value = -1.0;
     cursor_state = CURSOR_NONE;
     repaint();
@@ -365,7 +366,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     draw_area = QRect(margin_pixel, 0, size().width() - margin_pixel * 2, size().height());
     int zero_x =  draw_area.left();
 
-    QColor COLOR_MARK(palette().color(QPalette::Highlight));
+    QColor COLOR_MARK(palette().color(QPalette::Highlight).dark(120));
     COLOR_MARK.setAlpha( isEnabled() ?  255 : 200);
     QPen PEN_MARK(COLOR_MARK, 3);
     QColor COLOR_RANGE = palette().color(QPalette::Window);
@@ -386,6 +387,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
     // compute useful coordinates
     int range_mark_y = draw_area.height() / 2 + RANGE_MARK_HEIGHT;
 
+    int step_width = (int) qRound( step_value * ( (double)  size().width() / (max_value - min_value) ) );
 
     // draw marks and text
     qp.setPen(palette().color(QPalette::WindowText));
@@ -423,23 +425,16 @@ void TimelineSlider::drawWidget(QPainter &qp)
         else
             qp.drawLine(pos, HEIGHT_TIME_BAR, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT / 2);
 
-        // draw single steps if enough space
-        qp.setPen(palette().color(QPalette::WindowText).lighter());
-        int step_width = (int) qRound( step_value * ( (double)  size().width() / (max_value - min_value) ) );
-        if (step_width > 3) {
-            double t2 = t;
-            int n = (int) qRound( mark_value / step_value ) - 1;
-            while (0 < n && t2 < max_value) {
-                t2 += step_value ;
+        if ( step_value_increment >0 ) {
+            // draw intermediate steps if enough space
+            qp.setPen(palette().color(QPalette::WindowText).lighter());
+            // increment by the step increment
+            double t2 = t + step_value_increment;
+            while (t2 < t + mark_value) {
                 pos = getPosFromVal(t2);
                 qp.drawLine(pos, HEIGHT_TIME_BAR, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT / 2);
-                --n;
+                t2 += step_value_increment;
             }
-        }
-        // cannot draw single steps, just draw some indicators
-        else {
-            pos = getPosFromVal(t + mark_value / 2.0);
-            qp.drawLine(pos, HEIGHT_TIME_BAR, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT / 2);
         }
 
         // next mark
@@ -557,6 +552,8 @@ void TimelineSlider::updateMarks()
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
 
+    step_value_increment = -1.0;
+
     if ( h > 3 )                // more than 3h
         mark_value = 1800.0;
     else if ( h > 2 )           // between 2 and 3h
@@ -567,24 +564,42 @@ void TimelineSlider::updateMarks()
         mark_value = 300.0;
     else if ( m > 30 )          // between 30 and 60 min
         mark_value = 120.0;
-    else if ( m > 15 )          // between 15 and 30 min
+    else if ( m > 15 )  {        // between 15 and 30 min
         mark_value = 60.0;
-    else if ( m > 7 )           // between 7 and 15 min
+        step_value_increment = qMax(step_value, 20.0);
+    }
+    else if ( m > 7 )   {        // between 7 and 15 min
         mark_value = 30.0;
-    else if ( m > 3 )           // between 3 and 7 min
+        step_value_increment = qMax(step_value, 10.0);
+    }
+    else if ( m > 3 )  {         // between 3 and 7 min
         mark_value = 15.0;
-    else if ( m > 1 )           // between 2 and 3 min
+        step_value_increment = qMax(step_value, 5.0);
+    }
+    else if ( m > 1 )   {        // between 2 and 3 min
         mark_value = 10.0;
-    else if ( m > 0 )           // between 1 and 2 min
+        step_value_increment = qMax(step_value, 2.0);
+    }
+    else if ( s > 29 )   {        // between 30s and 2 min
         mark_value = 5.0;
-    else if ( s > 30 )          // between 30 and 60 sec
+        step_value_increment = qMax(step_value, 1.0);
+    }
+    else if ( s > 19 )  {        // between 30 and 59 sec
         mark_value = 2.0;
-    else if ( s > 15 )          // between 15 and 30 sec
+        step_value_increment = qMax(step_value, 0.25);
+    }
+    else if ( s > 9 ) {         // between 10 and 29 sec
         mark_value = 1.0;
-    else if ( s > 5 )           // between 5 and 15 sec
-        mark_value = qMax(step_value, 0.5);
-    else                        // less than 5 sec
+        step_value_increment = qMax(step_value, 0.1);
+     }
+    else if ( s > 4 ) {          // between 5 and 9 sec
+        mark_value = step_value * 10.0;
+        step_value_increment = step_value * 2.0;
+    } 
+    else                        // less than 4 sec
         mark_value = step_value;
+
+    //qDebug()<<"> "  << h << m << s<<  mark_value << step_value << step_value_increment ;
 
     repaint();
 }
