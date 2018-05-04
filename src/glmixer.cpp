@@ -1292,7 +1292,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
                     // timeline
                     timeline->setMinimum(currentVideoFile->getBegin());
-                    timeline->setMaximum(currentVideoFile->getEnd() - currentVideoFile->getFrameDuration() );
+                    timeline->setMaximum(currentVideoFile->getEnd());
                     timeline->setStep(currentVideoFile->getFrameDuration());
                     timeline->setRange(qMakePair(currentVideoFile->getMarkIn(), currentVideoFile->getMarkOut()));
                     timeline->setValue(currentVideoFile->getCurrentFrameTime());
