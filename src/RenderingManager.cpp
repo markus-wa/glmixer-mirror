@@ -1243,8 +1243,9 @@ bool RenderingManager::_insertSource(Source *s)
 
 #ifdef GLM_UNDO
                 // connect source to the undo manager
-                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)), Qt::UniqueConnection);
+                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)));
 #endif
+
 #ifdef GLM_TAG
                 // set tag (get(s) returns default tag if none was set)
                 Tag::get(s)->set(s);
@@ -1636,20 +1637,26 @@ int RenderingManager::_removeSource(SourceSet::iterator itsource) {
     int num_sources_deleted = 0;
     if (itsource != _front_sources.end()) {
         Source *s = *itsource;
-        // remove tag
-        Tag::remove(s);
-        // if this is not a clone
-        if (s->rtti() != Source::CLONE_SOURCE)
-            // remove every clone of the source to be removed
-            for (SourceList::iterator clone = s->getClones()->begin(); clone != s->getClones()->end(); clone = s->getClones()->begin()) {
-                num_sources_deleted += _removeSource((*clone)->getId());
-            }
-        // then remove the source itself
-        qDebug() << s->getName() << QChar(124).toLatin1() << tr("Delete source.");
-        _front_sources.erase(itsource);
+        if (s) {
+            // remove tag
+            Tag::remove(s);
+            // if this is not a clone
+            if (s->rtti() != Source::CLONE_SOURCE)
+                // remove every clone of the source to be removed
+                for (SourceList::iterator clone = s->getClones()->begin(); clone != s->getClones()->end(); clone = s->getClones()->begin()) {
+                    num_sources_deleted += _removeSource((*clone)->getId());
+                }
+#ifdef GLM_UNDO
+            // disconnect source from the undo manager
+            s->disconnect(UndoManager::getInstance());
+#endif
+            // then remove the source itself
+            qDebug() << s->getName() << QChar(124).toLatin1() << tr("Delete source.");
+            _front_sources.erase(itsource);
 
-        delete s;
-        num_sources_deleted++;
+            delete s;
+            num_sources_deleted++;
+        }
     }
 
     return num_sources_deleted;
