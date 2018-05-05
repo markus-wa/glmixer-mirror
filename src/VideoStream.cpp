@@ -28,9 +28,12 @@
 
 extern "C"
 {
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+#include <libavfilter/avfiltergraph.h>
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
-#include <libswscale/swscale.h>
+#include <libavutil/opt.h>
 }
 
 /**
@@ -44,7 +47,6 @@ class StreamOpeningThread: public videoStreamThread
 public:
     StreamOpeningThread(VideoStream *video) : videoStreamThread(video)
     {
-        setTerminationEnabled(true);
     }
 
     ~StreamOpeningThread()
@@ -71,28 +73,18 @@ public:
     StreamDecodingThread(VideoStream *video) : videoStreamThread(video)
     {
         // allocate a frame to fill
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-        _pFrame = avcodec_alloc_frame();
-#else
         _pFrame = av_frame_alloc();
-#endif
         Q_CHECK_PTR(_pFrame);
 
         av_init_packet(&_nullPacket);
         _nullPacket.data = NULL;
         _nullPacket.size = 0;
-
-        setTerminationEnabled(true);
     }
 
     ~StreamDecodingThread()
     {
         // free the allocated frame
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
-        av_free(_pFrame);
-#else
         av_frame_free(&_pFrame);
-#endif
     }
 
     void run();
@@ -106,30 +98,36 @@ private:
 
 void StreamDecodingThread::run()
 {
-    AVPacket packet;
-    av_init_packet(&packet);
-
+    AVPacket pkt1, *pkt   = &pkt1;
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
 
-    while (is && !is->quit)
+    //TODO what about testing if stream 'isactive' ?
+
+
+    while (is && !is->quit && !_forceQuit)
     {
+        // start with clean frame
+        av_frame_unref(_pFrame);
+
         /**
          *
          *   PARSING
          *
          * */
-
-
         // Read packet
-        if ( av_read_frame(is->pFormatCtx, &packet) < 0)
+        if ( av_read_frame(is->pFormatCtx, pkt) < 0)
         {
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
                 qDebug() << is->urlname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
+
+                avio_flush(is->pFormatCtx->pb);
+                avformat_flush(is->pFormatCtx);
+
                 // do not treat the error; just wait a bit for the end of the packet and continue
-                msleep(UPDATE_SLEEP_DELAY);
+//                msleep(UPDATE_SLEEP_DELAY);
                 continue;
             }
 
@@ -138,13 +136,13 @@ void StreamDecodingThread::run()
             // (and pretending pts is one frame later)
             is->queue_picture(NULL, pts, VideoPicture::ACTION_STOP );
 
-
             // and go on to next packet
             msleep(UPDATE_SLEEP_DELAY);
             continue;
 
         }
-        else if ( packet.stream_index != is->videoStream ) {
+
+        if ( pkt->stream_index != is->videoStream ) {
             // not a picture, go to next packet
             continue;
         }
@@ -156,34 +154,40 @@ void StreamDecodingThread::run()
          *
          * */
 
-        frameFinished = 0;
-
-        // Decode video frame
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if ( avcodec_decode_video2(is->video_dec, _pFrame, &frameFinished, &packet) < 0 ) {
-#else
-        if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
-#endif
-
-            // decoding error : send failure message
-            emit failed();
-
-            // break loop
-            break;
+        // send the packet to the decoder
+        if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+            //msleep(PARSING_SLEEP_DELAY);
+            continue;
         }
 
-        // No error, but did we get a full video frame?
-        if ( frameFinished > 0 && is->active )
-        {
+        frameFinished = 0;
+        while (frameFinished >= 0) {
+
+            // get the packet from the decoder
+            frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
+
+            // no error, just try again
+            if ( frameFinished == AVERROR(EAGAIN) || frameFinished == AVERROR_EOF ) {
+                // continue in main loop.
+                break;
+            }
+            // other kind of error
+            else if ( frameFinished < 0 ) {
+                fprintf(stderr, "\n%s - Could not decode frame.", qPrintable(is->urlname));
+                // decoding error
+                forceQuit();
+                break;
+            }
+
+            // No error, but did we get a full video frame?
             VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
             // get packet decompression time stamp (dts)
             dts = 0;
-            if (packet.dts != (int64_t) AV_NOPTS_VALUE)
-                dts = packet.dts;
-            else if (_pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE)
-                dts = _pFrame->reordered_opaque;
-
+            if (_pFrame->pts != (int64_t) AV_NOPTS_VALUE)
+                dts = _pFrame->pts;
+            else
+                dts = _pFrame->pkt_dts;
             // compute PTS
             pts = double(dts) * av_q2d(is->video_st->time_base);
 
@@ -198,11 +202,14 @@ void StreamDecodingThread::run()
             // add frame to the queue of pictures
             is->queue_picture(_pFrame, pts, actionFrame);
 
+            // free internal buffers
+            av_frame_unref(_pFrame);
 
-        } // end if (frameFinished > 0)
+        } // end while (frameFinished > 0)
+
 
         // free internal buffers
-        av_frame_unref(_pFrame);
+        av_packet_unref(pkt);
 
     } // end while
 
@@ -227,12 +234,11 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     videoStream = -1;
     video_st = NULL;
     pFormatCtx = NULL;
-//    img_convert_ctx = NULL;
+    video_dec = NULL;
     in_video_filter = NULL;
     out_video_filter = NULL;
-    graph = 0;
+    graph = NULL;
     pictq_max_count = PICTUREMAP_SIZE - 1;
-
 
     // Contruct some objects
     decod_tid = new StreamDecodingThread(this);
@@ -265,12 +271,10 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
 
 VideoStream::~VideoStream()
 {
-
     // make sure all is closed
     close();
 
     QObject::disconnect(this, 0, 0, 0);
-
 
     // delete threads
     if (open_tid->isRunning()) {
@@ -293,6 +297,7 @@ VideoStream::~VideoStream()
     delete pictq_cond;
     delete ptimer;
 
+    // empty queue
     while (!pictq.isEmpty()) {
         VideoPicture *p = pictq.dequeue();
         delete p;
@@ -318,8 +323,10 @@ void VideoStream::stop()
         quit = true;
 
         // stop play
-        if (pFormatCtx)
-            av_read_pause(pFormatCtx);
+//        if (pFormatCtx) {
+//            av_read_pause(pFormatCtx);
+//            avformat_flush(pFormatCtx);
+//        }
 
         pictq_mutex->lock();
         // unlock all conditions
@@ -351,8 +358,10 @@ void VideoStream::start()
         quit = false;
 
         // start play
-        if (pFormatCtx)
-            av_read_play(pFormatCtx);
+        if (pFormatCtx) {
+            avformat_flush(pFormatCtx);
+//            av_read_play(pFormatCtx);
+        }
 
         // start timer and decoding threads
         ptimer->start();
@@ -368,13 +377,18 @@ void VideoStream::start()
 
 }
 
-
-
 void VideoStream::play(bool startorstop)
 {
-    // clear the picture queue
+//    // clear the picture queue
+//    flush_picture_queue();
+//    active = startorstop;
+
     flush_picture_queue();
-    active = startorstop;
+
+    if (startorstop)
+        start();
+    else
+        stop();
 }
 
 
@@ -391,69 +405,90 @@ void VideoStream::open(QString url)
     urlname = url;
 
     // request opening of thread in open thread
+    qDebug() << urlname << QChar(124).toLatin1() << tr("Connecting to stream...");
     open_tid->start();
 
-    qDebug() << urlname << QChar(124).toLatin1() << tr("Connecting to stream...");
-
-    quit = true; // not running yet
+    // not running yet
+    quit = true;
 }
 
 bool VideoStream::openStream()
 {
+    // re-open if alredy openned
+    if (pFormatCtx)
+        close();
     pFormatCtx = NULL;
     video_st = NULL;
     videoStream = -1;
 
-
     pFormatCtx = avformat_alloc_context();
     if ( !CodecManager::openFormatContext( &pFormatCtx, urlname) ){
-        // free context
-        avformat_free_context(pFormatCtx);
-        pFormatCtx = NULL;
+        close();
         return false;
     }
 
     // get index of video stream
-    videoStream = CodecManager::getVideoStream(pFormatCtx);
+    AVCodec *codec;
+    videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
     if (videoStream < 0) {
-        // free openned context
-        avformat_close_input(&pFormatCtx);
-        pFormatCtx = NULL;
         // Cannot find video stream
         qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot find video stream.");
-        return false;
-    }
-
-    // open the codec
-    codecname = CodecManager::openCodec( pFormatCtx->streams[videoStream]->codec );
-    if (codecname.isNull())
-    {
-        // free openned context
-        avformat_close_input(&pFormatCtx);
-        pFormatCtx = NULL;
-        // Cannot open codec
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot open Codec");
+        close();
         return false;
     }
 
     // all ok, we can set the internal pointers to the good values
     video_st = pFormatCtx->streams[videoStream];
 
-    // read picture width from video codec
-    // (NB : if available, use coded width as some files have a width which is different)
-    int actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
+    // create video decoding context
+    video_dec = avcodec_alloc_context3(codec);
+    if (!video_dec) {
+        CodecManager::printError(urlname, "Error creating decoder :", AVERROR(ENOMEM));
+        // close
+        close();
+        return false;
+    }
 
-    // fix non-aligned width (causing alignment problem in sws conversion)
-    actual_width -= actual_width%16;
+    int err = avcodec_parameters_to_context(video_dec, video_st->codecpar);
+    if (err < 0) {
+        CodecManager::printError(urlname, "Error configuring :", err);
+        // close
+        close();
+        return false;
+    }
 
-    // set picture size
+    // options for decoder
+    video_dec->workaround_bugs   = 1;
+    video_dec->idct_algo         = FF_IDCT_AUTO;
+    video_dec->skip_frame        = AVDISCARD_DEFAULT;
+    video_dec->skip_idct         = AVDISCARD_DEFAULT;
+    video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
+    video_dec->error_concealment = 3;
+
+    // set options for video decoder
+    AVDictionary *opts = NULL;
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+    av_dict_set(&opts, "threads", "auto", 0);
+    // init the video decoder
+    if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
+        qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
+                   << QChar(124).toLatin1() << tr("Unsupported Codec.");
+        close();
+        av_dict_free(&opts);
+        return false;
+    }
+    av_dict_free(&opts);
+
+    // store name of codec
+    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
+
+    // set picture size : no argument means use picture size from video stream
     if (targetWidth == 0)
-        targetWidth = actual_width;
-
+        targetWidth = video_st->codecpar->width;
     if (targetHeight == 0)
-        targetHeight = video_st->codec->height;
+        targetHeight = video_st->codecpar->height;
 
-    if (targetWidth == 0 && targetHeight ==0)
+    if (targetWidth == 0 || targetHeight == 0)
     {
         // Cannot initialize the conversion context!
         qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot read stream.");
@@ -463,67 +498,105 @@ bool VideoStream::openStream()
     // Default targetFormat to PIX_FMT_RGB24
     targetFormat = AV_PIX_FMT_RGB24;
 
-    graph = avfilter_graph_alloc();
+    // setup filtering
+    if ( !setupFiltering() ) {
+        // close file
+        close();
+        return false;
+    }
 
-    int64_t conversionAlgorithm = SWS_POINT;
+    if (pFormatCtx) {
+        av_read_play(pFormatCtx);
+    }
+
+    // all ok
+    return true;
+}
+
+bool VideoStream::setupFiltering()
+{
+    // create conversion context
+    const AVFilter *buffersrc  = avfilter_get_by_name("buffer");
+    const AVFilter *buffersink = avfilter_get_by_name("buffersink");
+    AVFilterInOut *outputs = avfilter_inout_alloc();
+    AVFilterInOut *inputs  = avfilter_inout_alloc();
+
+    graph = avfilter_graph_alloc();
+    if (!outputs || !inputs || !graph) {
+        qWarning() << urlname << QChar(124).toLatin1()
+                   << tr("Cannot create conversion filter.");
+        return false;
+    }
+
+    int64_t conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
+
     char sws_flags_str[128];
     snprintf(sws_flags_str, sizeof(sws_flags_str), "flags=%" PRId64, conversionAlgorithm);
     graph->scale_sws_opts = av_strdup(sws_flags_str);
 
+    // INPUT BUFFER
     char buffersrc_args[256];
-    snprintf(buffersrc_args, sizeof(buffersrc_args), "%d:%d:%d:%d:%d:%d:%d",
-                 video_dec->width, video_dec->height, video_dec->pix_fmt,
-                 video_st->time_base.num, video_st->time_base.den,
-                 video_dec->sample_aspect_ratio.num, video_dec->sample_aspect_ratio.den);
+    snprintf(buffersrc_args, sizeof(buffersrc_args),
+             "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
+             video_dec->width, video_dec->height, video_dec->pix_fmt,
+             video_st->time_base.num, video_st->time_base.den,
+             video_dec->sample_aspect_ratio.num, video_dec->sample_aspect_ratio.den);
 
-    if ( avfilter_graph_create_filter(&in_video_filter, avfilter_get_by_name("buffer"),
-                                            "src", buffersrc_args, NULL, graph) < 0)  {
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a INPUT conversion context.");
+    if ( avfilter_graph_create_filter(&in_video_filter, buffersrc,
+                                      "in", buffersrc_args, NULL, graph) < 0)  {
+        qWarning() << urlname << QChar(124).toLatin1()
+                   << tr("Cannot create a INPUT conversion context.");
         return false;
     }
 
-    if ( avfilter_graph_create_filter(&out_video_filter, avfilter_get_by_name("buffersink"),
-                                            "out", NULL, NULL, graph) < 0)  {
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a OUTPUT conversion context.");
+    // OUTPUT SINK
+    if ( avfilter_graph_create_filter(&out_video_filter, buffersink,
+                                      "out", NULL, NULL, graph) < 0)  {
+        qWarning() << urlname << QChar(124).toLatin1()
+                   << tr("Cannot create a OUTPUT conversion context.");
         return false;
     }
 
-    AVFilterContext *filt_ctx;
-    if ( avfilter_graph_create_filter(&filt_ctx, avfilter_get_by_name("format"),
-                                            "col", "rgb24", NULL, graph) < 0)  {
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a COLOR conversion context.");
+    enum AVPixelFormat pix_fmts[] = { targetFormat, AV_PIX_FMT_NONE };
+    if ( av_opt_set_int_list(out_video_filter, "pix_fmts", pix_fmts,
+                             AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN) < 0 ){
+        qWarning() << urlname << QChar(124).toLatin1()
+                   << tr("Cannot set output pixel format");
         return false;
     }
 
-    // chain filters
-    if ( avfilter_link(in_video_filter, 0, filt_ctx, 0) < 0 ) {
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot link INPUT conversion context.");
-        return false;
-    }
-    if ( avfilter_link(filt_ctx, 0, out_video_filter, 0) < 0 ) {
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot link OUTPUT conversion context.");
+    // create another filter
+    inputs->name       = av_strdup("out");
+    inputs->filter_ctx = out_video_filter;
+    inputs->pad_idx    = 0;
+    inputs->next       = NULL;
+    outputs->name       = av_strdup("in");
+    outputs->filter_ctx = in_video_filter;
+    outputs->pad_idx    = 0;
+    outputs->next       = NULL;
+
+    // performs scaling to target size if necessary
+    char filter_str[128];
+    if ( targetWidth != video_dec->width || targetHeight != video_dec->height)
+        snprintf(filter_str, sizeof(filter_str), "scale=w=%d:h=%d", targetWidth, targetHeight);
+    else
+        // null filter does nothing
+        snprintf(filter_str, sizeof(filter_str), "null");
+
+    if ( avfilter_graph_parse_ptr(graph, filter_str, &inputs, &outputs, NULL) < 0 ){
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot parse filters.");
         return false;
     }
 
+    // validate the filtering graph
     if ( avfilter_graph_config(graph, NULL) < 0){
         qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot configure conversion graph.");
         return false;
     }
 
-//    // create conversion context
-//    // (use the actual width to match with targetWidth and avoid useless scaling)
-//    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
-//                    video_st->codec->height, video_st->codec->pix_fmt,
-//                    targetWidth, targetHeight, targetFormat,
-//                    SWS_POINT, NULL, NULL, NULL);
-//    if (img_convert_ctx == NULL)
-//    {
-//        // Cannot initialize the conversion context!
-//        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
-//        return false;
-//    }
+    avfilter_inout_free(&inputs);
+    avfilter_inout_free(&outputs);
 
-    // all ok
     return true;
 }
 
@@ -540,38 +613,27 @@ void VideoStream::close()
     // flush
     flush_picture_queue();
 
-    // close context
+    // free filter
+    if (graph)
+        avfilter_graph_free(&graph);
+
+    // free decoder
+    if (video_dec)
+        avcodec_free_context(&video_dec);
+
+    // close & free format context
     if (pFormatCtx) {
-
-        if ( videoStream > -1 && pFormatCtx->streams ) {
-
-            pFormatCtx->streams[videoStream]->discard = AVDISCARD_ALL;
-            AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
-
-            // do not attempt to close codec context if
-            // codec is not valid
-            if (cdctx && cdctx->codec) {
-                // Close codec (& threads inside)
-                avcodec_close(cdctx);
-            }
-        }
-        // close file & free context
-        // Free it and all its contents and set it to NULL.
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
-        av_close_input_file(pFormatCtx);
-#else
+        avformat_flush(pFormatCtx);
+        // close file & free context and all its contents and set it to NULL.
         avformat_close_input(&pFormatCtx);
-#endif
-
     }
-
-//    // free context & filter
-//    if (img_convert_ctx)
-//        sws_freeContext(img_convert_ctx);
 
     // reset pointers
     pFormatCtx = NULL;
-//    img_convert_ctx = NULL;
+    video_dec = NULL;
+    graph = NULL;
+    in_video_filter = NULL;
+    out_video_filter = NULL;
     video_st = NULL;
 
     qDebug() << urlname << QChar(124).toLatin1() << tr("Stream closed.");
@@ -683,29 +745,30 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
 {
     VideoPicture *vp = NULL;
 
-    // convert
-    if ( pFrame && av_buffersrc_add_frame(in_video_filter, pFrame) >= 0 ) {
+    try {
+        // convert
+        if ( pFrame && av_buffersrc_add_frame_flags(in_video_filter, pFrame, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 )
+        {
+            // create vp as the picture in the queue to be written
+            vp = new VideoPicture(out_video_filter, pts);
+        }
+        else
+            vp = new VideoPicture(targetWidth, targetHeight, pts);
 
-        // create vp as the picture in the queue to be written
-        VideoPicture *vp = new VideoPicture(out_video_filter, pts);
+        // set the actions of this frame
+        vp->resetAction();
+        vp->addAction(a);
 
-        // free frame
-        av_frame_unref(pFrame);
+        /* now we inform our display thread that we have a pic ready */
+        pictq_mutex->lock();
+        // enqueue this picture in the queue
+        pictq.enqueue(vp);
+        // inform about the new size of the queue
+        pictq_mutex->unlock();
+
+    } catch (AllocationException &e){
+        qWarning() << tr("Cannot queue picture; ") << e.message();
     }
-    else
-        vp = new VideoPicture(targetWidth, targetHeight, pts);
-
-    // set the actions of this frame
-    vp->resetAction();
-    vp->addAction(a);
-
-    /* now we inform our display thread that we have a pic ready */
-    pictq_mutex->lock();
-    // enqueue this picture in the queue
-    pictq.enqueue(vp);
-    // inform about the new size of the queue
-    pictq_mutex->unlock();
-
 //    fprintf(stderr, "pictq size %d \n", pictq.size());
 
 }

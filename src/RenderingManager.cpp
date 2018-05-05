@@ -823,10 +823,6 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 
 Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 
-#ifndef NDEBUG
-    qDebug() << tr("RenderingManager::newMediaSource ")<< depth << vf->getFileName() ;
-#endif
-
     VideoSource *s = 0;
     // create the texture for this source
     GLuint textureIndex;

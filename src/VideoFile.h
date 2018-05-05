@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2012 Bruno Herbelin
+ *   Copyright 2009, 2018 Bruno Herbelin
  *
  */
 
@@ -743,11 +743,8 @@ class videoFileThread: public QThread
 
 public:
     videoFileThread(VideoFile *video) :
-        QThread(), is(video), _working(false), _forceQuit(false)
-    {
-    }
-
-    inline bool isWorking() { return _working; }
+        QThread(), is(video), _forceQuit(false)
+    { }
     inline void forceQuit() { _forceQuit = true; }
 
     virtual void run() = 0;
@@ -757,7 +754,6 @@ signals:
 
 protected:
     VideoFile *is;
-    bool _working;
     bool _forceQuit;
 };
 

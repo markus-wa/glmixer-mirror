@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2014 Bruno Herbelin
+ *   Copyright 2009, 2018 Bruno Herbelin
  *
  */
 
@@ -296,34 +296,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 }
 
 
-class FirstFrameFiller : public QThread
-{
-    void run();
-
-    VideoFile *_vf;
-    bool option;
-    double value;
-
-public:
-    FirstFrameFiller(VideoFile *vf, bool o);
-
-    double getValue() { return value; }
-};
-
-FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
-    : QThread(vf), _vf(vf), option(o), value(0.0)
-{
-    setTerminationEnabled(true);
-
-}
-
-void FirstFrameFiller::run()
-{
-    if(_vf)
-        value = _vf->fill_first_frame(option);
-}
-
-
 void VideoFile::close()
 {
 #ifdef VIDEOFILE_DEBUG
@@ -337,10 +309,11 @@ void VideoFile::close()
     if (graph)
         avfilter_graph_free(&graph);
 
+    // free decoder
     if (video_dec)
         avcodec_free_context(&video_dec);
 
-    // close context
+    // close & free format context
     if (pFormatCtx) {
         avformat_flush(pFormatCtx);
         // close file & free context and all its contents and set it to NULL.
@@ -426,18 +399,7 @@ void VideoFile::stop()
         if (!restart_where_stopped)
         {
             // recreate first picture in case begin has changed
-             current_frame_pts = fill_first_frame(true);
-
-//            FirstFrameFiller *fff = new FirstFrameFiller(this, true);
-//            fff->start();
-//            // 2 seconds timeout
-//            if ( !fff->wait(2000) ) {
-//                qWarning() << filename << QChar(124).toLatin1()<< tr("Failed to stop.");
-//            }
-//            else
-//                current_frame_pts = fff->getValue();
-
-
+            current_frame_pts = fill_first_frame(true);
             emit frameReady( firstPicture );
             emit timeChanged( current_frame_pts );
         }
@@ -545,22 +507,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         return false;
     }
 
-    pFormatCtx->flags |= AVFMT_FLAG_GENPTS;
-
-    int err = avformat_find_stream_info(pFormatCtx, NULL);
-    if (err < 0) {
-        CodecManager::printError(filename, err);
-        // close
-        close();
-        return false;
-    }
-
     // get index of video stream
-
     AVCodec *codec;
     videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
     if (videoStream < 0) {
-        // close
+        // Cannot find video stream
+        qWarning() << filename << QChar(124).toLatin1() << tr("Cannot find video stream.");
         close();
         return false;
     }
@@ -571,14 +523,15 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // create video decoding context
     video_dec = avcodec_alloc_context3(codec);
     if (!video_dec) {
+        CodecManager::printError(filename, "Error creating decoder :", AVERROR(ENOMEM));
         // close
         close();
         return false;
     }
 
-    err = avcodec_parameters_to_context(video_dec, video_st->codecpar);
+    int err = avcodec_parameters_to_context(video_dec, video_st->codecpar);
     if (err < 0) {
-        CodecManager::printError(filename, err);
+        CodecManager::printError(filename, "Error configuring :", err);
         // close
         close();
         return false;
@@ -644,15 +597,11 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markOutChanged(mark_out);
     }
 
-    // read picture size from video stream
-    int actual_width = video_st->codecpar->width;
-    int actual_height = video_st->codecpar->height;
-
-    // set picture size : no argument means no scaling
+    // set picture size : no argument means use picture size from video stream
     if (targetWidth == 0)
-        targetWidth = actual_width;
+        targetWidth = video_st->codecpar->width;
     if (targetHeight == 0)
-        targetHeight = actual_height;
+        targetHeight = video_st->codecpar->height;
 
     // round target picture size to power of two dimensions if requested
     if (powerOfTwo)
@@ -678,16 +627,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // (NB : seek in stream only if not reading the first frame)
     first_picture_changed = true;
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
-
-    // TODO : restore use of thread
-//    FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
-//    fff->start();
-//    // 2 seconds timeout
-//    if ( !fff->wait(2000) ) {
-//        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
-//        return false;
-//    }
-//    current_frame_pts = fff->getValue();
 
     // make sure the first picture was filled
     if (!firstPicture) {
@@ -1512,9 +1451,7 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
 
 void DecodingThread::run()
 {
-//    AVPacket packet;
     AVPacket pkt1, *pkt   = &pkt1;
-
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
     int64_t intdts = 0; // Decoding time stamp
@@ -1522,7 +1459,6 @@ void DecodingThread::run()
     int error_count = 0;
     bool eof = false;
 
-    _working = true;
     while (is && !is->quit && !_forceQuit)
     {
         // start with clean frame
@@ -1597,7 +1533,7 @@ void DecodingThread::run()
                 }
 
                 // recurrent decoding error
-                _forceQuit = true;
+                forceQuit();
                 break;
             }
         }
@@ -1645,7 +1581,7 @@ void DecodingThread::run()
                         continue;
 
                     // recurrent decoding error
-                    _forceQuit = true;
+                    forceQuit();
                     break;
                 }
 
@@ -1793,7 +1729,6 @@ void DecodingThread::run()
 
     }
 
-    _working = false;
 }
 
 
@@ -1802,7 +1737,6 @@ void VideoFile::pause(bool pause)
     if (!quit && pause != _videoClock.paused() )
     {
         _videoClock.pause(pause);
-
         emit paused(pause);
     }
 }
@@ -1810,7 +1744,6 @@ void VideoFile::pause(bool pause)
 bool VideoFile::isPaused() const {
     return _videoClock.paused();
 }
-
 
 void VideoFile::setMemoryUsagePolicy(int percent)
 {
@@ -1832,7 +1765,6 @@ int VideoFile::getMemoryUsageMaximum(int policy)
 
     return max;
 }
-
 
 QString VideoFile::getPixelFormatName() const
 {

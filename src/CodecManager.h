@@ -52,13 +52,6 @@ public:
      * @return frame rate of the stream in second (-1 on error)
      */
     static double getFrameRateStream(AVFormatContext *codeccontext, int stream);
-
-    /**
-     *  Open a Codec
-     *
-     * @return name of the codec if open, QString::null on failure
-     */
-    static QString openCodec(AVCodecContext *codeccontext);
     /**
      *  Get the name of the pixel format of the frames of the file opened.
      *
@@ -85,7 +78,7 @@ public:
      */
     static void convertSizePowerOfTwo(int &width, int &height);
 
-    static void printError(QString streamToOpen, int err);
+    static void printError(QString streamname, QString message, int err);
 
 private:
 

@@ -47,27 +47,29 @@ void CodecManager::registerAll()
     }
 }
 
-void CodecManager::printError(QString streamToOpen, int err)
+void CodecManager::printError(QString streamname, QString message, int err)
 {
+    QString errormessage;
     switch (err)
     {
     case AVERROR_INVALIDDATA:
-        qWarning() << streamToOpen << QChar(124).toLatin1() << tr("Error while parsing header.");
+        errormessage = tr("Invalid data while parsing header.");
         break;
     case AVERROR(EIO):
-        qWarning() << streamToOpen << QChar(124).toLatin1()
-                << tr("I/O error. The file is corrupted or the stream is unavailable.");
+        errormessage =  tr("I/O error. The file is corrupted or the stream is unavailable.");
         break;
     case AVERROR(ENOMEM):
-        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error.");
+        errormessage =  tr("Memory allocation error.");
         break;
     case AVERROR(ENOENT):
-        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such entry.");
+        errormessage =  tr("No such entry.");
         break;
     default:
-        qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Unsupported format.");
+        errormessage =  tr("Unsupported format.");
         break;
     }
+
+    qWarning() << streamname << QChar(124).toLatin1()<< message << errormessage;
 }
 
 bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen)
@@ -77,35 +79,27 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     int err = 0;
 
     // Check file
-    if ( !_pFormatCtx)
-        return 0;
+    if ( !_pFormatCtx || !*_pFormatCtx)
+        return false;
 
+    // open stream
     err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
     if (err < 0)
     {
-        switch (err)
-        {
-        case AVERROR_INVALIDDATA:
-            qWarning() << streamToOpen << QChar(124).toLatin1() << tr("Error while parsing header.");
-            break;
-        case AVERROR(EIO):
-            qWarning() << streamToOpen << QChar(124).toLatin1()
-                    << tr("I/O error. The file is corrupted or the stream is unavailable.");
-            break;
-        case AVERROR(ENOMEM):
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error.");
-            break;
-        case AVERROR(ENOENT):
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such media.");
-            break;
-        default:
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Cannot open media.");
-            break;
-        }
-
+        printError(streamToOpen, "Error opening :", err);
         return false;
     }
 
+    // request to generate PTS
+    (*_pFormatCtx)->flags |= AVFMT_FLAG_GENPTS;
+
+    // fill info stream
+    err = avformat_find_stream_info(*_pFormatCtx, NULL);
+    if (err < 0)
+    {
+        printError(streamToOpen, "Error setting up :", err);
+        return false;
+    }
 
     return true;
 }
@@ -121,27 +115,6 @@ int CodecManager::getVideoStream(AVFormatContext *codeccontext)
 
     return stream_index;
 }
-
-QString CodecManager::openCodec(AVCodecContext *codeccontext)
-{
-    QString codecname = QString::null;
-    AVCodec *codec = avcodec_find_decoder(codeccontext->codec_id);
-
-
-    AVDictionary *opts = NULL;
-    av_dict_set(&opts, "threads", "auto", 0);
-    av_dict_set(&opts, "refcounted_frames", "1", 0);
-    if ( !codec || avcodec_open2(codeccontext, codec, &opts) < 0 )
-    {
-        qWarning() << avcodec_descriptor_get(codeccontext->codec_id)->long_name << QChar(124).toLatin1() << tr("Unsupported Codec.");
-        return codecname;
-    }
-
-    codecname = avcodec_descriptor_get(codeccontext->codec_id)->long_name;
-
-    return codecname;
-}
-
 
 double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream)
 {

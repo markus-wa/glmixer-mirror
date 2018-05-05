@@ -119,7 +119,7 @@ bool VideoStreamSource::isPlayable() const
 
 bool VideoStreamSource::isPlaying() const
 {
-    return ( is->isplaying() );
+    return ( isPlayable() && is->isplaying() );
 }
 
 void VideoStreamSource::play(bool on)
@@ -130,8 +130,16 @@ void VideoStreamSource::play(bool on)
     // cancel updated frame
     updateFrame(NULL);
 
-    // transfer the order to the videoFile
-    is->play(on);
+    // transfer the order to the video stream
+//    if ( on ) {
+//        if ( status == STREAM_BLANK )
+//            is->play(true);
+//    } else {
+//            is->play(false);
+//    }
+
+    if ( status != STREAM_BLANK )
+        is->play(on);
 
     Source::play(on);
 }
