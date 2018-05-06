@@ -690,7 +690,7 @@ bool VideoFile::setupFiltering()
         conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
 
     char sws_flags_str[128];
-    snprintf(sws_flags_str, sizeof(sws_flags_str), "flags=%" PRId64, conversionAlgorithm);
+    snprintf(sws_flags_str, sizeof(sws_flags_str), "flags=%d", (int) conversionAlgorithm);
     graph->scale_sws_opts = av_strdup(sws_flags_str);
 
     // INPUT BUFFER
