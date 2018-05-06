@@ -63,7 +63,7 @@ public:
     bool isOpen() const ;
 
     inline bool isplaying() const {
-        return !quit;
+        return active;
     }
     inline QString getUrl() const {
         return urlname;
@@ -142,7 +142,7 @@ private:
     // Threads and execution manangement
     videoStreamThread *decod_tid;
     videoStreamThread *open_tid;
-    bool quit;
+    bool quit, active;
     QTimer *ptimer;
 
 };
@@ -155,7 +155,10 @@ public:
     videoStreamThread(VideoStream *video) :
         QThread(), is(video), _forceQuit(false)
     { }
-    inline void forceQuit() { _forceQuit = true; }
+    inline void forceQuit() {
+        _forceQuit = true;
+        emit failed();
+    }
 
     virtual void run() = 0;
 

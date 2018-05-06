@@ -47,6 +47,8 @@ VideoStreamSource::VideoStreamSource(VideoStream *s, GLuint texture, double d) :
     QObject::connect(is, SIGNAL(failed()), this, SIGNAL(failed()));
     // forward the message on play
     QObject::connect(is, SIGNAL(running(bool)), this, SIGNAL(playing(bool)) );
+    // connect is signal for connection to initializatio of source
+    QObject::connect(is, SIGNAL(openned()), this, SLOT(openStream()));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -66,12 +68,11 @@ VideoStreamSource::VideoStreamSource(VideoStream *s, GLuint texture, double d) :
                   0, GL_BGRA, GL_UNSIGNED_BYTE, img.bits() );
 #endif
 
-    // connect is signal for connection to initializatio of source
-    QObject::connect(is, SIGNAL(openned()), this, SLOT(openStream()));
 }
 
 void VideoStreamSource::openStream()
 {
+    // received signal from stream that its open !
     if (!is)
         return;
 
@@ -131,15 +132,7 @@ void VideoStreamSource::play(bool on)
     updateFrame(NULL);
 
     // transfer the order to the video stream
-//    if ( on ) {
-//        if ( status == STREAM_BLANK )
-//            is->play(true);
-//    } else {
-//            is->play(false);
-//    }
-
-    if ( status != STREAM_BLANK )
-        is->play(on);
+    is->play(on);
 
     Source::play(on);
 }

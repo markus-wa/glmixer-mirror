@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
-    <height>601</height>
+    <width>363</width>
+    <height>576</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,11 +29,34 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Set the URL and connect:</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Set the URL for the MPEG TS input stream:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_8">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicate the URL of the MPEG Transport Stream (TS) which is broadcasted over User Datagram Protocol (UDP) or Real-time Transport Protocol (RTP).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QWidget" name="widget_2" native="true">
@@ -50,7 +73,7 @@
       <item>
        <widget class="QRadioButton" name="UDPStream">
         <property name="text">
-         <string>Local UDP</string>
+         <string>&amp;Localhost UDP</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -90,7 +113,7 @@
       <item>
        <widget class="QRadioButton" name="RTPStream">
         <property name="text">
-         <string>Local RTP Broadcast</string>
+         <string>Localhost RTP</string>
         </property>
        </widget>
       </item>
@@ -133,7 +156,7 @@
       <item>
        <widget class="QRadioButton" name="customStream">
         <property name="text">
-         <string>Custom</string>
+         <string>Custo&amp;m</string>
         </property>
        </widget>
       </item>
@@ -158,7 +181,7 @@
       <item>
        <widget class="QPushButton" name="connect">
         <property name="text">
-         <string>Connect</string>
+         <string>Test connection</string>
         </property>
        </widget>
       </item>

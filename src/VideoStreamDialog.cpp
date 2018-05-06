@@ -60,12 +60,12 @@ void VideoStreamDialog::updateURL(){
 
     // Selected UDP
     if (ui->UDPStream->isChecked()) {
-        ui->URL->setText(QString("udp://@localhost:%1").arg(ui->UDPPort->value()));
+        ui->URL->setText(QString("udp://@127.0.0.1:%1").arg(ui->UDPPort->value()));
     }
     // Selected RTP
     else if (ui->RTPStream->isChecked()) {
-        ui->URL->setText(QString("rtp://@239.0.0.1:%1").arg(ui->RTPPort->value()));
-
+//        ui->URL->setText(QString("rtp://@239.0.0.1:%1").arg(ui->RTPPort->value()));
+        ui->URL->setText(QString("rtp://@127.0.0.1:%1").arg(ui->RTPPort->value()));
     }
 
     cancelSourcePreview();

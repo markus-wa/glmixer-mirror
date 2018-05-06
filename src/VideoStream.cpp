@@ -47,6 +47,7 @@ class StreamOpeningThread: public videoStreamThread
 public:
     StreamOpeningThread(VideoStream *video) : videoStreamThread(video)
     {
+        setTerminationEnabled(true);
     }
 
     ~StreamOpeningThread()
@@ -79,6 +80,8 @@ public:
         av_init_packet(&_nullPacket);
         _nullPacket.data = NULL;
         _nullPacket.size = 0;
+
+        setTerminationEnabled(true);
     }
 
     ~StreamDecodingThread()
@@ -102,8 +105,7 @@ void StreamDecodingThread::run()
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
-
-    //TODO what about testing if stream 'isactive' ?
+    int error_count = 0;
 
 
     while (is && !is->quit && !_forceQuit)
@@ -111,11 +113,6 @@ void StreamDecodingThread::run()
         // start with clean frame
         av_frame_unref(_pFrame);
 
-        /**
-         *
-         *   PARSING
-         *
-         * */
         // Read packet
         if ( av_read_frame(is->pFormatCtx, pkt) < 0)
         {
@@ -126,87 +123,80 @@ void StreamDecodingThread::run()
                 avio_flush(is->pFormatCtx->pb);
                 avformat_flush(is->pFormatCtx);
 
-                // do not treat the error; just wait a bit for the end of the packet and continue
-//                msleep(UPDATE_SLEEP_DELAY);
+                error_count++;
+                if (error_count > 10)
+                    forceQuit();
+
+            }
+            else
+                // not really an error : read_frame reached the end of stream
+                // send an empty frame with stop flag
+                // (and pretending pts is one frame later)
+                is->queue_picture(NULL, pts, VideoPicture::ACTION_STOP );
+
+            // do not treat the error; just wait a bit for the end of the packet and continue
+            msleep(UPDATE_SLEEP_DELAY);
+            continue;
+        }
+
+        // inactive means we do not decode packet and do not update frames
+        // (same for non video stream)
+        if ( is->active && pkt->stream_index == is->videoStream ) {
+
+            // send the packet to the decoder
+            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+                //msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
 
-            // not really an error : read_frame reached the end of stream
-            // send an empty frame with stop flag
-            // (and pretending pts is one frame later)
-            is->queue_picture(NULL, pts, VideoPicture::ACTION_STOP );
+            frameFinished = 0;
+            while (frameFinished >= 0) {
 
-            // and go on to next packet
-            msleep(UPDATE_SLEEP_DELAY);
-            continue;
+                // get the packet from the decoder
+                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
+
+                // no error, just try again
+                if ( frameFinished == AVERROR(EAGAIN) || frameFinished == AVERROR_EOF ) {
+                    // continue in main loop.
+                    break;
+                }
+                // other kind of error
+                else if ( frameFinished < 0 ) {
+                    fprintf(stderr, "\n%s - Could not decode frame.", qPrintable(is->urlname));
+                    // decoding error
+                    forceQuit();
+                    break;
+                }
+
+                // No error, but did we get a full video frame?
+                VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
+
+                // get packet decompression time stamp (dts)
+                dts = 0;
+                if (_pFrame->pts != (int64_t) AV_NOPTS_VALUE)
+                    dts = _pFrame->pts;
+                else
+                    dts = _pFrame->pkt_dts;
+                // compute PTS
+                pts = double(dts) * av_q2d(is->video_st->time_base);
+
+                // wait until we have space for a new pic
+                // the condition is released in video_refresh_timer()
+                is->pictq_mutex->lock();
+                while ( !is->quit && (is->pictq.count() > is->pictq_max_count) )
+                    is->pictq_cond->wait(is->pictq_mutex);
+                is->pictq_mutex->unlock();
+
+                // default
+                // add frame to the queue of pictures
+                is->queue_picture(_pFrame, pts, actionFrame);
+
+                // free internal buffers
+                av_frame_unref(_pFrame);
+
+            } // end while (frameFinished > 0)
 
         }
-
-        if ( pkt->stream_index != is->videoStream ) {
-            // not a picture, go to next packet
-            continue;
-        }
-
-
-        /**
-         *
-         *   DECODING
-         *
-         * */
-
-        // send the packet to the decoder
-        if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
-            //msleep(PARSING_SLEEP_DELAY);
-            continue;
-        }
-
-        frameFinished = 0;
-        while (frameFinished >= 0) {
-
-            // get the packet from the decoder
-            frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
-
-            // no error, just try again
-            if ( frameFinished == AVERROR(EAGAIN) || frameFinished == AVERROR_EOF ) {
-                // continue in main loop.
-                break;
-            }
-            // other kind of error
-            else if ( frameFinished < 0 ) {
-                fprintf(stderr, "\n%s - Could not decode frame.", qPrintable(is->urlname));
-                // decoding error
-                forceQuit();
-                break;
-            }
-
-            // No error, but did we get a full video frame?
-            VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
-
-            // get packet decompression time stamp (dts)
-            dts = 0;
-            if (_pFrame->pts != (int64_t) AV_NOPTS_VALUE)
-                dts = _pFrame->pts;
-            else
-                dts = _pFrame->pkt_dts;
-            // compute PTS
-            pts = double(dts) * av_q2d(is->video_st->time_base);
-
-            // wait until we have space for a new pic
-            // the condition is released in video_refresh_timer()
-            is->pictq_mutex->lock();
-            while ( !is->quit && (is->pictq.count() > is->pictq_max_count) )
-                is->pictq_cond->wait(is->pictq_mutex);
-            is->pictq_mutex->unlock();
-
-            // default
-            // add frame to the queue of pictures
-            is->queue_picture(_pFrame, pts, actionFrame);
-
-            // free internal buffers
-            av_frame_unref(_pFrame);
-
-        } // end while (frameFinished > 0)
-
 
         // free internal buffers
         av_packet_unref(pkt);
@@ -266,6 +256,7 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     // reset
     urlname = QString::null;
     codecname = QString::null;
+    active = false;
     quit = true; // not running yet
 }
 
@@ -323,17 +314,17 @@ void VideoStream::stop()
         quit = true;
 
         // stop play
-//        if (pFormatCtx) {
-//            av_read_pause(pFormatCtx);
-//            avformat_flush(pFormatCtx);
-//        }
+        if (pFormatCtx) {
+            av_read_pause(pFormatCtx);
+            avformat_flush(pFormatCtx);
+        }
 
-        pictq_mutex->lock();
         // unlock all conditions
+        pictq_mutex->lock();
         pictq_cond->wakeAll();
-        // wait for thread to end
-        decod_tid->wait(100);
         pictq_mutex->unlock();
+        // wait for thread to end
+        decod_tid->wait();
 
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << urlname << QChar(124).toLatin1() << tr("Stopped.");
@@ -359,8 +350,7 @@ void VideoStream::start()
 
         // start play
         if (pFormatCtx) {
-            avformat_flush(pFormatCtx);
-//            av_read_play(pFormatCtx);
+            av_read_play(pFormatCtx);
         }
 
         // start timer and decoding threads
@@ -379,16 +369,13 @@ void VideoStream::start()
 
 void VideoStream::play(bool startorstop)
 {
-//    // clear the picture queue
-//    flush_picture_queue();
-//    active = startorstop;
-
+    // clear the picture queue
     flush_picture_queue();
+    active = startorstop;
 
-    if (startorstop)
-        start();
-    else
-        stop();
+    if (!active)
+        avcodec_flush_buffers(video_dec);
+
 }
 
 
@@ -503,10 +490,6 @@ bool VideoStream::openStream()
         // close file
         close();
         return false;
-    }
-
-    if (pFormatCtx) {
-        av_read_play(pFormatCtx);
     }
 
     // all ok

@@ -1527,10 +1527,14 @@ void GLMixer::on_actionStreamSource_triggered(){
 
     if (vsd->exec() == QDialog::Accepted) {
 
+        // create stream
         VideoStream *vs = new VideoStream();
-        vs->open(vsd->getUrl());
 
+        // create source with this stream
         Source *s = RenderingManager::getInstance()->newStreamSource(vs);
+
+        // trigger openning of the stream
+        vs->open(vsd->getUrl());
 
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
