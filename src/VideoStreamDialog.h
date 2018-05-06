@@ -26,6 +26,7 @@ public slots:
     void cancelSourcePreview();
     void connectedInfo();
     void failedInfo();
+    void showHelp();
 
 protected:
 

@@ -17,12 +17,6 @@
    <iconset resource="../icons.qrc">
     <normaloff>:/glmixer/icons/ffgl-source.png</normaloff>:/glmixer/icons/ffgl-source.png</iconset>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QToolButton {
-     min-height: 16px;
-     min-width: 16px;
-}</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="SourceDisplayWidget" name="preview" native="true">
@@ -51,19 +45,14 @@
      </item>
      <item>
       <widget class="QToolButton" name="helpFreeFrameButton">
-       <property name="toolTip">
-        <string>Open Online Documentation</string>
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton {
-     min-height: 16px;
-     min-width: 16px;
-     max-height: 16px;
-     max-width: 16px;
-        font: bold;
-}
-
-</string>
+       <property name="toolTip">
+        <string>What is FreeFrame GL ?</string>
        </property>
        <property name="text">
         <string>?</string>
@@ -71,6 +60,12 @@
        <property name="icon">
         <iconset resource="../icons.qrc">
          <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>

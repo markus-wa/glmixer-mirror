@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>363</width>
-    <height>576</height>
+    <width>322</width>
+    <height>554</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,15 +44,34 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_8">
+      <widget class="QToolButton" name="toolButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicate the URL of the MPEG Transport Stream (TS) which is broadcasted over User Datagram Protocol (UDP) or Real-time Transport Protocol (RTP).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>What is MPEG Transport Stream ?</string>
        </property>
-       <property name="pixmap">
-        <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+       <property name="text">
+        <string>...</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       <property name="icon">
+        <iconset resource="../icons.qrc">
+         <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -61,22 +80,70 @@
    <item>
     <widget class="QWidget" name="widget_2" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QRadioButton" name="customStream">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Custo&amp;m</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicate the URL of the MPEG Transport Stream (TS) which is broadcasted over User Datagram Protocol (UDP) or Real-time Transport Protocol (RTP).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>URL</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="URL">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>rtp://@239.0.0.1:5004</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <widget class="QRadioButton" name="UDPStream">
         <property name="text">
          <string>&amp;Localhost UDP</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -84,6 +151,9 @@
        <layout class="QHBoxLayout" name="udpLayout">
         <item>
          <widget class="QLabel" name="label">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Port</string>
           </property>
@@ -94,6 +164,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="UDPPort">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="minimum">
            <number>1000</number>
           </property>
@@ -148,31 +221,6 @@
           </property>
           <property name="value">
            <number>5004</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="customStream">
-        <property name="text">
-         <string>Custo&amp;m</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>URL</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="URL">
-          <property name="enabled">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -357,12 +405,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>141</x>
-     <y>376</y>
+     <x>160</x>
+     <y>263</y>
     </hint>
     <hint type="destinationlabel">
-     <x>208</x>
-     <y>405</y>
+     <x>258</x>
+     <y>297</y>
     </hint>
    </hints>
   </connection>
@@ -373,12 +421,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>204</x>
-     <y>319</y>
+     <x>222</x>
+     <y>390</y>
     </hint>
     <hint type="destinationlabel">
-     <x>329</x>
-     <y>349</y>
+     <x>302</x>
+     <y>423</y>
     </hint>
    </hints>
   </connection>
@@ -389,12 +437,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>105</x>
-     <y>319</y>
+     <x>123</x>
+     <y>390</y>
     </hint>
     <hint type="destinationlabel">
-     <x>107</x>
-     <y>349</y>
+     <x>126</x>
+     <y>423</y>
     </hint>
    </hints>
   </connection>
@@ -405,12 +453,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>136</x>
-     <y>262</y>
+     <x>154</x>
+     <y>327</y>
     </hint>
     <hint type="destinationlabel">
-     <x>136</x>
-     <y>292</y>
+     <x>155</x>
+     <y>360</y>
     </hint>
    </hints>
   </connection>
@@ -421,12 +469,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>275</x>
-     <y>262</y>
+     <x>293</x>
+     <y>327</y>
     </hint>
     <hint type="destinationlabel">
-     <x>329</x>
-     <y>292</y>
+     <x>302</x>
+     <y>360</y>
     </hint>
    </hints>
   </connection>
@@ -437,8 +485,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>258</x>
-     <y>262</y>
+     <x>276</x>
+     <y>327</y>
     </hint>
     <hint type="destinationlabel">
      <x>339</x>
@@ -453,8 +501,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>275</x>
-     <y>319</y>
+     <x>293</x>
+     <y>390</y>
     </hint>
     <hint type="destinationlabel">
      <x>343</x>
@@ -485,8 +533,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>329</x>
-     <y>292</y>
+     <x>302</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>360</x>
@@ -501,8 +549,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>329</x>
-     <y>349</y>
+     <x>302</x>
+     <y>423</y>
     </hint>
     <hint type="destinationlabel">
      <x>332</x>
@@ -517,8 +565,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>329</x>
-     <y>292</y>
+     <x>302</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>497</x>
@@ -533,8 +581,8 @@
    <slot>updateURL()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>329</x>
-     <y>349</y>
+     <x>302</x>
+     <y>423</y>
     </hint>
     <hint type="destinationlabel">
      <x>320</x>
@@ -549,12 +597,28 @@
    <slot>cancelSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>64</x>
-     <y>461</y>
+     <x>82</x>
+     <y>491</y>
     </hint>
     <hint type="destinationlabel">
      <x>-15</x>
      <y>363</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButton</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoStreamDialog</receiver>
+   <slot>showHelp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>296</x>
+     <y>203</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>334</x>
+     <y>149</y>
     </hint>
    </hints>
   </connection>
@@ -563,5 +627,6 @@
   <slot>updateSourcePreview()</slot>
   <slot>updateURL()</slot>
   <slot>cancelSourcePreview()</slot>
+  <slot>showHelp()</slot>
  </slots>
 </ui>

@@ -3,6 +3,8 @@
 #include "glmixer.h"
 #include "VideoStreamSource.h"
 
+#include <QDesktopServices>
+
 VideoStreamDialog::VideoStreamDialog(QWidget *parent, QSettings *settings) :
     QDialog(parent),
     ui(new Ui::VideoStreamDialog),
@@ -20,6 +22,11 @@ VideoStreamDialog::~VideoStreamDialog()
     if (s)
         delete s;
     delete ui;
+}
+
+void VideoStreamDialog::showHelp()
+{
+    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/Network%20Stream%20Capture%20-%20MPEG%20TS/", QUrl::TolerantMode));
 }
 
 QString VideoStreamDialog::getUrl() {
