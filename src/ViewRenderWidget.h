@@ -184,6 +184,7 @@ public slots:
     void zoomBestFit();
     void zoomCurrentSource();
     void refresh();
+    void onCurrentSourceModified();
     void showZoom(QString s);
     void hideZoom();
     void showMessage(const QString &s, int timeout = 1000);

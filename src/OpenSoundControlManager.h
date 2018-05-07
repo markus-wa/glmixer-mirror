@@ -133,6 +133,7 @@ signals:
     void log(QString);
     void error(QString);
     void applyPreset(QString, QString);
+    void propertyChanged(QString);
 
 private:
     OpenSoundControlManager();

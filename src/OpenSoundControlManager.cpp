@@ -8,6 +8,7 @@
 #include "OscOutboundPacketStream.h"
 #include "OscReceivedElements.h"
 #include "RenderingManager.h"
+#include "SourcePropertyBrowser.h"
 #include "glmixer.h"
 #include "VideoSource.h"
 
@@ -122,9 +123,16 @@ void OpenSoundControlManager::setEnabled(bool enable, qint16 portreceive, qint16
         args.append(addresses.last());
         args.append(_portReceive);
         broadcastDatagram( OSC_REQUEST_CONNECT, args );
+
+        // transfers changes of property to property browser
+        connect(this, SIGNAL(propertyChanged(QString)), RenderingManager::getPropertyBrowserWidget(), SLOT(updateProperty(QString)), Qt::QueuedConnection );
     }
-    else
+    else {
         qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server disabled.";
+
+        // transfers changes of property to property browser
+        disconnect(this, SIGNAL(propertyChanged(QString)), RenderingManager::getPropertyBrowserWidget(), SLOT(updateProperty(QString)) );
+    }
 
 }
 
@@ -464,9 +472,9 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
             // invoke the call with given property and arguments on that source
             invoke( s, property, args);
 
-            // update current source if necessary
+            // update current source  browser if necessary
             if ( RenderingManager::getInstance()->isCurrentSource(s) )
-                RenderingManager::getInstance()->updateCurrentSource();
+                emit propertyChanged(property);
         }
     }
 }

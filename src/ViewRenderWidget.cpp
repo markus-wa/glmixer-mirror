@@ -790,12 +790,7 @@ void ViewRenderWidget::paintGL()
             if (_currentView->mouseMoveEvent( _currentCursor->getMouseMoveEvent() ))
             {
                 // the view 'mouseMoveEvent' returns true ; there was something changed!
-                if (_currentView == _mixingView)
-                    emit sourceMixingModified();
-                else if (_currentView == _geometryView)
-                    emit sourceGeometryModified();
-                else if (_currentView == _layersView)
-                    emit sourceLayerModified();
+                onCurrentSourceModified();
             }
         }
     }
@@ -817,7 +812,8 @@ void ViewRenderWidget::paintGL()
     // FPS computation
     if (++fpsCounter_ == 3)
     {
-        f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 3000.0 / float(fpsTime_.restart()) );
+//        f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 3000.0 / float(fpsTime_.restart()) );
+        f_p_s_ = 3000.0 / float(fpsTime_.restart());
 
         fpsCounter_ = 0;
 
@@ -889,6 +885,17 @@ void ViewRenderWidget::setFramerateVisible(bool on)
 
 }
 
+
+void ViewRenderWidget::onCurrentSourceModified()
+{
+    if (_currentView == _mixingView)
+        emit sourceMixingModified();
+    else if (_currentView == _geometryView)
+        emit sourceGeometryModified();
+    else if (_currentView == _layersView)
+        emit sourceLayerModified();
+}
+
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 {
     makeCurrent();
@@ -954,12 +961,7 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
         _currentCursor->update(event);
     else if (_currentView->mouseMoveEvent(event)){
         // the view 'mouseMoveEvent' returns true ; there was something changed!
-        if (_currentView == _mixingView)
-            emit sourceMixingModified();
-        else if (_currentView == _geometryView)
-            emit sourceGeometryModified();
-        else if (_currentView == _layersView)
-            emit sourceLayerModified();
+        onCurrentSourceModified();
     }
 
     // keep track of cursor when getting out of the widget during an action
@@ -1013,12 +1015,7 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
         // not used by catalog, so forward to views
         if (_currentView->mouseReleaseEvent(event)) {
             // the view 'mouseReleaseEvent' returns true ; there was something changed!
-            if (_currentView == _mixingView)
-                emit sourceMixingModified();
-            else if (_currentView == _geometryView)
-                emit sourceGeometryModified();
-            else if (_currentView == _layersView)
-                emit sourceLayerModified();
+            onCurrentSourceModified();
         }
 
     }
@@ -1042,12 +1039,7 @@ void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
 
     if (_currentView->mouseDoubleClickEvent(event)){
         // the view 'mouseDoubleClickEvent' returns true ; there was something changed!
-        if (_currentView == _mixingView)
-            emit sourceMixingModified();
-        else if (_currentView == _geometryView)
-            emit sourceGeometryModified();
-        else if (_currentView == _layersView)
-            emit sourceLayerModified();
+        onCurrentSourceModified();
     }
 
 }
@@ -1125,12 +1117,7 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
     {
         event->accept();
         // the view 'keyPressEvent' returns true ; there was something changed!
-        if (_currentView == _mixingView)
-            emit sourceMixingModified();
-        else if (_currentView == _geometryView)
-            emit sourceGeometryModified();
-        else if (_currentView == _layersView)
-            emit sourceLayerModified();
+        onCurrentSourceModified();
     }
     else
         QGLWidget::keyPressEvent(event);
@@ -1143,12 +1130,7 @@ void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
     {
         event->accept();
         // the view 'keyReleaseEvent' returns true ; there was something changed!
-        if (_currentView == _mixingView)
-            emit sourceMixingModified();
-        else if (_currentView == _geometryView)
-            emit sourceGeometryModified();
-        else if (_currentView == _layersView)
-            emit sourceLayerModified();
+        onCurrentSourceModified();
     }
     else
         QGLWidget::keyPressEvent(event);

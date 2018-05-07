@@ -720,10 +720,24 @@ void SourcePropertyBrowser::resetAll()
 }
 
 
+void SourcePropertyBrowser::updateProperty(QString name)
+{
+    SourceSet::iterator sit = RenderingManager::getInstance()->getCurrentSource();
+    if (RenderingManager::getInstance()->notAtEnd(sit)){
+        updateProperty(name, *sit);
+    }
+}
+
 void SourcePropertyBrowser::updateProperty(QString name, Source *s)
 {
     if (name.contains("Name"))
         stringManager->setValue(idToProperty["Name"], s->getName() );
+    else if ( name.contains("Geometry") ) {
+        pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
+        doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
+        pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
+        rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
+    }
     else if ( name.contains("Position") )
         pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
     else if ( name.contains("Angle"))

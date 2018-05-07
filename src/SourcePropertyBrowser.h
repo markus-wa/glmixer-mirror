@@ -47,6 +47,7 @@ public slots:
     // This is called every time we want to get information on a source
     void showProperties(Source *source);
     void showProperties(SourceSet::iterator sourceIt);
+    void updateProperty(QString name);
 
     // Update the values of the property browser for the current source
     void updateMixingProperties();
