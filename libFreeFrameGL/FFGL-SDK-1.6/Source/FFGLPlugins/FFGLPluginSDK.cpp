@@ -66,7 +66,7 @@ char* CFreeFrameGLPlugin::GetParameterDisplay(unsigned int index)
         {
             float fValue = m_pPlugin->GetFloatParameter(index);
             memset(s_DisplayValue, 0, 6);
-            sprintf(s_DisplayValue, "%5f", fValue);
+            sprintf(s_DisplayValue, "%.3f", fValue);
             return s_DisplayValue;
         }
     }

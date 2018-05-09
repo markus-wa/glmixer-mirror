@@ -812,8 +812,8 @@ void ViewRenderWidget::paintGL()
     // FPS computation
     if (++fpsCounter_ == 3)
     {
-//        f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 3000.0 / float(fpsTime_.restart()) );
-        f_p_s_ = 3000.0 / float(fpsTime_.restart());
+        f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 3000.0 / float(fpsTime_.restart()) );
+//        f_p_s_ = 3000.0 / float(fpsTime_.restart()); // debug instantaneous fps
 
         fpsCounter_ = 0;
 
