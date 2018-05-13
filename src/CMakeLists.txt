@@ -33,7 +33,9 @@ SET(GLMIXER_SRCS
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
     VideoPicture.cpp
+    VideoClock.cpp
     VideoFile.cpp
+    VideoRecorder.cpp
     ProtoSource.cpp
     Source.cpp
     CloneSource.cpp
@@ -69,7 +71,6 @@ SET(GLMIXER_SRCS
     glmixer.cpp
     glmixerdialogs.cpp
     main.cpp
-    video_rec.c
     testbuttonframe.cpp
     testwheelframe.cpp
     MixingToolboxWidget.cpp
