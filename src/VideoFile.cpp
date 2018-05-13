@@ -38,6 +38,7 @@ extern "C"
 }
 
 #include "VideoFile.moc"
+
 #include "CodecManager.h"
 
 #include <QtGui/QButtonGroup>
@@ -54,10 +55,6 @@ extern "C"
 #include <QDir>
 #include <QDate>
 
-/**
- * Get time using libav
- */
-#define GETTIME (double) av_gettime() * av_q2d(AV_TIME_BASE_Q)
 /**
  * During parsing, the thread sleep for a little
  * in case there is an error or nothing to do (ms).
@@ -79,100 +76,6 @@ int VideoFile::memory_usage_policy = DEFAULT_MEMORY_USAGE_POLICY;
 int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
 
 
-/**
- * VideoFile::Clock
- */
-
-VideoFile::Clock::Clock()  {
-    _requested_speed = -1.0;
-    _speed = 1.0;
-    _frame_base = 0.04;
-    _time_on_start = 0.0;
-    _time_on_pause = 0.0;
-    _paused = false;
-    // minimum is 50 % of time base
-    _min_frame_delay = 0.5;
-    // maximum is 200 % of time base
-    _max_frame_delay = 2.0;
-}
-
-void VideoFile::Clock::reset(double deltat, double timebase) {
-
-    // set frame base time ratio when provided
-    if (timebase > 0)
-        _frame_base = timebase;
-
-    // set new time on start
-    _time_on_start = GETTIME - ( deltat / _speed );
-
-    // trick to reset time on pause
-    _time_on_pause = _time_on_start + ( deltat / _speed );
-
-}
-
-double VideoFile::Clock::time() const {
-
-    if (_paused)
-        return (_time_on_pause - _time_on_start) * _speed;
-    else
-        return (GETTIME - _time_on_start) * _speed;
-
-}
-
-void VideoFile::Clock::pause(bool p) {
-
-    if (p)
-        _time_on_pause = GETTIME;
-    else
-        _time_on_start += GETTIME - _time_on_pause;
-
-    _paused = p;
-}
-
-bool VideoFile::Clock::paused() const {
-    return _paused;
-}
-
-double VideoFile::Clock::speed() const {
-    return _speed;
-}
-
-double VideoFile::Clock::timeBase() const {
-    return _frame_base / _speed;
-}
-
-void VideoFile::Clock::setSpeed(double s) {
-
-    // limit range
-    s = qBound(0.1, s, 10.0);
-
-    // request new speed
-    _requested_speed = s;
-}
-
-void VideoFile::Clock::applyRequestedSpeed() {
-
-    if ( _requested_speed > 0 ) {
-        // trick to reset time on pause
-        _time_on_pause = _time_on_start + ( time() / _speed );
-
-        // replace time of start to match the change in speed
-        _time_on_start = ( 1.0 - _speed / _requested_speed) * GETTIME + (_speed / _requested_speed) * _time_on_start;
-
-        // set speed
-        _speed = _requested_speed;
-        _requested_speed = -1.0;
-    }
-}
-
-
-double VideoFile::Clock::minFrameDelay() const{
-    return _min_frame_delay * timeBase();
-}
-
-double VideoFile::Clock::maxFrameDelay() const {
-    return  _max_frame_delay * timeBase();
-}
 
 void VideoFile::play(bool startorstop)
 {

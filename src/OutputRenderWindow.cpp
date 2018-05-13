@@ -229,7 +229,6 @@ void OutputRenderWidget::paintGL()
         qglColor( red );
         renderText(0, height() - labelheight / 2, label, labelfont);
     }
-
 }
 
 void OutputRenderWidget::displayRecordingLabel(bool on)
