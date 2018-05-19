@@ -44,9 +44,11 @@
 #define RECORDING_READ_PIXEL 1
 
 extern "C" {
-#include "video_rec.h"
+//#include "video_rec.h"
+#include <libavutil/frame.h>
 }
 
+#include "VideoRecorder.h"
 #include "RenderingManager.h"
 
 class EncodingThread: public QThread {
@@ -58,15 +60,20 @@ public:
     EncodingThread();
     ~EncodingThread();
 
-    void initialize(video_rec_t *recorder, int bufferCount);
+    void initialize(VideoRecorder *rec, int width, int height, unsigned long bufSize);
     void clear();
     void stop();
-    void pictq_push(int timestamp);
-    unsigned char *pictq_top();
-    bool pictq_full();
+
+    void releaseAndPushFrame(int64_t timestamp);
+    AVBufferRef *lockFrameAndGetBuffer();
+    bool frameq_full();
+
+    int getFrameWidth() const { return framewidth; }
+    int getFrameHeight() const { return frameheight; }
+    int getFrameQueueSize() const { return pictq_max_count; }
 
 signals:
-    void encodingFinished();
+    void encodingFinished(bool);
 
 protected:
 
@@ -74,7 +81,7 @@ protected:
     void run();
 
     // ref to the recorder
-    video_rec_t *rec;
+    VideoRecorder *recorder;
 
     // execution management
     bool _quit;
@@ -82,9 +89,9 @@ protected:
     QWaitCondition *pictq_cond;
 
     // picture queue management
-    unsigned char** pictq;
     int pictq_max_count, pictq_size_count, pictq_rindex, pictq_windex;
-    int *recordingTimeStamp;
+    AVFrame **frameq;
+    int framewidth, frameheight;
 };
 
 class RenderingEncoder: public QObject {
@@ -98,14 +105,13 @@ public:
     RenderingEncoder(QObject * parent = 0);
     ~RenderingEncoder();
 
-    void addFrame(unsigned char *data = 0);
+    void addFrame(uint8_t *data = 0);
 
     // preferences encoding
     void setEncodingFormat(encodingformat f);
     encodingformat encodingFormat() { return format; }
     void setUpdatePeriod(uint ms) { update=ms; }
     uint updatePeriod() { return update; }
-    void setFrameSize(QSize s) { if (!started) framesSize = s; }
     void setEncodingQuality(encodingquality q);
     encodingquality encodingQuality() { return quality; }
 
@@ -129,7 +135,7 @@ public slots:
     void setPaused(bool on);
     void saveFile(QString suffix, QString filename = QString::null);
     void saveFileAs(QString suffix, QString description);
-    void close();
+    void close(bool success);
     void kill();
 
     void setBufferSize(unsigned long bytes);
@@ -156,16 +162,15 @@ private:
     QTime timer;
     int elapsed_time;
     int skipframecount;
+    QString errormessage;
 
-    // encoder
-    QSize framesSize;
+    // encoder & recorder
     EncodingThread *encoder;
+    VideoRecorder *recorder;
 
     uint update, displayupdate;
     encodingformat format;
     encodingquality quality;
-    video_rec_t *recorder;
-    char errormessage[256];
     unsigned long bufferSize;
 };
 

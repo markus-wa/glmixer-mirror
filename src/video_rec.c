@@ -279,7 +279,8 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context->width = width;
     rec->enc->codec_context->height = height;
     rec->enc->codec_context->flags = CODEC_FLAG_GLOBAL_HEADER;
-    rec->enc->codec_context->time_base = (AVRational){1, fps};
+    rec->enc->codec_context->time_base = av_make_q(1, fps);
+//    rec->enc->codec_context->time_base = (AVRational){1, fps};
     rec->enc->codec_context->gop_size = fps / 2;
 
     // multithreaded encoding is much faster

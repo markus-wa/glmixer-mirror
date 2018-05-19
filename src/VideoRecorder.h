@@ -7,8 +7,17 @@ extern "C" {
 #include <libavfilter/avfilter.h>
 }
 
-#include <QObject>
+#include "defines.h"
+#include <QString>
 
+class VideoRecorderException : public AllocationException {
+    QString text;
+public:
+    VideoRecorderException(QString t) : AllocationException(), text(t) {}
+    virtual QString message() { return QString("Error Recording video : %1").arg(text); }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new VideoRecorderException(*this); }
+};
 
 typedef enum {
     FORMAT_AVI_RAW = 0,
@@ -28,44 +37,105 @@ typedef enum {
 } encodingquality;
 
 
-class VideoRecorder : public QObject
+class VideoRecorder
 {
-    Q_OBJECT
+
 public:
-    explicit VideoRecorder(QObject *parent = nullptr);
 
-    // get writable buffer reference (access data and size for writing in)
-    AVBufferRef *getTopFrameBuffer();
-    void pushFrame( int64_t pts );
+    static VideoRecorder *getRecorder(encodingformat f, QString filename, int w, int h, int fps, encodingquality quality);
+    virtual ~VideoRecorder();
 
-signals:
+    QString getSuffix() const { return suffix; }
+    QString getDescription() const { return description; }
+    int getFrameRate() const { return frameRate; }
+    QString getFilename() const { return fileName; }
 
-public slots:
+    // Open the encoder and file for recording
+    // Return true on success
+    bool open();
 
-private:
+    // Closes the encoder and file
+    // Return number of frames recorded
+    int close();
+
+    // Record one frame
+    void addFrame(AVFrame *frame);
+
+
+protected:
+    VideoRecorder(QString filename, int w, int h, int fps );
+
+    int estimateGroupOfPictureSize();
+    void setupContext(QString formatname);
+    void setupFiltering();
+
+    // properties
+    QString fileName;
     int width;
     int height;
-    int fps;
+    int frameRate;
     int framenum;
-    long int previous_dts;
 
-    // file formats
-    char suffix[6];
-    char description[64];
-    encodingformat format;
-    encodingquality quality;
+    // format specific
+    QString suffix;
+    QString description;
+    enum AVPixelFormat targetFormat;
+    enum AVCodecID codecId;
 
     // encoding structures
-    AVFormatContext *pFormatCtx;
-    AVCodecContext *video_enc;
+    AVFormatContext *format_context;
+    AVCodecContext *codec_context;
     AVStream *video_stream;
+    AVCodec *codec;
+    AVFrame *frame;
 
     // frame conversion
-    enum AVPixelFormat targetFormat;
     AVFilterContext *in_video_filter;
     AVFilterContext *out_video_filter;
     AVFilterGraph *graph;
 
+};
+
+class VideoRecorderMP4 : public VideoRecorder
+{
+public:
+    VideoRecorderMP4(QString filename, int w, int h, int fps, encodingquality quality);
+};
+
+class VideoRecorderFFVHUFF : public VideoRecorder
+{
+public:
+    VideoRecorderFFVHUFF(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderRAW : public VideoRecorder
+{
+public:
+    VideoRecorderRAW(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderMPEG1 : public VideoRecorder
+{
+public:
+    VideoRecorderMPEG1(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderMPEG2 : public VideoRecorder
+{
+public:
+    VideoRecorderMPEG2(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderWMV : public VideoRecorder
+{
+public:
+    VideoRecorderWMV(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderFLV : public VideoRecorder
+{
+public:
+    VideoRecorderFLV(QString filename, int w, int h, int fps);
 };
 
 #endif // VIDEORECORDER_H

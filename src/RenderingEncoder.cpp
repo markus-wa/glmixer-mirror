@@ -38,14 +38,10 @@
 #include <QGLFramebufferObject>
 #include <QThread>
 
-#ifdef Q_OS_UNIX
-#include <sys/mman.h>
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
-#endif
-#endif
 
-EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), pictq_max_count(0), pictq_size_count(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
+EncodingThread::EncodingThread() : QThread(), recorder(NULL), _quit(true), //pictq(0),
+    pictq_max_count(0), pictq_size_count(0), pictq_rindex(0), pictq_windex(0),
+    frameq(NULL), framewidth(0), frameheight(0) //, recordingTimeStamp(0)
 {
     // create mutex
     pictq_mutex = new QMutex;
@@ -56,108 +52,119 @@ EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), 
 
 EncodingThread::~EncodingThread()
 {
+    clear();
+
     delete pictq_mutex;
     delete pictq_cond;
 
-    qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Done.");
-
+  //  qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Done.");
 }
 
-void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
-    rec = recorder;
+void EncodingThread::initialize(VideoRecorder *rec, int width, int height, unsigned long bufSize)
+
+{
+    // clear buffer in case its a re-initialization
+    clear();
+
+    // set recorder
+    recorder = rec;
+
+    // set frames
+    framewidth = width;
+    frameheight = height;
+
+    // compute buffer count from size of buffer over the size of RGB images
     // store buffer count as maximum buffer size
-    pictq_max_count = bufferCount;
-    // allocate &  initialize arrays to zero
-    pictq = (unsigned char **) calloc( bufferCount, sizeof(unsigned char *) );
-    recordingTimeStamp = (int *) calloc( bufferCount, sizeof(int) );
+    pictq_max_count = (int) ( (long double) bufSize / (long double) (width * height * 3) );
+
     // init variables
     pictq_size_count = pictq_rindex = pictq_windex = 0;
+
+    // allocate & initialize array to zero
+    frameq = (AVFrame **) calloc( pictq_max_count, sizeof(AVFrame *) );
 }
 
 void EncodingThread::clear() {
 
-    stop();
-
     // free picture queue array
     int freedmemory = 0;
-    if (pictq) {
+    if (frameq) {
         // free buffer
         for (int i = 0; i < pictq_max_count; ++i) {
-            if (pictq[i]) {
-#ifdef Q_OS_UNIX
-                munmap(pictq[i], rec->width * rec->height * 4);
-#else
-                free(pictq[i]);
-#endif
-                pictq[i] = 0;
-                freedmemory += 1;
+            if (frameq[i]) {
+                av_frame_free( &frameq[i]);
+                freedmemory++;
             }
+
         }
         // free pictq array
-        free(pictq);
-        pictq = 0;
+        free(frameq);
+        frameq = NULL;
+
+        qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Buffer cleared (%1 frames).").arg(freedmemory);
     }
 
-    // free recordingTimeStamp array
-    if (recordingTimeStamp)
-        free(recordingTimeStamp);
-    recordingTimeStamp = 0;
-    rec = 0;
-
-    qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Buffer cleared (%1 frames).").arg(freedmemory);
-
+    recorder = NULL;
 }
 
 void EncodingThread::stop() {
 
-    if (_quit || !pictq)
-        return;
     // end thread
     _quit = true;
 
 }
 
-void EncodingThread::pictq_push(int timestamp){
-
+void EncodingThread::releaseAndPushFrame(int64_t timestamp)
+{
     // store time stamp
-    recordingTimeStamp[pictq_windex] = timestamp;
+//    frameq[pictq_windex]->pts = timestamp;
 
     // set to write index to next in queue
     if (++pictq_windex == pictq_max_count)
         pictq_windex = 0;
+
     /* now we inform our encoding thread that we have a picture ready */
     //        pictq_mutex->lock(); // was locked in pictq_top
     pictq_size_count++;
     pictq_mutex->unlock();
 }
 
-unsigned char *EncodingThread::pictq_top() {
+AVBufferRef *EncodingThread::lockFrameAndGetBuffer()
+{
     // wait until we have space for a new picture
     // (this happens only when the queue is full)
     pictq_mutex->lock();
-
-    while ( pictq_full() && !_quit)
+    while ( frameq_full() && !_quit)
         pictq_cond->wait(pictq_mutex); // the condition is released in run()
-    //		pictq_mutex->unlock();  // will be unlocked in pictq_push
 
-    // if not already done, allocate for images in 4 bits RBGA
-    if (pictq[pictq_windex] == 0)
-#ifdef Q_OS_UNIX
-        pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#else
-        pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
-#endif
+    // allocate frame if not already done
+    if (frameq[pictq_windex] == 0) {
 
-    // Fill the queue with the given picture
-    return pictq[pictq_windex];
+        // allocate and setup frame
+        frameq[pictq_windex] = av_frame_alloc();
+        frameq[pictq_windex]->format = AV_PIX_FMT_RGB24;
+        frameq[pictq_windex]->width  = framewidth;
+        frameq[pictq_windex]->height = frameheight;
+
+        // allocate buffer
+        av_frame_get_buffer(frameq[pictq_windex], 24);
+        av_frame_make_writable(frameq[pictq_windex]);
+
+    }
+
+    // return ref to buffer of frame
+    return av_frame_get_plane_buffer(frameq[pictq_windex], 0);
 }
 
-bool EncodingThread::pictq_full() {
+bool EncodingThread::frameq_full() {
     return (pictq_size_count >= (pictq_max_count - 1));
 }
 
 
 void EncodingThread::run() {
+
+    if (!recorder)
+        return;
 
     // prepare
     _quit = false;
@@ -174,8 +181,13 @@ void EncodingThread::run() {
 
         } else {
 
-            // record the picture to encode by calling the function specified in the recorder
-            (*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex], recordingTimeStamp[pictq_rindex]);
+            try {
+                recorder->addFrame(frameq[pictq_rindex]);
+            }
+            catch (VideoRecorderException &e){
+                qWarning() << "EncodingThread" << QChar(124).toLatin1() << e.message();
+                break;
+            }
 
             /* update queue for next picture at the read index */
             if (++pictq_rindex == pictq_max_count)
@@ -202,9 +214,17 @@ void EncodingThread::run() {
             msleep( 3 );
     }
 
-    emit encodingFinished();
+    // inform Rendering Encoder that the process is over (call close())
+    emit encodingFinished(_quit);
 
-    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding finished (%1 % of buffer was used, %2 % was really necessary).").arg((int) (100.f * (float)pictq_usage/(float)pictq_max_count)).arg((int) (100.f * (float)picq_size_usage/(float)pictq_max_count));
+    // normal exit
+    if (_quit)
+    {
+        qDebug() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding finished (%1 % of buffer was used, %2 % was really necessary).").arg((int) (100.f * (float)pictq_usage/(float)pictq_max_count)).arg((int) (100.f * (float)picq_size_usage/(float)pictq_max_count));
+    }
+    else
+        qWarning() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding interrupted.");
+
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapsed_time(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
@@ -218,21 +238,17 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
     savingFolder =  QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
     temporaryFolder = "";
     setAutomaticSavingMode(false);
-    // encoder not created yet
+    // encoder & recorder not created yet
     encoder = NULL;
+    recorder = NULL;
 }
 
 RenderingEncoder::~RenderingEncoder() {
 
-    if (encoder) {
-
-        disconnect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
-        encoder->clear();
+    if (encoder)
         delete encoder;
-        encoder = NULL;
 
-        qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "All clear.";
-    }
+    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "All clear.";
 }
 
 void RenderingEncoder::setEncodingFormat(encodingformat f){
@@ -263,11 +279,21 @@ void RenderingEncoder::setActive(bool on)
             encoder = new EncodingThread();
             Q_CHECK_PTR(encoder);
             // connect encoder end to closing slot
-            connect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
+            connect(encoder, SIGNAL(encodingFinished(bool)), this, SLOT(close(bool)));
             connect(encoder, SIGNAL(finished()), encoder, SLOT(deleteLater()));
 
-            if (!start())
-                qCritical() << tr("Error starting video recording; ") << errormessage;
+            // start encoding thread
+            started = start();
+            if (started) {
+                // inform about starting of recording
+                emit selectAspectRatio(RenderingManager::getInstance()->getRenderingAspectRatio());
+                emit status(tr("Recording.."), 2000);
+
+                // log
+                qDebug() << recorder->getFilename() << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps, buffer of %3 frames in %4 ).").arg(recorder->getSuffix()).arg(recorder->getFrameRate()).arg(encoder->getFrameQueueSize()).arg(getByteSizeString(bufferSize));
+            }
+            else
+                qCritical() << tr("Recording aborted. ") << errormessage;
         }
         emit activated(started);
         emit timing( "" );
@@ -279,7 +305,7 @@ void RenderingEncoder::setActive(bool on)
             encoder->stop();
             // stop recording
             started = false;
-            // inform its still processing
+            // inform GUI the encoder is still processing
             emit processing(true);
         }
         // restore rendering fps
@@ -318,10 +344,15 @@ void RenderingEncoder::setPaused(bool on)
 // - Create the temporary file
 bool RenderingEncoder::start(){
 
+    // prevent re-start
     if (started) {
-        QByteArray(errormessage, 256) = "Already recording.";
+        errormessage = "Already recording.";
         return false;
     }
+
+    // init
+    skipframecount = 0;
+    errormessage.clear();
 
     // if the temporary file already exists, delete it.
     if (temporaryFolder.exists(temporaryFileName)){
@@ -329,73 +360,64 @@ bool RenderingEncoder::start(){
     }
 
     // compute desired update frequency
-    int freq = (int) ( 1000.0 / double(update) );
-
-    // adjust update to match the fps
-    update = (int) ( 1000.0 / double(freq));
+    int desired_fps = (int) ( 1000.0 / double(update) );
 
     // read current frame rate
     int fps = RenderingManager::getRenderingWidget()->getFramerate();
 
     // show warning if frame rate is already too low
-    if ( fps <  (freq-2) ) {
+    if ( fps <  (desired_fps-2) ) {
          QMessageBox msgBox;
          msgBox.setIcon(QMessageBox::Question);
-         msgBox.setText(tr("Rendering frequency is lower than the recording %1 fps.").arg(freq));
+         msgBox.setText(tr("Rendering frequency is lower than the recording %1 fps.").arg(desired_fps));
          msgBox.setInformativeText(tr("Do you still want to record at %1 fps ?").arg(fps));
          msgBox.setDetailedText( tr("The rendering is currently at %1 fps on average, but your recording preferences are set to %2 fps.\n\n"
                  "You can either agree to record at this lower frame rate, or retry later after some optimizations:\n"
                  "- select a lower quality in your rendering preferences\n"
                  "- lower the resolution of some sources\n"
-                 "- remove some sources\n").arg(fps).arg(freq) );
+                 "- remove some sources\n").arg(fps).arg(desired_fps) );
 
          QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
          msgBox.addButton(tr("Record at lower frequency"), QMessageBox::AcceptRole);
          msgBox.exec();
          if (msgBox.clickedButton() == abortButton) {
-             QByteArray(errormessage, 256) = "Recording aborted.";
+             errormessage = "Recording aborted.";
              return false;
          }
          // Continue anyway : set the recoding frequency to be at the fps of the rendering
-         freq = fps;
+         desired_fps = fps;
     }
 
     // remember current update display period
     displayupdate = glRenderWidget::updatePeriod();
 
     // setup new display update period to match recording update
-    glRenderWidget::setUpdatePeriod( update );
+    // adjust update to match the fps
+    glRenderWidget::setUpdatePeriod( (int) ( 1000.0 / double(desired_fps)) );
 
     // initialization of ffmpeg recorder
-    recorder = video_rec_init(qPrintable(temporaryFolder.absoluteFilePath(temporaryFileName)), format, framesSize.width(), framesSize.height(), freq, quality, errormessage);
-    if (recorder == NULL) {
-        QByteArray(errormessage, 256) = "Failed to initialize recorder.";
+    QString filename = temporaryFolder.absoluteFilePath(temporaryFileName);
+    QSize framesSize = RenderingManager::getInstance()->getFrameBufferResolution();
+    try {
+        // allocate recorder
+        recorder = VideoRecorder::getRecorder(format, filename, framesSize.width(), framesSize.height(), desired_fps, quality);
+        // open recorder
+        recorder->open();
+    }
+    catch (VideoRecorderException &e){
+        recorder = NULL;
+        errormessage = QString("Failed to initiate recoding. %1").arg(e.message());
         return false;
     }
 
-    // init
-    skipframecount = 0;
-
-    // compute buffer count from size
-    int bufCount = (int) ( (long double) bufferSize / (long double) (framesSize.width() * framesSize.height() * 4) );
-
     // initialize encoder
-    encoder->initialize(recorder, bufCount);
-
-    // inform about starting of recording
-    emit selectAspectRatio(RenderingManager::getInstance()->getRenderingAspectRatio());
-    emit status(tr("Recording.."), 2000);
-
-    // set status
-    started = true;
-
-    // start the timers and the encoding thread
+    encoder->initialize(recorder, framesSize.width(), framesSize.height(), bufferSize);
+    // start the encoding thread
     encoder->start();
+
+    // start the timers
     elapsed_time = 0;
     timer.start();
-
-    // log
-    qDebug() << temporaryFolder.absoluteFilePath(temporaryFileName) << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps, buffer of %3 frames in %4 ).").arg(recorder->suffix).arg(freq).arg(bufCount).arg(getByteSizeString(bufferSize));
 
     return true;
 }
@@ -411,13 +433,13 @@ int RenderingEncoder::getRecodingTime() {
 // This function is called with the rendering context active
 // by the update method in the ViewRenderWidget
 // it *should* be called at the desired frame rate
-void RenderingEncoder::addFrame(unsigned char *data){
+void RenderingEncoder::addFrame(uint8_t *data){
 
     if (!started || paused || recorder == NULL)
         return;
 
     // if the recorder cannot follow
-    if ( encoder->pictq_full() )
+    if ( encoder->frameq_full() )
     {
         // remember amount of skipped frames
         skipframecount++;
@@ -426,22 +448,31 @@ void RenderingEncoder::addFrame(unsigned char *data){
         return;
     }
 
+    // lock access to frame and get buffer
+    // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
+    AVBufferRef *buf = encoder->lockFrameAndGetBuffer();
+
+    if (!buf) {
+        // remember amount of skipped frames
+        skipframecount++;
+        return;
+    }
+
     if (data) {
         // read the pixels from the given buffer and store into the temporary buffer queue
-        // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
-        memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
+        memmove( buf->data, data, qMin( buf->size, encoder->getFrameWidth() * encoder->getFrameHeight() * 3) );
 
     } else
 #ifdef RECORDING_READ_PIXEL
         // ReadPixel of _fbo
-        glReadPixels(0, 0, recorder->width, recorder->height, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
+        glReadPixels(0, 0, encoder->getFrameWidth(), encoder->getFrameHeight(), GL_RGB, GL_UNSIGNED_BYTE, buf->data);
 #else
         // read the pixels from the texture
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buf->data);
 #endif
 
     // inform the thread that a picture was pushed into the queue
-    encoder->pictq_push( elapsed_time );
+    encoder->releaseAndPushFrame( elapsed_time );
 
     // elapsed time
     elapsed_time += timer.restart();
@@ -459,14 +490,24 @@ void RenderingEncoder::kill(){
 }
 
 // Close the encoding process
-void RenderingEncoder::close(){
+void RenderingEncoder::close(bool success){
+
+    // temporarily store information for log
+    int framecount = 0;
+    int fps = recorder->getFrameRate();
+    QString filename = recorder->getFilename();
+    QString suffix_file = recorder->getSuffix();
+    QString description_file = recorder->getDescription();
+    QString duration = getStringFromTime( (double) elapsed_time / 1000.0 );
 
     // stop recorder
-    int framecount = video_rec_stop(recorder);
-
-    // log
-    QString duration = getStringFromTime( (double) elapsed_time / 1000.0 );
-    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording finished (%1 frames in %2).").arg(framecount).arg(duration);
+    try {
+        framecount = recorder->close();
+    }
+    catch (VideoRecorderException &e){
+        errormessage = tr("Error closing recording. %1").arg(e.message());
+        success = false;
+    }
 
     // inform we are off
     started = false;
@@ -474,56 +515,65 @@ void RenderingEncoder::close(){
     emit activated(false);
     emit timing( "" );
 
-    // free encoder and stop all
-    encoder->clear();
+    // encoder is automatically deleted
+//    encoder->clear();
     encoder = NULL;
 
     // free recorder
-    int fps = recorder->fps;
-    QString suffix_file = recorder->suffix;
-    QString description_file = recorder->description;
-    video_rec_free(recorder);
+    delete recorder;
     recorder = NULL;
 
+    // inform GUI that processing is over
     emit processing(false);
 
-    // show warning if too many frames were bad
-    bool savefile = true;
-    float percent = float(skipframecount) / float(framecount + skipframecount);
-    if ( percent > 0.05f  ) {
+    // If there was no error
+    if (success) {
 
-         QMessageBox msgBox;
-         msgBox.setIcon(QMessageBox::Warning);
-         msgBox.setText(tr("A movie has been recorded, but your system couldn't record at %2 fps and %1 % of the frames were lost.").arg( 100.f * percent ).arg(fps));
-         msgBox.setInformativeText(tr("Do you still want to save it ?"));
-         msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
-                 "Playback of the movie might be jerky.\n"
-                 "To avoid this, change the preferences to:\n"
-                 " - another rendering resolution\n"
-                 " - a lower recording frame rate\n"
-                 " - a larger recording buffer size\n"
-                 " - another recording codec").arg(framecount).arg(framecount + skipframecount));
+        // Log
+        qDebug() << filename << QChar(124).toLatin1() << tr("Recording finished (%1 frames in %2).").arg(framecount).arg(duration);
 
-         QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
-         msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);
+        // show warning if too many frames were bad
+        bool savefile = true;
+        float percent = float(skipframecount) / float(framecount + skipframecount);
+        if ( percent > 0.05f  ) {
 
-         // display dialog warning
-         msgBox.exec();
-         if (msgBox.clickedButton() == abortButton) {
-             savefile = false;
-         }
-    }
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText(tr("A movie has been recorded, but your system couldn't record at %2 fps and %1 % of the frames were lost.").arg( 100.f * percent ).arg(fps));
+            msgBox.setInformativeText(tr("Do you still want to save it ?"));
+            msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
+                                       "Playback of the movie might be jerky.\n"
+                                       "To avoid this, change the preferences to:\n"
+                                       " - another rendering resolution\n"
+                                       " - a lower recording frame rate\n"
+                                       " - a larger recording buffer size\n"
+                                       " - another recording codec").arg(framecount).arg(framecount + skipframecount));
 
-    // save file
-    if (savefile) {
-        if (automaticSaving)
-            saveFile(suffix_file);
+            QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
+            msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);
+
+            // display dialog warning
+            msgBox.exec();
+            if (msgBox.clickedButton() == abortButton) {
+                savefile = false;
+            }
+        }
+
+        // save file
+        if (savefile) {
+            if (automaticSaving)
+                saveFile(suffix_file);
+            else
+                saveFileAs(suffix_file, description_file);
+        }
         else
-            saveFileAs(suffix_file, description_file);
-    }
-    else
-        qDebug() << tr("Recording not saved.");
+            qDebug() << tr("Recording not saved.");
 
+    }
+    else {
+        // Log
+        qCritical() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording failed. %1").arg(errormessage);
+    }
 
 }
 
@@ -580,9 +630,7 @@ void RenderingEncoder::saveFileAs(QString suffix, QString description){
     QString suggestion = QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
     QString newFileName = GLMixer::getInstance()->getFileName(tr("Save recorded video"),
-                                                              description,
-                                                              suffix,
-                                                              suggestion);
+                                                              description, suffix, suggestion);
     // if we got a filename, save the file:
     if (!newFileName.isEmpty()) {
 
