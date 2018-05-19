@@ -1078,37 +1078,37 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <item>
                    <property name="text">
-                    <string notr="true">AVI       (RAW video)</string>
+                    <string notr="true">RAW video (avi)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">AVI       (FFVHUFF)</string>
+                    <string notr="true">FFVHUFF (avi)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MPG   (MPEG1)</string>
+                    <string notr="true">MPEG1 (mpg DVD)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MPG   (MPEG2)</string>
+                    <string notr="true">MPEG2 (mpg HDV)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MP4    (MPEG4)</string>
+                    <string notr="true">MPEG4 (mp4)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">WMV   (Windows Media Video 8)</string>
+                    <string notr="true">Windows Media Video 8 (wmv)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">FLV      (Flash Video FLV1)</string>
+                    <string notr="true">Flash Video (flv)</string>
                    </property>
                   </item>
                  </widget>
@@ -1179,7 +1179,7 @@ p, li { white-space: pre-wrap; }
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_30">
                   <property name="text">
-                   <string>Compression</string>
+                   <string>Quality</string>
                   </property>
                  </widget>
                 </item>
@@ -1190,12 +1190,12 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <item>
                    <property name="text">
-                    <string>Auto (optimal quality)</string>
+                    <string>Auto</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string>High (low quality)</string>
+                    <string>Low (DVD)</string>
                    </property>
                   </item>
                   <item>
@@ -1205,7 +1205,7 @@ p, li { white-space: pre-wrap; }
                   </item>
                   <item>
                    <property name="text">
-                    <string>Low (high quality)</string>
+                    <string>High (HDV)</string>
                    </property>
                   </item>
                  </widget>
@@ -1222,7 +1222,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* RAW and FFUV are loosless (produce large files).&lt;br&gt;* Others are compressed and standard. &lt;br&gt;* MPEG4 is recommended and allows selecting compression level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* RAW and FFUV are loosless (produce large files).&lt;br/&gt;* Others are compressed and standard. &lt;br/&gt;* MPEG4 is recommended and allows selecting quality level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>

@@ -91,8 +91,12 @@ VideoRecorder::~VideoRecorder()
     if (graph)
         avfilter_graph_free(&graph);
 
-    if (frame)
+    if (frame) {
+        av_frame_unref(frame);
         av_frame_free(&frame);
+    }
+
+    qDebug() << "VideoRecorder" << QChar(124).toLatin1() << "cleared.";
 }
 
 VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
@@ -106,22 +110,24 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
     // allocate context
     setupContext("mp4");
 
-    // fill bit rate
+    // default bit rate
     int64_t br = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * (frameRate));
-    codec_context->rc_max_rate = br;
 
-    // 24 Mbit/s max – AVCHD (using MPEG4 AVC compression)
-    codec_context->bit_rate = FFMIN(codec_context->rc_max_rate, 24000000);;
+    // MAX 24 Mbit/s max – AVCHD (using MPEG4 AVC compression)
+    codec_context->bit_rate = FFMIN(br, 24000000);;
 
     if (quality != QUALITY_AUTO) {
 
-        // set a max bit rate
+        // not auto : set max rate and buffer
+        codec_context->rc_max_rate = br;
+
+        // set bit rate
         switch (quality) {
         case QUALITY_LOW:
             codec_context->bit_rate = codec_context->rc_max_rate / 100;
             break;
         case QUALITY_MEDIUM:
-            codec_context->bit_rate = codec_context->rc_max_rate / 10;
+            codec_context->bit_rate = codec_context->rc_max_rate / 40;
             break;
         case QUALITY_HIGH:
             codec_context->bit_rate = codec_context->rc_max_rate;
@@ -139,9 +145,8 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
             codec_context->rc_buffer_size = 40;
         codec_context->rc_buffer_size *= 16384;
 
+        codec_context->bit_rate_tolerance = codec_context->bit_rate;
     }
-
-    codec_context->bit_rate_tolerance = codec_context->bit_rate;
 
     // OPTIONNAL
     codec_context->thread_count  = 2;
@@ -223,7 +228,7 @@ VideoRecorderMPEG1::VideoRecorderMPEG1(QString filename, int w, int h, int fps) 
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate <<"bit/s "<<props->buffer_size <<" bytes buffer)";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
 }
 
 VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -262,7 +267,7 @@ VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) 
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate <<"bit/s "<<props->buffer_size <<" bytes buffer)";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
 }
 
 VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -276,14 +281,16 @@ VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : Vi
     // allocate context
     setupContext("avi");
 
-    // bit_rate is measured in units of 400 bits/second, rounded upwards
-    codec_context->bit_rate = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * (frameRate+1)) / 4;
+    // bit_rate, maxi 25 Mbits/s
+    codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
 
     // OPTIONNAL
     codec_context->thread_count = 2;
 
     // needs filtering
     setupFiltering();
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << codec_context->bit_rate / 1024 <<" kbit/s )";
 }
 
 VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -297,14 +304,16 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
     // allocate context
     setupContext("flv");
 
-    // bit_rate is measured in units of 400 bits/second, rounded upwards
-    codec_context->bit_rate = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * (frameRate+1)) / 400;
+    // bit_rate, maxi 25 Mbits/s
+    codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
 
     // OPTIONNAL
     codec_context->thread_count = 2;
 
     // needs filtering
     setupFiltering();
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << codec_context->bit_rate / 1024 <<" kbit/s )";
 }
 
 void VideoRecorder::addFrame(AVFrame *f)
@@ -371,6 +380,9 @@ void VideoRecorder::addFrame(AVFrame *f)
 
     // one more frame !
     framenum++;
+
+    // free buffer
+    av_frame_unref(frame);
 }
 
 bool VideoRecorder::open()

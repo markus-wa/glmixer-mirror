@@ -92,7 +92,8 @@ void EncodingThread::clear() {
         // free buffer
         for (int i = 0; i < pictq_max_count; ++i) {
             if (frameq[i]) {
-                av_frame_free( &frameq[i]);
+                av_frame_unref(frameq[i]);
+                av_frame_free(&frameq[i]);
                 freedmemory++;
             }
 
@@ -147,12 +148,11 @@ AVBufferRef *EncodingThread::lockFrameAndGetBuffer()
         frameq[pictq_windex]->height = frameheight;
 
         // allocate buffer
-        av_frame_get_buffer(frameq[pictq_windex], 24);
         av_frame_make_writable(frameq[pictq_windex]);
-
     }
 
     // return ref to buffer of frame
+    av_frame_get_buffer(frameq[pictq_windex], 24);
     return av_frame_get_plane_buffer(frameq[pictq_windex], 0);
 }
 
@@ -183,6 +183,8 @@ void EncodingThread::run() {
 
             try {
                 recorder->addFrame(frameq[pictq_rindex]);
+
+                av_frame_unref(frameq[pictq_rindex]);
             }
             catch (VideoRecorderException &e){
                 qWarning() << "EncodingThread" << QChar(124).toLatin1() << e.message();
