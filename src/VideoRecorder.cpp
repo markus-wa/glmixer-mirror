@@ -21,6 +21,18 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
 
     switch (f){
 
+    case FORMAT_MP4_MPEG4:
+        rec = new VideoRecorderMP4(filename, w, h, fps, quality);
+        break;
+
+    case FORMAT_MP4_H264:
+        rec = new VideoRecorderH264(filename, w, h, fps, quality);
+        break;
+
+    case FORMAT_MPG_MPEG2:
+        rec = new VideoRecorderMPEG2(filename, w, h, fps);
+        break;
+
     case FORMAT_MPG_MPEG1:
         rec = new VideoRecorderMPEG1(filename, w, h, fps);
         break;
@@ -33,14 +45,6 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         rec = new VideoRecorderFLV(filename, w, h, fps);
         break;
 
-    case FORMAT_MP4_MPEG4:
-        rec = new VideoRecorderMP4(filename, w, h, fps, quality);
-        break;
-
-    case FORMAT_MPG_MPEG2:
-        rec = new VideoRecorderMPEG2(filename, w, h, fps);
-        break;
-
     case FORMAT_AVI_FFVHUFF:
         rec = new VideoRecorderFFVHUFF(filename, w, h, fps);
         break;
@@ -50,7 +54,7 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         break;
 
     default:
-        VideoRecorderException("Unknown encoding format.").raise();
+        VideoRecorderException("Encoding format not supported.").raise();
     }
 
     return rec;
@@ -71,6 +75,7 @@ VideoRecorder::VideoRecorder(QString filename, int w, int h, int fps) : fileName
     in_video_filter = NULL;
     out_video_filter = NULL;
     graph = NULL;
+    opts = NULL;
 
     targetFormat = AV_PIX_FMT_NONE;
     codecId = AV_CODEC_ID_NONE;
@@ -154,6 +159,66 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
     setupFiltering();
 
     qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, "<<codec_context->rc_max_rate / 1024 <<" kbit/s max, VBV " << codec_context->rc_buffer_size/8192 << "kbyte)";
+}
+
+VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
+{
+    // specifics for this recorder
+    suffix = "mp4";
+    description = "MP4 Video (*.mp4)";
+    codecId = AV_CODEC_ID_H264;
+    targetFormat = AV_PIX_FMT_YUV420P;
+
+    // allocate context
+    setupContext("mp4");
+
+    // select variable bit rate quality factor
+    int vbr = 54;   // default to 54% quality, default crf 23
+    switch (quality) {
+    case QUALITY_LOW:
+        vbr = 40;;  // crf 30 : quite ugly but not that bad
+        break;
+    case QUALITY_MEDIUM:
+        vbr = 64;;  // crf 18 : 'visually' lossless
+        break;
+    case QUALITY_HIGH:
+        vbr = 90;   // crf 5 : almost lossless
+        break;
+    }
+
+    // configure encoder & quality
+    av_dict_set(&opts, "preset", "ultrafast", 0);
+    av_dict_set(&opts, "tune", "zerolatency", 0);
+    if ((strcmp(codec->name, "h264_omx") == 0) || (strcmp(codec->name, "mpeg4_omx") == 0)) {
+        // H264 OMX encoder quality can only be controlled via bit_rate
+        vbr = (width * height * fps * vbr) >> 7;
+        // Clip bit rate to min
+        if (vbr < 4000) // magic number
+            vbr = 4000;
+        codec_context->profile = FF_PROFILE_H264_HIGH;
+        codec_context->bit_rate = vbr;
+    }
+    else {
+        // Control other H264 encoders quality via CRF
+        // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
+        // and 51 is terrible quality. A sane range is 18-26, and the default is 23.
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", vbr);
+        av_dict_set(&opts, "crf", crf, 0);
+    }
+
+    // OPTIONNAL
+    codec_context->thread_count  = 2;
+
+    setupFiltering();
+
+    char *buffer = NULL;
+    av_dict_get_string(opts, &buffer, '=', ',');
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+
+    av_freep(&buffer);
 }
 
 VideoRecorderFFVHUFF::VideoRecorderFFVHUFF(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -394,9 +459,13 @@ bool VideoRecorder::open()
         VideoRecorderException("cannot open recording without format context.").raise();
 
     // open codec context
-    retcd = avcodec_open2(codec_context, codec, NULL) ;
+    retcd = avcodec_open2(codec_context, codec, &opts) ;
     if (retcd < 0)
         VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+
+    // done with options
+    av_dict_free(&opts);
+    opts = NULL;
 
     retcd = avcodec_parameters_from_context( video_stream->codecpar, codec_context) ;
     if (retcd < 0)
@@ -438,12 +507,13 @@ int VideoRecorder::close()
 
 int VideoRecorder::estimateGroupOfPictureSize()
 {
-    if (frameRate <= 5){
-        return 1;
-    } else if (frameRate > 30){
-        return 15;
+    // see http://www2.acti.com/download_file/Product/support/DesignSpec_Note_GOP_20091120.pdf
+    if (frameRate < 5){
+        return 24;
+    } else if (frameRate < 15 ){
+        return 60;
     } else {
-        return (frameRate / 2);
+        return frameRate * 4;
     }
 }
 

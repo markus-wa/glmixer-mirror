@@ -148,11 +148,11 @@ AVBufferRef *EncodingThread::lockFrameAndGetBuffer()
         frameq[pictq_windex]->height = frameheight;
 
         // allocate buffer
+        av_frame_get_buffer(frameq[pictq_windex], 24);
         av_frame_make_writable(frameq[pictq_windex]);
     }
 
     // return ref to buffer of frame
-    av_frame_get_buffer(frameq[pictq_windex], 24);
     return av_frame_get_plane_buffer(frameq[pictq_windex], 0);
 }
 
@@ -183,8 +183,6 @@ void EncodingThread::run() {
 
             try {
                 recorder->addFrame(frameq[pictq_rindex]);
-
-                av_frame_unref(frameq[pictq_rindex]);
             }
             catch (VideoRecorderException &e){
                 qWarning() << "EncodingThread" << QChar(124).toLatin1() << e.message();
@@ -661,7 +659,7 @@ unsigned long RenderingEncoder::getBufferSize() {
 
 unsigned long RenderingEncoder::computeBufferSize(int percent) {
 
-    long double p = (double) CLAMP(percent, 0, 99) / 100.0;
+    long double p = (double) CLAMP(percent, 0, 100) / 100.0;
     unsigned long megabytes = MIN_RECORDING_BUFFER_SIZE;
     megabytes += (unsigned long) ( p * (long double)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE));
 

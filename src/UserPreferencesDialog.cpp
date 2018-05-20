@@ -143,13 +143,13 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         fullscreenMonitor->setCurrentIndex(0);
         outputSkippedFrames->setValue(1);
         on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
-        recordingFormatSelection->setCurrentIndex(4);
+        recordingFormatSelection->setCurrentIndex(1);
         recordingQualitySelection->setCurrentIndex(0);
         recordingUpdatePeriod->setValue(40);
         recordingFolderBox->setChecked(false);
         recordingFolderLine->clear();
         sharedMemoryColorDepth->setCurrentIndex(0);
-        recordingBufferSize->setValue(5);
+        recordingBufferSize->setValue(10);
     }
 
     if (stackedPreferences->currentWidget() == PageSources) {
@@ -353,7 +353,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     uint recquality = 0;
     stream >> recquality;
     recordingQualitySelection->setCurrentIndex(recquality);
-    recordingQualitySelection->setEnabled(recformat == 4);
+    recordingQualitySelection->setEnabled(recformat == 0 || recformat == 1);
 
     // z. Timers display preferences
     bool showtimer = true;
@@ -468,7 +468,7 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 
 void UserPreferencesDialog::on_recordingFormatSelection_currentIndexChanged(int i)
 {
-    recordingQualitySelection->setEnabled(i == 4);
+    recordingQualitySelection->setEnabled(i == 1 || i == 0);
 }
 
 void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)

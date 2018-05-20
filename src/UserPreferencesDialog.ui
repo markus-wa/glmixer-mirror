@@ -1074,26 +1074,11 @@ p, li { white-space: pre-wrap; }
                    <string>Select the recording Codec</string>
                   </property>
                   <property name="currentIndex">
-                   <number>4</number>
+                   <number>0</number>
                   </property>
                   <item>
                    <property name="text">
-                    <string notr="true">RAW video (avi)</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string notr="true">FFVHUFF (avi)</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string notr="true">MPEG1 (mpg DVD)</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string notr="true">MPEG2 (mpg HDV)</string>
+                    <string>H264 (mp4)</string>
                    </property>
                   </item>
                   <item>
@@ -1103,12 +1088,32 @@ p, li { white-space: pre-wrap; }
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">Windows Media Video 8 (wmv)</string>
+                    <string notr="true">MPEG2 (mpg HDV)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string notr="true">MPEG1 (mpg DVD)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string notr="true">Windows Media 8 (wmv)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
                     <string notr="true">Flash Video (flv)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string notr="true">FFVHUFF (avi)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string notr="true">RAW video (avi)</string>
                    </property>
                   </item>
                  </widget>
@@ -1195,7 +1200,7 @@ p, li { white-space: pre-wrap; }
                   </item>
                   <item>
                    <property name="text">
-                    <string>Low (DVD)</string>
+                    <string>Low (small file)</string>
                    </property>
                   </item>
                   <item>
@@ -1205,7 +1210,7 @@ p, li { white-space: pre-wrap; }
                   </item>
                   <item>
                    <property name="text">
-                    <string>High (HDV)</string>
+                    <string>High (large file)</string>
                    </property>
                   </item>
                  </widget>
@@ -1222,7 +1227,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* RAW and FFUV are loosless (produce large files).&lt;br/&gt;* Others are compressed and standard. &lt;br/&gt;* MPEG4 is recommended and allows selecting quality level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 or MPEG4 are best compromise for speed and quality (adjustable).&lt;br/&gt;* MPEG1 and 2 are classics, but not very effective. &lt;br/&gt;* Windows Media and Flash Video are here for legacy.&lt;br/&gt;* RAW and FFUV are loosless with RGB frames.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>

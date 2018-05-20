@@ -20,13 +20,14 @@ public:
 };
 
 typedef enum {
-    FORMAT_AVI_RAW = 0,
-    FORMAT_AVI_FFVHUFF,
-    FORMAT_MPG_MPEG1,
-    FORMAT_MPG_MPEG2,
+    FORMAT_MP4_H264 = 0,
     FORMAT_MP4_MPEG4,
+    FORMAT_MPG_MPEG2,
+    FORMAT_MPG_MPEG1,
     FORMAT_WMV_WMV2,
-    FORMAT_FLV_FLV1
+    FORMAT_FLV_FLV1,
+    FORMAT_AVI_FFVHUFF,
+    FORMAT_AVI_RAW
 } encodingformat;
 
 typedef enum {
@@ -88,6 +89,7 @@ protected:
     AVStream *video_stream;
     AVCodec *codec;
     AVFrame *frame;
+    AVDictionary *opts;
 
     // frame conversion
     AVFilterContext *in_video_filter;
@@ -102,16 +104,10 @@ public:
     VideoRecorderMP4(QString filename, int w, int h, int fps, encodingquality quality);
 };
 
-class VideoRecorderFFVHUFF : public VideoRecorder
+class VideoRecorderH264 : public VideoRecorder
 {
 public:
-    VideoRecorderFFVHUFF(QString filename, int w, int h, int fps);
-};
-
-class VideoRecorderRAW : public VideoRecorder
-{
-public:
-    VideoRecorderRAW(QString filename, int w, int h, int fps);
+    VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality);
 };
 
 class VideoRecorderMPEG1 : public VideoRecorder
@@ -136,6 +132,18 @@ class VideoRecorderFLV : public VideoRecorder
 {
 public:
     VideoRecorderFLV(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderFFVHUFF : public VideoRecorder
+{
+public:
+    VideoRecorderFFVHUFF(QString filename, int w, int h, int fps);
+};
+
+class VideoRecorderRAW : public VideoRecorder
+{
+public:
+    VideoRecorderRAW(QString filename, int w, int h, int fps);
 };
 
 #endif // VIDEORECORDER_H
