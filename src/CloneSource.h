@@ -32,7 +32,6 @@
 class SourceCloneException : public AllocationException {
 public:
     virtual QString message() { return "Invalid original source given."; }
-    void raise() const { throw *this; }
     Exception *clone() const { return new SourceCloneException(*this); }
 };
 

@@ -16,6 +16,7 @@ public:
     VideoRecorderException(QString t) : AllocationException(), text(t) {}
     virtual ~VideoRecorderException() throw() {}
     QString message() { return QString("Error Recording video : %1").arg(text); }
+    Exception *clone() const { return new VideoRecorderException(*this); }
 };
 
 typedef enum {

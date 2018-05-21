@@ -460,16 +460,6 @@ void RenderingEncoder::addFrame(uint8_t *data){
     if (!started || encoder == NULL)
         return;
 
-//    // if the recorder cannot follow
-//    if ( encoder->frameq_full() )
-//    {
-//        // remember amount of skipped frames
-//        skipframecount++;
-
-//        // skip the frame
-//        return;
-//    }
-
     // lock access to frame and get buffer
     // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
     AVBufferRef *buf = encoder->lockFrameAndGetBuffer();
