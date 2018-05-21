@@ -133,6 +133,7 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
         case QUALITY_LOW:
             codec_context->bit_rate = codec_context->rc_max_rate / 100;
             break;
+        case QUALITY_AUTO:
         case QUALITY_MEDIUM:
             codec_context->bit_rate = codec_context->rc_max_rate / 40;
             break;
@@ -181,6 +182,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     case QUALITY_LOW:
         vbr = 40;;  // crf 30 : quite ugly but not that bad
         break;
+    case QUALITY_AUTO:
     case QUALITY_MEDIUM:
         vbr = 64;;  // crf 18 : 'visually' lossless
         break;
@@ -455,7 +457,7 @@ void VideoRecorder::addFrame(AVFrame *f)
     framenum++;
 }
 
-bool VideoRecorder::open()
+void VideoRecorder::open()
 {
     int retcd = 0;
     char errstr[128];
@@ -570,7 +572,7 @@ void VideoRecorder::setupContext(QString formatname)
     codec_context->gop_size      = estimateGroupOfPictureSize();
 
     if (format_context->oformat->flags & AVFMT_GLOBALHEADER)
-        codec_context->flags     |= CODEC_FLAG_GLOBAL_HEADER;
+        codec_context->flags     |= AV_CODEC_FLAG_GLOBAL_HEADER;
 }
 
 void VideoRecorder::setupFiltering()

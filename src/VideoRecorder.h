@@ -14,9 +14,8 @@ class VideoRecorderException : public AllocationException {
     QString text;
 public:
     VideoRecorderException(QString t) : AllocationException(), text(t) {}
-    virtual QString message() { return QString("Error Recording video : %1").arg(text); }
-    void raise() const { throw *this; }
-    Exception *clone() const { return new VideoRecorderException(*this); }
+    virtual ~VideoRecorderException() throw() {}
+    QString message() { return QString("Error Recording video : %1").arg(text); }
 };
 
 typedef enum {
@@ -53,7 +52,7 @@ public:
 
     // Open the encoder and file for recording
     // Return true on success
-    bool open();
+    void open();
 
     // Closes the encoder and file
     // Return number of frames recorded
