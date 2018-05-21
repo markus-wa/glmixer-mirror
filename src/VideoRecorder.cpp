@@ -11,6 +11,8 @@ extern "C"
 #include <libavutil/pixdesc.h>
 }
 
+#include <thread>
+
 #include "VideoRecorder.h"
 
 VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, int w, int h, int fps, encodingquality quality = QUALITY_AUTO)
@@ -154,7 +156,8 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
     }
 
     // OPTIONNAL
-    codec_context->thread_count  = 2;
+    // see https://github.com/savoirfairelinux/ring-daemon/blob/master/src/media/media_encoder.cpp
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     setupFiltering();
 
@@ -167,7 +170,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     suffix = "mp4";
     description = "MP4 Video (*.mp4)";
     codecId = AV_CODEC_ID_H264;
-    targetFormat = AV_PIX_FMT_YUV420P;
+    targetFormat = AV_PIX_FMT_YUV444P;
 
     // allocate context
     setupContext("mp4");
@@ -209,7 +212,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     }
 
     // OPTIONNAL
-    codec_context->thread_count  = 2;
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     setupFiltering();
 
@@ -286,9 +289,10 @@ VideoRecorderMPEG1::VideoRecorderMPEG1(QString filename, int w, int h, int fps) 
     props->vbv_delay = UINT64_MAX; // auto
 
     // SPECIFIC MP1
-    codec_context->thread_count = 2;
     codec_context->max_b_frames = 1;
     codec_context->mb_decision = 2;
+    // OPTIONNAL
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     // needs filtering
     setupFiltering();
@@ -327,7 +331,8 @@ VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) 
 
     // SPECIFIC MP2
     codec_context->max_b_frames = 2;
-    codec_context->thread_count = 2;
+    // OPTIONNAL
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     // needs filtering
     setupFiltering();
@@ -350,7 +355,7 @@ VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : Vi
     codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
 
     // OPTIONNAL
-    codec_context->thread_count = 2;
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     // needs filtering
     setupFiltering();
@@ -373,7 +378,7 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
     codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
 
     // OPTIONNAL
-    codec_context->thread_count = 2;
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     // needs filtering
     setupFiltering();
@@ -387,18 +392,18 @@ void VideoRecorder::addFrame(AVFrame *f)
     char errstr[128];
 
     if (!format_context)
-        VideoRecorderException("format context unavailable.").raise();
+        VideoRecorderException("Format context unavailable.").raise();
 
     // convert frame format & flip
     if (in_video_filter) {
 
         retcd = av_buffersrc_add_frame_flags(in_video_filter, f, AV_BUFFERSRC_FLAG_KEEP_REF);
         if (retcd < 0)
-            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))+"1").raise();
+            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
         retcd = av_buffersink_get_frame(out_video_filter, frame);
         if (retcd < 0)
-            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))+"2").raise();
+            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
     }
     else
         av_frame_ref(frame, f);
@@ -409,7 +414,10 @@ void VideoRecorder::addFrame(AVFrame *f)
     // send frame to codec encoder
     retcd = avcodec_send_frame(codec_context, frame);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))+"3").raise();
+        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+
+    // free buffer in frame
+    av_frame_unref(frame);
 
     // loop packet encoding
     while ( retcd >= 0 ) {
@@ -428,7 +436,7 @@ void VideoRecorder::addFrame(AVFrame *f)
 
         // interrupt on error
         if (retcd < 0)
-            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))+"4").raise();
+            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
         // compute the presentation time stamp (pts)
         pkt.dts = av_rescale_q_rnd(pkt.dts, codec_context->time_base, video_stream->time_base, AV_ROUND_NEAR_INF);
@@ -438,16 +446,13 @@ void VideoRecorder::addFrame(AVFrame *f)
         // write frame
         retcd = av_write_frame(format_context, &pkt);
         if (retcd < 0)
-            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))+"5").raise();
+            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
         av_packet_unref(&pkt);
     }
 
     // one more frame !
     framenum++;
-
-    // free buffer
-    av_frame_unref(frame);
 }
 
 bool VideoRecorder::open()
@@ -456,12 +461,12 @@ bool VideoRecorder::open()
     char errstr[128];
 
     if (!format_context)
-        VideoRecorderException("cannot open recording without format context.").raise();
+        VideoRecorderException("Cannot open recording without format context.").raise();
 
     // open codec context
     retcd = avcodec_open2(codec_context, codec, &opts) ;
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Codec open " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // done with options
     av_dict_free(&opts);
@@ -474,12 +479,12 @@ bool VideoRecorder::open()
     // open file corresponding to the format context
     retcd = avio_open(&format_context->pb, qPrintable(fileName), AVIO_FLAG_WRITE);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("File open " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // start recording
     retcd = avformat_write_header(format_context, NULL);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Write header " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     framenum = 0;
 }
@@ -495,12 +500,12 @@ int VideoRecorder::close()
     // end recording
     retcd = av_write_trailer(format_context);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Write trailer " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // close file
     retcd = avio_close(format_context->pb);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("File close " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     return framenum;
 }
@@ -526,16 +531,16 @@ void VideoRecorder::setupContext(QString formatname)
     // allocate format context
     format_context = avformat_alloc_context();
     if (!format_context)
-        VideoRecorderException("cannot allocate format context.").raise();
+        VideoRecorderException("Cannot allocate format context.").raise();
 
     // fill in format context
     snprintf(format_context->filename, sizeof(format_context->filename), "%s", qPrintable(fileName) );
     format_context->oformat = av_guess_format(qPrintable(formatname), NULL, NULL);
     if (!format_context->oformat)
-        VideoRecorderException("video format not found.").raise();
+        VideoRecorderException("Video format not found.").raise();
 
     if (format_context->oformat->video_codec == AV_CODEC_ID_NONE)
-        VideoRecorderException("codec unavailable.").raise();
+        VideoRecorderException("Codec unavailable.").raise();
 
     // create video stream
     codec = avcodec_find_encoder(codecId);
@@ -543,14 +548,14 @@ void VideoRecorder::setupContext(QString formatname)
         VideoRecorderException("codec not found").raise();
     video_stream = avformat_new_stream(format_context, codec);
     if (!video_stream)
-        VideoRecorderException("cannot allocate stream.").raise();
+        VideoRecorderException("Cannot allocate stream.").raise();
 
     video_stream->time_base = av_make_q(1, frameRate);
 
     // allocate codec context
     codec_context = avcodec_alloc_context3(codec);
     if (!codec_context)
-        VideoRecorderException("cannot allocate codec context.").raise();
+        VideoRecorderException("Cannot allocate codec context.").raise();
 
     // fill in codec context
     codec_context->codec_type    = AVMEDIA_TYPE_VIDEO;
@@ -597,19 +602,19 @@ void VideoRecorder::setupFiltering()
     retcd = avfilter_graph_create_filter(&in_video_filter, buffersrc,
                                          "in", buffersrc_args, NULL, graph);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Create in filter " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // OUTPUT SINK
     retcd = avfilter_graph_create_filter(&out_video_filter, buffersink,
                                          "out", NULL, NULL, graph);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Create out filter " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     enum AVPixelFormat pix_fmts[] = { targetFormat, AV_PIX_FMT_NONE };
     retcd = av_opt_set_int_list(out_video_filter, "pix_fmts", pix_fmts,
                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN) ;
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Convert format " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // create another filter
     inputs->name       = av_strdup("out");
@@ -626,12 +631,12 @@ void VideoRecorder::setupFiltering()
     snprintf(filter_str, sizeof(filter_str), "vflip");
     retcd = avfilter_graph_parse_ptr(graph, filter_str, &inputs, &outputs, NULL);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Add vflip " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     // validate the filtering graph
     retcd = avfilter_graph_config(graph, NULL);
     if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        VideoRecorderException("Configure graph " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
     avfilter_inout_free(&inputs);
     avfilter_inout_free(&outputs);

@@ -39,7 +39,7 @@
 #include <QThread>
 
 
-EncodingThread::EncodingThread() : QThread(), recorder(NULL), _quit(true), //pictq(0),
+EncodingThread::EncodingThread() : QThread(), recorder(NULL), _quit(true), time(0),
     pictq_max_count(0), pictq_size_count(0), pictq_rindex(0), pictq_windex(0),
     frameq(NULL), framewidth(0), frameheight(0) //, recordingTimeStamp(0)
 {
@@ -106,6 +106,7 @@ void EncodingThread::clear() {
     }
 
     recorder = NULL;
+    time = 0;
 }
 
 void EncodingThread::stop() {
@@ -115,19 +116,19 @@ void EncodingThread::stop() {
 
 }
 
-void EncodingThread::releaseAndPushFrame(int64_t timestamp)
+void EncodingThread::releaseAndPushFrame(int elapsedtime)
 {
-    // store time stamp
-//    frameq[pictq_windex]->pts = timestamp;
+    // store time
+    time = elapsedtime;
 
     // set to write index to next in queue
     if (++pictq_windex == pictq_max_count)
         pictq_windex = 0;
 
     /* now we inform our encoding thread that we have a picture ready */
-    //        pictq_mutex->lock(); // was locked in pictq_top
     pictq_size_count++;
     pictq_mutex->unlock();
+
 }
 
 AVBufferRef *EncodingThread::lockFrameAndGetBuffer()
@@ -169,6 +170,7 @@ void EncodingThread::run() {
     // prepare
     _quit = false;
     int pictq_usage = 0, picq_size_usage = 0;
+    double wait_duration =  400.0 / (double) recorder->getFrameRate(); // 40% of fps
 
     // loop until break
     while (true) {
@@ -207,11 +209,13 @@ void EncodingThread::run() {
 
         // maintain a slow use of ressources for encoding during the recording
         if (!_quit)
-            // sleep at least 5 ms, plus an amount of time proportionnal to the remaining buffer
-            msleep( 5 + (int)( 50.f * (float)  (pictq_max_count - pictq_size_count)  / (float) pictq_max_count ) );
+            // sleep at least 1 ms, plus an amount of time proportionnal to the remaining buffer
+            msleep( 1 + (int)( wait_duration * (double)  (pictq_max_count - pictq_size_count)  / (double) pictq_max_count ) );
         else
             // conversely, after quit recording, loop as fast as possible to finish quickly
-            msleep( 3 );
+            // (but leave time for thread to acquire lock)
+            msleep( 1 );
+
     }
 
     // inform Rendering Encoder that the process is over (call close())
@@ -230,7 +234,7 @@ void EncodingThread::run() {
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapsed_time(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
 {
     // set default format
-    format = FORMAT_AVI_FFVHUFF;
+    format = FORMAT_MP4_H264;
     // set default quality
     quality = QUALITY_AUTO;
     // init file saving
@@ -423,11 +427,28 @@ bool RenderingEncoder::start(){
 }
 
 
-
-int RenderingEncoder::getRecodingTime() {
-
+int RenderingEncoder::getRecodingTime()
+{
     return elapsed_time;
 }
+
+bool RenderingEncoder::acceptFrame()
+{
+    // is the encoder at work?
+    if (started && !paused) {
+
+        // if the recorder cannot follow
+        if ( encoder && encoder->frameq_full() ) {
+            // remember amount of skipped frames
+            skipframecount++;
+            // skip the frame
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 
 // Add a frame to the stream
 // This function is called with the rendering context active
@@ -435,25 +456,25 @@ int RenderingEncoder::getRecodingTime() {
 // it *should* be called at the desired frame rate
 void RenderingEncoder::addFrame(uint8_t *data){
 
-    if (!started || paused || recorder == NULL)
+    // just to be sure
+    if (!started || encoder == NULL)
         return;
 
-    // if the recorder cannot follow
-    if ( encoder->frameq_full() )
-    {
-        // remember amount of skipped frames
-        skipframecount++;
+//    // if the recorder cannot follow
+//    if ( encoder->frameq_full() )
+//    {
+//        // remember amount of skipped frames
+//        skipframecount++;
 
-        // skip the frame
-        return;
-    }
+//        // skip the frame
+//        return;
+//    }
 
     // lock access to frame and get buffer
     // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
     AVBufferRef *buf = encoder->lockFrameAndGetBuffer();
-
     if (!buf) {
-        // remember amount of skipped frames
+        // failed
         skipframecount++;
         return;
     }
@@ -471,12 +492,13 @@ void RenderingEncoder::addFrame(uint8_t *data){
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buf->data);
 #endif
 
-    // inform the thread that a picture was pushed into the queue
-    encoder->releaseAndPushFrame( elapsed_time );
-
     // elapsed time
     elapsed_time += timer.restart();
 
+    // inform the thread that a picture was pushed into the queue
+    encoder->releaseAndPushFrame( elapsed_time );
+
+    // display record time
     emit timing( getStringFromTime( (double) elapsed_time / 1000.0) );
 }
 
@@ -516,7 +538,6 @@ void RenderingEncoder::close(bool success){
     emit timing( "" );
 
     // encoder is automatically deleted
-//    encoder->clear();
     encoder = NULL;
 
     // free recorder
@@ -535,7 +556,7 @@ void RenderingEncoder::close(bool success){
         // show warning if too many frames were bad
         bool savefile = true;
         float percent = float(skipframecount) / float(framecount + skipframecount);
-        if ( percent > 0.05f  ) {
+        if ( percent > 0.03f  ) {
 
             QMessageBox msgBox;
             msgBox.setIcon(QMessageBox::Warning);

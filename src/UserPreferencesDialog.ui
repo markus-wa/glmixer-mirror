@@ -1058,7 +1058,7 @@ p, li { white-space: pre-wrap; }
                    <number>50</number>
                   </property>
                   <property name="value">
-                   <number>20</number>
+                   <number>10</number>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -1078,42 +1078,42 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <item>
                    <property name="text">
-                    <string>H264 (mp4)</string>
+                    <string>H264 (.mp4)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MPEG4 (mp4)</string>
+                    <string notr="true">MPEG-4 (.mp4)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MPEG2 (mpg HDV)</string>
+                    <string notr="true">MPEG-2 (.mpg)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">MPEG1 (mpg DVD)</string>
+                    <string notr="true">MPEG-1 (.mpg)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">Windows Media 8 (wmv)</string>
+                    <string notr="true">Windows Media 8 (.wmv)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">Flash Video (flv)</string>
+                    <string notr="true">Flash Video (.flv)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">FFVHUFF (avi)</string>
+                    <string notr="true">FFVHUFF (.avi)</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string notr="true">RAW video (avi)</string>
+                    <string notr="true">RAW video (.avi)</string>
                    </property>
                   </item>
                  </widget>
@@ -1130,7 +1130,7 @@ p, li { white-space: pre-wrap; }
                    <string>RAM buffer for recording</string>
                   </property>
                   <property name="text">
-                   <string notr="true">300 MB</string>
+                   <string notr="true">200 MB</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1227,7 +1227,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 or MPEG4 are best compromise for speed and quality (adjustable).&lt;br/&gt;* MPEG1 and 2 are classics, but not very effective. &lt;br/&gt;* Windows Media and Flash Video are here for legacy.&lt;br/&gt;* RAW and FFUV are loosless with RGB frames.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : best compromise for speed and quality (YUV444 pixel format).&lt;br/&gt;* MPEG-4 : good compromise (YUV420 pixel format).&lt;br/&gt;* MPEG-1 and 2 : classics, but not very performant (YUV420 pixel format). &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability (YUV420 pixel format).&lt;br/&gt;* RAW and FFUV : lossless (RGB pixel format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>

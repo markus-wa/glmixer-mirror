@@ -490,75 +490,72 @@ void RenderingManager::postRenderToFrameBuffer() {
     }
 
     // save the frame to file or copy to SHM
-    if ( _recorder->isRecording()
+    if ( _recorder->isActive()
      #ifdef GLM_SHM
          || _sharedMemory != NULL
      #endif
          ) {
 
+        if ( _recorder->acceptFrame() )
+        {
 
 #ifdef RECORDING_READ_PIXEL
-        // bind fbo context for ReadPixel
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+            // bind fbo context for ReadPixel
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
 #else
-        // read texture from the framebuferobject and record this frame (the recorder knows if it is active or not)
-        glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+            // read texture from the framebuferobject and record this frame
+            glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 #endif
+            // use pixel buffer object if initialized
+            if (pboIds[0] && pboIds[1]) {
 
-        // use pixel buffer object if initialized
-        if (pboIds[0] && pboIds[1]) {
-
-            // bind a PBO for asynchronous get of buffer
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
+                // bind a PBO for asynchronous get of buffer
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
 
 #ifdef RECORDING_READ_PIXEL
-            // ReadPixel of _fbo
-            glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+                // ReadPixel of _fbo
+                glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 #else
-            // read pixels from texture
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+                // read pixels from texture
+                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 #endif
-
-            // map the other PBO to process its data by CPU
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
-            uint8_t * ptr = (uint8_t *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-            if(ptr)  {
-                _recorder->addFrame(ptr);
-                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                // map the other PBO to process its data by CPU
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
+                uint8_t * ptr = (uint8_t *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+                if(ptr)  {
+                    _recorder->addFrame(ptr);
+                    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                }
             }
-        }
-        // just get current texture if not using pixel buffer object
-        else
-            _recorder->addFrame();
-
+            // just get current texture if not using pixel buffer object
+            else
+                _recorder->addFrame();
 
 #ifdef GLM_SHM
-        // share to memory if needed
-        if (_sharedMemory != NULL) {
-
-            _sharedMemory->lock();
-
-            // read the pixels from the texture
-            glGetTexImage(GL_TEXTURE_2D, 0, _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
-
-            _sharedMemory->unlock();
-        }
+            // share to memory if needed
+            if (_sharedMemory != NULL) {
+                _sharedMemory->lock();
+                // read the pixels from the texture
+                glGetTexImage(GL_TEXTURE_2D, 0, _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
+                _sharedMemory->unlock();
+            }
 #endif // SHM
 
-        // restore state if using PBO
-        if (pboIds[0] && pboIds[1]) {
-            // back to conventional pixel operation
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // restore state if using PBO
+            if (pboIds[0] && pboIds[1]) {
+                // back to conventional pixel operation
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-            // "index" is used to read pixels from framebuffer to a PBO
-            // "nextIndex" is used to update pixels in the other PBO
-            pbo_index = (pbo_index + 1) % 2;
-            pbo_nextIndex = (pbo_index + 1) % 2;
+                // "index" is used to read pixels from framebuffer to a PBO
+                // "nextIndex" is used to update pixels in the other PBO
+                pbo_index = (pbo_index + 1) % 2;
+                pbo_nextIndex = (pbo_index + 1) % 2;
+            }
         }
-
+        // end accept frame
     }
-    // end of recording : ensure PBO double buffer mechanism is reset
+    // end of recording active : ensure PBO double buffer mechanism is reset
     else {
         pbo_index = pbo_nextIndex = 0;
     }

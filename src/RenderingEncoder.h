@@ -44,7 +44,6 @@
 #define RECORDING_READ_PIXEL 1
 
 extern "C" {
-//#include "video_rec.h"
 #include <libavutil/frame.h>
 }
 
@@ -64,7 +63,7 @@ public:
     void clear();
     void stop();
 
-    void releaseAndPushFrame(int64_t timestamp);
+    void releaseAndPushFrame(int elapsedtime);
     AVBufferRef *lockFrameAndGetBuffer();
     bool frameq_full();
 
@@ -87,6 +86,7 @@ protected:
     bool _quit;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
+    int time;
 
     // picture queue management
     int pictq_max_count, pictq_size_count, pictq_rindex, pictq_windex;
@@ -124,7 +124,7 @@ public:
     // status
     bool isActive() { return started; }
     int getRecodingTime();
-    bool isRecording() { return started && !paused ; }
+    bool acceptFrame();
 
     // utility
     static unsigned long computeBufferSize(int percent);
