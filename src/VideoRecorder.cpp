@@ -14,10 +14,12 @@ extern "C"
 #include <thread>
 
 #include "VideoRecorder.h"
+#include "CodecManager.h"
+
 
 VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, int w, int h, int fps, encodingquality quality = QUALITY_AUTO)
 {
-    av_register_all();
+    CodecManager::registerAll();
 
     VideoRecorder *rec = 0;
 
@@ -179,13 +181,14 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     case QUALITY_LOW:
         vbr = 40;;  // crf 30 : quite ugly but not that bad
         break;
-    case QUALITY_AUTO:
     case QUALITY_MEDIUM:
         vbr = 64;;  // crf 18 : 'visually' lossless
         break;
     case QUALITY_HIGH:
         vbr = 90;   // crf 5 : almost lossless
         targetFormat = AV_PIX_FMT_YUV444P;  // higher quality color
+        break;
+    case QUALITY_AUTO:
         break;
     }
 

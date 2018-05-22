@@ -39,6 +39,7 @@
 class SourceConstructorException : public AllocationException {
 public:
     virtual QString message() { return "Could not allocate source"; }
+    void raise() const { throw *this; }
     Exception *clone() const { return new SourceConstructorException(*this); }
 };
 

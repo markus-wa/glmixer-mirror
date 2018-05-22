@@ -33,6 +33,7 @@ extern "C" {
 class VideoPictureException : public AllocationException {
 public:
     virtual QString message() { return "Could not allocate Video Picture"; }
+    void raise() const { throw *this; }
     Exception *clone() const { return new VideoPictureException(*this); }
 };
 
