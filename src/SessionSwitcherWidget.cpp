@@ -531,13 +531,18 @@ void SessionSwitcherWidget::discardFolder()
 
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
-    // transfer info to glmixer
-    emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
+    // allow activation of session only if item is enabled
+    if ( proxyFolderModel->flags(index) & Qt::ItemIsEnabled )
+    {
+        // transfer info to glmixer
+        emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 
-    // make sure no other events are accepted until the end of the transition
-    disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-    proxyView->setEnabled(false);
-    QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
+        // make sure no other events are accepted until the end of the transition
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        proxyView->setEnabled(false);
+        QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
+
+    }
 }
 
 void SessionSwitcherWidget::startTransitionToNextSession()
@@ -779,11 +784,14 @@ void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
         // quick redisplay of folder list
         for (int r = 0; r < folderModel->rowCount(); ++r )
         {
-            standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
+            // items are always selectable
             Qt::ItemFlags flags = Qt::ItemIsSelectable;
+            // read aspect ratio of item
+            standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
+            // disable items which are not in the given aspect ratio
             if (ar == ASPECT_RATIO_FREE || sar == ar)
                 flags |= Qt::ItemIsEnabled;
-
+            // apply flag
             folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);
             folderModel->itemFromIndex(folderModel->index(r, 1))->setFlags (flags);
             folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);

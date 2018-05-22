@@ -143,7 +143,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         fullscreenMonitor->setCurrentIndex(0);
         outputSkippedFrames->setValue(1);
         on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
-        recordingFormatSelection->setCurrentIndex(1);
+        recordingFormatSelection->setCurrentIndex(0);
         recordingQualitySelection->setCurrentIndex(0);
         recordingUpdatePeriod->setValue(40);
         recordingFolderBox->setChecked(false);
