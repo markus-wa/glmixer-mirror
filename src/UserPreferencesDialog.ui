@@ -1078,7 +1078,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <item>
                    <property name="text">
-                    <string>H264 (.mp4)</string>
+                    <string>H264 (.mov)</string>
                    </property>
                   </item>
                   <item>
@@ -1227,7 +1227,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : best compromise for speed and quality (YUV444 pixel format).&lt;br/&gt;* MPEG-4 : good compromise (YUV420 pixel format).&lt;br/&gt;* MPEG-1 and 2 : classics, but not very performant (YUV420 pixel format). &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability (YUV420 pixel format).&lt;br/&gt;* RAW and FFUV : lossless (RGB pixel format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : best compromise for speed and quality (YUV420 pixel format, YUV444 in high quality).&lt;br/&gt;* MPEG-4 : good compromise (YUV420 pixel format).&lt;br/&gt;* MPEG-1 and 2 : classics, but not very performant (YUV420 pixel format). &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability (YUV420 pixel format).&lt;br/&gt;* RAW and FFUV : lossless (RGB pixel format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>

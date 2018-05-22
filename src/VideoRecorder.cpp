@@ -168,13 +168,10 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
 VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
 {
     // specifics for this recorder
-    suffix = "mp4";
-    description = "MP4 Video (*.mp4)";
+    suffix = "mov";
+    description = "QuickTime Video (*.mov)";
     codecId = AV_CODEC_ID_H264;
-    targetFormat = AV_PIX_FMT_YUV444P;
-
-    // allocate context
-    setupContext("mp4");
+    targetFormat = AV_PIX_FMT_YUV420P;
 
     // select variable bit rate quality factor
     int vbr = 54;   // default to 54% quality, default crf 23
@@ -188,8 +185,12 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
         break;
     case QUALITY_HIGH:
         vbr = 90;   // crf 5 : almost lossless
+        targetFormat = AV_PIX_FMT_YUV444P;  // higher quality color
         break;
     }
+
+    // allocate context
+    setupContext("mov");
 
     // configure encoder & quality
     av_dict_set(&opts, "preset", "ultrafast", 0);

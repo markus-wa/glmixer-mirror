@@ -524,8 +524,8 @@ void RenderingManager::postRenderToFrameBuffer() {
                 uint8_t * ptr = (uint8_t *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
                 if(ptr)  {
                     _recorder->addFrame(ptr);
-                    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
                 }
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
             }
             // just get current texture if not using pixel buffer object
             else
