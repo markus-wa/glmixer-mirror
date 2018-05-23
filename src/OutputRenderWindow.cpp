@@ -235,8 +235,10 @@ void OutputRenderWidget::displayRecordingLabel(bool on)
 {
     static int timerid = 0;
 
-    if (timerid)
+    if (timerid) {
         killTimer(timerid);
+        timerid = 0;
+    }
 
     rec_label_active = false;
 
