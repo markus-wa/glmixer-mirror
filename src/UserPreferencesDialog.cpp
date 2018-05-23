@@ -186,6 +186,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
         displayTimer->setChecked(false);
+        allowOneInstance->setChecked(true);
     }
 }
 
@@ -360,6 +361,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> showtimer;
     displayTimer->setChecked(showtimer);
 
+    // aa. Single Instance
+    bool oneinstance = true;
+    stream >> oneinstance;
+    allowOneInstance->setChecked(oneinstance);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -453,6 +459,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // z. Timers display preferences
     stream << displayTimer->isChecked();
+
+    // aa. Single Instance
+    stream << allowOneInstance->isChecked();
 
     return data;
 }

@@ -158,7 +158,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), previousSource(NULL), currentVideoFile(NULL),
     _displayTimeAsFrame(false), _restoreLastSession(true),
     _saveExitSession(true), _disableOutputWhenRecord(false),
-    _displayTimerEnabled(false)
+    _displayTimerEnabled(false), _singleInstanceEnabled(true)
 {
     setupUi ( this );
 
@@ -2103,6 +2103,8 @@ void GLMixer::closeSession()
     QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
     RenderingManager::getSessionSwitcher()->startTransition(false);
 
+    // last session file name
+    settings.setValue("lastSessionFileName", "");
 }
 
 void GLMixer::newSession()
@@ -2241,6 +2243,9 @@ void GLMixer::postSaveSession()
     // broadcast session file ready
     emit sessionLoaded();
     setBusy(false);
+
+    // last session file name
+    settings.setValue("lastSessionFileName", currentSessionFileName);
 }
 
 
@@ -2531,6 +2536,8 @@ void GLMixer::openSessionFile()
     emit status( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
 
+    // last session file name
+    settings.setValue("lastSessionFileName", currentSessionFileName);
 }
 
 
@@ -2773,6 +2780,17 @@ void GLMixer::readSettings( QString pathtobin )
         restorePreferences(settings.value("UserPreferences").toByteArray());
     else
         restorePreferences(QByteArray());
+
+    // aa. Single Instance
+    if (_singleInstanceEnabled)
+    {
+        // Killall glmixer process older than 10s
+#ifdef Q_OS_WIN
+        QProcess::execute("taskkill /f /fi CPUTime gt 00:00:10 /im glmixer.exe");
+#else
+        QProcess::execute("killall -o 10s glmixer");
+#endif
+    }
 
     // windows config
     if (settings.contains("geometry"))
@@ -3210,6 +3228,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> showtimer;
     setDisplayTimeEnabled(showtimer);
 
+    // aa. Single Instance
+    stream >> _singleInstanceEnabled;
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3319,6 +3340,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // z. Timers display preferences
     stream << _displayTimerEnabled;
+
+    // aa. Single Instance
+    stream << _singleInstanceEnabled;
 
     return data;
 }

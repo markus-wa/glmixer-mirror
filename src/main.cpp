@@ -58,7 +58,7 @@ GLMixerApp::GLMixerApp(int& argc, char** argv): QApplication(argc, argv), _filen
 
 }
 
-void GLMixerApp::requestOpenFile() 
+void GLMixerApp::requestOpenFile()
 {
     // if a filename was given
     if (!_filename.isNull()) {
@@ -69,14 +69,14 @@ void GLMixerApp::requestOpenFile()
     }
 }
 
-void GLMixerApp::setFilenameToOpen(QString filename) 
+void GLMixerApp::setFilenameToOpen(QString filename)
 {
     // update the file name only if not already set
     if (_filename.isNull())
-        _filename = filename; 
+        _filename = filename;
 }
-  
-bool GLMixerApp::event(QEvent *event) 
+
+bool GLMixerApp::event(QEvent *event)
 {
     // The system requested us to open a file
     if (event->type() == QEvent::FileOpen)  {
@@ -145,6 +145,7 @@ int main(int argc, char **argv)
         else
             qDebug("%s : invalid arguments (not a file name).", qPrintable(cmdline_args.at(1)));
     }
+
 
     //
     // 1. Start of the GUI interface section.
