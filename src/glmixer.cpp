@@ -2788,7 +2788,12 @@ void GLMixer::readSettings( QString pathtobin )
 #ifdef Q_OS_WIN
         QProcess::execute("taskkill /f /fi CPUTime gt 00:00:10 /im glmixer.exe");
 #else
+#ifdef Q_OS_MAC
+        if ( 0 == QProcess::execute("pkill -o glmixer") )
+            qWarning() << "An instance of GLMixer was terminated.";
+#else  // linux
         QProcess::execute("killall -o 10s glmixer");
+#endif
 #endif
     }
 
