@@ -2784,14 +2784,18 @@ void GLMixer::readSettings( QString pathtobin )
     // aa. Single Instance
     if (_singleInstanceEnabled)
     {
-        // Killall glmixer process older than 10s
+        qint64 pid = QApplication::applicationPid();
+        // Generate platform specific command to Kill all other glmixer processes
 #ifdef Q_OS_WIN
-        QProcess::execute("taskkill /f /fi CPUTime gt 00:00:10 /im glmixer.exe");
+        // Kill all glmixer processes with a different PID
+        QProcess::execute(QString("taskkill /F /FI \"PID ne %1\" /im glmixer.exe").arg(pid));
 #else
 #ifdef Q_OS_MAC
+        // Kill old glmixer processes
         if ( 0 == QProcess::execute("pkill -o glmixer") )
             qWarning() << "An instance of GLMixer was terminated.";
 #else  // linux
+        // Killall glmixer process older than 10s
         QProcess::execute("killall -o 10s glmixer");
 #endif
 #endif
