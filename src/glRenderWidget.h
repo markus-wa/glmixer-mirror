@@ -29,7 +29,7 @@
 #include "common.h"
 
 class glRenderTimer: public QObject {
-    
+
     Q_OBJECT
 
 public:

@@ -44,9 +44,9 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 : QGLWidget(glRenderWidgetFormat(), parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
-    if (glRenderWidget::timer == 0) 
+    if (glRenderWidget::timer == 0)
         glRenderWidget::timer = new glRenderTimer();
-    
+
     connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
@@ -140,12 +140,12 @@ void glRenderWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void glRenderWidget::setUpdatePeriod(int miliseconds) 
+void glRenderWidget::setUpdatePeriod(int miliseconds)
 {
     glRenderWidget::timer->setInterval(miliseconds);
 }
 
-int glRenderWidget::updatePeriod() 
+int glRenderWidget::updatePeriod()
 {
     return glRenderWidget::timer->interval();
 }
@@ -217,12 +217,17 @@ glRenderTimer::glRenderTimer(QWidget *parent) : QObject(parent), _interval(20)
 }
 
 
-void glRenderTimer::timerEvent(QTimerEvent * event) 
+void glRenderTimer::timerEvent(QTimerEvent * event)
 {
+    // did not reach interval: discard
     if ( _elapsed->elapsed() < _interval )
         return;
 
-    _elapsed->restart();
+    // restart time counter
+    if ( _elapsed->restart() < 2 * _interval )
+        // emit extra timeout if too much delay
+        emit timeout();
 
-    emit timeout();
+    // NB: sending less signal when system is slow is not ideal
+    // but this allows recovering faster
 }

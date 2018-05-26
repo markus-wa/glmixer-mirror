@@ -710,6 +710,7 @@ void ViewRenderWidget::refresh()
         // update the content of the sources
         (*its)->update();
     }
+
 }
 
 void ViewRenderWidget::paintGL()
@@ -809,13 +810,13 @@ void ViewRenderWidget::paintGL()
     }
 #endif
 
-    // FPS computation
-    if (++fpsCounter_ == 3)
+    // FPS computation every 5 frames
+    if (++fpsCounter_ == 5)
     {
-        f_p_s_ = 0.8 * f_p_s_ + 0.2 * ( 3000.0 / float(fpsTime_.restart()) );
-//        f_p_s_ = 3000.0 / float(fpsTime_.restart()); // debug instantaneous fps
-
         fpsCounter_ = 0;
+        // exponential moving average to smooth a little
+        f_p_s_ = 0.6 * f_p_s_ + 0.4 * ( 5000.0 / float(fpsTime_.restart()) );
+//        f_p_s_ = 5000.0 / float(fpsTime_.restart()); // debug instantaneous fps
 
         if (fpsLabel && showFps_) {
             fpsLabel->setText(QString("%1 fps").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0) ? 1 : 0)) );
