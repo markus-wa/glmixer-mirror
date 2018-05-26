@@ -24,6 +24,7 @@
  */
 
 #include <QTimer>
+#include <QElapsedTimer>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QListView>
@@ -34,19 +35,18 @@
 #include <QAbstractItemModel>
 
 #include "common.h"
-#include "glRenderWidget.h"
+#include "glRenderWidget.moc"
 
-QTimer *glRenderWidget::timer = 0;
+glRenderTimer *glRenderWidget::timer = 0;
 
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 : QGLWidget(glRenderWidgetFormat(), parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
-    if (glRenderWidget::timer == 0) {
-        glRenderWidget::timer = new QTimer();
-        glRenderWidget::timer->setInterval(20);
-    }
+    if (glRenderWidget::timer == 0) 
+        glRenderWidget::timer = new glRenderTimer();
+    
     connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
@@ -111,6 +111,7 @@ void glRenderWidget::initializeGL()
     glClearColor(0.0, 0.0, 0.0, 1.0f);
 
     setAntiAliasing(antialiasing);
+
 }
 
 
@@ -137,18 +138,15 @@ void glRenderWidget::resizeGL(int w, int h)
 void glRenderWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-
 }
 
-void glRenderWidget::setUpdatePeriod(int miliseconds) {
-
-    if (miliseconds > 11)
-        glRenderWidget::timer->start(miliseconds);
-    else
-        glRenderWidget::timer->start();
+void glRenderWidget::setUpdatePeriod(int miliseconds) 
+{
+    glRenderWidget::timer->setInterval(miliseconds);
 }
 
-int glRenderWidget::updatePeriod() {
+int glRenderWidget::updatePeriod() 
+{
     return glRenderWidget::timer->interval();
 }
 
@@ -209,3 +207,22 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 }
 
 
+
+glRenderTimer::glRenderTimer(QWidget *parent) : QObject(parent), _interval(20)
+{
+    _elapsed = new QElapsedTimer();
+    _elapsed->start();
+
+    startTimer(0);
+}
+
+
+void glRenderTimer::timerEvent(QTimerEvent * event) 
+{
+    if ( _elapsed->elapsed() < _interval )
+        return;
+
+    _elapsed->restart();
+
+    emit timeout();
+}

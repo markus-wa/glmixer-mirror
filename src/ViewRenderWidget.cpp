@@ -191,7 +191,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
 ViewRenderWidget::ViewRenderWidget() :
     glRenderWidget(), faded(false), busy(false), flashIntensity(0), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
-
+    setObjectName("ViewRenderWidget");
     setAcceptDrops ( true );
     setMouseTracking(true);
     setFocusPolicy(Qt::ClickFocus);

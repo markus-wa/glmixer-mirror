@@ -28,8 +28,28 @@
 
 #include "common.h"
 
+class glRenderTimer: public QObject {
+    
+    Q_OBJECT
+
+public:
+    glRenderTimer(QWidget *parent = 0);
+
+    void setInterval(int ms) { _interval = ms; }
+    inline const int interval() { return _interval; }
+
+signals:
+    void timeout();
+
+private:
+    void timerEvent(QTimerEvent * event);
+    int _interval;
+    class QElapsedTimer *_elapsed;
+};
+
 class glRenderWidget  : public QGLWidget
 {
+    Q_OBJECT
 
 public:
     glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
@@ -53,11 +73,13 @@ public:
 
 protected:
 
+    bool needUpdate();
+
     float aspectRatio;
     bool antialiasing;
 
     // global update timer
-    static class QTimer *timer;
+    static class glRenderTimer *timer;
 };
 
 #endif /* GLRENDERWIDGET_H_ */
