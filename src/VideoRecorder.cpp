@@ -33,8 +33,12 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         rec = new VideoRecorderH264(filename, w, h, fps, quality);
         break;
 
-    case FORMAT_MP4_WEBM:
+    case FORMAT_WEB_WEBM:
         rec = new VideoRecorderWebM(filename, w, h, fps, quality);
+        break;
+
+    case FORMAT_MOV_PRORES:
+        rec = new VideoRecorderProRes(filename, w, h, fps, quality);
         break;
 
     case FORMAT_MPG_MPEG2:
@@ -53,8 +57,8 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         rec = new VideoRecorderFLV(filename, w, h, fps);
         break;
 
-    case FORMAT_AVI_FFVHUFF:
-        rec = new VideoRecorderFFVHUFF(filename, w, h, fps);
+    case FORMAT_AVI_FFV3:
+        rec = new VideoRecorderFFV(filename, w, h, fps);
         break;
 
     case FORMAT_AVI_RAW:
@@ -174,8 +178,8 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
 VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
 {
     // specifics for this recorder
-    suffix = "mov";
-    description = "QuickTime Video (*.mov)";
+    suffix = "mp4";
+    description = "MPEG H264 Video (*.mp4)";
     codecId = AV_CODEC_ID_H264;
     targetFormat = AV_PIX_FMT_YUV420P;
 
@@ -197,7 +201,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     }
 
     // allocate context
-    setupContext("mov");
+    setupContext("mp4");
 
     // configure encoder & quality
     // see https://trac.ffmpeg.org/wiki/Encode/H.264
@@ -235,19 +239,25 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     av_freep(&buffer);
 }
 
-VideoRecorderFFVHUFF::VideoRecorderFFVHUFF(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
+VideoRecorderFFV::VideoRecorderFFV(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
 {
     // specifics for this recorder
     suffix = "avi";
     description = "AVI Video (*.avi)";
-    codecId = AV_CODEC_ID_FFVHUFF;
-    targetFormat = AV_PIX_FMT_RGB24;
+    codecId = AV_CODEC_ID_FFV1;
+    targetFormat = AV_PIX_FMT_YUV444P;
 
     // allocate context
     setupContext("avi");
 
-    // SPECIFIC FFVHUFF
-    codec_context->thread_count  = 1;
+    // optimized options
+    // see https://trac.ffmpeg.org/wiki/Encode/FFV1
+    av_dict_set(&opts, "level", "3", 0);
+    av_dict_set(&opts, "coder", "0", 0);
+    av_dict_set(&opts, "slices", "24", 0);
+    av_dict_set(&opts, "slicecrc", "1", 0);
+    av_dict_set(&opts, "threads", "6", 0);
+    av_dict_set(&opts, "g", "6", 0);
 
     setupFiltering();
 
@@ -401,7 +411,7 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
 {
     // specifics for this recorder
     suffix = "webm";
-    description = "WebM (*.webm)";
+    description = "WebM Video (*.webm)";
     codecId = AV_CODEC_ID_VP9;
     targetFormat = AV_PIX_FMT_YUV420P;
 
@@ -440,6 +450,48 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
 
     // bit_rate, maxi 25 Mbits/s
   //  codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
+
+    // OPTIONNAL
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
+
+    // needs filtering
+    setupFiltering();
+
+
+    char *buffer = NULL;
+    av_dict_get_string(opts, &buffer, '=', ',');
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+
+    av_freep(&buffer);
+}
+
+VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
+{
+    // specifics for this recorder
+    suffix = "mov";
+    description = "Apple ProRes Video (*.mov)";
+    codecId = AV_CODEC_ID_PRORES;
+    targetFormat = AV_PIX_FMT_YUV422P10LE;
+
+    // allocate context
+    setupContext("mov");
+
+    // select profile
+    switch (quality) {
+    case QUALITY_LOW:
+        av_dict_set( &opts, "profile", "0", 0);
+        break;
+    case QUALITY_MEDIUM:
+        av_dict_set( &opts, "profile", "1", 0);
+        break;
+    case QUALITY_HIGH:
+        av_dict_set( &opts, "profile", "3", 0);
+        break;
+    case QUALITY_AUTO:
+        av_dict_set( &opts, "profile", "2", 0);
+        break;
+    }
 
     // OPTIONNAL
     codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());

@@ -22,13 +22,14 @@ public:
 
 typedef enum {
     FORMAT_MP4_H264 = 0,
-    FORMAT_MP4_WEBM,
+    FORMAT_WEB_WEBM,
+    FORMAT_MOV_PRORES,
     FORMAT_MP4_MPEG4,
     FORMAT_MPG_MPEG2,
     FORMAT_MPG_MPEG1,
     FORMAT_WMV_WMV2,
     FORMAT_FLV_FLV1,
-    FORMAT_AVI_FFVHUFF,
+    FORMAT_AVI_FFV3,
     FORMAT_AVI_RAW
 } encodingformat;
 
@@ -118,6 +119,12 @@ public:
     VideoRecorderWebM(QString filename, int w, int h, int fps, encodingquality quality);
 };
 
+class VideoRecorderProRes : public VideoRecorder
+{
+public:
+    VideoRecorderProRes(QString filename, int w, int h, int fps, encodingquality quality);
+};
+
 class VideoRecorderMPEG1 : public VideoRecorder
 {
 public:
@@ -142,10 +149,10 @@ public:
     VideoRecorderFLV(QString filename, int w, int h, int fps);
 };
 
-class VideoRecorderFFVHUFF : public VideoRecorder
+class VideoRecorderFFV : public VideoRecorder
 {
 public:
-    VideoRecorderFFVHUFF(QString filename, int w, int h, int fps);
+    VideoRecorderFFV(QString filename, int w, int h, int fps);
 };
 
 class VideoRecorderRAW : public VideoRecorder
