@@ -1083,6 +1083,11 @@ p, li { white-space: pre-wrap; }
                   </item>
                   <item>
                    <property name="text">
+                    <string>WebM VP9 (.webm)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
                     <string notr="true">MPEG-4 (.mp4)</string>
                    </property>
                   </item>
@@ -1227,7 +1232,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : best compromise for speed and quality (YUV420 pixel format, YUV444 in high quality).&lt;br/&gt;* MPEG-4 : good compromise (YUV420 pixel format).&lt;br/&gt;* MPEG-1 and 2 : classics, but not very performant (YUV420 pixel format). &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability (YUV420 pixel format).&lt;br/&gt;* RAW and FFUV : lossless (RGB pixel format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : best compromise for speed and quality (YUV pixel format).&lt;br/&gt;* WebM : constant visual quality, small file size (YUV pixel format).&lt;br/&gt;* MPEG-4 : good compromise (YUV pixel format).&lt;br/&gt;* MPEG-1 and 2 : classics, but not very performant (YUV pixel format). &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability (YUV pixel format).&lt;br/&gt;* RAW and FFUV : lossless (RGB pixel format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>
@@ -1237,6 +1242,22 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="scaledContents">
                    <bool>false</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLabel" name="label_31">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selection of quality factor for some codecs:&lt;/p&gt;&lt;p&gt;* H264 : target quality, maximum bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* WebM : fixed visual quality, variable bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* MPEG-4 : target bit rate, YUV420P pixel format.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

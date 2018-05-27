@@ -3114,7 +3114,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::getRecorder()->setEncodingFormat( (encodingformat) recformat);
     uint rtfr = 40;
     stream >> rtfr;
-    RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);
+    RenderingManager::getRecorder()->setEncodingFrameInterval(rtfr > 0 ? rtfr : 40);
 
     // h. recording folder
     bool automaticSave = false;
@@ -3274,7 +3274,7 @@ QByteArray GLMixer::getPreferences() const {
 
     // g. recording format
     stream << (uint) RenderingManager::getRecorder()->encodingFormat();
-    stream << RenderingManager::getRecorder()->updatePeriod();
+    stream << RenderingManager::getRecorder()->encodingFrameInterval();
 
     // h. recording folder
     stream << RenderingManager::getRecorder()->automaticSavingMode();

@@ -27,7 +27,7 @@
 #define RENDERINGENCODER_H_
 
 #include <QObject>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QString>
 
 /**
@@ -109,21 +109,21 @@ public:
 
     // preferences encoding
     void setEncodingFormat(encodingformat f);
-    encodingformat encodingFormat() { return format; }
-    void setUpdatePeriod(uint ms) { update=ms; }
-    uint updatePeriod() { return update; }
+    inline const encodingformat encodingFormat() { return format; }
+    void setEncodingFrameInterval(uint ms) { encoding_frame_interval=ms; }
+    inline const uint encodingFrameInterval() { return encoding_frame_interval; }
     void setEncodingQuality(encodingquality q);
-    encodingquality encodingQuality() { return quality; }
+    inline const encodingquality encodingQuality() { return quality; }
 
     // preferences saving mode
     void setAutomaticSavingMode(bool on);
-    bool automaticSavingMode() { return automaticSaving;}
+    inline const bool automaticSavingMode() { return automaticSaving;}
     void setAutomaticSavingFolder(QString d);
-    QDir automaticSavingFolder() { return savingFolder; }
+    inline const QDir automaticSavingFolder() { return savingFolder; }
 
     // status
-    bool isActive() { return started; }
-    int getRecodingTime();
+    inline const bool isActive() { return started; }
+    inline const int getRecodingTime() { return elapsed_time; }
     bool acceptFrame();
 
     // utility
@@ -159,7 +159,7 @@ private:
 
     // state machine
     bool started, paused;
-    QTime timer;
+    QElapsedTimer timer;
     int elapsed_time;
     int skipframecount;
     QString errormessage;
@@ -168,7 +168,7 @@ private:
     EncodingThread *encoder;
     VideoRecorder *recorder;
 
-    uint update, displayupdate;
+    uint encoding_frame_interval, display_update_interval;
     encodingformat format;
     encodingquality quality;
     unsigned long bufferSize;

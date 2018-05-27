@@ -231,7 +231,7 @@ void EncodingThread::run() {
 
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapsed_time(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapsed_time(0), skipframecount(0), encoding_frame_interval(40), display_update_interval(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
 {
     // set default format
     format = FORMAT_MP4_H264;
@@ -313,7 +313,7 @@ void RenderingEncoder::setActive(bool on)
             emit processing(true);
         }
         // restore rendering fps
-        glRenderWidget::setUpdatePeriod( displayupdate );
+        glRenderWidget::setUpdatePeriod( display_update_interval );
     }
 
 }
@@ -364,7 +364,7 @@ bool RenderingEncoder::start(){
     }
 
     // compute desired update frequency
-    int desired_fps = (int) ( 1000.0 / double(update) );
+    int desired_fps = (int) ( 1000.0 / double(encoding_frame_interval) );
 
     // read current frame rate
     int fps = RenderingManager::getRenderingWidget()->getFramerate();
@@ -393,7 +393,7 @@ bool RenderingEncoder::start(){
     }
 
     // remember current update display period
-    displayupdate = glRenderWidget::updatePeriod();
+    display_update_interval = glRenderWidget::updatePeriod();
 
     // setup new display update period to match recording update
     // adjust update to match the fps
@@ -424,12 +424,6 @@ bool RenderingEncoder::start(){
     timer.start();
 
     return true;
-}
-
-
-int RenderingEncoder::getRecodingTime()
-{
-    return elapsed_time;
 }
 
 bool RenderingEncoder::acceptFrame()

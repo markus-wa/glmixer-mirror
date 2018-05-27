@@ -33,6 +33,10 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         rec = new VideoRecorderH264(filename, w, h, fps, quality);
         break;
 
+    case FORMAT_MP4_WEBM:
+        rec = new VideoRecorderWebM(filename, w, h, fps, quality);
+        break;
+
     case FORMAT_MPG_MPEG2:
         rec = new VideoRecorderMPEG2(filename, w, h, fps);
         break;
@@ -179,7 +183,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     int vbr = 54;   // default to 54% quality, default crf 23
     switch (quality) {
     case QUALITY_LOW:
-        vbr = 40;;  // crf 30 : quite ugly but not that bad
+        vbr = 40;   // crf 30 : quite ugly but not that bad
         break;
     case QUALITY_MEDIUM:
         vbr = 64;;  // crf 18 : 'visually' lossless
@@ -196,6 +200,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     setupContext("mov");
 
     // configure encoder & quality
+    // see https://trac.ffmpeg.org/wiki/Encode/H.264
     av_dict_set(&opts, "preset", "ultrafast", 0);
     av_dict_set(&opts, "tune", "zerolatency", 0);
     if ((strcmp(codec->name, "h264_omx") == 0) || (strcmp(codec->name, "mpeg4_omx") == 0)) {
@@ -391,6 +396,66 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
 
     qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << codec_context->bit_rate / 1024 <<" kbit/s )";
 }
+
+VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
+{
+    // specifics for this recorder
+    suffix = "webm";
+    description = "WebM (*.webm)";
+    codecId = AV_CODEC_ID_VP9;
+    targetFormat = AV_PIX_FMT_YUV420P;
+
+    // select constant quality (CQ) mode
+    // The CRF value can be from 0–63. Lower values mean better quality.
+    // Recommended values range from 15–35, with 31 being recommended for 1080p HD video
+    // see https://developers.google.com/media/vp9/settings/vod/
+    int crf = 35;
+    switch (quality) {
+    case QUALITY_LOW:
+        crf = 37;
+        break;
+    case QUALITY_MEDIUM:
+        crf = 31;;
+        break;
+    case QUALITY_HIGH:
+        crf = 24;
+        targetFormat = AV_PIX_FMT_YUV444P;
+        break;
+    case QUALITY_AUTO:
+        break;
+    }
+
+    // allocate context
+    setupContext("webm");
+
+    // see https://trac.ffmpeg.org/wiki/Encode/VP9
+    av_dict_set( &opts, "deadline", "realtime", 0);
+    av_dict_set( &opts, "cpu-used", "8", 0);
+
+    // constant quality mode
+    char ocrf[10];
+    snprintf(ocrf, 10, "%d", crf);
+    av_dict_set( &opts, "crf", ocrf, 0);
+    codec_context->bit_rate = 0; //width * height * fps;
+
+    // bit_rate, maxi 25 Mbits/s
+  //  codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
+
+    // OPTIONNAL
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
+
+    // needs filtering
+    setupFiltering();
+
+
+    char *buffer = NULL;
+    av_dict_get_string(opts, &buffer, '=', ',');
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+
+    av_freep(&buffer);
+}
+
 
 void VideoRecorder::addFrame(AVFrame *f)
 {

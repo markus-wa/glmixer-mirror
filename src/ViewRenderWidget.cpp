@@ -868,7 +868,7 @@ void ViewRenderWidget::displayFramerate()
     glRecti(width() - 61, height() - 1, width() - 9, height() - 11);
     qglColor(f_p_s_ > 800.f / (float)updatePeriod() ? Qt::darkGreen : (f_p_s_ > 500.f / (float)updatePeriod() ? Qt::yellow : Qt::red));
     // Draw a filled rectangle of lengh proportionnal to % of target fps
-    glRecti(width() - 60, height() - 2, width() - 60 + (int)( 0.05 * f_p_s_  * (float) updatePeriod()), height() - 10);
+    glRecti(width() - 60, height() - 2, width() - 60 + qBound(0, (int)( 0.05 * f_p_s_  * (float) updatePeriod()), 50), height() - 10);
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
