@@ -65,6 +65,18 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     sharedMemoryBox->setVisible(false);
 #endif
 
+    // fill in list of modes of update intervals
+    updateIntervalModes.append(16);
+    updateIntervalModes.append(20);
+    updateIntervalModes.append(25);
+    updateIntervalModes.append(33);
+    updateIntervalModes.append(40);
+    updateIntervalModes.append(50);
+    updateIntervalModes.append(80);
+    updateIntervalModes.append(100);
+    updateIntervalModes.append(200);
+    updateIntervalModes.append(500);
+    updateIntervalModes.append(1000);
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()
@@ -145,7 +157,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
         recordingFormatSelection->setCurrentIndex(0);
         recordingQualitySelection->setCurrentIndex(0);
-        recordingUpdatePeriod->setValue(40);
+        recordingFramerateMode->setValue(4);
         recordingFolderBox->setChecked(false);
         recordingFolderLine->clear();
         sharedMemoryColorDepth->setCurrentIndex(0);
@@ -251,7 +263,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     recordingFormatSelection->setCurrentIndex(recformat);
     uint rtfr = 40;
     stream >> rtfr;
-    recordingUpdatePeriod->setValue(rtfr > 0 ? rtfr : 40);
+    recordingFramerateMode->setValue( getModeFromRecordingUpdateInterval(rtfr) );
 
     // h. recording folder
     bool automaticSave = false;
@@ -397,7 +409,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // g. recording format
     stream << (uint) recordingFormatSelection->currentIndex();
-    stream << (uint) recordingUpdatePeriod->value();
+    stream <<  getRecordingUpdateIntervalFromMode( recordingFramerateMode->value() );
 
     // h. recording folder
     stream << recordingFolderBox->isChecked();
@@ -469,7 +481,8 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 {
-    frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
+    double fps = qBound(1.0, 1000.0 / double(period), 62.0);
+    frameRateString->setText(QString("%1 fps").arg(qRound(fps)) );
     on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
     on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
 }
@@ -480,9 +493,11 @@ void UserPreferencesDialog::on_recordingFormatSelection_currentIndexChanged(int 
     recordingQualitySelection->setEnabled(i < 4);
 }
 
-void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
+void UserPreferencesDialog::on_recordingFramerateMode_valueChanged(int mode)
 {
-    recordingFrameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
+    int interval = getRecordingUpdateIntervalFromMode(mode);
+    double fps = qBound(1.0, 1000.0 / double(interval), 60.0);
+    recordingFrameRateString->setText(QString("%1 fps").arg(qRound(fps)) );
 }
 
 
@@ -531,18 +546,18 @@ void UserPreferencesDialog::on_MemoryUsagePolicySlider_valueChanged(int mem)
 
 void UserPreferencesDialog::on_loopbackSkippedFrames_valueChanged(int i)
 {
-    double fps =  1000.0 / double( updatePeriod->value() ) ;
+    double fps = qBound(1.0, 1000.0 / double(updatePeriod->value()), 62.0);
     fps /= (double) i;
 
-    loopbackFPS->setText( QString("%1 fps").arg((int)fps));
+    loopbackFPS->setText( QString("%1 fps").arg(QString::number(qRound(fps*2.0)/2.0, 'f', 1 )));
 }
 
 void UserPreferencesDialog::on_outputSkippedFrames_valueChanged(int i)
 {
-    double fps =  1000.0 / double( updatePeriod->value() ) ;
+    double fps = qBound(1.0, 1000.0 / double(updatePeriod->value()), 62.0);
     fps /= (double) i;
 
-    outputFPS->setText( QString("%1 fps").arg((int)fps));
+    outputFPS->setText( QString("%1 fps").arg(QString::number(qRound(fps*2.0)/2.0, 'f', 1 )));
 }
 
 
@@ -566,4 +581,23 @@ void UserPreferencesDialog::on_sourceDefaultAspectRatio_toggled(bool on)
 void UserPreferencesDialog::on_sourceDefaultName_textEdited(const QString & text)
 {
     defaultSource->setName(text);
+}
+
+uint UserPreferencesDialog::getRecordingUpdateIntervalFromMode(int m) const
+{
+    return updateIntervalModes[m];
+}
+
+int UserPreferencesDialog::getModeFromRecordingUpdateInterval(uint u) const
+{
+    int i = updateIntervalModes.indexOf(u);
+    // all good, found the right index
+    if (i>0)
+        return i;
+    // browse to find closest index
+    for (i = updateIntervalModes.size()-1; i > 0; --i) {
+        if ( updateIntervalModes[i] < u )
+            break;
+    }
+    return i;
 }

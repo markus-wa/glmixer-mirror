@@ -1007,7 +1007,7 @@ p, li { white-space: pre-wrap; }
                    <string>Fra&amp;me rate  </string>
                   </property>
                   <property name="buddy">
-                   <cstring>recordingUpdatePeriod</cstring>
+                   <cstring>recordingFramerateMode</cstring>
                   </property>
                  </widget>
                 </item>
@@ -1148,7 +1148,7 @@ p, li { white-space: pre-wrap; }
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QSlider" name="recordingUpdatePeriod">
+                 <widget class="QSlider" name="recordingFramerateMode">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -1159,13 +1159,16 @@ p, li { white-space: pre-wrap; }
                    <string>Target frame rate for video recording</string>
                   </property>
                   <property name="minimum">
-                   <number>33</number>
+                   <number>0</number>
                   </property>
                   <property name="maximum">
-                   <number>65</number>
+                   <number>10</number>
+                  </property>
+                  <property name="pageStep">
+                   <number>5</number>
                   </property>
                   <property name="value">
-                   <number>40</number>
+                   <number>4</number>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -1174,7 +1177,7 @@ p, li { white-space: pre-wrap; }
                    <bool>true</bool>
                   </property>
                   <property name="invertedControls">
-                   <bool>false</bool>
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -1184,7 +1187,7 @@ p, li { white-space: pre-wrap; }
                    <string>Recording frequency</string>
                   </property>
                   <property name="text">
-                   <string notr="true">25 fps</string>
+                   <string notr="true">25.0 fps</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

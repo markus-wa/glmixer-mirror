@@ -123,7 +123,7 @@ public:
 
     // status
     inline const bool isActive() { return started; }
-    inline const int getRecodingTime() { return elapsed_time; }
+    inline const int getRecodingTime() { return encoding_duration; }
     bool acceptFrame();
 
     // utility
@@ -160,7 +160,7 @@ private:
     // state machine
     bool started, paused;
     QElapsedTimer timer;
-    int elapsed_time;
+    int encoding_duration;
     int skipframecount;
     QString errormessage;
 
@@ -168,7 +168,8 @@ private:
     EncodingThread *encoder;
     VideoRecorder *recorder;
 
-    uint encoding_frame_interval, display_update_interval;
+    uint encoding_frame_interval;
+    uint encoding_update_interval, display_update_interval;
     encodingformat format;
     encodingquality quality;
     unsigned long bufferSize;

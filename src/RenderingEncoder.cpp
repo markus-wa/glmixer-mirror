@@ -231,7 +231,7 @@ void EncodingThread::run() {
 
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapsed_time(0), skipframecount(0), encoding_frame_interval(40), display_update_interval(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), encoding_duration(0), skipframecount(0), encoding_frame_interval(40), display_update_interval(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE)
 {
     // set default format
     format = FORMAT_MP4_H264;
@@ -329,7 +329,7 @@ void RenderingEncoder::setPaused(bool on)
     paused = on;
 
     // just inform on the time of pause
-    QString duration = getStringFromTime( (double) elapsed_time / 1000.0 );
+    QString duration = getStringFromTime( (double) encoding_duration / 1000.0 );
     if (paused) {
         emit status(tr("Recording paused at %1").arg(duration), 2000);
         qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording paused at %1").arg(duration);
@@ -348,63 +348,87 @@ void RenderingEncoder::setPaused(bool on)
 // - Create the temporary file
 bool RenderingEncoder::start(){
 
+    // init
+    skipframecount = 0;
+    errormessage.clear();
+
     // prevent re-start
     if (started) {
         errormessage = "Already recording.";
         return false;
     }
 
-    // init
-    skipframecount = 0;
-    errormessage.clear();
-
     // if the temporary file already exists, delete it.
     if (temporaryFolder.exists(temporaryFileName)){
         temporaryFolder.remove(temporaryFileName);
     }
 
+    // remember current update display period
+    display_update_interval = glRenderWidget::updatePeriod();
+    int update_fps = (int) ( 1000.0 / double(display_update_interval) );
+
+    // read actual frame rate (measured)
+    int display_fps = RenderingManager::getRenderingWidget()->getFramerate();
+
+    // show warning if frame rate is too low
+    if ( display_fps < (update_fps-2) ) {
+         QMessageBox msgBox;
+         msgBox.setIcon(QMessageBox::Warning);
+         msgBox.setText(tr("Rendering frame rate too low for recording."));
+         msgBox.setInformativeText(tr("The rendering is currently at %1 fps (on average), but your rendering preference aim for %2 fps.").arg(display_fps).arg(update_fps));
+         msgBox.setDetailedText( tr("You can either set your rendering preference to a frame rate close to %1 fps, or make optimizations to reach a display at %2 fps:\n"
+         "- select a lower quality in your rendering preferences\n"
+         "- lower the resolution of some sources\n"
+         "- remove some sources or some filters.\n").arg(display_fps).arg(update_fps) );
+
+         msgBox.addButton(QMessageBox::Discard);
+         msgBox.exec();
+         errormessage = "Rendering frame rate too low.";
+         return false;
+    }
+
     // compute desired update frequency
-    int desired_fps = (int) ( 1000.0 / double(encoding_frame_interval) );
+    int recording_fps = qBound(1, (int) ( 1000.0 / double(encoding_frame_interval) ), 60);
 
-    // read current frame rate
-    int fps = RenderingManager::getRenderingWidget()->getFramerate();
-
-    // show warning if frame rate is already too low
-    if ( fps <  (desired_fps-2) ) {
+    if ( update_fps < recording_fps ) {
          QMessageBox msgBox;
          msgBox.setIcon(QMessageBox::Question);
-         msgBox.setText(tr("Rendering frequency is lower than the recording %1 fps.").arg(desired_fps));
-         msgBox.setInformativeText(tr("Do you still want to record at %1 fps ?").arg(fps));
-         msgBox.setDetailedText( tr("The rendering is currently at %1 fps on average, but your recording preferences are set to %2 fps.\n\n"
-                 "You can either agree to record at this lower frame rate, or retry later after some optimizations:\n"
-                 "- select a lower quality in your rendering preferences\n"
-                 "- lower the resolution of some sources\n"
-                 "- remove some sources\n").arg(fps).arg(desired_fps) );
+         msgBox.setText(tr("Rendering frame rate is lower than the recording requirement."));
+         msgBox.setInformativeText(tr("Do you want to record at %1 fps instead of %2 fps ?").arg(update_fps).arg(recording_fps));
+         msgBox.setDetailedText( tr("The rendering is currently set to %1 fps, but your output preference require recording at %2 fps.\n\n"
+                 "You can either agree to record at this lower frame rate, or adjust your preference with :\n"
+                 "- a lower recording frame rate\n"
+                 "- a higher rendering frame rate\n").arg(update_fps).arg(recording_fps) );
 
          QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
-         msgBox.addButton(tr("Record at lower frequency"), QMessageBox::AcceptRole);
+         msgBox.addButton(tr("Accept lower framerate"), QMessageBox::AcceptRole);
          msgBox.exec();
          if (msgBox.clickedButton() == abortButton) {
-             errormessage = "Recording aborted.";
+             errormessage = "Recording aborted by user.";
              return false;
          }
          // Continue anyway : set the recoding frequency to be at the fps of the rendering
-         desired_fps = fps;
+         encoding_frame_interval = display_update_interval;
+         recording_fps = qBound(1, (int) ( 1000.0 / double(encoding_frame_interval) ), 60);
     }
 
-    // remember current update display period
-    display_update_interval = glRenderWidget::updatePeriod();
+    // search for an update interval that has those properties:
+    // * is higher than the current display update interval
+    // * is a multiple of the encoding interval
+    encoding_update_interval = display_update_interval - 1;
+    while ( encoding_frame_interval % encoding_update_interval )
+        encoding_update_interval++;
 
-    // setup new display update period to match recording update
-    // adjust update to match the fps
-    glRenderWidget::setUpdatePeriod( (int) ( 1000.0 / double(desired_fps)) );
+    // setup new display update interval to match recording update
+    // The update is a factor of the encoding interval to skip frames accordingly
+    glRenderWidget::setUpdatePeriod( encoding_update_interval );
 
     // initialization of ffmpeg recorder
     QString filename = temporaryFolder.absoluteFilePath(temporaryFileName);
     QSize framesSize = RenderingManager::getInstance()->getFrameBufferResolution();
     try {
         // allocate recorder
-        recorder = VideoRecorder::getRecorder(format, filename, framesSize.width(), framesSize.height(), desired_fps, quality);
+        recorder = VideoRecorder::getRecorder(format, filename, framesSize.width(), framesSize.height(), recording_fps, quality);
         // open recorder
         recorder->open();
     }
@@ -420,7 +444,7 @@ bool RenderingEncoder::start(){
     encoder->start();
 
     // start the timers
-    elapsed_time = 0;
+    encoding_duration = 0;
     timer.start();
 
     return true;
@@ -431,13 +455,21 @@ bool RenderingEncoder::acceptFrame()
     // is the encoder at work?
     if (started && !paused) {
 
-        // if the recorder cannot follow
+        // SKIP if the recorder cannot follow
         if ( encoder && encoder->frameq_full() ) {
             // remember amount of skipped frames
             skipframecount++;
-            // skip the frame
             return false;
         }
+
+        // SKIP if the time since last recorded frame is less than encoding interval.
+        // As the recording_update_interval is a multiple of encoding_frame_interval,
+        // skipping some frames allows recoring at lower frame rate.
+        // NB: a margin of 3ms is required to make sure we hit the desired fps
+        if ( timer.elapsed() < encoding_frame_interval - 3 )
+            return false;
+
+        // all good ! Can accept the frame
         return true;
     }
     return false;
@@ -477,13 +509,13 @@ void RenderingEncoder::addFrame(uint8_t *data){
 #endif
 
     // elapsed time
-    elapsed_time += timer.restart();
+    encoding_duration += timer.restart();
 
     // inform the thread that a picture was pushed into the queue
-    encoder->releaseAndPushFrame( elapsed_time );
+    encoder->releaseAndPushFrame( encoding_duration );
 
     // display record time
-    emit timing( getStringFromTime( (double) elapsed_time / 1000.0) );
+    emit timing( getStringFromTime( (double) encoding_duration / 1000.0) );
 }
 
 void RenderingEncoder::kill(){
@@ -504,7 +536,7 @@ void RenderingEncoder::close(bool success){
     QString filename = recorder->getFilename();
     QString suffix_file = recorder->getSuffix();
     QString description_file = recorder->getDescription();
-    QString duration = getStringFromTime( (double) elapsed_time / 1000.0 );
+    QString duration = getStringFromTime( (double) encoding_duration / 1000.0 );
 
     // stop recorder
     try {

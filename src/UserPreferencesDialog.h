@@ -55,7 +55,7 @@ public slots:
     // GUI actions
     void on_updatePeriod_valueChanged(int period);
     void on_recordingFormatSelection_currentIndexChanged(int i);
-    void on_recordingUpdatePeriod_valueChanged(int period);
+    void on_recordingFramerateMode_valueChanged(int mode);
     void on_recordingBufferSize_valueChanged(int percent);
     void on_recordingFolderButton_clicked();
     void recordingFolderPathChanged(const QString &);
@@ -68,6 +68,9 @@ public slots:
 
 protected:
 
+    uint getRecordingUpdateIntervalFromMode(int m) const;
+    int getModeFromRecordingUpdateInterval(uint u) const;
+
     void showEvent(QShowEvent *);
     void hideEvent(QHideEvent *);
 
@@ -75,6 +78,7 @@ private:
     class Source *defaultSource;
 
     QList<QAction *> getActionsList(QList<QAction *> al);
+    QList<uint> updateIntervalModes;
 
 };
 
