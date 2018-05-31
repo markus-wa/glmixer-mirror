@@ -70,7 +70,7 @@ protected:
     VideoRecorder(QString filename, int w, int h, int fps );
 
     int estimateGroupOfPictureSize();
-    void setupContext(QString formatname);
+    void setupContext(QStringList codecnames, QString formatname, enum AVPixelFormat pixelformat);
     void setupFiltering();
 
     // properties
@@ -83,8 +83,8 @@ protected:
     // format specific
     QString suffix;
     QString description;
+    QStringList codeclist;
     enum AVPixelFormat targetFormat;
-    enum AVCodecID codecId;
 
     // encoding structures
     AVFormatContext *format_context;

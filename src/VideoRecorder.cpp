@@ -16,6 +16,9 @@ extern "C"
 #include "VideoRecorder.h"
 #include "CodecManager.h"
 
+// HOWTO avconv command
+// List encoders : avconv -encoders
+// List options  : avconv -hide_banner -h encoder=<encodername>
 
 VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, int w, int h, int fps, encodingquality quality = QUALITY_AUTO)
 {
@@ -90,7 +93,6 @@ VideoRecorder::VideoRecorder(QString filename, int w, int h, int fps) : fileName
     opts = NULL;
 
     targetFormat = AV_PIX_FMT_NONE;
-    codecId = AV_CODEC_ID_NONE;
 }
 
 VideoRecorder::~VideoRecorder()
@@ -121,11 +123,11 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
     // specifics for this recorder
     suffix = "mp4";
     description = "MPEG 4 Video (*.mp4)";
-    codecId = AV_CODEC_ID_MPEG4;
+    codeclist << "libxvid" << "mpeg4";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
-    setupContext("mp4");
+    setupContext(codeclist, "mp4", targetFormat);
 
     // default bit rate
     int64_t br = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * (frameRate));
@@ -141,11 +143,11 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
         // set bit rate
         switch (quality) {
         case QUALITY_LOW:
-            codec_context->bit_rate = codec_context->rc_max_rate / 100;
+            codec_context->bit_rate = codec_context->rc_max_rate / 90;
             break;
         case QUALITY_AUTO:
         case QUALITY_MEDIUM:
-            codec_context->bit_rate = codec_context->rc_max_rate / 40;
+            codec_context->bit_rate = codec_context->rc_max_rate / 20;
             break;
         case QUALITY_HIGH:
             codec_context->bit_rate = codec_context->rc_max_rate;
@@ -172,7 +174,7 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
 
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, "<<codec_context->rc_max_rate / 1024 <<" kbit/s max, VBV " << codec_context->rc_buffer_size/8192 << "kbyte)";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< QString(codec->name)  << codec_context->bit_rate / 1024 <<" kbit/s, "<<codec_context->rc_max_rate / 1024 <<" kbit/s max, VBV " << codec_context->rc_buffer_size/8192 << "kbyte)";
 }
 
 VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
@@ -180,11 +182,11 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "mp4";
     description = "MPEG H264 Video (*.mp4)";
-    codecId = AV_CODEC_ID_H264;
+    codeclist << "h264_omx" << "libx264" << "h264_nvenc" ;
     targetFormat = AV_PIX_FMT_YUV420P;
 
-    // select variable bit rate quality factor
-    int vbr = 54;   // default to 54% quality, default crf 23
+    // select variable bit rate quality factor (percent)
+    unsigned long vbr = 54;   // default to 54% quality, default crf 23
     switch (quality) {
     case QUALITY_LOW:
         vbr = 40;   // crf 30 : quite ugly but not that bad
@@ -201,13 +203,44 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     }
 
     // allocate context
-    setupContext("mp4");
+    setupContext(codeclist, "mp4", targetFormat);
 
-    // configure encoder & quality
-    // see https://trac.ffmpeg.org/wiki/Encode/H.264
-    av_dict_set(&opts, "preset", "ultrafast", 0);
-    av_dict_set(&opts, "tune", "zerolatency", 0);
-    if ((strcmp(codec->name, "h264_omx") == 0) || (strcmp(codec->name, "mpeg4_omx") == 0)) {
+    if ((strcmp(codec->name, "libx264") == 0)) {
+        // configure libx264 encoder quality
+        // see https://trac.ffmpeg.org/wiki/Encode/H.264
+        av_dict_set(&opts, "preset", "ultrafast", 0);
+        av_dict_set(&opts, "tune", "zerolatency", 0);
+
+        if (quality==QUALITY_HIGH)
+            av_dict_set(&opts, "profile", "high444", 0); // high444p
+
+        // Control x264 encoder quality via CRF
+        // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
+        // and 51 is terrible quality. A sane range is 18-26, and the default is 23.
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", (int) vbr);
+        av_dict_set(&opts, "crf", crf, 0);
+    }
+    else if ((strcmp(codec->name, "h264_nvenc") == 0)) {
+        // configure nvenc_h264 encoder quality
+        // see https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
+        av_dict_set(&opts, "preset", "3", 0); // fast
+        av_dict_set(&opts, "zerolatency", "1", 0); // active
+
+        if (quality==QUALITY_HIGH)
+            av_dict_set(&opts, "profile", "3", 0); // high444p
+
+        // encoder quality controlled via quantization parameter
+        av_dict_set(&opts, "rc", "0", 0); // Constant QP mode
+
+        // Constant quantization parameter rate control method (from -1 to 51)
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", (int) vbr);
+        av_dict_set(&opts, "qp", crf, 0);
+    }
+    else if ((strcmp(codec->name, "h264_omx") == 0)) {
         // H264 OMX encoder quality can only be controlled via bit_rate
         vbr = (width * height * fps * vbr) >> 7;
         // Clip bit rate to min
@@ -215,15 +248,6 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
             vbr = 4000;
         codec_context->profile = FF_PROFILE_H264_HIGH;
         codec_context->bit_rate = vbr;
-    }
-    else {
-        // Control other H264 encoders quality via CRF
-        // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
-        // and 51 is terrible quality. A sane range is 18-26, and the default is 23.
-        char crf[10];
-        vbr = (int)(( (100-vbr) * 51)/100);
-        snprintf(crf, 10, "%d", vbr);
-        av_dict_set(&opts, "crf", crf, 0);
     }
 
     // OPTIONNAL
@@ -234,7 +258,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     char *buffer = NULL;
     av_dict_get_string(opts, &buffer, '=', ',');
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< QString(codec->name)  << buffer << vbr << ")";
 
     av_freep(&buffer);
 }
@@ -243,12 +267,12 @@ VideoRecorderFFV::VideoRecorderFFV(QString filename, int w, int h, int fps) : Vi
 {
     // specifics for this recorder
     suffix = "avi";
-    description = "AVI Video (*.avi)";
-    codecId = AV_CODEC_ID_FFV1;
+    description = "AVI FF Video (*.avi)";
+    codeclist << "ffv1";
     targetFormat = AV_PIX_FMT_YUV444P;
 
     // allocate context
-    setupContext("avi");
+    setupContext(codeclist, "avi", targetFormat);
 
     // optimized options
     // see https://trac.ffmpeg.org/wiki/Encode/FFV1
@@ -269,11 +293,11 @@ VideoRecorderRAW::VideoRecorderRAW(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "avi";
     description = "AVI Video (*.avi)";
-    codecId = AV_CODEC_ID_RAWVIDEO;
+    codeclist << "rawvideo";
     targetFormat = AV_PIX_FMT_BGR24;
 
     // allocate context
-    setupContext("avi");
+    setupContext(codeclist, "avi", targetFormat);
 
     setupFiltering();
 
@@ -285,11 +309,11 @@ VideoRecorderMPEG1::VideoRecorderMPEG1(QString filename, int w, int h, int fps) 
     // specifics for this recorder
     suffix = "mpg";
     description = "MPEG Video (*.mpg *.mpeg)";
-    codecId = AV_CODEC_ID_MPEG1VIDEO;
+    codeclist << "mpeg1video";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
-    setupContext("mpeg");
+    setupContext(codeclist, "mpeg", targetFormat);
 
     // 9.8 Mbit/s max – DVD
     codec_context->rc_max_rate = 9800000;
@@ -318,7 +342,7 @@ VideoRecorderMPEG1::VideoRecorderMPEG1(QString filename, int w, int h, int fps) 
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< QString(codec->name)  << codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
 }
 
 VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -326,11 +350,11 @@ VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) 
     // specifics for this recorder
     suffix = "mpg";
     description = "MPEG Video (*.mpg *.mpeg)";
-    codecId = AV_CODEC_ID_MPEG2VIDEO;
+    codeclist << "mpeg2video";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
-    setupContext("mpeg");
+    setupContext(codeclist, "mpeg", targetFormat);
 
     // 25 Mbit/s approximate – HDV 1080i (using MPEG2 compression)
     codec_context->rc_max_rate = 25000000;
@@ -358,7 +382,7 @@ VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) 
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ("<< QString(codec->name)  << codec_context->bit_rate / 1024 <<" kbit/s, buffer "<<props->buffer_size /1024<<" kbytes)";
 }
 
 VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -366,11 +390,11 @@ VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "wmv";
     description = "Windows Media Video (*.wmv)";
-    codecId = AV_CODEC_ID_WMV2;
+    codeclist << "wmv1" << "wmv2";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
-    setupContext("avi");
+    setupContext(codeclist, "avi", targetFormat);
 
     // bit_rate, maxi 25 Mbits/s
     codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
@@ -381,7 +405,7 @@ VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : Vi
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << codec_context->bit_rate / 1024 <<" kbit/s )";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << QString(codec->name)  << codec_context->bit_rate / 1024 <<" kbit/s )";
 }
 
 VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : VideoRecorder(filename, w, h, fps)
@@ -389,11 +413,11 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "flv";
     description = "Flash Video (*.flv)";
-    codecId = AV_CODEC_ID_FLV1;
+    codeclist << "flv";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
-    setupContext("flv");
+    setupContext(codeclist, "flv", targetFormat);
 
     // bit_rate, maxi 25 Mbits/s
     codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
@@ -404,7 +428,7 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
     // needs filtering
     setupFiltering();
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << codec_context->bit_rate / 1024 <<" kbit/s )";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " (" << QString(codec->name)  << codec_context->bit_rate / 1024 <<" kbit/s )";
 }
 
 VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
@@ -412,23 +436,23 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "webm";
     description = "WebM Video (*.webm)";
-    codecId = AV_CODEC_ID_VP9;
+    codeclist<< "libvpx" << "libvpx-vp9";
     targetFormat = AV_PIX_FMT_YUV420P;
 
     // select constant quality (CQ) mode
     // The CRF value can be from 0–63. Lower values mean better quality.
     // Recommended values range from 15–35, with 31 being recommended for 1080p HD video
     // see https://developers.google.com/media/vp9/settings/vod/
-    int crf = 35;
+    int crf = 31;
     switch (quality) {
     case QUALITY_LOW:
-        crf = 37;
+        crf = 35;
         break;
     case QUALITY_MEDIUM:
-        crf = 31;;
+        crf = 25;
         break;
     case QUALITY_HIGH:
-        crf = 24;
+        crf = 18;
         targetFormat = AV_PIX_FMT_YUV444P;
         break;
     case QUALITY_AUTO:
@@ -436,32 +460,30 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
     }
 
     // allocate context
-    setupContext("webm");
+    setupContext(codeclist, "webm", targetFormat);
 
     // see https://trac.ffmpeg.org/wiki/Encode/VP9
+    // Time to spend encoding, in microseconds. <int> (from INT_MIN to INT_MAX)
+    // best / good / realtime (default good)
     av_dict_set( &opts, "deadline", "realtime", 0);
+    // Quality/Speed ratio modifier (from -8 to 8) (default 1)
     av_dict_set( &opts, "cpu-used", "8", 0);
-
-    // constant quality mode
+    // Select the quality for constant quality mode (from -1 to 63) (default -1)
     char ocrf[10];
     snprintf(ocrf, 10, "%d", crf);
     av_dict_set( &opts, "crf", ocrf, 0);
-    codec_context->bit_rate = 0; //width * height * fps;
-
-    // bit_rate, maxi 25 Mbits/s
-  //  codec_context->bit_rate = FFMIN(width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(targetFormat)) * frameRate, 25000000);
 
     // OPTIONNAL
+    codec_context->bit_rate = 0; // force not used;
     codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 
     // needs filtering
     setupFiltering();
 
-
     char *buffer = NULL;
     av_dict_get_string(opts, &buffer, '=', ',');
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< QString(codec->name) << buffer <<  ")";
 
     av_freep(&buffer);
 }
@@ -471,27 +493,43 @@ VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps
     // specifics for this recorder
     suffix = "mov";
     description = "Apple ProRes Video (*.mov)";
-    codecId = AV_CODEC_ID_PRORES;
+    codeclist << "prores_aw" << "prores";
     targetFormat = AV_PIX_FMT_YUV422P10LE;
 
-    // allocate context
-    setupContext("mov");
+    // see https://documentation.apple.com/en/finalcutpro/professionalformatsandworkflows/chapter_10_section_0.html
+    // prores profiles : [0 - apco, 1 - apcs, 2 - apcn (default), 3 - apch]
+    // 0 Proxy: 'apco' Roughly 30 percent of the data rate of Apple ProRes 422
+    // 1 LT: 'apcs' Roughly 70 percent of the data rate of Apple ProRes 422
+    // 2 Standard Definition Apple ProRes 422: 'apcn'
+    // 3 High Quality: 'apch'
 
     // select profile
     switch (quality) {
     case QUALITY_LOW:
-        av_dict_set( &opts, "profile", "0", 0);
+        av_dict_set( &opts, "profile", "0", 0); // LT
         break;
     case QUALITY_MEDIUM:
-        av_dict_set( &opts, "profile", "1", 0);
+        av_dict_set( &opts, "profile", "2", 0); // standard
         break;
     case QUALITY_HIGH:
-        av_dict_set( &opts, "profile", "3", 0);
+        av_dict_set( &opts, "profile", "3", 0); // hq
+        // CANNOT USE PRORES_KS : TOO SLOW ENCODER
+        // see https://ffmpeg.org/ffmpeg-codecs.html#ProRes
+//        codeclist << "prores_ks";
+//        targetFormat = AV_PIX_FMT_YUV444P10LE;
+//        av_dict_set( &opts, "profile", "3", 0); // hq
+//        av_dict_set( &opts, "quant_mat", "2", 0); // quantiser matrix : standard
+//        // desired bits per macroblock (from 0 to 8192) : the higher the faster
+//        av_dict_set( &opts, "bits_per_mb", "8000", 0);
+
         break;
     case QUALITY_AUTO:
-        av_dict_set( &opts, "profile", "2", 0);
+        av_dict_set( &opts, "profile", "1", 0);
         break;
     }
+
+    // allocate context
+    setupContext(codeclist, "mov", targetFormat);
 
     // OPTIONNAL
     codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
@@ -503,7 +541,7 @@ VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps
     char *buffer = NULL;
     av_dict_get_string(opts, &buffer, '=', ',');
 
-    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< buffer <<  ")";
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< QString(codec->name) << buffer <<  ")";
 
     av_freep(&buffer);
 }
@@ -646,7 +684,7 @@ int VideoRecorder::estimateGroupOfPictureSize()
 }
 
 
-void VideoRecorder::setupContext(QString formatname)
+void VideoRecorder::setupContext(QStringList codecnames, QString formatname, AVPixelFormat pixelformat)
 {
     // allocate frame
     frame = av_frame_alloc();
@@ -665,10 +703,15 @@ void VideoRecorder::setupContext(QString formatname)
     if (format_context->oformat->video_codec == AV_CODEC_ID_NONE)
         VideoRecorderException("Codec unavailable.").raise();
 
-    // create video stream
-    codec = avcodec_find_encoder(codecId);
+    // find codec encoder
+    while (!codec || !codecnames.empty()) {
+        QString codecname = codecnames.takeFirst();
+        codec = avcodec_find_encoder_by_name(qPrintable(codecname));
+    }
     if (!codec)
         VideoRecorderException("codec not found").raise();
+
+    // create video stream
     video_stream = avformat_new_stream(format_context, codec);
     if (!video_stream)
         VideoRecorderException("Cannot allocate stream.").raise();
@@ -682,8 +725,8 @@ void VideoRecorder::setupContext(QString formatname)
 
     // fill in codec context
     codec_context->codec_type    = AVMEDIA_TYPE_VIDEO;
-    codec_context->codec_id      = codecId;
-    codec_context->pix_fmt       = targetFormat;
+    codec_context->codec_id      = codec->id;
+    codec_context->pix_fmt       = pixelformat;
     codec_context->width         = width;
     codec_context->height        = height;
     codec_context->framerate.num = frameRate;

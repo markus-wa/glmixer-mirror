@@ -1240,7 +1240,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : standard compromise for speed and quality.&lt;br/&gt;* WebM VP9 : constant visual quality, small file size.&lt;br/&gt;* Apple ProRes : priority to visual quality.&lt;br/&gt;* MPEG-4 DivX: old classic, good compromise.&lt;br/&gt;* MPEG-1 and 2 : ancient classics, not performant. &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability.&lt;br/&gt;* FF Video 3 : ffmpeg lossless (YUV444), well balanced compromise.&lt;br/&gt;* RAW RGB: lossless, very large files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : standard compromise for speed and quality.&lt;br/&gt;* WebM VP9 : constant visual quality, small file size.&lt;br/&gt;* Apple ProRes : priority to visual quality, large files.&lt;br/&gt;* MPEG-4 (DivX): old classic, good compromise.&lt;br/&gt;* MPEG-1 and 2 : ancient classics, not performant. &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability.&lt;br/&gt;* FF Video 3 : ffmpeg lossless (YUV444), well balanced compromise.&lt;br/&gt;* RAW RGB: lossless, very large files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>

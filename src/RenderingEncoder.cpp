@@ -365,29 +365,11 @@ bool RenderingEncoder::start(){
 
     // remember current update display period
     display_update_interval = glRenderWidget::updatePeriod();
+
+    // compute target update frame rate
     int update_fps = (int) ( 1000.0 / double(display_update_interval) );
 
-    // read actual frame rate (measured)
-    int display_fps = RenderingManager::getRenderingWidget()->getFramerate();
-
-    // show warning if frame rate is too low
-    if ( display_fps < (update_fps-2) ) {
-         QMessageBox msgBox;
-         msgBox.setIcon(QMessageBox::Warning);
-         msgBox.setText(tr("Rendering frame rate too low for recording."));
-         msgBox.setInformativeText(tr("The rendering is currently at %1 fps (on average), but your rendering preference aim for %2 fps.").arg(display_fps).arg(update_fps));
-         msgBox.setDetailedText( tr("You can either set your rendering preference to a frame rate close to %1 fps, or make optimizations to reach a display at %2 fps:\n"
-         "- select a lower quality in your rendering preferences\n"
-         "- lower the resolution of some sources\n"
-         "- remove some sources or some filters.\n").arg(display_fps).arg(update_fps) );
-
-         msgBox.addButton(QMessageBox::Discard);
-         msgBox.exec();
-         errormessage = "Rendering frame rate too low.";
-         return false;
-    }
-
-    // compute desired update frequency
+    // compute desired recording frame rate
     int recording_fps = qBound(1, (int) ( 1000.0 / double(encoding_frame_interval) ), 60);
 
     if ( update_fps < recording_fps ) {
@@ -418,6 +400,30 @@ bool RenderingEncoder::start(){
     encoding_update_interval = display_update_interval - 1;
     while ( encoding_frame_interval % encoding_update_interval )
         encoding_update_interval++;
+
+
+    // read actual display frame rate (measured)
+    int display_fps = RenderingManager::getRenderingWidget()->getFramerate();
+
+    // compute target update frame rate for recording
+    int encoding_update_fps = (int) ( 1000.0 / double(encoding_update_interval) );
+
+    // show warning if actual frame rate is too low (5% tolerance)
+    if ( display_fps < ( encoding_update_fps - (5*encoding_update_fps)/100 ) ) {
+         QMessageBox msgBox;
+         msgBox.setIcon(QMessageBox::Warning);
+         msgBox.setText(tr("Rendering frame rate too low for recording."));
+         msgBox.setInformativeText(tr("The rendering is currently at %1 fps (on average), but your rendering preference aim for %2 fps.").arg(display_fps).arg(encoding_update_fps));
+         msgBox.setDetailedText( tr("You can either set your rendering preference to a frame rate close to %1 fps, or make optimizations to reach a display at %2 fps:\n"
+         "- select a lower quality in your rendering preferences\n"
+         "- lower the resolution of some sources\n"
+         "- remove some sources or some filters.\n").arg(display_fps).arg(encoding_update_fps) );
+
+         msgBox.addButton(QMessageBox::Discard);
+         msgBox.exec();
+         errormessage = "Rendering frame rate too low.";
+         return false;
+    }
 
     // setup new display update interval to match recording update
     // The update is a factor of the encoding interval to skip frames accordingly
@@ -510,6 +516,9 @@ void RenderingEncoder::addFrame(uint8_t *data){
 
     // elapsed time
     encoding_duration += timer.restart();
+
+    if (encoding_duration > 10000)
+        setActive(false);
 
     // inform the thread that a picture was pushed into the queue
     encoder->releaseAndPushFrame( encoding_duration );
