@@ -2790,8 +2790,12 @@ void GLMixer::readSettings( QString pathtobin )
         // Kill all glmixer processes with a different PID
         QProcess::execute(QString("taskkill /F /FI \"PID ne %1\" /im glmixer.exe").arg(pid));
 #else
-        // fild all glmixer processes with a different PID and kill them
-        QString cmd = QString("pgrep -x glmixer | grep -vE %1 | xargs -t kill").arg(pid);
+        // unix bash: find all glmixer processes with a different PID and kill them
+#ifdef Q_OS_MAC
+        QString cmd = QString("pgrep -x glmixer | grep -vE %1 | xargs kill").arg(pid);
+#else
+        QString cmd = QString("pgrep -x glmixer | grep -vE %1 | xargs -r kill").arg(pid);
+#endif
         QProcess::execute("bash", QStringList() << "-c" << cmd);
 #endif
     }
