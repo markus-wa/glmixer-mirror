@@ -294,7 +294,7 @@ void RenderingEncoder::setActive(bool on)
                 emit status(tr("Recording.."), 2000);
 
                 // log
-                qDebug() << recorder->getFilename() << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps, buffer of %3 frames in %4 ).").arg(recorder->getSuffix()).arg(recorder->getFrameRate()).arg(encoder->getFrameQueueSize()).arg(getByteSizeString(bufferSize));
+                qDebug() << recorder->getFilename() << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps, buffer of %3 frames in %4 ).").arg(recorder->getFileSuffix()).arg(recorder->getFrameRate()).arg(encoder->getFrameQueueSize()).arg(getByteSizeString(bufferSize));
             }
             else
                 qCritical() << tr("Recording aborted. ") << errormessage;
@@ -544,8 +544,8 @@ void RenderingEncoder::close(bool success){
     int framecount = 0;
     int fps = recorder->getFrameRate();
     QString filename = recorder->getFilename();
-    QString suffix_file = recorder->getSuffix();
-    QString description_file = recorder->getDescription();
+    QString suffix_file = recorder->getFileSuffix();
+    QString description_file = recorder->getFileDescription();
     QString duration = getStringFromTime( (double) encoding_duration / 1000.0 );
 
     // stop recorder

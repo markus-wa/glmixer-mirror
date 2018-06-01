@@ -92,7 +92,7 @@ VideoRecorder::VideoRecorder(QString filename, int w, int h, int fps) : fileName
     graph = NULL;
     opts = NULL;
 
-    targetFormat = AV_PIX_FMT_NONE;
+//    targetFormat = AV_PIX_FMT_NONE;
 }
 
 VideoRecorder::~VideoRecorder()
@@ -123,10 +123,11 @@ VideoRecorderMP4::VideoRecorderMP4(QString filename, int w, int h, int fps, enco
     // specifics for this recorder
     suffix = "mp4";
     description = "MPEG 4 Video (*.mp4)";
-    codeclist << "libxvid" << "mpeg4";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
+    QStringList codeclist;
+    codeclist  << "mpeg4"<< "libxvid" << "msmpeg4";
     setupContext(codeclist, "mp4", targetFormat);
 
     // default bit rate
@@ -182,8 +183,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "mp4";
     description = "MPEG H264 Video (*.mp4)";
-    codeclist << "h264_omx" << "libx264" << "h264_nvenc" ;
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // select variable bit rate quality factor (percent)
     unsigned long vbr = 54;   // default to 54% quality, default crf 23
@@ -203,6 +203,8 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     }
 
     // allocate context
+    QStringList codeclist;
+    codeclist << "h264_nvenc"<< "libx264"  << "h264_omx"  ;
     setupContext(codeclist, "mp4", targetFormat);
 
     if ((strcmp(codec->name, "libx264") == 0)) {
@@ -268,11 +270,11 @@ VideoRecorderFFV::VideoRecorderFFV(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "avi";
     description = "AVI FF Video (*.avi)";
-    codeclist << "ffv1";
-    targetFormat = AV_PIX_FMT_YUV444P;
 
     // allocate context
-    setupContext(codeclist, "avi", targetFormat);
+    QStringList codeclist;
+    codeclist << "ffv1";
+    setupContext(codeclist, "avi", AV_PIX_FMT_YUV444P);
 
     // optimized options
     // see https://trac.ffmpeg.org/wiki/Encode/FFV1
@@ -293,11 +295,11 @@ VideoRecorderRAW::VideoRecorderRAW(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "avi";
     description = "AVI Video (*.avi)";
-    codeclist << "rawvideo";
-    targetFormat = AV_PIX_FMT_BGR24;
 
     // allocate context
-    setupContext(codeclist, "avi", targetFormat);
+    QStringList codeclist;
+    codeclist << "rawvideo";
+    setupContext(codeclist, "avi", AV_PIX_FMT_BGR24);
 
     setupFiltering();
 
@@ -309,10 +311,11 @@ VideoRecorderMPEG1::VideoRecorderMPEG1(QString filename, int w, int h, int fps) 
     // specifics for this recorder
     suffix = "mpg";
     description = "MPEG Video (*.mpg *.mpeg)";
-    codeclist << "mpeg1video";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
+    QStringList codeclist;
+    codeclist << "mpeg1video";
     setupContext(codeclist, "mpeg", targetFormat);
 
     // 9.8 Mbit/s max – DVD
@@ -350,10 +353,11 @@ VideoRecorderMPEG2::VideoRecorderMPEG2(QString filename, int w, int h, int fps) 
     // specifics for this recorder
     suffix = "mpg";
     description = "MPEG Video (*.mpg *.mpeg)";
-    codeclist << "mpeg2video";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
+    QStringList codeclist;
+    codeclist << "mpeg2video";
     setupContext(codeclist, "mpeg", targetFormat);
 
     // 25 Mbit/s approximate – HDV 1080i (using MPEG2 compression)
@@ -390,10 +394,11 @@ VideoRecorderWMV::VideoRecorderWMV(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "wmv";
     description = "Windows Media Video (*.wmv)";
-    codeclist << "wmv1" << "wmv2";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
+    QStringList codeclist;
+    codeclist << "wmv2" << "wmv1";
     setupContext(codeclist, "avi", targetFormat);
 
     // bit_rate, maxi 25 Mbits/s
@@ -413,10 +418,11 @@ VideoRecorderFLV::VideoRecorderFLV(QString filename, int w, int h, int fps) : Vi
     // specifics for this recorder
     suffix = "flv";
     description = "Flash Video (*.flv)";
-    codeclist << "flv";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // allocate context
+    QStringList codeclist;
+    codeclist << "flv";
     setupContext(codeclist, "flv", targetFormat);
 
     // bit_rate, maxi 25 Mbits/s
@@ -436,8 +442,7 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "webm";
     description = "WebM Video (*.webm)";
-    codeclist<< "libvpx" << "libvpx-vp9";
-    targetFormat = AV_PIX_FMT_YUV420P;
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // select constant quality (CQ) mode
     // The CRF value can be from 0–63. Lower values mean better quality.
@@ -460,6 +465,8 @@ VideoRecorderWebM::VideoRecorderWebM(QString filename, int w, int h, int fps, en
     }
 
     // allocate context
+    QStringList codeclist;
+    codeclist  << "libvpx-vp9" << "libvpx";
     setupContext(codeclist, "webm", targetFormat);
 
     // see https://trac.ffmpeg.org/wiki/Encode/VP9
@@ -493,8 +500,6 @@ VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps
     // specifics for this recorder
     suffix = "mov";
     description = "Apple ProRes Video (*.mov)";
-    codeclist << "prores_aw" << "prores";
-    targetFormat = AV_PIX_FMT_YUV422P10LE;
 
     // see https://documentation.apple.com/en/finalcutpro/professionalformatsandworkflows/chapter_10_section_0.html
     // prores profiles : [0 - apco, 1 - apcs, 2 - apcn (default), 3 - apch]
@@ -529,7 +534,9 @@ VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps
     }
 
     // allocate context
-    setupContext(codeclist, "mov", targetFormat);
+    QStringList codeclist;
+    codeclist << "prores" << "prores_aw";
+    setupContext(codeclist, "mov", AV_PIX_FMT_YUV422P10LE);
 
     // OPTIONNAL
     codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
@@ -704,12 +711,15 @@ void VideoRecorder::setupContext(QStringList codecnames, QString formatname, AVP
         VideoRecorderException("Codec unavailable.").raise();
 
     // find codec encoder
-    while (!codec || !codecnames.empty()) {
-        QString codecname = codecnames.takeFirst();
-        codec = avcodec_find_encoder_by_name(qPrintable(codecname));
+    QStringList listcodecs(codecnames);
+    codec=NULL;
+    while (!listcodecs.isEmpty()) {
+        codec = avcodec_find_encoder_by_name(qPrintable(listcodecs.takeFirst()));
+        if (codec != NULL)
+            break;
     }
-    if (!codec)
-        VideoRecorderException("codec not found").raise();
+    if (codec==NULL)
+        VideoRecorderException( QString("Codec not found (%1)").arg(codecnames.join(", ")) ).raise();
 
     // create video stream
     video_stream = avformat_new_stream(format_context, codec);
@@ -776,7 +786,7 @@ void VideoRecorder::setupFiltering()
     if (retcd < 0)
         VideoRecorderException("Create out filter " + QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
-    enum AVPixelFormat pix_fmts[] = { targetFormat, AV_PIX_FMT_NONE };
+    enum AVPixelFormat pix_fmts[] = { codec_context->pix_fmt, AV_PIX_FMT_NONE };
     retcd = av_opt_set_int_list(out_video_filter, "pix_fmts", pix_fmts,
                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN) ;
     if (retcd < 0)

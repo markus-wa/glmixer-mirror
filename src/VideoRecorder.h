@@ -49,8 +49,8 @@ public:
     static VideoRecorder *getRecorder(encodingformat f, QString filename, int w, int h, int fps, encodingquality quality);
     virtual ~VideoRecorder();
 
-    QString getSuffix() const { return suffix; }
-    QString getDescription() const { return description; }
+    QString getFileSuffix() const { return suffix; }
+    QString getFileDescription() const { return description; }
     int getFrameRate() const { return frameRate; }
     QString getFilename() const { return fileName; }
 
@@ -83,8 +83,6 @@ protected:
     // format specific
     QString suffix;
     QString description;
-    QStringList codeclist;
-    enum AVPixelFormat targetFormat;
 
     // encoding structures
     AVFormatContext *format_context;
