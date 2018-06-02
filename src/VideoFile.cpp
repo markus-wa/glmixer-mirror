@@ -419,6 +419,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         return false;
     }
 
+    // try to replace the codec with a better one (hardware accelerated)
+    AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+    if (hwcodec != NULL) {
+        codec = hwcodec;
+        qDebug() << filename << QChar(124).toLatin1() << tr("Using hardware accelerated %1.").arg(codec->long_name);
+    }
+
     // all ok, we can set the internal pointers to the good values
     video_st = pFormatCtx->streams[videoStream];
 

@@ -65,6 +65,13 @@ public:
      */
     static bool pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt);
     /**
+     *  Try to find an hardware accelerated codec equivalent
+     *  to the codec given, the same if nothing found.
+     *
+     *  @return codec 'cuvid' or 'videotoolbox'
+     */
+    static AVCodec *getEquivalentHardwareAcceleratedCodec(AVCodec *codec);
+    /**
      * Displays a dialog window (QDialog) listing the formats and video codecs supported for reading.
      *
      * @param iconfile Name of the file to put as icon of the window

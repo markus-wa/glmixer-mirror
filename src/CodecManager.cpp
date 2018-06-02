@@ -400,3 +400,22 @@ bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
 
 }
 
+
+AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
+{
+    AVCodec *hwcodec = NULL;
+
+    char newcodecname[128];
+    snprintf(newcodecname, 128, "%s_cuvid", codec->name);
+
+    hwcodec = avcodec_find_decoder_by_name(newcodecname);
+
+//    if (codec->id == AV_CODEC_ID_H264) {
+//        hwcodec = avcodec_find_decoder_by_name("h264_cuvid");
+//    }
+//    if (codec->id == AV_CODEC_ID_MPEG4) {
+//        hwcodec = avcodec_find_decoder_by_name("mpeg4_cuvid");
+//    }
+
+    return hwcodec;
+}
