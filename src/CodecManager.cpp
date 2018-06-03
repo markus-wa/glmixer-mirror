@@ -405,17 +405,19 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
 {
     AVCodec *hwcodec = NULL;
 
+    // see http://net-zeal.de/hardware-acceleration-for-video-encoding-decoding-with-ffmpeg/
     char newcodecname[128];
+#ifdef Q_OS_MAC
+    snprintf(newcodecname, 128, "%s_vda", codec->name);
+#else
+#ifdef Q_OS_WIN
+    snprintf(newcodecname, 128, "%s_qsv", codec->name);
+#else
     snprintf(newcodecname, 128, "%s_cuvid", codec->name);
+#endif
+#endif
 
     hwcodec = avcodec_find_decoder_by_name(newcodecname);
-
-//    if (codec->id == AV_CODEC_ID_H264) {
-//        hwcodec = avcodec_find_decoder_by_name("h264_cuvid");
-//    }
-//    if (codec->id == AV_CODEC_ID_MPEG4) {
-//        hwcodec = avcodec_find_decoder_by_name("mpeg4_cuvid");
-//    }
 
     return hwcodec;
 }

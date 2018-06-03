@@ -274,9 +274,9 @@ void VideoFile::reset()
     parsing_mode = VideoFile::SEEKING_NONE;
     fast_forward = false;
 
-    if (video_st)
-        _videoClock.reset(0.0, av_q2d(video_st->time_base));
-
+    // if reset after openning, reset clock and indicate time base
+    if (video_st && frame_rate > 0)
+        _videoClock.reset(0.0, 1.0 / frame_rate);
 }
 
 void VideoFile::stop()
@@ -814,7 +814,8 @@ void VideoFile::video_refresh_timer()
     VideoPicture *currentvp = NULL, *nextvp = NULL;
 
     // lock the thread to operate on the queue
-    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) )
+    {
 
         // if all is in order, deal with the picture in the queue
         // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
@@ -828,6 +829,8 @@ void VideoFile::video_refresh_timer()
             // remember it if there is a next picture
             if (!pictq.empty())
                 nextvp = pictq.head();
+
+//            fprintf(stderr, "video_refresh_timer current %f has next %d \n", currentvp->getPts(), nextvp ? 1 : 0);
 
             // unblock the queue for the decoding thread
             // by informing it about the new size of the queue
@@ -847,7 +850,7 @@ void VideoFile::video_refresh_timer()
         // store time of this current frame
         current_frame_pts =  currentvp->getPts();
 
-        //        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
+//                fprintf(stderr, "video_refresh_timer pts %f time %f \n", current_frame_pts, _videoClock.time());
 
         // if this frame was tagged as stopping frame
         if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
@@ -870,8 +873,6 @@ void VideoFile::video_refresh_timer()
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
             emit timeChanged(current_frame_pts);
-
-            //            fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
 
             //            currentvp->saveToPPM(tr("%1.ppm").arg(currentvp->getPts()));
 
@@ -903,10 +904,15 @@ void VideoFile::video_refresh_timer()
                     nextvp->removeAction(VideoPicture::ACTION_SHOW);
                 }
 
-                //            fprintf(stderr, "                         NEXT    picture pts %f delay %d\n", nextvp->getPts(), ptimer_delay);
+//                fprintf(stderr, "                         NEXT    picture pts %f delay %d\n", nextvp->getPts(), ptimer_delay);
 
             }
+            else {
 
+//                _videoClock.reset(current_frame_pts);
+                ptimer_delay = (int) (_videoClock.timeBase() * 1000.0);
+
+            }
         }
         // NOT VISIBLE ? skip this frame...
         else {
@@ -1505,14 +1511,21 @@ void DecodingThread::run()
                     // bad case
                     intdts = _pFrame->pkt_dts;
                 else
-                    // TODO if no valid pts given
-                    intdts = previous_intpts + 1;
+                    // increment if no valid pts given
+                    intdts = previous_intpts + pkt->duration;
 
                 // remember previous dts
                 previous_intpts = intdts;
 
+                // this frame is the first of the stream
+                if (intdts==0)
+                    // (the ACTION_RESET_PTS in video refresh timer will reset the clock)
+                    actionFrame |= VideoPicture::ACTION_RESET_PTS;
+
                 // compute presentation time stamp
                 pts = is->synchronize_video(_pFrame, double(intdts) * av_q2d(is->video_st->time_base));
+
+//                fprintf(stderr, "intdts = %d   pts = %f   %d", (int)intdts, pts, (int)pkt->duration);
 
                 // ?? WHY ? it is in ffplay...
                 if (is->video_st->sample_aspect_ratio.num) {
@@ -1591,6 +1604,7 @@ void DecodingThread::run()
 
                     // add frame to the queue of pictures
                     is->queue_picture(_pFrame, pts, actionFrame);
+//                    fprintf(stderr, "queue pic  pts = %f   ", pts);
                 }
 
                 // clean frame
