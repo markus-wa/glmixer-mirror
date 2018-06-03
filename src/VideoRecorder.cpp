@@ -36,6 +36,10 @@ VideoRecorder *VideoRecorder::getRecorder(encodingformat f, QString filename, in
         rec = new VideoRecorderH264(filename, w, h, fps, quality);
         break;
 
+    case FORMAT_MKV_HEVC:
+        rec = new VideoRecorderHEVC(filename, w, h, fps, quality);
+        break;
+
     case FORMAT_WEB_WEBM:
         rec = new VideoRecorderWebM(filename, w, h, fps, quality);
         break;
@@ -250,6 +254,85 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
             vbr = 4000;
         codec_context->profile = FF_PROFILE_H264_HIGH;
         codec_context->bit_rate = vbr;
+    }
+
+    // OPTIONNAL
+    codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
+
+    setupFiltering();
+
+    char *buffer = NULL;
+    av_dict_get_string(opts, &buffer, '=', ',');
+
+    qDebug() << filename << QChar(124).toLatin1() << "Encoder" << avcodec_descriptor_get(codec_context->codec_id)->long_name << " ( "<< QString(codec->name)  << buffer << vbr << ")";
+
+    av_freep(&buffer);
+}
+
+
+VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, encodingquality quality) : VideoRecorder(filename, w, h, fps)
+{
+    // specifics for this recorder
+    suffix = "mkv";
+    description = "High Efficiency Video Codec (*.mkv)";
+    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
+    QStringList codeclist;
+    codeclist << "hevc_nvenc"<< "libx265";
+
+    // select variable bit rate quality factor (percent)
+    unsigned long vbr = 54;   // default to 54% quality, default crf 23
+    switch (quality) {
+    case QUALITY_LOW:
+        vbr = 40;   // crf 30 : quite ugly but not that bad
+        break;
+    case QUALITY_MEDIUM:
+        vbr = 64;;  // crf 18 : 'visually' lossless
+        break;
+    case QUALITY_HIGH:
+        vbr = 90;   // crf 5 : almost lossless
+        codeclist.takeFirst(); // nvenc does not support yuv444
+        targetFormat = AV_PIX_FMT_YUV444P;  // higher quality color
+        break;
+    case QUALITY_AUTO:
+        break;
+    }
+
+    // allocate context
+    setupContext(codeclist, "matroska", targetFormat);
+
+    if ((strcmp(codec->name, "libx265") == 0)) {
+        // configure libx264 encoder quality
+        // see https://trac.ffmpeg.org/wiki/Encode/H.265
+        av_dict_set(&opts, "preset", "ultrafast", 0);
+        av_dict_set(&opts, "tune", "zerolatency", 0);
+
+//        if (quality==QUALITY_HIGH)
+//            av_dict_set(&opts, "profile", "high444", 0); // high444p
+
+        // Control Constant Rate Factor (CRF)
+        // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
+        // and 51 is terrible quality. A sane range is 18-26, and the default is 23.
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", (int) vbr);
+        av_dict_set(&opts, "crf", crf, 0);
+    }
+    else if ((strcmp(codec->name, "hevc_nvenc") == 0)) {
+        // configure nvenc_h265 encoder quality
+        av_dict_set(&opts, "preset", "3", 0); // fast
+        av_dict_set(&opts, "zerolatency", "1", 0); // active
+
+        if (quality==QUALITY_HIGH)
+            av_dict_set(&opts, "profile", "3", 0); // high444p
+
+        // encoder quality controlled via quantization parameter
+        av_dict_set(&opts, "rc", "0", 0); // Constant QP mode
+
+        // Constant quantization parameter rate control method (from -1 to 51)
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", (int) vbr);
+        av_dict_set(&opts, "qp", crf, 0);
     }
 
     // OPTIONNAL

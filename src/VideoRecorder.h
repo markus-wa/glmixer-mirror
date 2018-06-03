@@ -22,6 +22,7 @@ public:
 
 typedef enum {
     FORMAT_MP4_H264 = 0,
+    FORMAT_MKV_HEVC,
     FORMAT_WEB_WEBM,
     FORMAT_MOV_PRORES,
     FORMAT_MP4_MPEG4,
@@ -109,6 +110,12 @@ class VideoRecorderH264 : public VideoRecorder
 {
 public:
     VideoRecorderH264(QString filename, int w, int h, int fps, encodingquality quality);
+};
+
+class VideoRecorderHEVC : public VideoRecorder
+{
+public:
+    VideoRecorderHEVC(QString filename, int w, int h, int fps, encodingquality quality);
 };
 
 class VideoRecorderWebM : public VideoRecorder

@@ -518,8 +518,8 @@ void RenderingEncoder::addFrame(uint8_t *data){
     encoding_duration += timer.restart();
 
     // for tests recording 10s
-    //    if (encoding_duration > 10000)
-    //        setActive(false);
+        if (encoding_duration > 10000)
+            setActive(false);
 
     // inform the thread that a picture was pushed into the queue
     encoder->releaseAndPushFrame( encoding_duration );

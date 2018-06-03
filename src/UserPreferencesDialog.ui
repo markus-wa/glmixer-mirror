@@ -1078,7 +1078,12 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <item>
                    <property name="text">
-                    <string>H264 (.mov)</string>
+                    <string>H264 (.mp4)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>HEVC (.mkv)</string>
                    </property>
                   </item>
                   <item>
@@ -1240,7 +1245,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : standard compromise for speed and quality.&lt;br/&gt;* WebM VP9 : constant visual quality, small file size.&lt;br/&gt;* Apple ProRes : priority to visual quality, large file size.&lt;br/&gt;* MPEG-4 (DivX): old classic, good compromise.&lt;br/&gt;* MPEG-1 and 2 : ancient classics, not performant. &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability.&lt;br/&gt;* FF Video : ffmpeg lossless (YUV444), well balanced compromise.&lt;br/&gt;* Rawvideo : lossless (RGB), very large files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select recording format and codec:&lt;/p&gt;&lt;p&gt;* H264 : standard compromise for speed and quality.&lt;br/&gt;* HEVC (H265) : modern compromise for speed and quality.&lt;br/&gt;* WebM (VP9) : constant visual quality, small file size.&lt;br/&gt;* Apple ProRes : priority to visual quality, large file size.&lt;br/&gt;* MPEG-4 (DivX): old classic, good compromise.&lt;br/&gt;* MPEG-1 and 2 : ancient classics, not performant. &lt;br/&gt;* Windows Media and Flash Video : here for legacy and portability.&lt;br/&gt;* FF Video : ffmpeg lossless (YUV444), well balanced compromise.&lt;br/&gt;* Rawvideo : lossless (RGB), very large files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="layoutDirection">
                    <enum>Qt::RightToLeft</enum>
@@ -1259,7 +1264,7 @@ p, li { white-space: pre-wrap; }
                 <item row="1" column="2">
                  <widget class="QLabel" name="label_31">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selection of quality factor for some codecs:&lt;/p&gt;&lt;p&gt;* H264 : target quality, limited bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* WebM VP9 : fixed visual quality, variable bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* Apple Prores 422: fixed visual quality, variable bitrate, YUV422 pixel format.&lt;br/&gt;* MPEG-4 : limited constant bit rate, YUV420P pixel format.&lt;/p&gt;&lt;p&gt;YouTube format: H264 Medium.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selection of quality factor for some codecs:&lt;/p&gt;&lt;p&gt;* H264 : constant quality mode, variable bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* HEVC : constant quality mode, variable bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* WebM VP9 : fixed visual quality, variable bitrate, YUV420P pixel format, YUV444P in high quality.&lt;br/&gt;* Apple Prores 422: fixed visual quality, variable bitrate, YUV422 pixel format.&lt;br/&gt;* MPEG-4 : limited constant bit rate, YUV420P pixel format.&lt;/p&gt;&lt;p&gt;YouTube format: H264 Medium.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string/>

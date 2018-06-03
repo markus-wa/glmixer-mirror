@@ -366,7 +366,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     uint recquality = 0;
     stream >> recquality;
     recordingQualitySelection->setCurrentIndex(recquality);
-    recordingQualitySelection->setEnabled(recformat < 4);
+    recordingQualitySelection->setEnabled(recformat < 5);
 
     // z. Timers display preferences
     bool showtimer = true;
@@ -490,7 +490,7 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 
 void UserPreferencesDialog::on_recordingFormatSelection_currentIndexChanged(int i)
 {
-    recordingQualitySelection->setEnabled(i < 4);
+    recordingQualitySelection->setEnabled(i < 5);
 }
 
 void UserPreferencesDialog::on_recordingFramerateMode_valueChanged(int mode)
