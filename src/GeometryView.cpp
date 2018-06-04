@@ -51,7 +51,7 @@ bool GeometrySelectionArea::contains(SourceSet::iterator s)
 }
 
 
-GeometryView::GeometryView() : View(), quadrant(0), currentSource(0)
+GeometryView::GeometryView() : View(), quadrant(0), currentSource(0), borderType(0)
 {
     zoom = DEFAULTZOOM;
     minzoom = MINZOOM;
@@ -60,8 +60,6 @@ GeometryView::GeometryView() : View(), quadrant(0), currentSource(0)
     maxpany = SOURCE_UNIT*MAXZOOM*2.0;
     currentAction = View::NONE;
     _modeMoveFrame = false;
-
-    borderType = ViewRenderWidget::border_large;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
     title = " Geometry view";
@@ -321,6 +319,9 @@ void GeometryView::resize(int w, int h)
     glGetDoublev(GL_MODELVIEW_MATRIX, maxmodelview);
     gluUnProject((double)viewport[2], (double)viewport[3], 0.0, maxmodelview, projection, viewport, _geometryArea+2, _geometryArea+3, &dum);
     glPopMatrix();
+
+    // init border type
+    borderType = ViewRenderWidget::border_large;
 }
 
 
