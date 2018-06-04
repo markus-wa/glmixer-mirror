@@ -96,7 +96,6 @@ VideoRecorder::VideoRecorder(QString filename, int w, int h, int fps) : fileName
     graph = NULL;
     opts = NULL;
 
-//    targetFormat = AV_PIX_FMT_NONE;
 }
 
 VideoRecorder::~VideoRecorder()
@@ -305,9 +304,6 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
         // see https://trac.ffmpeg.org/wiki/Encode/H.265
         av_dict_set(&opts, "preset", "ultrafast", 0);
         av_dict_set(&opts, "tune", "zerolatency", 0);
-
-//        if (quality==QUALITY_HIGH)
-//            av_dict_set(&opts, "profile", "high444", 0); // high444p
 
         // Control Constant Rate Factor (CRF)
         // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
@@ -637,7 +633,7 @@ VideoRecorderProRes::VideoRecorderProRes(QString filename, int w, int h, int fps
 }
 
 
-void VideoRecorder::addFrame(AVFrame *f)
+bool VideoRecorder::addFrame(AVFrame *f)
 {
     int retcd = 0;
     char errstr[128];
@@ -645,30 +641,38 @@ void VideoRecorder::addFrame(AVFrame *f)
     if (!format_context)
         VideoRecorderException("Format context unavailable.").raise();
 
-    // convert frame format & flip
-    if (in_video_filter) {
+    if (f != NULL ) {
 
-        retcd = av_buffersrc_add_frame_flags(in_video_filter, f, AV_BUFFERSRC_FLAG_KEEP_REF);
+        // convert frame format & flip
+        if (in_video_filter) {
+
+            retcd = av_buffersrc_add_frame_flags(in_video_filter, f, AV_BUFFERSRC_FLAG_KEEP_REF);
+            if (retcd < 0)
+                VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+
+            retcd = av_buffersink_get_frame(out_video_filter, frame);
+            if (retcd < 0)
+                VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        }
+        else
+            av_frame_ref(frame, f);
+
+        // set Presentation time Stamp as frame number
+        frame->pts = framenum;
+
+        // send frame to codec encoder
+        retcd = avcodec_send_frame(codec_context, frame);
         if (retcd < 0)
             VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
 
-        retcd = av_buffersink_get_frame(out_video_filter, frame);
-        if (retcd < 0)
-            VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
+        // free buffer in frame
+        av_frame_unref(frame);
+
+        // one more frame !
+        framenum++;
     }
     else
-        av_frame_ref(frame, f);
-
-    // set Presentation time Stamp as frame number
-    frame->pts = framenum;
-
-    // send frame to codec encoder
-    retcd = avcodec_send_frame(codec_context, frame);
-    if (retcd < 0)
-        VideoRecorderException(QString(av_make_error_string(errstr, sizeof(errstr),retcd))).raise();
-
-    // free buffer in frame
-    av_frame_unref(frame);
+        avcodec_send_frame(codec_context, NULL);
 
     // loop packet encoding
     while ( retcd >= 0 ) {
@@ -682,8 +686,12 @@ void VideoRecorder::addFrame(AVFrame *f)
         retcd =  avcodec_receive_packet(codec_context, &pkt);
 
         // ignore if temporarily unavailable
-        if (retcd == AVERROR(EAGAIN) || retcd == AVERROR_EOF)
+        if (retcd == AVERROR(EAGAIN))
             break;
+
+        // done end of buffer
+        if (retcd == AVERROR_EOF)
+            return false;
 
         // interrupt on error
         if (retcd < 0)
@@ -702,8 +710,7 @@ void VideoRecorder::addFrame(AVFrame *f)
         av_packet_unref(&pkt);
     }
 
-    // one more frame !
-    framenum++;
+    return true;
 }
 
 void VideoRecorder::open()

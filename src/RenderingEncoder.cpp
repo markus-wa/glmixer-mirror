@@ -184,7 +184,9 @@ void EncodingThread::run() {
         } else {
 
             try {
-                recorder->addFrame(frameq[pictq_rindex]);
+                // add a frame
+                if ( !recorder->addFrame(frameq[pictq_rindex]) )
+                    break;
             }
             catch (VideoRecorderException &e){
                 qWarning() << "EncodingThread" << QChar(124).toLatin1() << e.message();
@@ -216,6 +218,14 @@ void EncodingThread::run() {
             // (but leave time for thread to acquire lock)
             msleep( 1 );
 
+    }
+
+    // flush recorder : write pending packets
+    try {
+        while ( recorder->addFrame(NULL) );
+    }
+    catch (VideoRecorderException &e){
+        qWarning() << "EncodingThread" << QChar(124).toLatin1() << e.message();
     }
 
     // inform Rendering Encoder that the process is over (call close())
@@ -340,7 +350,7 @@ void RenderingEncoder::setPaused(bool on)
     }
 
     // restart timer
-    timer.start();
+    elapsed_timer.start();
 }
 
 // Start the encoding process
@@ -401,7 +411,6 @@ bool RenderingEncoder::start(){
     while ( encoding_frame_interval % encoding_update_interval )
         encoding_update_interval++;
 
-
     // read actual display frame rate (measured)
     int display_fps = RenderingManager::getRenderingWidget()->getFramerate();
 
@@ -451,7 +460,8 @@ bool RenderingEncoder::start(){
 
     // start the timers
     encoding_duration = 0;
-    timer.start();
+    elapsed_duration = 0;
+    elapsed_timer.start();
 
     return true;
 }
@@ -468,16 +478,21 @@ bool RenderingEncoder::acceptFrame()
             return false;
         }
 
-        // SKIP if the time since last recorded frame is less than encoding interval.
-        // As the recording_update_interval is a multiple of encoding_frame_interval,
-        // skipping some frames allows recoring at lower frame rate.
-        // NB: a margin of 3ms is required to make sure we hit the desired fps
-        if ( timer.elapsed() < encoding_frame_interval - 3 )
-            return false;
+        // elapsed time of recording
+        elapsed_duration += elapsed_timer.restart();
 
-        // all good ! Can accept the frame
-        return true;
+        // if time since last encoded frame (encoding duration)
+        // is above the required frame interval, we shall add a frame !
+        if ( elapsed_duration - encoding_duration > encoding_frame_interval)
+            // accept the frame
+            return true;
+
+        // else SKIP if the time since last encoded frame is less than encoding interval.
+        // NB: this is expected because the recording_update_interval is a
+        // multiple of encoding_frame_interval;
+        // skipping some frames allows recoring at lower frame rate.
     }
+
     return false;
 }
 
@@ -514,15 +529,15 @@ void RenderingEncoder::addFrame(uint8_t *data){
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buf->data);
 #endif
 
-    // elapsed time
-    encoding_duration += timer.restart();
-
-    // for tests recording 10s
-        if (encoding_duration > 10000)
-            setActive(false);
+    // record time
+    encoding_duration += encoding_frame_interval;
 
     // inform the thread that a picture was pushed into the queue
     encoder->releaseAndPushFrame( encoding_duration );
+
+//    // BHBN : DEBUG  : for tests recording 10s
+//    if (encoding_duration > 10000)
+//        setActive(false);
 
     // display record time
     emit timing( getStringFromTime( (double) encoding_duration / 1000.0) );
@@ -591,10 +606,11 @@ void RenderingEncoder::close(bool success){
             msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
                                        "Playback of the movie might be jerky.\n"
                                        "To avoid this, change the preferences to:\n"
-                                       " - another rendering resolution\n"
+                                       " - another recording codec\n"
+                                       " - a lower recording quality\n"
                                        " - a lower recording frame rate\n"
-                                       " - a larger recording buffer size\n"
-                                       " - another recording codec").arg(framecount).arg(framecount + skipframecount));
+                                       " - a lower rendering resolution\n"
+                                       "For recording short sequences, try to increase the buffer size.").arg(framecount).arg(framecount + skipframecount));
 
             QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
             msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);

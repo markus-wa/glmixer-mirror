@@ -159,8 +159,8 @@ private:
 
     // state machine
     bool started, paused;
-    QElapsedTimer timer;
-    int encoding_duration;
+    QElapsedTimer elapsed_timer;
+    uint encoding_duration, elapsed_duration;
     int skipframecount;
     QString errormessage;
 

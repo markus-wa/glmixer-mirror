@@ -64,8 +64,7 @@ public:
     int close();
 
     // Record one frame
-    void addFrame(AVFrame *frame);
-
+    bool addFrame(AVFrame *frame);
 
 protected:
     VideoRecorder(QString filename, int w, int h, int fps );
