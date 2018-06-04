@@ -408,7 +408,8 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     // see http://net-zeal.de/hardware-acceleration-for-video-encoding-decoding-with-ffmpeg/
     char newcodecname[128];
 #ifdef Q_OS_MAC
-    snprintf(newcodecname, 128, "%s_vda", codec->name);
+    // not applicable
+    return NULL;
 #else
 #ifdef Q_OS_WIN
     snprintf(newcodecname, 128, "%s_qsv", codec->name);

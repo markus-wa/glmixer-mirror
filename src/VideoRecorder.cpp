@@ -186,20 +186,22 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "mp4";
     description = "MPEG H264 Video (*.mp4)";
-    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
 
     // select variable bit rate quality factor (percent)
     unsigned long vbr = 54;   // default to 54% quality, default crf 23
+    int profile = FF_PROFILE_H264_MAIN;
     switch (quality) {
     case QUALITY_LOW:
         vbr = 40;   // crf 30 : quite ugly but not that bad
+        profile = FF_PROFILE_H264_BASELINE;
         break;
     case QUALITY_MEDIUM:
         vbr = 64;;  // crf 18 : 'visually' lossless
+        profile = FF_PROFILE_H264_EXTENDED;
         break;
     case QUALITY_HIGH:
         vbr = 90;   // crf 5 : almost lossless
-        targetFormat = AV_PIX_FMT_YUV444P;  // higher quality color
+        profile = FF_PROFILE_H264_HIGH;
         break;
     case QUALITY_AUTO:
         break;
@@ -207,17 +209,25 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
 
     // allocate context
     QStringList codeclist;
-    codeclist << "h264_nvenc"<< "libx264"  << "h264_omx"  ;
-    setupContext(codeclist, "mp4", targetFormat);
+    codeclist << "h264_nvenc" << "h264_videotoolbox" << "libx264"  << "h264_omx"  ;
+    setupContext(codeclist, "mp4", AV_PIX_FMT_YUV420P);
 
+    // set profile
+    codec_context->profile = profile;
+
+    // set options specific
     if ((strcmp(codec->name, "libx264") == 0)) {
         // configure libx264 encoder quality
         // see https://trac.ffmpeg.org/wiki/Encode/H.264
         av_dict_set(&opts, "preset", "ultrafast", 0);
         av_dict_set(&opts, "tune", "zerolatency", 0);
 
-        if (quality==QUALITY_HIGH)
+        // set for yuv444 color quality
+        if (quality==QUALITY_HIGH) {
+            codec_context->pix_fmt = AV_PIX_FMT_YUV444P;
+            codec_context->profile = FF_PROFILE_H264_HIGH_444;
             av_dict_set(&opts, "profile", "high444", 0); // high444p
+        }
 
         // Control x264 encoder quality via CRF
         // The total range is from 0 to 51, where 0 is lossless, 18 can be considered ‘visually lossless’,
@@ -233,8 +243,12 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
         av_dict_set(&opts, "preset", "3", 0); // fast
         av_dict_set(&opts, "zerolatency", "1", 0); // active
 
-        if (quality==QUALITY_HIGH)
+        // set for yuv444 color quality
+        if (quality==QUALITY_HIGH) {
+            codec_context->pix_fmt = AV_PIX_FMT_YUV444P;
+            codec_context->profile = FF_PROFILE_H264_HIGH_444;
             av_dict_set(&opts, "profile", "3", 0); // high444p
+        }
 
         // encoder quality controlled via quantization parameter
         av_dict_set(&opts, "rc", "0", 0); // Constant QP mode
@@ -245,13 +259,16 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
         snprintf(crf, 10, "%d", (int) vbr);
         av_dict_set(&opts, "qp", crf, 0);
     }
-    else if ((strcmp(codec->name, "h264_omx") == 0)) {
-        // H264 OMX encoder quality can only be controlled via bit_rate
+    else {
+        // option for videotoolbox
+        if ((strcmp(codec->name, "h264_videotoolbox") == 0)) 
+            av_dict_set(&opts, "realtime", "1", 0);
+
+        // encoder quality can only be controlled via bit_rate
         vbr = (width * height * fps * vbr) >> 7;
         // Clip bit rate to min
         if (vbr < 4000) // magic number
             vbr = 4000;
-        codec_context->profile = FF_PROFILE_H264_HIGH;
         codec_context->bit_rate = vbr;
     }
 
@@ -274,10 +291,7 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "mkv";
     description = "High Efficiency Video Codec (*.mkv)";
-    enum AVPixelFormat targetFormat = AV_PIX_FMT_YUV420P;
-    QStringList codeclist;
-    codeclist << "hevc_nvenc"<< "libx265";
-
+    
     // select variable bit rate quality factor (percent)
     unsigned long vbr = 54;   // default to 54% quality, default crf 23
     switch (quality) {
@@ -289,15 +303,16 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
         break;
     case QUALITY_HIGH:
         vbr = 90;   // crf 5 : almost lossless
-        codeclist.takeFirst(); // nvenc does not support yuv444
-        targetFormat = AV_PIX_FMT_YUV444P;  // higher quality color
+        av_dict_set(&opts, "profile", "2", 0); // high
         break;
     case QUALITY_AUTO:
         break;
     }
 
     // allocate context
-    setupContext(codeclist, "matroska", targetFormat);
+    QStringList codeclist;
+    codeclist << "hevc_nvenc"  << "libx265" ;
+    setupContext(codeclist, "matroska", AV_PIX_FMT_YUV420P);
 
     if ((strcmp(codec->name, "libx265") == 0)) {
         // configure libx264 encoder quality
@@ -318,9 +333,6 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
         av_dict_set(&opts, "preset", "3", 0); // fast
         av_dict_set(&opts, "zerolatency", "1", 0); // active
 
-        if (quality==QUALITY_HIGH)
-            av_dict_set(&opts, "profile", "3", 0); // high444p
-
         // encoder quality controlled via quantization parameter
         av_dict_set(&opts, "rc", "0", 0); // Constant QP mode
 
@@ -330,7 +342,18 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
         snprintf(crf, 10, "%d", (int) vbr);
         av_dict_set(&opts, "qp", crf, 0);
     }
+/*    else if ((strcmp(codec->name, "hevc_videotoolbox") == 0)) {
+        // configure speed
+        av_dict_set(&opts, "realtime", "1", 0);
 
+        // encoder quality can only be controlled via bit_rate
+        vbr = (width * height * fps * vbr) >> 7;
+        // Clip bit rate to min
+        if (vbr < 4000) // magic number
+            vbr = 4000;
+        codec_context->bit_rate = vbr;  
+    }
+*/
     // OPTIONNAL
     codec_context->thread_count = FFMIN(8, std::thread::hardware_concurrency());
 

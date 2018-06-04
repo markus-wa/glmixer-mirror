@@ -143,9 +143,12 @@ OSX COMPILATION
         brew install subversion
         brew install ninja
         brew install cmake
-        brew install ffmpeg
         brew install glew
         brew install opencv
+
+    Install ffmpeg with extra features
+
+        brew install ffmpeg --with-vpx
 
     Install Qt4 from https://github.com/cartr/homebrew-qt4 :
 
