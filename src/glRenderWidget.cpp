@@ -176,10 +176,10 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     label->setOpenExternalLinks(true);
     label->setTextFormat(Qt::RichText);
     label->setText(QObject::tr("<H3>About OpenGL</H3>"
-                               "<br>This program currently runs with <b>OpenGL version %1</b>"
+                               "<br>This program currently runs with <b>OpenGL version %1</b> on %3 (%2)."
                                "<br><br><b>OpenGL</b> is the premier environment for developing portable, interactive 2D and 3D graphics applications."
                                "<br>See <a href=\"https://www.opengl.org\">https://www.opengl.org</a> for more information."
-                               "<br><br>Supported extensions:").arg((char *)glGetString(GL_VERSION)));
+                               "<br><br>Supported extensions:").arg((char *)glGetString(GL_VERSION)).arg((char *)glGetString(GL_VENDOR)).arg((char *)glGetString(GL_RENDERER)) );
 
     extensionsListView = new QListView(openglExtensionsDialog);
     QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());

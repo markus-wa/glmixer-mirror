@@ -148,7 +148,7 @@ OSX COMPILATION
 
     Install ffmpeg with extra features
 
-        brew install ffmpeg --with-vpx
+        brew install ffmpeg --with-vpx --with-x265
 
     Install Qt4 from https://github.com/cartr/homebrew-qt4 :
 
