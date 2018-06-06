@@ -146,18 +146,14 @@ double CodecManager::getFrameRateStream(AVFormatContext *codeccontext, int strea
 {
     double d = 1.0;
 
-    // get duration from stream
-    if (codeccontext->streams[stream] &&
-            codeccontext->streams[stream]->avg_frame_rate.den > 0)
-        d = av_q2d(codeccontext->streams[stream]->avg_frame_rate);
-
-    // else get guessed framerate from libav, if correct. (deprecated)
+    // get guessed framerate from libav, if correct. (deprecated)
 #if FF_API_R_FRAME_RATE
-    else if (codeccontext->streams[stream] &&
-             codeccontext->streams[stream]->r_frame_rate.den > 0)
+    if (codeccontext->streams[stream] )
         d = av_q2d( av_stream_get_r_frame_rate(codeccontext->streams[stream]) );
-
 #endif
+    // get average fps from stream
+    else if (codeccontext->streams[stream] && codeccontext->streams[stream]->avg_frame_rate.den > 0)
+        d = av_q2d(codeccontext->streams[stream]->avg_frame_rate);
 
     return d;
 }
@@ -411,11 +407,7 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     // not applicable
     return NULL;
 #else
-#ifdef Q_OS_WIN
-    snprintf(newcodecname, 128, "%s_qsv", codec->name);
-#else
     snprintf(newcodecname, 128, "%s_cuvid", codec->name);
-#endif
 #endif
 
     hwcodec = avcodec_find_decoder_by_name(newcodecname);
