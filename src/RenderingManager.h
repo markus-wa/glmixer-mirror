@@ -34,12 +34,12 @@
 #endif
 
 typedef enum {
-    QUALITY_VGA = 0,
-    QUALITY_PAL,
-    QUALITY_SVGA,
-    QUALITY_XGA,
-    QUALITY_UXGA,
-    QUALITY_QXGA,
+    QUALITY_QUARTER = 0,
+    QUALITY_HD,
+    QUALITY_FULLHD,
+    QUALITY_EXTENDED,
+    QUALITY_QUAD,
+    QUALITY_4K,
     QUALITY_UNSUPPORTED
 } frameBufferQuality;
 

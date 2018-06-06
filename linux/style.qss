@@ -43,6 +43,18 @@ QListWidget, QListView, QTreeWidget, QTreeView, QTextEdit {
     border-color: palette(midlight);
 }
 
+QTableView {
+    font-size: 11px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: palette(midlight);
+}
+
+QTableView::item:selected
+{
+    background-color: palette(mid);
+}
+
 QTextBrowser {
     border-style: none;
     border-width: 0px;

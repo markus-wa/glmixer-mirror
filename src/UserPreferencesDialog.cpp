@@ -142,7 +142,7 @@ void UserPreferencesDialog::restoreAllDefaultPreferences() {
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
     if (stackedPreferences->currentWidget() == PageRendering) {
-        resolutionTable->selectRow(3);
+        resolutionTable->selectRow(1); // default to HD
         updatePeriod->setValue(20); // default fps at 50
         on_updatePeriod_valueChanged( updatePeriod->value() );
         disableFiltering->setChecked(false);

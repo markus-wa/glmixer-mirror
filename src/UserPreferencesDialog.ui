@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>658</width>
-    <height>624</height>
+    <height>605</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -301,6 +301,12 @@ p, li { white-space: pre-wrap; }
                 <property name="autoFillBackground">
                  <bool>false</bool>
                 </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
                 <property name="tabKeyNavigation">
                  <bool>false</bool>
                 </property>
@@ -322,13 +328,28 @@ p, li { white-space: pre-wrap; }
                 <property name="showGrid">
                  <bool>true</bool>
                 </property>
+                <property name="gridStyle">
+                 <enum>Qt::SolidLine</enum>
+                </property>
                 <property name="cornerButtonEnabled">
                  <bool>false</bool>
                 </property>
+                <attribute name="horizontalHeaderVisible">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="horizontalHeaderCascadingSectionResizes">
+                 <bool>false</bool>
+                </attribute>
                 <attribute name="horizontalHeaderDefaultSectionSize">
                  <number>110</number>
                 </attribute>
+                <attribute name="horizontalHeaderHighlightSections">
+                 <bool>true</bool>
+                </attribute>
                 <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
                  <bool>true</bool>
                 </attribute>
                 <attribute name="verticalHeaderDefaultSectionSize">
@@ -342,27 +363,25 @@ p, li { white-space: pre-wrap; }
                 </attribute>
                 <row>
                  <property name="text">
-                  <string>Basic</string>
+                  <string notr="true">1/4 HD</string>
+                 </property>
+                 <property name="whatsThis">
+                  <string notr="true"/>
                  </property>
                 </row>
                 <row>
                  <property name="text">
-                  <string>Low</string>
+                  <string>HD</string>
                  </property>
                 </row>
                 <row>
                  <property name="text">
-                  <string>Medium</string>
+                  <string>Full HD</string>
                  </property>
                 </row>
                 <row>
                  <property name="text">
-                  <string>High</string>
-                 </property>
-                </row>
-                <row>
-                 <property name="text">
-                  <string>Ultra</string>
+                  <string>Extend</string>
                  </property>
                 </row>
                 <row>
@@ -370,9 +389,20 @@ p, li { white-space: pre-wrap; }
                   <string>Quad</string>
                  </property>
                 </row>
+                <row>
+                 <property name="text">
+                  <string>4K</string>
+                 </property>
+                </row>
                 <column>
                  <property name="text">
                   <string notr="true">4:3</string>
+                 </property>
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="whatsThis">
+                  <string notr="true"/>
                  </property>
                 </column>
                 <column>
@@ -392,7 +422,7 @@ p, li { white-space: pre-wrap; }
                 </column>
                 <item row="0" column="0">
                  <property name="text">
-                  <string notr="true">640x480 VGA</string>
+                  <string notr="true">1024x768 XGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -400,7 +430,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="0" column="1">
                  <property name="text">
-                  <string notr="true">720x480 NTSC</string>
+                  <string notr="true">960x640 DVGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -408,7 +438,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="0" column="2">
                  <property name="text">
-                  <string notr="true">800x480 WVGA</string>
+                  <string notr="true">1024x640</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -416,7 +446,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="0" column="3">
                  <property name="text">
-                  <string notr="true">848x480 WVGA</string>
+                  <string notr="true">960x540 qHD</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -424,7 +454,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="1" column="0">
                  <property name="text">
-                  <string notr="true">768x576 PAL</string>
+                  <string notr="true">1280x960 SXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -432,21 +462,12 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="1" column="1">
                  <property name="text">
-                  <string notr="true">864x576</string>
+                  <string notr="true">1280x864</string>
                  </property>
                  <property name="font">
                   <font>
                    <italic>false</italic>
                   </font>
-                 </property>
-                 <property name="foreground">
-                  <brush brushstyle="NoBrush">
-                   <color alpha="255">
-                    <red>88</red>
-                    <green>88</green>
-                    <blue>88</blue>
-                   </color>
-                  </brush>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -454,21 +475,12 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="1" column="2">
                  <property name="text">
-                  <string notr="true">912x570</string>
+                  <string notr="true">1280x800 WXGA</string>
                  </property>
                  <property name="font">
                   <font>
-                   <italic>true</italic>
+                   <italic>false</italic>
                   </font>
-                 </property>
-                 <property name="foreground">
-                  <brush brushstyle="NoBrush">
-                   <color alpha="255">
-                    <red>88</red>
-                    <green>88</green>
-                    <blue>88</blue>
-                   </color>
-                  </brush>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -476,7 +488,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="1" column="3">
                  <property name="text">
-                  <string notr="true">1024x576 WPAL</string>
+                  <string notr="true">1280x720 HD</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -484,7 +496,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="2" column="0">
                  <property name="text">
-                  <string notr="true">800x600 SVGA</string>
+                  <string notr="true">1600x1200 UXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -492,21 +504,12 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="2" column="1">
                  <property name="text">
-                  <string notr="true">900x600</string>
+                  <string notr="true">1920x1280</string>
                  </property>
                  <property name="font">
                   <font>
                    <italic>false</italic>
                   </font>
-                 </property>
-                 <property name="foreground">
-                  <brush brushstyle="NoBrush">
-                   <color alpha="255">
-                    <red>88</red>
-                    <green>88</green>
-                    <blue>88</blue>
-                   </color>
-                  </brush>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -514,21 +517,12 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="2" column="2">
                  <property name="text">
-                  <string notr="true">960x600</string>
+                  <string notr="true">1920x1200 WUXGA</string>
                  </property>
                  <property name="font">
                   <font>
-                   <italic>true</italic>
+                   <italic>false</italic>
                   </font>
-                 </property>
-                 <property name="foreground">
-                  <brush brushstyle="NoBrush">
-                   <color alpha="255">
-                    <red>88</red>
-                    <green>88</green>
-                    <blue>88</blue>
-                   </color>
-                  </brush>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -536,21 +530,12 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="2" column="3">
                  <property name="text">
-                  <string notr="true">1088x612</string>
+                  <string notr="true">1920x1080 FHD</string>
                  </property>
                  <property name="font">
                   <font>
-                   <italic>true</italic>
+                   <italic>false</italic>
                   </font>
-                 </property>
-                 <property name="foreground">
-                  <brush brushstyle="NoBrush">
-                   <color alpha="255">
-                    <red>88</red>
-                    <green>88</green>
-                    <blue>88</blue>
-                   </color>
-                  </brush>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -558,7 +543,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="3" column="0">
                  <property name="text">
-                  <string notr="true">1024x768 XGA</string>
+                  <string notr="true">2048x1536 QXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -566,7 +551,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="3" column="1">
                  <property name="text">
-                  <string notr="true">1152x768</string>
+                  <string notr="true">2160x1440 FHD+</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -574,7 +559,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="3" column="2">
                  <property name="text">
-                  <string notr="true">1280x800 WXGA</string>
+                  <string notr="true">2048x1280</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -582,7 +567,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="3" column="3">
                  <property name="text">
-                  <string notr="true">1280x720 HD</string>
+                  <string notr="true">2048x1152 QWXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -590,7 +575,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="4" column="0">
                  <property name="text">
-                  <string notr="true">1600x1200 UXGA</string>
+                  <string notr="true">2560x1920</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -598,7 +583,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="4" column="1">
                  <property name="text">
-                  <string notr="true">1440x960</string>
+                  <string notr="true">2880x1920</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -606,7 +591,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="4" column="2">
                  <property name="text">
-                  <string notr="true">1920x1200 WUXGA</string>
+                  <string notr="true">2560x1600 WQXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -614,7 +599,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="4" column="3">
                  <property name="text">
-                  <string notr="true">1920x1080 FHD</string>
+                  <string notr="true">2560x1440 WQHD</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -622,7 +607,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="5" column="0">
                  <property name="text">
-                  <string notr="true">2048x1536 QXGA</string>
+                  <string notr="true">3200x2400 QUXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -630,7 +615,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="5" column="1">
                  <property name="text">
-                  <string notr="true">1920x1280</string>
+                  <string notr="true">3240x2160</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -638,7 +623,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="5" column="2">
                  <property name="text">
-                  <string notr="true">2048x1280</string>
+                  <string notr="true">3840x2400 WQUXGA</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -646,7 +631,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="5" column="3">
                  <property name="text">
-                  <string notr="true">2048x1152 QWXGA</string>
+                  <string notr="true">3840x2160 UHD</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsSelectable|ItemIsEnabled</set>
@@ -663,6 +648,9 @@ p, li { white-space: pre-wrap; }
               <string>Rendering Performance</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
+              <property name="spacing">
+               <number>3</number>
+              </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayoutFrameRate">
                 <property name="spacing">

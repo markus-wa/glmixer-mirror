@@ -90,10 +90,13 @@ RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
 bool RenderingManager::pbo_extension = true;
 
-QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200), QSize(2048,1536) },
-                                                                                      { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960), QSize(1920,1280) },
-                                                                                      { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200), QSize(2048,1280) },
-                                                                                      { QSize(848,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080), QSize(2048,1152) }};
+// see https://en.wikipedia.org/wiki/Graphics_display_resolution
+QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = {
+    { QSize(1024,768), QSize(1280,960), QSize(1600,1200), QSize(2048,1536), QSize(2560,1920), QSize(3200,2400) },
+    { QSize(960,640), QSize(1280,864), QSize(1920,1280), QSize(2160,1440), QSize(2880,1920), QSize(3240,2160) },
+    { QSize(1024,640), QSize(1280,800), QSize(1920,1200), QSize(2048,1280), QSize(2560,1600), QSize(3840,2400) },
+    { QSize(960,540), QSize(1280,720), QSize(1920,1080), QSize(2048,1152), QSize(2560,1440), QSize(3840,2160) }
+};
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 
@@ -171,7 +174,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), renderingSize(QSize(1,1)), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _elapsedTime(0), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
+    QObject(), renderingSize(QSize(1,1)), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_HD), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _elapsedTime(0), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
 {
     // idenfity for event
     setObjectName("RenderingManager");
@@ -272,7 +275,7 @@ void RenderingManager::setRenderingQuality(frameBufferQuality q)
 {
     // by default, revert to lower resolution
     if ( q == QUALITY_UNSUPPORTED )
-        q = QUALITY_VGA;
+        q = QUALITY_HD;
 
     // request update of frame buffer only if changed
     if (q != renderingQuality)
@@ -328,6 +331,9 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     // get size
     renderingSize = _fbo->size();
 
+    if (renderingSize != size)
+        qWarning() << "RenderingManager" << QChar(124).toLatin1() << tr("Requested rendering resolution (") << size.width() << "x" << size.height() <<") not possible on this hardware.";
+
     if (_fbo->bind()) {
         // initial clear to black
         glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -341,7 +347,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (RenderingManager FBO %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
 
     // create the previous frame (frame buffer object) if needed
-    previousframe_fbo = new QGLFramebufferObject( _fbo->width(), _fbo->height());
+    previousframe_fbo = new QGLFramebufferObject( renderingSize.width(),  renderingSize.height());
     // initial clear to black
     if (previousframe_fbo->bind())  {
         // initial clear to black
@@ -366,28 +372,25 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     // store viewport info
     _renderwidget->_renderView->viewport[0] = 0;
     _renderwidget->_renderView->viewport[1] = 0;
-    _renderwidget->_renderView->viewport[2] = _fbo->width();
-    _renderwidget->_renderView->viewport[3] = _fbo->height();
+    _renderwidget->_renderView->viewport[2] =  renderingSize.width();
+    _renderwidget->_renderView->viewport[3] =  renderingSize.height();
 
     // allocate PBOs
     if (RenderingManager::pbo_extension) {
         glGenBuffers(2, pboIds);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]);
-        glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 3, 0, GL_STREAM_READ);
+        glBufferData(GL_PIXEL_PACK_BUFFER,  renderingSize.width() *  renderingSize.height() * 3, 0, GL_STREAM_READ);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]);
-        glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 3, 0, GL_STREAM_READ);
+        glBufferData(GL_PIXEL_PACK_BUFFER,  renderingSize.width() *  renderingSize.height() * 3, 0, GL_STREAM_READ);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Pixel Buffer Objects initialized: RGBA (") << _fbo->width() << "x" << _fbo->height() <<").";
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Pixel Buffer Objects initialized.");
     }
     else {
         // no PBO
         pboIds[0] = 0;
         pboIds[1] = 0;
     }
-
-//    // setup recorder frames size
-//    _recorder->setFrameSize(_fbo->size());
 
 #ifdef GLM_SHM
     // re-setup shared memory
@@ -405,7 +408,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
     emit frameBufferChanged();
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Objects initialized: RGBA (") << renderingSize.width() << "x" << renderingSize.height() <<").";
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Objects initialized (") << renderingSize.width() << "x" << renderingSize.height() <<"RGBA pixels).";
 }
 
 
