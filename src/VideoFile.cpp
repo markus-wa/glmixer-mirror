@@ -419,18 +419,34 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         return false;
     }
 
+    // keep reference to video stream
+    video_st = pFormatCtx->streams[videoStream];
+    nb_frames = video_st->nb_frames;
+
     // try to replace the codec with a better one (hardware accelerated)
-    AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
-    if (hwcodec != NULL) {
-        codec = hwcodec;
-        qDebug() << filename << QChar(124).toLatin1() << tr("Using hardware accelerated %1.").arg(codec->long_name);
+    if (nb_frames > 2) {
+        AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+        // find a potential match
+        if (hwcodec != NULL) {
+            // try to create video decoding context with harware accelerated codec
+            video_dec = avcodec_alloc_context3(hwcodec);
+            // does it work ?
+            if (video_dec) {
+                // ok, let's try the hw codec
+                codec = hwcodec;
+                qDebug() << filename << QChar(124).toLatin1()
+                         << tr("Using GPU accelerated %1.").arg(codec->long_name);
+            }
+        }
     }
 
-    // all ok, we can set the internal pointers to the good values
-    video_st = pFormatCtx->streams[videoStream];
+    // if video decoding context not already created (i.e. no hardware accelerated)
+    if (!video_dec) {
+        // create video decoding context with default codec
+        video_dec = avcodec_alloc_context3(codec);
+    }
 
-    // create video decoding context
-    video_dec = avcodec_alloc_context3(codec);
+    // in any case, complain if no decodinc context could be created
     if (!video_dec) {
         CodecManager::printError(filename, "Error creating decoder :", AVERROR(ENOMEM));
         // close
@@ -458,7 +474,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // get the duration and frame rate of the video stream
     frame_rate = CodecManager::getFrameRateStream(pFormatCtx, videoStream);
     duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
-    nb_frames = video_st->nb_frames;
 
     // make sure the numbers match !
     if (nb_frames == (int64_t) AV_NOPTS_VALUE || nb_frames < 1 )
@@ -683,6 +698,9 @@ bool VideoFile::hasAlphaChannel() const
 
 double VideoFile::fill_first_frame(bool seek)
 {
+    int retcd = 0;
+    char errstr[128];
+
     if (!first_picture_changed)
         return mark_in;
 
@@ -701,6 +719,9 @@ double VideoFile::fill_first_frame(bool seek)
     if (seek) {
         int64_t seek_target = AV_NOPTS_VALUE;
         seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
+#ifdef VIDEOFILE_DEBUG
+            fprintf(stderr, "\n%s - fill_first_frame seek to %d.", qPrintable(filename), (int) seek_target);
+#endif
         // seek back to begining
         av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
         // flush decoder
@@ -715,9 +736,10 @@ double VideoFile::fill_first_frame(bool seek)
         trial++;
 
         // read a packet
-        if (av_read_frame(pFormatCtx, pkt) < 0) {
+        retcd = av_read_frame(pFormatCtx, pkt);
+        if ( retcd < 0 ) {
 #ifdef VIDEOFILE_DEBUG
-            fprintf(stderr, "\n%s - Error reading frame.", qPrintable(filename));
+            fprintf(stderr, "\n%s - Error read frame (%s).", qPrintable(filename), av_make_error_string(errstr, sizeof(errstr),retcd));
 #endif
             continue;
         }
@@ -726,14 +748,15 @@ double VideoFile::fill_first_frame(bool seek)
         if (pkt->stream_index != videoStream)
             continue;
 
-        if ( avcodec_send_packet(video_dec, pkt) < 0 )
+        if ( avcodec_send_packet(video_dec, pkt) < 0 ){
+#ifdef VIDEOFILE_DEBUG
+            fprintf(stderr, "\n%s - Error send packet (%s).", qPrintable(filename), av_make_error_string(errstr, sizeof(errstr),retcd));
+#endif
             continue;
-
-        // free packet
-        av_packet_unref(pkt);
+        }
 
         // read until the frame is finished
-        int frameFinished = AVERROR(EAGAIN);
+        int frameFinished = AVERROR(EAGAIN);;
         while ( frameFinished < 0 )
         {
             // read frame
@@ -742,7 +765,10 @@ double VideoFile::fill_first_frame(bool seek)
             if ( frameFinished == AVERROR(EAGAIN) )
                 break;
             else if ( frameFinished == AVERROR_EOF ||  frameFinished < 0 ) {
-                trial = 500;
+#ifdef VIDEOFILE_DEBUG
+                fprintf(stderr, "\n%s - Error receive frame (%s).", qPrintable(filename), av_make_error_string(errstr, sizeof(errstr),retcd));
+            #endif
+                trial = 499;
                 break;
             }
 
@@ -761,6 +787,9 @@ double VideoFile::fill_first_frame(bool seek)
                 frameFilled = false; // retry
 
         }
+
+        // free packet
+        av_packet_unref(pkt);
 
     }
 

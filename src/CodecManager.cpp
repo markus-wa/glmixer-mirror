@@ -407,6 +407,7 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     // not applicable
     return NULL;
 #else
+//    return NULL;
     snprintf(newcodecname, 128, "%s_cuvid", codec->name);
 #endif
 
