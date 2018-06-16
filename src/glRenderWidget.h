@@ -32,19 +32,30 @@ class glRenderTimer: public QObject {
 
     Q_OBJECT
 
-public:
-    glRenderTimer(QWidget *parent = 0);
+    glRenderTimer();
+    static glRenderTimer *_instance;
 
-    void setInterval(int ms) { _interval = ms; }
+public:
+    static glRenderTimer *getInstance();
+
+    void setInterval(int ms);
     inline const int interval() { return _interval; }
+
+    void setActiveTimingMode(bool on);
+    inline const bool isActiveTimingMode() { return _activeTiming; }
+    void beginActiveTiming();
+    void endActiveTiming();
 
 signals:
     void timeout();
 
 private:
     void timerEvent(QTimerEvent * event);
-    int _interval;
-    class QElapsedTimer *_elapsed;
+    void restartTimer(bool active);
+    int _interval, _updater;
+    bool _activeTiming;
+    class QElapsedTimer *_elapsedTimer;
+    class QTimer *_timer;
 };
 
 class glRenderWidget  : public QGLWidget
@@ -64,22 +75,13 @@ public:
     inline bool antiAliasing() { return antialiasing; }
     void setAntiAliasing(bool on);
 
-    // global control of update
-    static int updatePeriod();
-    static void setUpdatePeriod(int miliseconds);
-
     // OpenGL informations
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
 protected:
-
     bool needUpdate();
-
     float aspectRatio;
     bool antialiasing;
-
-    // global update timer
-    static class glRenderTimer *timer;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

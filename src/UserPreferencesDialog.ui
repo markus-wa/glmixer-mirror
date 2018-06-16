@@ -2037,53 +2037,14 @@ the user to select a file name</string>
              <property name="title">
               <string>System</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout_5">
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Maximum number of undo levels:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QCheckBox" name="saveExitSession">
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="allowOneInstance">
                 <property name="toolTip">
-                 <string>Save the current session on exit (if possible)</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allowing only one running instance of GLMixer can be usefull to make sure all previous instances are cleared when re-starting GLMixer (e.g. after a crash of if the program is locked).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
-                 <string>Save session on exit</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QSpinBox" name="maximumUndoLevels">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many undo steps are stored, 0 to disable undo.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>100</number>
-                </property>
-                <property name="value">
-                 <number>100</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0" colspan="2">
-               <widget class="QCheckBox" name="useCustomDialogs">
-                <property name="toolTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="statusTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="text">
-                 <string>Custom file dialogs with video preview</string>
+                 <string>Allow only one instance</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -2103,16 +2064,62 @@ the user to select a file name</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="allowOneInstance">
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="saveExitSession">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allowing only one running instance of GLMixer can be usefull to make sure all previous instances are cleared when re-starting GLMixer (e.g. after a crash of if the program is locked).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Save the current session on exit (if possible)</string>
                 </property>
                 <property name="text">
-                 <string>Allow only one instance</string>
+                 <string>Save session on exit</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="useCustomDialogs">
+                <property name="toolTip">
+                 <string>Use GLMixer file dialogs with video player (instead of operating system native dialogs)</string>
+                </property>
+                <property name="text">
+                 <string>Custom file dialogs with video preview</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="useCustomTimer">
+                <property name="toolTip">
+                 <string>Use GLMixer update function with milisecond precision (instead of operating system native timer)</string>
+                </property>
+                <property name="text">
+                 <string>Custom update timer</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Maximum number of undo levels:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QSpinBox" name="maximumUndoLevels">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many undo steps are stored, 0 to disable undo.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>100</number>
                 </property>
                </widget>
               </item>

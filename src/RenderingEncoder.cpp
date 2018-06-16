@@ -323,7 +323,8 @@ void RenderingEncoder::setActive(bool on)
             emit processing(true);
         }
         // restore rendering fps
-        glRenderWidget::setUpdatePeriod( display_update_interval );
+        glRenderTimer::getInstance()->setInterval(display_update_interval);
+        glRenderTimer::getInstance()->endActiveTiming();
     }
 
 }
@@ -374,7 +375,7 @@ bool RenderingEncoder::start(){
     }
 
     // remember current update display period
-    display_update_interval = glRenderWidget::updatePeriod();
+    display_update_interval =  glRenderTimer::getInstance()->interval();
 
     // compute target update frame rate
     int update_fps = (int) ( 1000.0 / double(display_update_interval) );
@@ -436,7 +437,8 @@ bool RenderingEncoder::start(){
 
     // setup new display update interval to match recording update
     // The update is a factor of the encoding interval to skip frames accordingly
-    glRenderWidget::setUpdatePeriod( encoding_update_interval );
+    glRenderTimer::getInstance()->setInterval( encoding_update_interval );
+    glRenderTimer::getInstance()->beginActiveTiming();
 
     // initialization of ffmpeg recorder
     QString filename = temporaryFolder.absoluteFilePath(temporaryFileName);

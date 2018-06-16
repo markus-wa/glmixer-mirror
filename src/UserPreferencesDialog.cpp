@@ -199,6 +199,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         maximumUndoLevels->setValue(100);
         displayTimer->setChecked(false);
         allowOneInstance->setChecked(true);
+        useCustomTimer->setChecked(false);
     }
 }
 
@@ -374,9 +375,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     displayTimer->setChecked(showtimer);
 
     // aa. Single Instance
-    bool oneinstance = true;
-    stream >> oneinstance;
+    bool oneinstance = true, customtimer = false;
+    stream >> oneinstance >> customtimer;
     allowOneInstance->setChecked(oneinstance);
+    useCustomTimer->setChecked(customtimer);
 
 }
 
@@ -474,6 +476,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // aa. Single Instance
     stream << allowOneInstance->isChecked();
+    stream << useCustomTimer->isChecked();
 
     return data;
 }

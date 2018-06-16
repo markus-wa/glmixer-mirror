@@ -37,17 +37,14 @@
 #include "common.h"
 #include "glRenderWidget.moc"
 
-glRenderTimer *glRenderWidget::timer = 0;
+glRenderTimer *glRenderTimer::_instance = 0;
 
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 : QGLWidget(glRenderWidgetFormat(), parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
-    if (glRenderWidget::timer == 0)
-        glRenderWidget::timer = new glRenderTimer();
-
-    connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    connect(glRenderTimer::getInstance(), SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
 void glRenderWidget::setAntiAliasing(bool on)
@@ -140,16 +137,6 @@ void glRenderWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void glRenderWidget::setUpdatePeriod(int miliseconds)
-{
-    glRenderWidget::timer->setInterval(miliseconds);
-}
-
-int glRenderWidget::updatePeriod()
-{
-    return glRenderWidget::timer->interval();
-}
-
 void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 
     QDialog *openglExtensionsDialog;
@@ -206,25 +193,87 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     delete openglExtensionsDialog;
 }
 
-
-
-glRenderTimer::glRenderTimer(QWidget *parent) : QObject(parent), _interval(20)
+glRenderTimer *glRenderTimer::getInstance()
 {
-    _elapsed = new QElapsedTimer();
-    _elapsed->start();
-
-    startTimer(0);
+    if (_instance == 0) {
+        glRenderTimer::_instance = new glRenderTimer();
+    }
+    return _instance;
 }
 
+glRenderTimer::glRenderTimer() : QObject(), _interval(20), _updater(0), _activeTiming(false)
+{
+    _elapsedTimer = new QElapsedTimer();
+    _timer = new QTimer();
+    connect(_timer, SIGNAL(timeout()), this, SIGNAL(timeout()));
+
+    restartTimer(false);
+}
+
+void glRenderTimer::setInterval(int ms)
+{
+    _interval = ms;
+
+    // if not in active update, change qtimer interval
+    if (_updater == 0)
+        _timer->start(_interval);
+}
+
+void glRenderTimer::setActiveTimingMode(bool on)
+{
+    // set state
+    _activeTiming = on;
+
+    // change timer
+    restartTimer(_activeTiming);
+}
+
+void glRenderTimer::restartTimer(bool active)
+{
+    // cancel all
+    if (_updater){
+        killTimer(_updater);
+        _updater = 0;
+    }
+    _timer->stop();
+
+    // active timing mode
+    if (active) {
+        _updater = startTimer(0);
+        _elapsedTimer->start();
+    }
+    // passive timing mode
+    else {
+        _timer->start(_interval);
+    }
+}
+
+void glRenderTimer::beginActiveTiming()
+{
+    // toggle active bloc only if not in active mode
+    if (!_activeTiming && _updater == 0) {
+        // activate the active updater
+        restartTimer(true);
+    }
+}
+
+void glRenderTimer::endActiveTiming()
+{
+    // toggle active bloc only if not in active mode
+    if (!_activeTiming) {
+        // deactivate the active updater
+        restartTimer(false);
+    }
+}
 
 void glRenderTimer::timerEvent(QTimerEvent * event)
 {
     // did not reach interval: discard
-    if ( _elapsed->elapsed() < _interval )
+    if ( _elapsedTimer->elapsed() < _interval )
         return;
 
     // restart time counter
-    if ( _elapsed->restart() < 2 * _interval )
+    if ( _elapsedTimer->restart() < 2 * _interval )
         // emit extra timeout if too much delay
         emit timeout();
 

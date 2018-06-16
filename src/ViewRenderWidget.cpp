@@ -246,7 +246,7 @@ ViewRenderWidget::ViewRenderWidget() :
     zoomLabelTimer.setSingleShot(true);
     fpsTime_.start();
     fpsCounter_ = 0;
-    f_p_s_ = 1000.0 / updatePeriod();
+    f_p_s_ = 1000.0 / glRenderTimer::getInstance()->interval();
 
     // declare masks
     createMask("None", GL_NEAREST);
@@ -823,7 +823,7 @@ void ViewRenderWidget::paintGL()
         }
     }
     // HUD display of framerate (on request or if FPS is dangerously slow)
-    if (showFps_ || ( f_p_s_ < 800.0 / (float)updatePeriod() && f_p_s_ > 0) )
+    if (showFps_ || ( f_p_s_ < 800.0 / (float) glRenderTimer::getInstance()->interval() && f_p_s_ > 0) )
         displayFramerate();
 
     // Pause logo
@@ -866,9 +866,10 @@ void ViewRenderWidget::displayFramerate()
 
     qglColor(Qt::lightGray);
     glRecti(width() - 61, height() - 1, width() - 9, height() - 11);
-    qglColor(f_p_s_ > 800.f / (float)updatePeriod() ? Qt::darkGreen : (f_p_s_ > 500.f / (float)updatePeriod() ? Qt::yellow : Qt::red));
+    float p = (float)  glRenderTimer::getInstance()->interval();
+    qglColor(f_p_s_ > 800.f / p ? Qt::darkGreen : (f_p_s_ > 500.f / p ? Qt::yellow : Qt::red));
     // Draw a filled rectangle of lengh proportionnal to % of target fps
-    glRecti(width() - 60, height() - 2, width() - 60 + qBound(0, (int)( 0.05 * f_p_s_  * (float) updatePeriod()), 50), height() - 10);
+    glRecti(width() - 60, height() - 2, width() - 60 + qBound(0, (int)( 0.05 * f_p_s_ * p), 50), height() - 10);
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();

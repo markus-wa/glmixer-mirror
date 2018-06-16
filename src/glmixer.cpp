@@ -3087,7 +3087,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     int targetPeriod = 20;
     stream >> targetPeriod;
     if (targetPeriod > 0)
-        glRenderWidget::setUpdatePeriod( targetPeriod );
+        glRenderTimer::getInstance()->setInterval( targetPeriod );
 
     // b. Apply source preferences
     stream >> RenderingManager::getInstance()->defaultSource();
@@ -3238,6 +3238,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
 
     // aa. Single Instance
     stream >> _singleInstanceEnabled;
+    bool activetiming = false;
+    stream >> activetiming;
+    glRenderTimer::getInstance()->setActiveTimingMode(activetiming);
 
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
@@ -3259,7 +3262,7 @@ QByteArray GLMixer::getPreferences() const {
     // a. Store rendering preferences
     stream << (uint) RenderingManager::getInstance()->getRenderingQuality();
     stream << RenderingManager::useFboBlitExtension();
-    stream << glRenderWidget::updatePeriod();
+    stream << glRenderTimer::getInstance()->interval();
 
     // b. Store source preferences
     stream << RenderingManager::getInstance()->defaultSource();
@@ -3351,6 +3354,7 @@ QByteArray GLMixer::getPreferences() const {
 
     // aa. Single Instance
     stream << _singleInstanceEnabled;
+    stream << glRenderTimer::getInstance()->isActiveTimingMode();
 
     return data;
 }
