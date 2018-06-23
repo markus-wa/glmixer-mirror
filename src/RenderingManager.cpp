@@ -2465,24 +2465,35 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
     {
         QString url("");
         QString fmt("");
+        QHash<QString, QString> options;
 
         QDomElement str = t.firstChildElement("Url");
+        // fill url name
         if (!str.isNull())
             url = str.text();
+
         str = t.firstChildElement("Format");
-        if (!str.isNull())
+        if (!str.isNull()) {
+            // fill format name
             fmt = str.text();
+            // fill list of options
+            QDomNamedNodeMap opts = str.attributes();
+            for (int i = 0; i < opts.count(); ++i) {
+                QDomNode n = opts.item(i);
+                options[n.nodeName()] = n.nodeValue();
+            }
+        }
 
         // no url provided
         if (url.isEmpty()) {
             qWarning() << child.attribute("name")<< QChar(124).toLatin1()
                        << tr("No url to create video stream source.");
             errors++;
-        }
+        } else
         // ok
-        else {
+        {
             VideoStream *vs = new VideoStream();
-            vs->open(url, fmt);
+            vs->open(url, fmt, options);
 
             newsource = RenderingManager::_instance->newStreamSource(vs, depth);
 

@@ -58,7 +58,7 @@ public:
     VideoStream(QObject *parent = 0, int destinationWidth = 0, int destinationHeight = 0);
     virtual ~VideoStream();
 
-    void open(QString urlname, QString format = "");
+    void open(QString urlname, QString format = "", QHash<QString, QString> options  = QHash<QString, QString>());
     void close();
     bool isOpen() const ;
 
@@ -70,6 +70,9 @@ public:
     }
     inline QString getFormat() const {
         return formatname;
+    }
+    inline QHashIterator<QString, QString> getFormatOptions() const {
+        return formatoptions;
     }
     inline QString getCodecName() const {
         return codecname;
@@ -123,6 +126,7 @@ private:
     // Video and general information
     QString urlname;
     QString formatname;
+    QHash<QString, QString> formatoptions;
     QString codecname;
     int targetWidth, targetHeight;
     enum AVPixelFormat targetFormat;

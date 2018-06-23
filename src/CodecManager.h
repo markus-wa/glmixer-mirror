@@ -27,7 +27,7 @@ public:
     /**
      *  Open a video stream
      */
-    static bool openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat = QString::null);
+    static bool openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat = QString::null, QHash<QString, QString> streamOptions = QHash<QString, QString>());
     /**
      *  Find video stream
      *

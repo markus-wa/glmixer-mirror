@@ -383,7 +383,7 @@ bool VideoStream::isOpen() const {
     return (pFormatCtx != NULL);
 }
 
-void VideoStream::open(QString url, QString format)
+void VideoStream::open(QString url, QString format, QHash<QString, QString> options)
 {
     if (pFormatCtx)
         close();
@@ -391,6 +391,7 @@ void VideoStream::open(QString url, QString format)
     // store url
     urlname = url;
     formatname = format;
+    formatoptions = options;
 
     // request opening of thread in open thread
     qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Connecting to stream...");
@@ -410,7 +411,7 @@ bool VideoStream::openStream()
     videoStream = -1;
 
     pFormatCtx = avformat_alloc_context();
-    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname, formatname) ){
+    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname, formatname, formatoptions) ){
         close();
         return false;
     }

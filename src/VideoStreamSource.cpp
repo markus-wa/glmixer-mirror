@@ -285,6 +285,11 @@ QDomElement VideoStreamSource::getConfiguration(QDomDocument &doc, QDir current)
     specific.appendChild(u);
 
     QDomElement f = doc.createElement("Format");
+    QHashIterator<QString, QString> i(is->getFormatOptions());
+    while (i.hasNext()) {
+        i.next();
+        f.setAttribute(i.key(), i.value());
+    }
     QDomText fmt = doc.createTextNode(is->getFormat());
     f.appendChild(fmt);
     specific.appendChild(f);

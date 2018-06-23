@@ -73,7 +73,7 @@ void CodecManager::printError(QString streamname, QString message, int err)
     qWarning() << streamname << QChar(124).toLatin1()<< message << errormessage;
 }
 
-bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat)
+bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat, QHash<QString, QString> streamOptions)
 {
     registerAll();
 
@@ -87,8 +87,15 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     if (!streamFormat.isEmpty())
         ifmt = av_find_input_format(qPrintable(streamFormat));
 
+    AVDictionary* options = NULL;
+    QHashIterator<QString, QString> i(streamOptions);
+    while (i.hasNext()) {
+        i.next();
+        av_dict_set(&options,qPrintable(i.key()), qPrintable(i.value()),0);
+    }
+
     // open stream
-    err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), ifmt, NULL);
+    err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), ifmt, &options);
     if (err < 0)
     {
         printError(streamToOpen, "Error opening :", err);
