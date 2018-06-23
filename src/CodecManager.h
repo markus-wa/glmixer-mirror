@@ -7,6 +7,7 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavfilter/avfilter.h>
+#include <libavdevice/avdevice.h>
 }
 
 #include <QtGui>
@@ -26,7 +27,7 @@ public:
     /**
      *  Open a video stream
      */
-    static bool openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen);
+    static bool openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat = QString::null);
     /**
      *  Find video stream
      *

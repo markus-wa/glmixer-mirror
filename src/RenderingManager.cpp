@@ -2463,20 +2463,37 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
     }
     else if ( type == Source::STREAM_SOURCE)
     {
+        QString url("");
+        QString fmt("");
+
         QDomElement str = t.firstChildElement("Url");
+        if (!str.isNull())
+            url = str.text();
+        str = t.firstChildElement("Format");
+        if (!str.isNull())
+            fmt = str.text();
 
-        VideoStream *vs = new VideoStream();
-        vs->open(str.text());
-
-        newsource = RenderingManager::_instance->newStreamSource(vs, depth);
-
-        if (!newsource) {
+        // no url provided
+        if (url.isEmpty()) {
             qWarning() << child.attribute("name")<< QChar(124).toLatin1()
-                       << tr("Could not create video stream source.");
+                       << tr("No url to create video stream source.");
             errors++;
-        } else
-            qDebug() << child.attribute("name")<< QChar(124).toLatin1()
-                     << tr("Video Stream source created (") << str.text() << ").";
+        }
+        // ok
+        else {
+            VideoStream *vs = new VideoStream();
+            vs->open(url, fmt);
+
+            newsource = RenderingManager::_instance->newStreamSource(vs, depth);
+
+            if (!newsource) {
+                qWarning() << child.attribute("name")<< QChar(124).toLatin1()
+                           << tr("Could not create video stream source.");
+                errors++;
+            } else
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1()
+                         << tr("Video Stream source created (") << str.text() << ").";
+        }
     }
     else if ( type == Source::BASKET_SOURCE)
     {

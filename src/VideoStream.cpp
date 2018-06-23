@@ -62,7 +62,7 @@ void StreamOpeningThread::run()
     if (!is->openStream())
         emit failed();
     else
-        qDebug() << is->urlname << QChar(124).toLatin1() << tr("Connected to stream.");
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Connected to stream.");
 
 }
 
@@ -117,7 +117,7 @@ void StreamDecodingThread::run()
         {
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
-                qDebug() << is->urlname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
+                qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
 
                 avio_flush(is->pFormatCtx->pb);
                 avformat_flush(is->pFormatCtx);
@@ -206,7 +206,7 @@ void StreamDecodingThread::run()
     av_frame_unref(_pFrame);
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << is->urlname << QChar(124).toLatin1() << tr("Decoding ended.");
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Decoding ended.");
 #endif
 
 }
@@ -255,6 +255,7 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     // reset
     urlname = QString::null;
     codecname = QString::null;
+    formatname = QString::null;
     active = false;
     quit = true; // not running yet
 }
@@ -306,7 +307,7 @@ void VideoStream::stop()
     if (decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << QChar(124).toLatin1() << tr("Stopping.");
+        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Stopping.");
 #endif
 
         // request quit
@@ -326,7 +327,7 @@ void VideoStream::stop()
         decod_tid->wait();
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << QChar(124).toLatin1() << tr("Stopped.");
+        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Stopped.");
 #endif
     }
 
@@ -341,7 +342,7 @@ void VideoStream::start()
     if (!decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << QChar(124).toLatin1() << tr("Starting.");
+        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Starting.");
 #endif
 
         // reset quit flag
@@ -360,7 +361,7 @@ void VideoStream::start()
         emit running(true);
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << QChar(124).toLatin1() << tr("Started.");
+        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Started.");
 #endif
     }
 
@@ -382,16 +383,17 @@ bool VideoStream::isOpen() const {
     return (pFormatCtx != NULL);
 }
 
-void VideoStream::open(QString url)
+void VideoStream::open(QString url, QString format)
 {
     if (pFormatCtx)
         close();
 
     // store url
     urlname = url;
+    formatname = format;
 
     // request opening of thread in open thread
-    qDebug() << urlname << QChar(124).toLatin1() << tr("Connecting to stream...");
+    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Connecting to stream...");
     open_tid->start();
 
     // not running yet
@@ -408,7 +410,7 @@ bool VideoStream::openStream()
     videoStream = -1;
 
     pFormatCtx = avformat_alloc_context();
-    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname) ){
+    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname, formatname) ){
         close();
         return false;
     }
@@ -416,9 +418,9 @@ bool VideoStream::openStream()
     // get index of video stream
     AVCodec *codec;
     videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
-    if (videoStream < 0) {
+    if (videoStream < 0 ||  !pFormatCtx->streams[videoStream] ) {
         // Cannot find video stream
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot find video stream.");
+        qWarning() << urlname << formatname<< QChar(124).toLatin1()<< tr("Cannot find video stream.");
         close();
         return false;
     }
@@ -477,7 +479,7 @@ bool VideoStream::openStream()
     if (targetWidth == 0 || targetHeight == 0)
     {
         // Cannot initialize the conversion context!
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot read stream.");
+        qWarning() << urlname  << formatname << QChar(124).toLatin1()<< tr("Cannot read stream.");
         return false;
     }
 
@@ -505,7 +507,7 @@ bool VideoStream::setupFiltering()
 
     graph = avfilter_graph_alloc();
     if (!outputs || !inputs || !graph) {
-        qWarning() << urlname << QChar(124).toLatin1()
+        qWarning() << urlname << formatname << QChar(124).toLatin1()
                    << tr("Cannot create conversion filter.");
         return false;
     }
@@ -526,7 +528,7 @@ bool VideoStream::setupFiltering()
 
     if ( avfilter_graph_create_filter(&in_video_filter, buffersrc,
                                       "in", buffersrc_args, NULL, graph) < 0)  {
-        qWarning() << urlname << QChar(124).toLatin1()
+        qWarning() << urlname << formatname << QChar(124).toLatin1()
                    << tr("Cannot create a INPUT conversion context.");
         return false;
     }
@@ -534,7 +536,7 @@ bool VideoStream::setupFiltering()
     // OUTPUT SINK
     if ( avfilter_graph_create_filter(&out_video_filter, buffersink,
                                       "out", NULL, NULL, graph) < 0)  {
-        qWarning() << urlname << QChar(124).toLatin1()
+        qWarning() << urlname << formatname << QChar(124).toLatin1()
                    << tr("Cannot create a OUTPUT conversion context.");
         return false;
     }
@@ -542,7 +544,7 @@ bool VideoStream::setupFiltering()
     enum AVPixelFormat pix_fmts[] = { targetFormat, AV_PIX_FMT_NONE };
     if ( av_opt_set_int_list(out_video_filter, "pix_fmts", pix_fmts,
                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN) < 0 ){
-        qWarning() << urlname << QChar(124).toLatin1()
+        qWarning() << urlname << formatname << QChar(124).toLatin1()
                    << tr("Cannot set output pixel format");
         return false;
     }
@@ -566,13 +568,13 @@ bool VideoStream::setupFiltering()
         snprintf(filter_str, sizeof(filter_str), "null");
 
     if ( avfilter_graph_parse_ptr(graph, filter_str, &inputs, &outputs, NULL) < 0 ){
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot parse filters.");
+        qWarning() << urlname << formatname << QChar(124).toLatin1()<< tr("Cannot parse filters.");
         return false;
     }
 
     // validate the filtering graph
     if ( avfilter_graph_config(graph, NULL) < 0){
-        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot configure conversion graph.");
+        qWarning() << urlname  << formatname << QChar(124).toLatin1()<< tr("Cannot configure conversion graph.");
         return false;
     }
 
@@ -586,7 +588,7 @@ bool VideoStream::setupFiltering()
 void VideoStream::close()
 {
 #ifdef VIDEOSTREAM_DEBUG
-    qDebug() << urlname << QChar(124).toLatin1() << tr("Closing...");
+    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Closing...");
 #endif
 
     // Stop thread
@@ -618,7 +620,7 @@ void VideoStream::close()
     out_video_filter = NULL;
     video_st = NULL;
 
-    qDebug() << urlname << QChar(124).toLatin1() << tr("Stream closed.");
+    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Stream closed.");
 }
 
 
@@ -729,7 +731,8 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
 
     try {
         // convert
-        if ( pFrame && av_buffersrc_add_frame_flags(in_video_filter, pFrame, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 )
+        if ( pFrame && in_video_filter
+             && av_buffersrc_add_frame_flags(in_video_filter, pFrame, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 )
         {
             // create vp as the picture in the queue to be written
             vp = new VideoPicture(out_video_filter, pts);
@@ -749,7 +752,7 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
         pictq_mutex->unlock();
 
     } catch (AllocationException &e){
-        qWarning() << tr("Cannot queue picture; ") << e.message();
+        qWarning() << urlname  << formatname << tr("Cannot queue picture; ") << e.message();
     }
 //    fprintf(stderr, "pictq size %d \n", pictq.size());
 

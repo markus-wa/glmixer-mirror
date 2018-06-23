@@ -98,8 +98,10 @@ VideoStreamSource::~VideoStreamSource()
     // cancel updated frame
     updateFrame(NULL);
 
+    // delete input stream
     if (is) {
         delete is;
+        is = NULL;
     }
 
     // delete picture buffer
@@ -277,9 +279,14 @@ QDomElement VideoStreamSource::getConfiguration(QDomDocument &doc, QDir current)
     QDomElement specific = doc.createElement("TypeSpecific");
     specific.setAttribute("type", rtti());
 
-    QDomElement f = doc.createElement("Url");
-    QDomText url = doc.createTextNode(is->getUrl() );
-    f.appendChild(url);
+    QDomElement u = doc.createElement("Url");
+    QDomText url = doc.createTextNode(is->getUrl());
+    u.appendChild(url);
+    specific.appendChild(u);
+
+    QDomElement f = doc.createElement("Format");
+    QDomText fmt = doc.createTextNode(is->getFormat());
+    f.appendChild(fmt);
     specific.appendChild(f);
 
     // store size if not automatic

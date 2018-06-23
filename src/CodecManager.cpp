@@ -27,9 +27,10 @@ int roundPowerOfTwo(int v)
 CodecManager::CodecManager(QObject *parent) : QObject(parent)
 {
 
-    avcodec_register_all();
     av_register_all();
+    avcodec_register_all();
     avfilter_register_all();
+    avdevice_register_all();
 
 #ifndef NDEBUG
          /* print warning info from ffmpeg */
@@ -72,7 +73,7 @@ void CodecManager::printError(QString streamname, QString message, int err)
     qWarning() << streamname << QChar(124).toLatin1()<< message << errormessage;
 }
 
-bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen)
+bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat)
 {
     registerAll();
 
@@ -82,8 +83,12 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     if ( !_pFormatCtx || !*_pFormatCtx)
         return false;
 
+    AVInputFormat *ifmt = NULL;
+    if (!streamFormat.isEmpty())
+        ifmt = av_find_input_format(qPrintable(streamFormat));
+
     // open stream
-    err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
+    err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), ifmt, NULL);
     if (err < 0)
     {
         printError(streamToOpen, "Error opening :", err);

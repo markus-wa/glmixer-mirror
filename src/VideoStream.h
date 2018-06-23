@@ -58,7 +58,7 @@ public:
     VideoStream(QObject *parent = 0, int destinationWidth = 0, int destinationHeight = 0);
     virtual ~VideoStream();
 
-    void open(QString urlname);
+    void open(QString urlname, QString format = "");
     void close();
     bool isOpen() const ;
 
@@ -67,6 +67,9 @@ public:
     }
     inline QString getUrl() const {
         return urlname;
+    }
+    inline QString getFormat() const {
+        return formatname;
     }
     inline QString getCodecName() const {
         return codecname;
@@ -119,6 +122,7 @@ protected slots:
 private:
     // Video and general information
     QString urlname;
+    QString formatname;
     QString codecname;
     int targetWidth, targetHeight;
     enum AVPixelFormat targetFormat;
