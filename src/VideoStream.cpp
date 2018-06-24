@@ -214,7 +214,7 @@ void StreamDecodingThread::run()
 
 VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationHeight) :
     QObject(parent),
-    targetWidth(destinationWidth), targetHeight(destinationHeight)
+    targetWidth(destinationWidth), targetHeight(destinationHeight), frame_rate(10.0)
 {
     // first time a video file is created?
     CodecManager::registerAll();
@@ -640,7 +640,6 @@ void VideoStream::video_refresh_timer()
     // if all is in order, deal with the picture in the queue
     // (i.e. there is a stream, there is a picture in the queue
     if (!quit && video_st && pictq.size()>1 )
-//        if (video_st && !pictq.empty())
     {
         // now working on the head of the queue, that we take off the queue
         currentvp = pictq.dequeue();
@@ -659,9 +658,6 @@ void VideoStream::video_refresh_timer()
 
     if (currentvp)
     {
-
-//        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
-
         // if this frame was tagged as stopping frame
         if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
             // request to stop the video after this frame
@@ -674,8 +670,6 @@ void VideoStream::video_refresh_timer()
             // ask to show the current picture (and to delete it when done)
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
-
-//              fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
 
             // before computing timer delay, set to default
             ptimer_delay = UPDATE_SLEEP_DELAY;
@@ -709,6 +703,8 @@ void VideoStream::video_refresh_timer()
     else
         ptimer->start( ptimer_delay );
 
+    // calculate frame rate
+    frame_rate = 0.6 * frame_rate + 0.4 * ( 1000.0 / (double) ptimer_delay );
 
 //    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
 }

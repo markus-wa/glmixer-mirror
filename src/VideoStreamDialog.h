@@ -29,15 +29,13 @@ public slots:
     void showHelp();
 
 protected:
-
     void showEvent(QShowEvent *);
-
 
 private:
     Ui::VideoStreamDialog *ui;
 
     class VideoStreamSource *s;
-    QTimer *timer;
+    QTimer *testingtimeout, *respawn;
     QSettings *appSettings;
 };
 

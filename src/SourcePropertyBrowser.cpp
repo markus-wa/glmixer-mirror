@@ -1317,7 +1317,7 @@ public:
         property->setToolTip("Type of the source");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
-        infoManager->setValue(idToProperty["Type"], "Device Capture" );
+        infoManager->setValue(idToProperty["Type"], "OpenCV" );
         addProperty(idToProperty["Type"]);
 
         property = infoManager->addProperty( QLatin1String("Camera device") );
@@ -1407,17 +1407,17 @@ public:
             property->setToolTip("Type of the source");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-            infoManager->setValue(idToProperty["Type"], "Network Stream" );
+            infoManager->setValue(idToProperty["Type"], "Stream" );
             addProperty(idToProperty["Type"]);
 
             // File Name
-            property = infoManager->addProperty( QLatin1String("URL") );
+            property = infoManager->addProperty( QLatin1String("Path") );
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
 
-            infoManager->setValue(idToProperty["URL"], vf->getUrl() );
-            idToProperty["URL"]->setToolTip(vf->getUrl());
-            addProperty(idToProperty["URL"]);
+            infoManager->setValue(idToProperty["Path"], vf->getUrl() );
+            idToProperty["Path"]->setToolTip(vf->getUrl());
+            addProperty(idToProperty["Path"]);
 
             // Codec
             property = infoManager->addProperty( QLatin1String("Codec") );

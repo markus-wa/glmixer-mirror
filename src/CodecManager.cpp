@@ -1,5 +1,5 @@
 #include "CodecManager.moc"
-
+#include "common.h"
 
 extern "C"
 {
@@ -10,19 +10,6 @@ extern "C"
 }
 
 CodecManager *CodecManager::_instance = 0;
-
-
-int roundPowerOfTwo(int v)
-{
-    int k;
-    if (v == 0)
-        return 1;
-    for (k = sizeof(int) * 8 - 1; ((static_cast<int> (1U) << k) & v) == 0; k--)
-        ;
-    if (((static_cast<int> (1U) << (k - 1)) & v) == 0)
-        return static_cast<int> (1U) << k;
-    return static_cast<int> (1U) << (k + 1);
-}
 
 CodecManager::CodecManager(QObject *parent) : QObject(parent)
 {

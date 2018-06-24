@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
-    <height>396</height>
+    <width>304</width>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,113 +25,426 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="nopreview">
+    <widget class="SourceDisplayWidget" name="preview" native="true">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="pixmap">
-      <pixmap resource="../icons.qrc">:/glmixer/icons/webcam.png</pixmap>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="showPreview">
-     <property name="layoutDirection">
-      <enum>Qt::RightToLeft</enum>
+    <widget class="QStackedWidget" name="info">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <property name="text">
-      <string>show preview</string>
+     <property name="currentIndex">
+      <number>0</number>
      </property>
+     <widget class="QWidget" name="page">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Not Connected</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="connect">
+         <property name="text">
+          <string>  Test Device</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/eye.png</normaloff>:/glmixer/icons/eye.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_4">
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>Trying to connect...</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_3">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Connected</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="disconnect">
+         <property name="text">
+          <string>Disconnect</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_2">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../icons.qrc">:/glmixer/icons/warning.png</pixmap>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Could not connect</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Select Device:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="1">
-      <widget class="QComboBox" name="indexSelection">
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="labelwelcome">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <item>
-        <property name="text">
-         <string>Camera 0</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Camera 1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Camera 2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Camera 3</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Mode</string>
+        <string>Select Device</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QComboBox" name="ModeSelection">
-       <item>
-        <property name="text">
-         <string>Default</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Low Resolution</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>High Resolution</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
+     <item>
+      <widget class="QToolButton" name="toolButton">
        <property name="text">
-        <string>Index</string>
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../icons.qrc">
+         <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
        </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="deviceSelection">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="deviceWebcam">
+      <attribute name="title">
+       <string>Webcam</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Identifyer</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="webcamId">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="minimum">
+          <number>0</number>
+         </property>
+         <property name="maximum">
+          <number>10</number>
+         </property>
+         <property name="singleStep">
+          <number>1</number>
+         </property>
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Frame rate</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="webcamFramerate">
+         <item>
+          <property name="text">
+           <string>Max</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>30</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>25</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>15</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Resolution</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="webcamResolution">
+         <item>
+          <property name="text">
+           <string>Max</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1080p</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>720p</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>640p</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>320p</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="deviceScreen">
+      <attribute name="title">
+       <string>Screen</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Capture Area</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="screenCaptureArea">
+           <item>
+            <property name="text">
+             <string>Fullscreen</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Custom</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="geometryBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Geometry</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>x</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="screen_x">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>y</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QSpinBox" name="screen_y">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>w</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="screen_w_selection"/>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>h</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QSpinBox" name="screen_h">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="screen_cursor">
+         <property name="text">
+          <string>Show mouse cursor</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="validationButtonBox">
@@ -145,6 +458,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SourceDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>SourceDisplayWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../icons.qrc"/>
  </resources>
@@ -156,8 +477,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>275</x>
+     <y>500</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -172,8 +493,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>294</x>
+     <y>500</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -181,5 +502,220 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>connect</sender>
+   <signal>clicked()</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>214</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>disconnect</sender>
+   <signal>clicked()</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>202</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>deviceSelection</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>294</x>
+     <y>469</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>314</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webcamId</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>342</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>342</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webcamFramerate</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webcamResolution</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>440</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>425</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screenCaptureArea</sender>
+   <signal>activated(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>setScreenCaptureArea(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>282</x>
+     <y>324</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>356</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screen_x</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>updateScreenCaptureArea()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>386</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>430</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screen_y</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>updateScreenCaptureArea()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>274</x>
+     <y>386</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>343</x>
+     <y>421</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screen_h</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>updateScreenCaptureArea()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>274</x>
+     <y>418</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>463</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screen_w_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>updateScreenCaptureArea()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>417</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>4</x>
+     <y>460</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>screen_cursor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>458</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>497</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButton</sender>
+   <signal>clicked()</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>showHelp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>243</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>308</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>updateSourcePreview()</slot>
+  <slot>cancelSourcePreview()</slot>
+  <slot>setScreenCaptureArea(int)</slot>
+  <slot>updateScreenCaptureArea()</slot>
+  <slot>showHelp()</slot>
+ </slots>
 </ui>

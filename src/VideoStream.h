@@ -42,7 +42,7 @@
  * uncomment to monitor execution with debug information
  */
 #ifndef NDEBUG
-#define VIDEOSTREAM_DEBUG
+//#define VIDEOSTREAM_DEBUG
 #endif
 
 class videoStreamThread;
@@ -82,6 +82,9 @@ public:
     }
     inline int getFrameHeight() const {
         return targetHeight;
+    }
+    inline double getFrameRate() const {
+        return frame_rate;
     }
 
 signals:
@@ -129,6 +132,7 @@ private:
     QHash<QString, QString> formatoptions;
     QString codecname;
     int targetWidth, targetHeight;
+    double frame_rate;
     enum AVPixelFormat targetFormat;
     AVFormatContext *pFormatCtx;
     AVStream *video_st;

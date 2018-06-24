@@ -27,49 +27,63 @@
 #define CAMERADIALOG_H_
 
 #include <QDialog>
-#include "ui_CameraDialog.h"
+#include <QSettings>
 
 #ifdef GLM_OPENCV
 //#include "OpencvDisplayWidget.h"
 class OpencvSource;
 #endif
 
-class Source;
-class SourceDisplayWidget;
+namespace Ui {
+class CameraDialog;
+}
 
-class CameraDialog : public QDialog, Ui_CameraDialog
+class CameraDialog : public QDialog
 {
     Q_OBJECT
 
-	public:
+public:
+    CameraDialog(QWidget *parent = 0, QSettings *settings = 0);
+    virtual ~CameraDialog();
 
-		CameraDialog(QWidget *parent = 0, int startTabIndex = 0);
-		virtual ~CameraDialog();
+    QString getUrl();
+    QString getFormat();
+    QHash<QString, QString> getFormatOptions();
 
-	public slots:
-		void done(int r);
-		void setPreviewEnabled(bool);
+public slots:
+    void done(int r);
 
+    void setScreenCaptureArea(int index);
+    void updateScreenCaptureArea();
+    void updateSourcePreview();
+    void cancelSourcePreview();
+    void connectedInfo();
+    void failedInfo();
+    void showHelp();
 
-#ifdef GLM_OPENCV
-		void setOpencvCamera(int i);
+protected:
+    void showEvent(QShowEvent *);
 
-    public:
-        inline int indexOpencvCamera() const {return currentCameraIndex;}
-        int modeOpencvCamera() const;
+private:
+    Ui::CameraDialog *ui;
 
-	private:
-        int currentCameraIndex;
-#endif
-
-	protected:
-		void showEvent(QShowEvent *);
-
-	private:
-		Source *s;
-		SourceDisplayWidget *preview;
-
-		void createSource();
+    class VideoStreamSource *s;
+    QTimer *testingtimeout, *respawn;
+    QSettings *appSettings;
+    QRect screendimensions;
 };
 
 #endif /* CAMERADIALOG_H_ */
+
+/*
+#ifdef GLM_OPENCV
+    void setOpencvCamera(int i);
+
+public:
+    inline int indexOpencvCamera() const {return currentCameraIndex;}
+    int modeOpencvCamera() const;
+
+private:
+    int currentCameraIndex;
+#endif
+*/

@@ -10,11 +10,15 @@ VideoStreamDialog::VideoStreamDialog(QWidget *parent, QSettings *settings) :
     ui(new Ui::VideoStreamDialog),
     s(NULL), appSettings(settings)
 {
-    ui->setupUi(this);
+    testingtimeout = new QTimer(this);
+    testingtimeout->setSingleShot(true);
+    connect(testingtimeout, SIGNAL(timeout()), this, SLOT(failedInfo()));
 
-    timer = new QTimer(this);
-    timer->setSingleShot(true);
-    connect(timer, SIGNAL(timeout()), this, SLOT(failedInfo()));
+    respawn = new QTimer(this);
+    respawn->setSingleShot(true);
+    connect(respawn, SIGNAL(timeout()), this, SLOT(cancelSourcePreview()));
+
+    ui->setupUi(this);
 }
 
 VideoStreamDialog::~VideoStreamDialog()
@@ -80,7 +84,7 @@ void VideoStreamDialog::updateURL(){
 
 void VideoStreamDialog::connectedInfo()
 {
-    timer->stop();
+    testingtimeout->stop();
     ui->info->setCurrentIndex(2);
 }
 
@@ -88,11 +92,12 @@ void VideoStreamDialog::failedInfo()
 {
     cancelSourcePreview();
     ui->info->setCurrentIndex(3);
+    respawn->start(1000);
 }
 
 void VideoStreamDialog::cancelSourcePreview(){
 
-    timer->stop();
+    testingtimeout->stop();
     ui->info->setCurrentIndex(0);
     ui->connect->setEnabled(true);
 
@@ -124,7 +129,7 @@ void VideoStreamDialog::updateSourcePreview(){
         // update GUI
         ui->info->setCurrentIndex(1);
         ui->connect->setEnabled(false);
-        timer->start(10000);
+        testingtimeout->start(10000);
 
     }
     catch (...)  {

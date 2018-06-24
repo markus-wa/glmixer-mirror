@@ -61,6 +61,7 @@ GLint glMaximumTextureWidth();
 GLint glMaximumTextureHeight();
 GLint glMaximumFramebufferWidth();
 GLint glMaximumFramebufferHeight();
+int roundPowerOfTwo(int v);
 
 GLenum blendfunctionFromInt(int);
 int intFromBlendfunction(GLenum);

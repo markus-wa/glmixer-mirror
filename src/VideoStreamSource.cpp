@@ -112,7 +112,7 @@ VideoStreamSource::~VideoStreamSource()
 
 QString VideoStreamSource::getInfo() const {
 
-    return Source::getInfo() + tr(" - Network stream : ") + is->getUrl();
+    return Source::getInfo() + tr(" - Stream : ") + is->getFormat();
 }
 
 bool VideoStreamSource::isPlayable() const
@@ -152,8 +152,7 @@ int VideoStreamSource::getFrameHeight() const
 
 double VideoStreamSource::getFrameRate() const
 {
-//    return is->getFrameRate();
-    return 1.0;
+    return is->getFrameRate();
 }
 
 double VideoStreamSource::getStorageAspectRatio() const

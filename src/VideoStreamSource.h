@@ -12,14 +12,14 @@ class VideoStreamSource : public Source
     Q_OBJECT
 
     friend class RenderingManager;
-    friend class SessionSwitcher;
+    friend class CameraDialog;
     friend class VideoStreamDialog;
 
     // only friends can create a source
 protected:
     VideoStreamSource(VideoStream *s, GLuint texture, double d);
-
     ~VideoStreamSource();
+
     void update();
 
 public:
