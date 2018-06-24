@@ -88,6 +88,9 @@ public:
 
     static void printError(QString streamname, QString message, int err);
 
+    static QHash<QString, QString> getDeviceList(QString formatname);
+    static bool hasFormat(QString formatname);
+
 private:
 
     CodecManager(QObject *parent = 0);

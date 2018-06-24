@@ -1409,45 +1409,49 @@ void GLMixer::on_actionCameraSource_triggered() {
 
     if (cd->exec() == QDialog::Accepted) {
 
-        // create stream
-        VideoStream *vs = new VideoStream();
-
-        // create source with this stream
-        Source *s = RenderingManager::getInstance()->newStreamSource(vs);
-
-        // trigger openning of the stream
-        vs->open(cd->getUrl(), cd->getFormat(), cd->getFormatOptions());
-
-        if ( s ){
-            RenderingManager::getInstance()->addSourceToBasket(s);
-            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New device source created (")<< cd->getFormat() + cd->getUrl() <<")";
-            emit status( tr("Source created with device %1.").arg( cd->getFormat() + cd->getUrl() ), 3000 );
-        } else {
-            qCritical() << cd->getFormat() + cd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a Device source.");
-        }
-
 #ifdef GLM_OPENCV
-//        int selectedCamIndex = cd->indexOpencvCamera();
-//        if (selectedCamIndex > -1 ) {
+        if ( cd->isOpencvSelected() )
+        {
+            int selectedCamIndex = cd->getOpencvIndex();
+            if (selectedCamIndex > -1 ) {
 
-//            Source *s = RenderingManager::getInstance()->newOpencvSource(selectedCamIndex, cd->modeOpencvCamera());
-//            if ( s ) {
-//                RenderingManager::getInstance()->addSourceToBasket(s);
+                Source *s = RenderingManager::getInstance()->newOpencvSource(selectedCamIndex, 0);
+                if ( s ) {
+                    RenderingManager::getInstance()->addSourceToBasket(s);
 
-//                CloneSource *cs = dynamic_cast<CloneSource*> (s);
-//                if (cs) {
-//                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
-//                    emit status( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
-//                } else {
-//                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
-//                    emit status( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
-//                }
-//            } else
-//                qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
+                    CloneSource *cs = dynamic_cast<CloneSource*> (s);
+                    if (cs) {
+                        qDebug() << s->getName() << QChar(124).toLatin1() << tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
+                        emit status( tr("The OpenCV source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
+                    } else {
+                        qDebug() << s->getName() << QChar(124).toLatin1() << tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
+                        emit status( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
+                    }
+                } else
+                    qCritical() << tr("Could not open OpenCV device %1. ").arg(selectedCamIndex);
+            }
 
-//        }
+        } else
 #endif
+        {
+            // create stream
+            VideoStream *vs = new VideoStream();
 
+            // create source with this stream
+            Source *s = RenderingManager::getInstance()->newStreamSource(vs);
+
+            // trigger openning of the stream
+            vs->open(cd->getUrl(), cd->getFormat(), cd->getFormatOptions());
+
+            if ( s ){
+                RenderingManager::getInstance()->addSourceToBasket(s);
+                qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New stream device source created (")<< cd->getFormat() + cd->getUrl() <<")";
+                emit status( tr("Stream source created with device %1.").arg( cd->getFormat() + cd->getUrl() ), 3000 );
+            } else {
+                qCritical() << cd->getFormat() + cd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a stream device source.");
+            }
+
+        }
     }
 }
 

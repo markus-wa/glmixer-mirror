@@ -71,7 +71,7 @@ public:
     inline QString getFormat() const {
         return formatname;
     }
-    inline QHashIterator<QString, QString> getFormatOptions() const {
+    inline QHash<QString, QString> getFormatOptions() const {
         return formatoptions;
     }
     inline QString getCodecName() const {

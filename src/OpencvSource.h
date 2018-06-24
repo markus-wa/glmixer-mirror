@@ -60,7 +60,7 @@ public:
 
 class OpencvSource: public Source {
 
-Q_OBJECT
+    Q_OBJECT
 
     friend class CameraDialog;
     friend class RenderingManager;

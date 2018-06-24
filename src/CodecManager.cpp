@@ -414,3 +414,73 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
 
     return hwcodec;
 }
+
+QHash<QString, QString> CodecManager::getDeviceList(QString formatname)
+{
+    registerAll();
+
+    QHash<QString, QString> devices;
+
+    AVFormatContext *dev = NULL;
+    AVDeviceInfoList *device_list = NULL;
+
+    AVInputFormat *fmt = av_find_input_format(qPrintable(formatname));
+    if (!fmt)
+    {
+        qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Cannot find format %1.").arg(formatname);
+        return devices;
+    }
+
+    if ( !fmt->priv_class || !AV_IS_INPUT_DEVICE(fmt->priv_class->category))
+    {
+        qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Not an input format %1.").arg(formatname);
+        return devices;
+    }
+
+    if (!fmt->get_device_list) {
+        qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Cannot list sources. Not implemented.");
+        return devices;
+    }
+
+    if (!(dev = avformat_alloc_context())){
+        qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Cannot allocate device %1").arg(fmt->name);
+        return devices;
+    }
+    dev->iformat = fmt;
+    if (dev->iformat->priv_data_size > 0) {
+        dev->priv_data = av_mallocz(dev->iformat->priv_data_size);
+        if (!dev->priv_data) {
+            avformat_free_context(dev);
+            return devices;
+        }
+        if (dev->iformat->priv_class) {
+            *(const AVClass**)dev->priv_data = dev->iformat->priv_class;
+            av_opt_set_defaults(dev->priv_data);
+        }
+    } else {
+        dev->priv_data = NULL;
+    }
+
+    if ( avdevice_list_devices(dev, &device_list) < 0 ) {
+        qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Cannot list device %1").arg(fmt->name);
+        return devices;
+    }
+
+    for (int i = 0; i < device_list->nb_devices; i++) {
+        devices[ QString(device_list->devices[i]->device_name)] = QString(device_list->devices[i]->device_description);
+    }
+
+    avdevice_free_list_devices(&device_list);
+    avformat_free_context(dev);
+
+    return devices;
+}
+
+bool CodecManager::hasFormat(QString formatname)
+{
+    registerAll();
+
+    AVInputFormat *fmt = av_find_input_format(qPrintable(formatname));
+
+    return fmt != NULL;
+}

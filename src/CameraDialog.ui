@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>304</width>
-    <height>510</height>
+    <width>340</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
-    <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
+    <normaloff>:/glmixer/icons/webcam.png</normaloff>:/glmixer/icons/webcam.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -203,102 +203,97 @@
       <attribute name="title">
        <string>Webcam</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>Identifyer</string>
-         </property>
-        </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QComboBox" name="webcamDevice"/>
        </item>
-       <item row="0" column="1">
-        <widget class="QSpinBox" name="webcamId">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="minimum">
-          <number>0</number>
-         </property>
-         <property name="maximum">
-          <number>10</number>
-         </property>
-         <property name="singleStep">
-          <number>1</number>
-         </property>
-         <property name="value">
-          <number>0</number>
-         </property>
-        </widget>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Frame rate</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="webcamFramerate">
+           <item>
+            <property name="text">
+             <string>Max</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>30</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>25</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>15</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Frame rate</string>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Resolution</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="webcamResolution">
+           <item>
+            <property name="text">
+             <string>Max</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1080p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>720p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>640p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>320p</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="webcamFramerate">
-         <item>
-          <property name="text">
-           <string>Max</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>30</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>25</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>15</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Resolution</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
          </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="webcamResolution">
-         <item>
-          <property name="text">
-           <string>Max</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1080p</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>720p</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>640p</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>320p</string>
-          </property>
-         </item>
-        </widget>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -308,29 +303,18 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <widget class="QComboBox" name="screenCaptureArea">
          <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Capture Area</string>
-           </property>
-          </widget>
+          <property name="text">
+           <string>Capture entire screen</string>
+          </property>
          </item>
          <item>
-          <widget class="QComboBox" name="screenCaptureArea">
-           <item>
-            <property name="text">
-             <string>Fullscreen</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Custom</string>
-            </property>
-           </item>
-          </widget>
+          <property name="text">
+           <string>Capture custom area</string>
+          </property>
          </item>
-        </layout>
+        </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="geometryBox">
@@ -459,6 +443,123 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="deviceDecklink">
+      <attribute name="title">
+       <string>Blackmagic</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QComboBox" name="comboBox"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Input</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_2">
+           <item>
+            <property name="text">
+             <string>unset</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>sdi</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>hdmi</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>optical_sdi</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>component</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>composite</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>s_video</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="deviceOpenCV">
+      <attribute name="title">
+       <string>Opencv</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QComboBox" name="opencvId">
+         <item>
+          <property name="text">
+           <string>Camera 0</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Camera 1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Camera 2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Camera 3</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>126</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -562,22 +663,6 @@
     <hint type="destinationlabel">
      <x>345</x>
      <y>314</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>webcamId</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>CameraDialog</receiver>
-   <slot>cancelSourcePreview()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>283</x>
-     <y>342</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>345</x>
-     <y>342</y>
     </hint>
    </hints>
   </connection>

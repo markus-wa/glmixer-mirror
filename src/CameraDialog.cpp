@@ -26,17 +26,18 @@
 #include "CameraDialog.moc"
 #include "ui_CameraDialog.h"
 
-#include "glmixer.h"
 #include "VideoStreamSource.h"
 #include "common.h"
+#include "CodecManager.h"
+
+#ifdef GLM_OPENCV
+#include "OpencvSource.h"
+#endif
 
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QProcessEnvironment>
 
-#ifdef GLM_OPENCV
-#include "OpencvSource.h"
-#endif
 
 
 CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
@@ -53,6 +54,15 @@ CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
     connect(respawn, SIGNAL(timeout()), this, SLOT(cancelSourcePreview()));
 
     ui->setupUi(this);
+
+    // discard opencv if not available
+#ifndef GLM_OPENCV
+    ui->deviceSelection->removeTab( ui->deviceSelection->indexOf(ui->deviceOpenCV));
+#endif
+
+    // discard decklink if not available
+    if ( !CodecManager::hasFormat("decklink") )
+        ui->deviceSelection->removeTab( ui->deviceSelection->indexOf(ui->deviceDecklink) );
 }
 
 CameraDialog::~CameraDialog()
@@ -67,7 +77,8 @@ void CameraDialog::showHelp()
     QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/Input%20devices%20support/", QUrl::TolerantMode));
 }
 
-QString CameraDialog::getUrl() {
+QString CameraDialog::getUrl() const
+{
 
     QString url = "";
 
@@ -75,8 +86,8 @@ QString CameraDialog::getUrl() {
 
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        url = "/dev/video";
-        url += QString::number(ui->webcamId->value());
+        // read data
+        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex()).toString();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
@@ -93,7 +104,7 @@ QString CameraDialog::getUrl() {
     return url;
 }
 
-QString CameraDialog::getFormat()
+QString CameraDialog::getFormat() const
 {
     QString format = "";
 
@@ -115,7 +126,7 @@ QString CameraDialog::getFormat()
     return format;
 }
 
-QHash<QString, QString> CameraDialog::getFormatOptions()
+QHash<QString, QString> CameraDialog::getFormatOptions() const
 {
     QHash<QString, QString> options;
 
@@ -173,15 +184,22 @@ QHash<QString, QString> CameraDialog::getFormatOptions()
 
 void CameraDialog::showEvent(QShowEvent *e){
 
+    // read the device list
+    ui->webcamDevice->clear();
+    QHash<QString, QString> devices;
 
-//    int fullscreenMonitorCount = QApplication::desktop()->screenCount();
-//    int captureAreaCount = ui->screenCaptureArea->count() - 1;
-//    while ( fullscreenMonitorCount > captureAreaCount ) {
-//        ui->screenCaptureArea->addItem(QString("Monitor %1").arg(++captureAreaCount));
-//    }
-//    while ( captureAreaCount > fullscreenMonitorCount ) {
-//        ui->screenCaptureArea->removeItem(captureAreaCount--);
-//    }
+#ifdef Q_OS_LINUX
+    devices = CodecManager::getDeviceList( "video4linux2" );
+#elif Q_OS_MAC
+
+#elif Q_OS_WIN
+
+#endif
+    QHashIterator<QString, QString> i(devices);
+    while (i.hasNext()) {
+        i.next();
+        ui->webcamDevice->addItem(i.value(), i.key());
+    }
 
     // read dimensions of the desktop to set screen capture maximum
     screendimensions = QApplication::desktop()->screen()->geometry();
@@ -195,7 +213,7 @@ void CameraDialog::showEvent(QShowEvent *e){
         w = roundPowerOfTwo(w/2);
     }
     ui->screen_w_selection->setCurrentIndex(0);
-
+    // update display
     setScreenCaptureArea( ui->screenCaptureArea->currentIndex());
 
     QWidget::showEvent(e);
@@ -256,7 +274,6 @@ void CameraDialog::cancelSourcePreview(){
 
     testingtimeout->stop();
     ui->info->setCurrentIndex(0);
-    ui->connect->setEnabled(true);
 
     // remove source from preview: this deletes the texture in the preview
     ui->preview->setSource(0);
@@ -271,34 +288,59 @@ void CameraDialog::cancelSourcePreview(){
 
 void CameraDialog::updateSourcePreview(){
 
-    // create video stream
-    VideoStream *vs = new VideoStream();
-
-    // open with parameters
-    vs->open(getUrl(), getFormat(), getFormatOptions());
-
     // texture for source
     GLuint tex = ui->preview->getNewTextureIndex();
 
-    try {
-        // create a new source with a new texture index and the new parameters
-        s = new VideoStreamSource(vs, tex, 0);
+#ifdef GLM_OPENCV
+    if ( ui->deviceSelection->currentWidget() == ui->deviceOpenCV )
+    {
+        try {
+            // create a new source with a new texture index and the new parameters
+            s = new OpencvSource( getOpencvIndex(), OpencvSource::DEFAULT_MODE, tex, 0);
 
-        QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
-        QObject::connect(vs, SIGNAL(openned()), this, SLOT(connectedInfo()));
+            QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
+            QObject::connect(s, SIGNAL(playing(bool)), this, SLOT(connectedInfo()));
 
-        // update GUI
-        ui->info->setCurrentIndex(1);
-        ui->connect->setEnabled(false);
-        testingtimeout->start(5000);
+            // update GUI
+            ui->info->setCurrentIndex(1);
+            testingtimeout->start(5000);
 
+        }
+        catch (...)  {
+            qCritical() << tr("Opencv Source Creation error; ");
+            // free the OpenGL texture
+            glDeleteTextures(1, &tex);
+            // return an invalid pointer
+            s = NULL;
+        }
     }
-    catch (...)  {
-        qCritical() << tr("Video Stream Creation error; ");
-        // free the OpenGL texture
-        glDeleteTextures(1, &tex);
-        // return an invalid pointer
-        s = NULL;
+    else
+#endif
+    {
+        // create video stream
+        VideoStream *vs = new VideoStream();
+        // open with parameters
+        vs->open(getUrl(), getFormat(), getFormatOptions());
+
+        try {
+            // create a new source with a new texture index and the new parameters
+            s = new VideoStreamSource(vs, tex, 0);
+
+            QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
+            QObject::connect(vs, SIGNAL(openned()), this, SLOT(connectedInfo()));
+
+            // update GUI
+            ui->info->setCurrentIndex(1);
+            testingtimeout->start(5000);
+
+        }
+        catch (...)  {
+            qCritical() << tr("Video Stream Creation error; ");
+            // free the OpenGL texture
+            glDeleteTextures(1, &tex);
+            // return an invalid pointer
+            s = NULL;
+        }
     }
 
     // apply the source to the preview (null pointer is ok to reset preview)
@@ -308,6 +350,19 @@ void CameraDialog::updateSourcePreview(){
 }
 
 
+#ifdef GLM_OPENCV
+
+bool CameraDialog::isOpencvSelected() const
+{
+    return ( ui->deviceSelection->currentWidget() == ui->deviceOpenCV ) ;
+}
+
+int CameraDialog::getOpencvIndex() const
+{
+    return ui->opencvId->currentIndex();
+}
+
+#endif
 
 /*
 #define CAMERA_PREVIEW 1

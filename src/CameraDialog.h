@@ -29,11 +29,6 @@
 #include <QDialog>
 #include <QSettings>
 
-#ifdef GLM_OPENCV
-//#include "OpencvDisplayWidget.h"
-class OpencvSource;
-#endif
-
 namespace Ui {
 class CameraDialog;
 }
@@ -46,9 +41,14 @@ public:
     CameraDialog(QWidget *parent = 0, QSettings *settings = 0);
     virtual ~CameraDialog();
 
-    QString getUrl();
-    QString getFormat();
-    QHash<QString, QString> getFormatOptions();
+#ifdef GLM_OPENCV
+    bool isOpencvSelected() const;
+    int getOpencvIndex() const;
+#endif
+
+    QString getUrl() const;
+    QString getFormat() const;
+    QHash<QString, QString> getFormatOptions() const;
 
 public slots:
     void done(int r);
@@ -67,7 +67,7 @@ protected:
 private:
     Ui::CameraDialog *ui;
 
-    class VideoStreamSource *s;
+    class Source *s;
     QTimer *testingtimeout, *respawn;
     QSettings *appSettings;
     QRect screendimensions;

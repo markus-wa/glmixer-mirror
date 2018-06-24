@@ -230,7 +230,7 @@ OpencvSource::~OpencvSource() {
 
 QString OpencvSource::getInfo() const {
 
-    return Source::getInfo() + tr(" - Capture device : ") + getOpencvCameraIndex();
+    return Source::getInfo() + tr(" - OpenCV device : ") + getOpencvCameraIndex();
 }
 
 void OpencvSource::play(bool on)
