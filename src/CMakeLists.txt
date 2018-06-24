@@ -91,6 +91,7 @@ SET(GLMIXER_SRCS
     BasketSource.cpp
     BasketSelectionDialog.cpp
     ImageAtlas.cpp
+    CameraDialog.cpp
 )
 
 
@@ -128,6 +129,7 @@ SET(GLMIXER_UIS
     VideoStreamDialog.ui
     BasketSelectionDialog.ui
     SizeSelectionWidget.ui
+    CameraDialog.ui
 )
 
 
@@ -217,11 +219,6 @@ if(USE_OPENCV)
     add_definitions(-DGLM_OPENCV)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         OpencvSource.cpp
-        CameraDialog.cpp
-    )
-
-    SET(GLMIXER_UIS  ${GLMIXER_UIS}
-        CameraDialog.ui
     )
 endif(USE_OPENCV)
 

@@ -68,6 +68,7 @@
 #include "WorkspaceManager.h"
 #include "OpenSoundControlTranslator.h"
 #include "BasketSelectionDialog.h"
+#include "CameraDialog.h"
 
 
 #define GLM_OSC
@@ -103,7 +104,6 @@
 #endif
 
 #ifdef GLM_OPENCV
-#include "CameraDialog.h"
 #include "OpencvSource.h"
 #endif
 
@@ -178,10 +178,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifndef GLM_SPOUT
     actionShareToSPOUT->setVisible(false);
-#endif
-
-#ifndef GLM_OPENCV
-    actionCameraSource->setVisible(false);
 #endif
 
 #ifdef GLM_FFGL
@@ -1047,11 +1043,9 @@ void GLMixer::newSource(Source::RTTI type) {
     case Source::BASKET_SOURCE:
         on_actionBasketSource_triggered();
         break;
-#ifdef GLM_OPENCV
     case Source::CAMERA_SOURCE:
         on_actionCameraSource_triggered();
         break;
-#endif
     case Source::ALGORITHM_SOURCE:
         on_actionAlgorithmSource_triggered();
         break;
@@ -1409,7 +1403,6 @@ void GLMixer::sessionChanged() {
 
 void GLMixer::on_actionCameraSource_triggered() {
 
-#ifdef GLM_OPENCV
     static CameraDialog *cd = 0;
     if (!cd)
         cd = new CameraDialog(this);
@@ -1433,6 +1426,7 @@ void GLMixer::on_actionCameraSource_triggered() {
             qCritical() << cd->getFormat() + cd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a Device source.");
         }
 
+#ifdef GLM_OPENCV
 //        int selectedCamIndex = cd->indexOpencvCamera();
 //        if (selectedCamIndex > -1 ) {
 
@@ -1452,8 +1446,9 @@ void GLMixer::on_actionCameraSource_triggered() {
 //                qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
 
 //        }
-    }
 #endif
+
+    }
 }
 
 void GLMixer::on_actionWebSource_triggered(){

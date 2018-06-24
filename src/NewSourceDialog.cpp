@@ -17,13 +17,6 @@ NewSourceDialog::NewSourceDialog(QWidget *parent) :
     for (int i = 0; i < ui->SourceTypeToolBox->count();  ) {
         w = ui->SourceTypeToolBox->widget(i);
 
-#ifndef GLM_OPENCV
-        if ( ui->SourceTypeToolBox->itemText(i).contains("Device") ) {
-            ui->SourceTypeToolBox->removeItem(i);
-            delete w;
-            continue;
-        }
-#endif
 #ifndef GLM_FFGL
         if ( ui->SourceTypeToolBox->itemText(i).contains("Plugin") ) {
             ui->SourceTypeToolBox->removeItem(i);

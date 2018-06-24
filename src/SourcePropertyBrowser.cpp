@@ -1407,7 +1407,7 @@ public:
             property->setToolTip("Type of the source");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-            infoManager->setValue(idToProperty["Type"], "Stream" );
+            infoManager->setValue(idToProperty["Type"], "Stream " + vf->getFormat());
             addProperty(idToProperty["Type"]);
 
             // File Name

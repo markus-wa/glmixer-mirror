@@ -168,12 +168,27 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButton">
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Which devices are supported?</string>
+       </property>
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
         <iconset resource="../icons.qrc">
          <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>
