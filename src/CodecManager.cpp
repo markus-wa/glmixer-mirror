@@ -439,7 +439,7 @@ QHash<QString, QString> CodecManager::getDeviceList(QString formatname)
 
     if (!fmt->get_device_list) {
         qWarning() << "getRawDeviceListGeneric" << QChar(124).toLatin1()<< tr("Cannot list sources. Not implemented.");
-        return devices;
+       // return devices;
     }
 
     if (!(dev = avformat_alloc_context())){
@@ -459,6 +459,13 @@ QHash<QString, QString> CodecManager::getDeviceList(QString formatname)
         }
     } else {
         dev->priv_data = NULL;
+    }
+
+    AVDictionary* tmp = nullptr;
+    av_dict_copy(&tmp, nullptr, 0);
+    if (av_opt_set_dict2(dev, &tmp, AV_OPT_SEARCH_CHILDREN) < 0) {
+        av_dict_free(&tmp);
+        return devices;
     }
 
     if ( avdevice_list_devices(dev, &device_list) < 0 ) {

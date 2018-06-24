@@ -95,10 +95,13 @@ QString CameraDialog::getUrl() const
         url = QProcessEnvironment::systemEnvironment().value("DISPLAY");
     }
 
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
 
-#elif Q_OS_WIN
-
+#else 
+    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        // read desktop
+        url = "desktop";
+    }
 #endif
 
     return url;
@@ -117,10 +120,18 @@ QString CameraDialog::getFormat() const
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
         format = "x11grab";
     }
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
 
-#elif Q_OS_WIN
+#else 
 
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
+        format = "dshow";
+    }
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        format = "gdigrab";
+    }
 #endif
 
     return format;
@@ -131,7 +142,6 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     QHash<QString, QString> options;
 
 #ifdef Q_OS_LINUX
-
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
 
@@ -173,10 +183,17 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
         options["grab_y"] = QString::number(ui->screen_y->value());
         options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
     }
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
 
-#elif Q_OS_WIN
-
+#else 
+    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        options["framerate"] = "25";
+        int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
+        //options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
+        //options["offset_x"] = QString::number(ui->screen_x->value());
+        //options["offset_y"] = QString::number(ui->screen_y->value());
+        //options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
+    }
 #endif
 
     return options;
@@ -190,10 +207,12 @@ void CameraDialog::showEvent(QShowEvent *e){
 
 #ifdef Q_OS_LINUX
     devices = CodecManager::getDeviceList( "video4linux2" );
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
 
-#elif Q_OS_WIN
-
+#else 
+    if ( !CodecManager::hasFormat("dshow") ) 
+        ui->deviceWebcam->setEnabled(false);
+    devices = CodecManager::getDeviceList( "dshow" );
 #endif
     QHashIterator<QString, QString> i(devices);
     while (i.hasNext()) {
