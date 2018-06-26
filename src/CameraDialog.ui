@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>340</width>
-    <height>520</height>
+    <width>430</width>
+    <height>572</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -196,6 +196,12 @@
    </item>
    <item>
     <widget class="QTabWidget" name="deviceSelection">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -290,7 +296,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -303,18 +309,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QComboBox" name="screenCaptureArea">
-         <item>
-          <property name="text">
-           <string>Capture entire screen</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Capture custom area</string>
-          </property>
-         </item>
-        </widget>
+        <widget class="QComboBox" name="screenCaptureSelection"/>
        </item>
        <item>
         <widget class="QGroupBox" name="geometryBox">
@@ -331,16 +326,7 @@
           <string>Geometry</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <property name="leftMargin">
-           <number>6</number>
-          </property>
-          <property name="topMargin">
-           <number>6</number>
-          </property>
-          <property name="rightMargin">
-           <number>6</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>6</number>
           </property>
           <item row="0" column="0">
@@ -441,6 +427,19 @@
          </property>
         </widget>
        </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="deviceDecklink">
@@ -509,7 +508,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -553,7 +552,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>126</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -593,8 +592,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>275</x>
-     <y>500</y>
+     <x>281</x>
+     <y>593</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -609,8 +608,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>294</x>
-     <y>500</y>
+     <x>300</x>
+     <y>593</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -625,8 +624,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>285</x>
-     <y>214</y>
+     <x>411</x>
+     <y>278</y>
     </hint>
     <hint type="destinationlabel">
      <x>345</x>
@@ -641,8 +640,8 @@
    <slot>cancelSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>108</x>
-     <y>210</y>
+     <x>111</x>
+     <y>266</y>
     </hint>
     <hint type="destinationlabel">
      <x>345</x>
@@ -673,8 +672,8 @@
    <slot>cancelSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>283</x>
-     <y>391</y>
+     <x>394</x>
+     <y>424</y>
     </hint>
     <hint type="destinationlabel">
      <x>345</x>
@@ -699,14 +698,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>screenCaptureArea</sender>
+   <sender>screenCaptureSelection</sender>
    <signal>activated(int)</signal>
    <receiver>CameraDialog</receiver>
    <slot>setScreenCaptureArea(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>282</x>
-     <y>324</y>
+     <x>97</x>
+     <y>367</y>
     </hint>
     <hint type="destinationlabel">
      <x>382</x>
@@ -721,8 +720,8 @@
    <slot>updateScreenCaptureArea()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>123</x>
-     <y>386</y>
+     <x>152</x>
+     <y>442</y>
     </hint>
     <hint type="destinationlabel">
      <x>2</x>
@@ -737,8 +736,8 @@
    <slot>updateScreenCaptureArea()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>274</x>
-     <y>386</y>
+     <x>384</x>
+     <y>442</y>
     </hint>
     <hint type="destinationlabel">
      <x>343</x>
@@ -753,8 +752,8 @@
    <slot>updateScreenCaptureArea()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>274</x>
-     <y>418</y>
+     <x>384</x>
+     <y>486</y>
     </hint>
     <hint type="destinationlabel">
      <x>344</x>
@@ -769,8 +768,8 @@
    <slot>updateScreenCaptureArea()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>123</x>
-     <y>417</y>
+     <x>160</x>
+     <y>488</y>
     </hint>
     <hint type="destinationlabel">
      <x>4</x>
@@ -785,8 +784,8 @@
    <slot>cancelSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>94</x>
-     <y>458</y>
+     <x>103</x>
+     <y>516</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -801,12 +800,44 @@
    <slot>showHelp()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>278</x>
-     <y>243</y>
+     <x>416</x>
+     <y>319</y>
     </hint>
     <hint type="destinationlabel">
      <x>308</x>
      <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webcamDevice</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>374</x>
+     <y>375</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>439</x>
+     <y>378</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>opencvId</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>CameraDialog</receiver>
+   <slot>cancelSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>369</x>
+     <y>375</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>425</x>
+     <y>399</y>
     </hint>
    </hints>
   </connection>

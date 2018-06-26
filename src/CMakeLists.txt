@@ -94,6 +94,12 @@ SET(GLMIXER_SRCS
     CameraDialog.cpp
 )
 
+if(APPLE)    
+SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+    avfoundation.mm
+)
+endif(APPLE)
+
 
 if(WIN32)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../win/style.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/style.qrc)
