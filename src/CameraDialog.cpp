@@ -69,8 +69,8 @@ CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
         ui->deviceSelection->removeTab( ui->deviceSelection->indexOf(ui->deviceDecklink) );
 
 #ifdef Q_OS_LINUX
-    ui->screenCaptureSelection->addItem( "Capture entire screen", i.key());
-    ui->screenCaptureSelection->addItem( "Capture custom area", i.key());
+    ui->screenCaptureSelection->addItem( "Capture entire screen" );
+    ui->screenCaptureSelection->addItem( "Capture custom area" );
 #else
     ui->geometryBox->setVisible(false);
 #endif
@@ -88,236 +88,6 @@ void CameraDialog::showHelp()
 {
     QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/Input%20devices%20support/", QUrl::TolerantMode));
 }
-
-QString CameraDialog::getUrl() const
-{
-
-    QString url = "";
-
-#ifdef Q_OS_LINUX
-    // webcam
-    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        // read data which gives the device id
-        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex()).toString();
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        // read system DISPLAY
-        url = QProcessEnvironment::systemEnvironment().value("DISPLAY");
-    }
-#endif
-#ifdef Q_OS_MAC
-    // webcam
-    if (ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        // url = "0:";
-        // read data which gives the device id
-        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex()).toString();
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        // url = "1:";
-        // read index of the first screen
-        url = ui->screenCaptureSelection->itemData( ui->screenCaptureSelection->currentIndex()).toString();
-    }
-#endif
-#ifdef Q_OS_WIN 
-    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        // read desktop
-        url = "desktop";
-    }
-#endif
-
-    return url;
-}
-
-QString CameraDialog::getFormat() const
-{
-    QString format = "";
-
-#ifdef Q_OS_LINUX
-    // webcam
-    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        format = "video4linux2";
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        format = "x11grab";
-    }
-#elif defined Q_OS_MAC
-
-    format = "avfoundation";
-
-#else 
-    // webcam
-    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        format = "dshow";
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        format = "gdigrab";
-    }
-#endif
-
-    return format;
-}
-
-QHash<QString, QString> CameraDialog::getFormatOptions() const
-{
-    QHash<QString, QString> options;
-
-#ifdef Q_OS_LINUX
-    // webcam
-    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-
-        switch(ui->webcamResolution->currentIndex()) {
-        case 0:
-        case 1:
-            options["video_size"] = "1920x1080";
-            break;
-        case 2:
-            options["video_size"] = "1280x720";
-            break;
-        case 3:
-            options["video_size"] = "640x480";
-            break;
-        case 4:
-            options["video_size"] = "320x240";
-            break;
-        }
-
-        switch(ui->webcamFramerate->currentIndex()) {
-        case 0:
-        case 1:
-            options["framerate"] = "30";
-            break;
-        case 2:
-            options["framerate"] = "25";
-            break;
-        case 3:
-            options["framerate"] = "15";
-            break;
-        }
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        options["framerate"] = "30";
-        int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
-        options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
-        options["grab_x"] = QString::number(ui->screen_x->value());
-        options["grab_y"] = QString::number(ui->screen_y->value());
-        options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
-    }
-#elif defined Q_OS_MAC
-    // webcam
-    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-
-       switch(ui->webcamResolution->currentIndex()) {
-        case 1:
-            options["video_size"] = "1920x1080";
-            break;
-        case 2:
-            options["video_size"] = "1280x720";
-            break;
-        case 3:
-            options["video_size"] = "640x480";
-            break;
-        case 4:
-            options["video_size"] = "320x240";
-            break;
-        }
- 
-        switch(ui->webcamFramerate->currentIndex()) {
-        case 0:
-        case 1:
-            options["framerate"] = "30";
-            break;
-        case 2:
-            options["framerate"] = "25";
-            break;
-        case 3:
-            options["framerate"] = "15";
-            break;
-        }
-
-    }
-    // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        options["framerate"] = "30";
-        options["capture_cursor"] = ui->screen_cursor->isChecked() ? "1" : "0";
-    }
-
-#else 
-    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        options["framerate"] = "25";
-        //int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
-        //options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
-        //options["offset_x"] = QString::number(ui->screen_x->value());
-        //options["offset_y"] = QString::number(ui->screen_y->value());
-        //options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
-    }
-#endif
-
-    return options;
-}
-
-void CameraDialog::showEvent(QShowEvent *e){
-
-    // read the device list
-    ui->webcamDevice->clear();
-    QHash<QString, QString> devices;
-
-#ifdef Q_OS_LINUX
-    devices = CodecManager::getDeviceList( "video4linux2" );
-#elif defined Q_OS_MAC
-    devices = avfoundation::getDeviceList();
-#else 
-    if ( !CodecManager::hasFormat("dshow") ) 
-        ui->deviceWebcam->setEnabled(false);
-    devices = CodecManager::getDeviceList( "dshow" );
-#endif
-    // fill-in list of devices
-    QHashIterator<QString, QString> i(devices);
-    while (i.hasNext()) {
-        i.next();
-        ui->webcamDevice->addItem(i.value(), i.key());
-    }
-
-
-
-#ifdef Q_OS_LINUX
-    // read dimensions of the desktop to set screen capture maximum
-    screendimensions = QApplication::desktop()->screen()->geometry();
-    ui->screen_h->setMaximum(screendimensions.height());
-
-    // fill-in
-    ui->screen_w_selection->clear();
-    int w =  screendimensions.width() ;
-    while ( w > 255 ) {
-        ui->screen_w_selection->addItem(QString::number(w),w);
-        w = roundPowerOfTwo(w/2);
-    }
-    ui->screen_w_selection->setCurrentIndex(0);
-    // update display
-    setScreenCaptureArea( ui->screenCaptureSelection->currentIndex());
-
-#elif defined Q_OS_MAC
-
-    ui->screenCaptureSelection->clear();
-    QHash<QString, QString> screens;
-    screens = avfoundation::getScreenList();
-    QHashIterator<QString, QString> j(screens);
-    while (j.hasNext()) {
-        j.next();
-        ui->screenCaptureSelection->addItem(j.value(), j.key());
-    }
-#else 
-
-#endif
-
-
-    QWidget::showEvent(e);
-}
-
 
 void CameraDialog::done(int r)
 {
@@ -337,27 +107,6 @@ void CameraDialog::updateScreenCaptureArea()
     int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
     ui->screen_x->setMaximum(screendimensions.width() - w);
     ui->screen_y->setMaximum(screendimensions.height() - ui->screen_h->value());
-
-    cancelSourcePreview();
-}
-
-void CameraDialog::setScreenCaptureArea(int index)
-{
-#ifdef Q_OS_LINUX
-    ui->geometryBox->setEnabled(index  != 0);
-
-    // custom
-    if (index == 0)  {
-        ui->screen_x->setValue( screendimensions.x());
-        ui->screen_y->setValue( screendimensions.y());
-        ui->screen_w_selection->setCurrentIndex(0);
-        ui->screen_h->setValue( screendimensions.height());
-    }
-#elif defined Q_OS_MAC
-    
-#else 
-    
-#endif
 
     cancelSourcePreview();
 }
@@ -466,136 +215,311 @@ int CameraDialog::getOpencvIndex() const
 {
     return ui->opencvId->currentIndex();
 }
-
 #endif
 
-/*
-#define CAMERA_PREVIEW 1
+#ifdef Q_OS_LINUX
 
-CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), s(0), preview(0)
+QString CameraDialog::getUrl() const
 {
-    setupUi(this);
+    QString url = "";
 
-#ifndef CAMERA_PREVIEW
-    preview = 0;
-    showPreview->setEnabled(false);
-    showPreview->hide();
-    nopreview->setText(tr("Preview disabled in this version."));
-#else
-    preview = new SourceDisplayWidget(this);
-    preview->setSizePolicy( QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding) );
-    preview->hide();
-    QObject::connect(showPreview, SIGNAL(toggled(bool)), this, SLOT(setPreviewEnabled(bool)));
-#endif
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam )
+        // read data which gives the device id
+        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex()).toString();
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
+        // read system DISPLAY
+        url = QProcessEnvironment::systemEnvironment().value("DISPLAY");
 
-#ifdef GLM_OPENCV
-    currentCameraIndex = -1;
-    QObject::connect( indexSelection, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
-#endif
-
+    return url;
 }
 
-
-CameraDialog::~CameraDialog() {
-    if (preview)
-        delete preview;
+QString CameraDialog::getFormat() const
+{
+    QString format = "";
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam )
+        format = "video4linux2";
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
+        format = "x11grab";
+    return format;
 }
 
-void CameraDialog::createSource(){
+QHash<QString, QString> CameraDialog::getFormatOptions() const
+{
+    QHash<QString, QString> options;
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
 
-    if (!preview)
-        return;
+        switch(ui->webcamResolution->currentIndex()) {
+        case 0:
+        case 1:
+            options["video_size"] = "1920x1080";
+            break;
+        case 2:
+            options["video_size"] = "1280x720";
+            break;
+        case 3:
+            options["video_size"] = "640x480";
+            break;
+        case 4:
+            options["video_size"] = "320x240";
+            break;
+        }
 
-    if(s) {
-        preview->setSource(0);
-        // this deletes the texture in the preview
-        delete s;
-        s = 0;
+        switch(ui->webcamFramerate->currentIndex()) {
+        case 0:
+        case 1:
+            options["framerate"] = "30";
+            break;
+        case 2:
+            options["framerate"] = "25";
+            break;
+        case 3:
+            options["framerate"] = "15";
+            break;
+        }
+    }
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        options["framerate"] = "30";
+        int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
+        options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
+        options["grab_x"] = QString::number(ui->screen_x->value());
+        options["grab_y"] = QString::number(ui->screen_y->value());
+        options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
     }
 
-#ifdef GLM_OPENCV
-    if (currentCameraIndex >= 0) {
-
-        if ( !OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
-
-            GLuint tex = preview->getNewTextureIndex();
-            try {
-                s = (Source *) new OpencvSource(currentCameraIndex, OpencvSource::LOWRES_MODE, tex, 0);
-
-            } catch (AllocationException &e){
-                qCritical() << "Error creating OpenCV camera source; " << e.message();
-                // free the OpenGL texture
-                glDeleteTextures(1, &tex);
-                // return an invalid pointer
-                s = 0;
-            }
-            // apply the source to the preview
-            preview->setSource(s);
-            preview->playSource(true);
-        } else
-            preview->setSource( OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) );
-    }
-#endif
-
+    return options;
 }
-
 
 void CameraDialog::showEvent(QShowEvent *e){
 
-#ifdef GLM_OPENCV
-    setOpencvCamera(indexSelection->currentIndex());
-#endif
+    // read the device list
+    ui->webcamDevice->clear();
+    QHash<QString, QString> devices;
+
+    devices = CodecManager::getDeviceList( "video4linux2" );
+    // fill-in list of devices
+    QHashIterator<QString, QString> i(devices);
+    while (i.hasNext()) {
+        i.next();
+        ui->webcamDevice->addItem(i.value(), i.key());
+    }
+
+    // read dimensions of the desktop to set screen capture maximum
+    screendimensions = QApplication::desktop()->screen()->geometry();
+    ui->screen_h->setMaximum(screendimensions.height());
+
+    // fill-in
+    ui->screen_w_selection->clear();
+    int w =  screendimensions.width() ;
+    while ( w > 255 ) {
+        ui->screen_w_selection->addItem(QString::number(w),w);
+        w = roundPowerOfTwo(w/2);
+    }
+    ui->screen_w_selection->setCurrentIndex(0);
+    // update display
+    setScreenCaptureArea( ui->screenCaptureSelection->currentIndex() );
+
     QWidget::showEvent(e);
 }
 
-void CameraDialog::done(int r){
 
-    if (preview)
-        preview->setSource(0);
-
-    if (s) {
-        delete s;
-        s = 0;
+void CameraDialog::setScreenCaptureArea(int index)
+{
+    ui->geometryBox->setEnabled(index != 0);
+    // custom
+    if (index == 0)  {
+        ui->screen_x->setValue( screendimensions.x());
+        ui->screen_y->setValue( screendimensions.y());
+        ui->screen_w_selection->setCurrentIndex(0);
+        ui->screen_h->setValue( screendimensions.height());
     }
 
-    QDialog::done(r);
+    cancelSourcePreview();
 }
 
-void CameraDialog::setPreviewEnabled(bool on){
+#elif defined Q_OS_MAC
 
-    // remove the top item
-    verticalLayout->itemAt(0)->widget()->hide();
-    verticalLayout->removeItem(verticalLayout->itemAt(0));
+QString CameraDialog::getUrl() const
+{
+    QString url = "";
 
-    // add a top idem according to preview mode
-    if(on) {
-        verticalLayout->insertWidget(0, preview);
-        createSource();
-    } else {
-        verticalLayout->insertWidget(0, nopreview);
+    // webcam
+    if (ui->deviceSelection->currentWidget() == ui->deviceWebcam )
+        // read data which gives the device id
+        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex()).toString();
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
+        // read index of the first screen
+        url = ui->screenCaptureSelection->itemData( ui->screenCaptureSelection->currentIndex()).toString();
+
+    return url;
+}
+
+QString CameraDialog::getFormat() const
+{
+    return "avfoundation";
+}
+
+QHash<QString, QString> CameraDialog::getFormatOptions() const
+{
+    QHash<QString, QString> options;
+
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
+
+       switch(ui->webcamResolution->currentIndex()) {
+        case 1:
+            options["video_size"] = "1920x1080";
+            break;
+        case 2:
+            options["video_size"] = "1280x720";
+            break;
+        case 3:
+            options["video_size"] = "640x480";
+            break;
+        case 4:
+            options["video_size"] = "320x240";
+            break;
+        }
+
+        switch(ui->webcamFramerate->currentIndex()) {
+        case 0:
+        case 1:
+            options["framerate"] = "30";
+            break;
+        case 2:
+            options["framerate"] = "25";
+            break;
+        case 3:
+            options["framerate"] = "15";
+            break;
+        }
+
+    }
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        options["framerate"] = "30";
+        options["capture_cursor"] = ui->screen_cursor->isChecked() ? "1" : "0";
     }
 
-    verticalLayout->itemAt(0)->widget()->show();
+    return options;
 }
 
-#ifdef GLM_OPENCV
+void CameraDialog::showEvent(QShowEvent *e){
 
-void CameraDialog::setOpencvCamera(int i){
+    // read the device list
+    ui->webcamDevice->clear();
+    QHash<QString, QString> devices;
 
-    currentCameraIndex = i;
+    // fill-in list of devices
+    devices = avfoundation::getDeviceList();
+    QHashIterator<QString, QString> i(devices);
+    while (i.hasNext()) {
+        i.next();
+        ui->webcamDevice->addItem(i.value(), i.key());
+    }
 
-    // create the source
-    if (showPreview->isChecked())
-        createSource();
+    // fill-in list of screens
+    ui->screenCaptureSelection->clear();
+    QHash<QString, QString> screens;
+    screens = avfoundation::getScreenList();
+    QHashIterator<QString, QString> j(screens);
+    while (j.hasNext()) {
+        j.next();
+        ui->screenCaptureSelection->addItem(j.value(), j.key());
+    }
+
+    QWidget::showEvent(e);
 }
 
+void CameraDialog::setScreenCaptureArea(int index)
+{
+    cancelSourcePreview();
+}
 
-int CameraDialog::modeOpencvCamera() const {
+#else
 
-    return ModeSelection->currentIndex();
+QString CameraDialog::getUrl() const
+{
+    QString url = "";
+
+    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        // read desktop
+        url = "desktop";
+    }
+
+    return url;
+}
+
+QString CameraDialog::getFormat() const
+{
+    QString format = "";
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam )
+        format = "dshow";
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
+        format = "gdigrab";
+
+    return format;
+}
+
+QHash<QString, QString> CameraDialog::getFormatOptions() const
+{
+    QHash<QString, QString> options;
+
+    // webcam
+    if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
+
+       switch(ui->webcamResolution->currentIndex()) {
+        case 1:
+            options["video_size"] = "1920x1080";
+            break;
+        case 2:
+            options["video_size"] = "1280x720";
+            break;
+        case 3:
+            options["video_size"] = "640x480";
+            break;
+        case 4:
+            options["video_size"] = "320x240";
+            break;
+        }
+
+        switch(ui->webcamFramerate->currentIndex()) {
+        case 0:
+        case 1:
+            options["framerate"] = "30";
+            break;
+        case 2:
+            options["framerate"] = "25";
+            break;
+        case 3:
+            options["framerate"] = "15";
+            break;
+        }
+
+    }
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+        options["framerate"] = "30";
+        options["capture_cursor"] = ui->screen_cursor->isChecked() ? "1" : "0";
+    }
+
+    return options;
+}
+
+void CameraDialog::showEvent(QShowEvent *e){
+
+
+    QWidget::showEvent(e);
 }
 
 #endif
 
-*/
 
