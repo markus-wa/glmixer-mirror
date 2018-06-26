@@ -57,7 +57,7 @@ public slots:
     void updateScreenCaptureArea();
     void updateSourcePreview();
     void cancelSourcePreview();
-    void connectedInfo();
+    void connectedInfo(bool on = true);
     void failedInfo();
     void showHelp();
 
@@ -75,15 +75,3 @@ private:
 
 #endif /* CAMERADIALOG_H_ */
 
-/*
-#ifdef GLM_OPENCV
-    void setOpencvCamera(int i);
-
-public:
-    inline int indexOpencvCamera() const {return currentCameraIndex;}
-    int modeOpencvCamera() const;
-
-private:
-    int currentCameraIndex;
-#endif
-*/

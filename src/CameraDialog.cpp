@@ -111,15 +111,16 @@ void CameraDialog::updateScreenCaptureArea()
     cancelSourcePreview();
 }
 
-void CameraDialog::connectedInfo()
+void CameraDialog::connectedInfo(bool on)
 {
-    testingtimeout->stop();
-    ui->info->setCurrentIndex(2);
+    if (on) {
+        testingtimeout->stop();
+        ui->info->setCurrentIndex(2);
+    }
 }
 
 void CameraDialog::failedInfo()
 {
-    cancelSourcePreview();
     ui->info->setCurrentIndex(3);
     respawn->start(1000);
 }
@@ -145,23 +146,21 @@ void CameraDialog::updateSourcePreview(){
     // texture for source
     GLuint tex = ui->preview->getNewTextureIndex();
 
+    // update GUI
+    ui->info->setCurrentIndex(1);
+    testingtimeout->start(5000);
+
 #ifdef GLM_OPENCV
     if ( ui->deviceSelection->currentWidget() == ui->deviceOpenCV )
     {
         try {
             // create a new source with a new texture index and the new parameters
             s = new OpencvSource( getOpencvIndex(), OpencvSource::DEFAULT_MODE, tex, 0);
-
             QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
-            QObject::connect(s, SIGNAL(playing(bool)), this, SLOT(connectedInfo()));
-
-            // update GUI
-            ui->info->setCurrentIndex(1);
-            testingtimeout->start(5000);
-
+            QObject::connect(s, SIGNAL(playing(bool)), this, SLOT(connectedInfo(bool)));
         }
         catch (...)  {
-            qCritical() << tr("Opencv Source Creation error; ");
+            qWarning() << tr("Opencv Source Creation error; ");
             // free the OpenGL texture
             glDeleteTextures(1, &tex);
             // return an invalid pointer
@@ -179,17 +178,11 @@ void CameraDialog::updateSourcePreview(){
         try {
             // create a new source with a new texture index and the new parameters
             s = new VideoStreamSource(vs, tex, 0);
-
             QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
             QObject::connect(vs, SIGNAL(openned()), this, SLOT(connectedInfo()));
-
-            // update GUI
-            ui->info->setCurrentIndex(1);
-            testingtimeout->start(5000);
-
         }
         catch (...)  {
-            qCritical() << tr("Video Stream Creation error; ");
+            qWarning() << tr("Video Stream Creation error; ");
             // free the OpenGL texture
             glDeleteTextures(1, &tex);
             // return an invalid pointer

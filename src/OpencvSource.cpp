@@ -107,7 +107,7 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     pboIds[1] = 0;
 
     // prevent from creation of duplicated opencv sources and from creation of more than 4 sources
-    if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
+    if ( OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
         UnavailableCameraIndexException().raise();
 
     opencvCameraIndex = opencvIndex;
@@ -199,9 +199,9 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     // create thread
     mutex = new QMutex;
     CHECK_PTR_EXCEPTION(mutex)
-            cond = new QWaitCondition;
+    cond = new QWaitCondition;
     CHECK_PTR_EXCEPTION(cond)
-            thread = new CameraThread(this);
+    thread = new CameraThread(this);
     CHECK_PTR_EXCEPTION(thread)
 
     // store this pointer to the global list
@@ -230,7 +230,7 @@ OpencvSource::~OpencvSource() {
 
 QString OpencvSource::getInfo() const {
 
-    return Source::getInfo() + tr(" - OpenCV device : ") + getOpencvCameraIndex();
+    return Source::getInfo() + tr(" - OpenCV device %1").arg(getOpencvCameraIndex());
 }
 
 void OpencvSource::play(bool on)
@@ -244,7 +244,8 @@ void OpencvSource::play(bool on)
         // start play
         thread->end = false;
         thread->start();
-    } else {
+    }
+    else {
         // stop play
         thread->end = true;
         mutex->lock();

@@ -65,7 +65,6 @@ class OpencvSource: public Source {
     friend class CameraDialog;
     friend class RenderingManager;
     friend class CameraThread;
-    friend class OutputRenderWidget;
 
 public:
 
@@ -76,20 +75,19 @@ public:
 
     inline int getOpencvCameraIndex() const { return opencvCameraIndex; }
     inline double getFrameRate() const { return framerate; }
-    int getFrameWidth() const { return width; }
-    int getFrameHeight() const { return height; }
-
-    static OpencvSource *getExistingSourceForCameraIndex(int);
-    static QString getOpencvVersion();
-
+    inline int getFrameWidth() const { return width; }
+    inline int getFrameHeight() const { return height; }
     typedef enum {
         DEFAULT_MODE = 0,
         LOWRES_MODE,
         HIGHRES_MODE
     } CameraMode;
-    inline CameraMode getMode() {return mode;}
+    inline CameraMode getMode() const { return mode; }
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
+    static OpencvSource *getExistingSourceForCameraIndex(int);
+    static QString getOpencvVersion();
 
 public slots:
     void play(bool on);
