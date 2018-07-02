@@ -137,7 +137,6 @@ GLubyte ViewRenderWidget::stippling[] = {
 GLfloat ViewRenderWidget::coords[8] = { -1.f, 1.f,  1.f, 1.f, 1.f, -1.f,  -1.f, -1.f };
 GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
-GLfloat ViewRenderWidget::basecolor[4] = {1.f, 1.f, 1.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
 QString ViewRenderWidget::glslShaderFile = ":/glsl/shaders/imageProcessing_fragment.glsl";
 bool ViewRenderWidget::disableFiltering = false;
@@ -1377,6 +1376,8 @@ void ViewRenderWidget::setBaseColor(QColor c, float alpha)
 
     if (alpha > -1.0)
         program->setUniformValue(_baseAlpha, alpha);
+    else
+        program->setUniformValue(_baseAlpha, 1.f);
 }
 
 void ViewRenderWidget::resetShaderAttributes()
@@ -1396,7 +1397,7 @@ void ViewRenderWidget::resetShaderAttributes()
     program->setUniformValue(_brightness, 0.f);
     program->setUniformValue(_hueshift, 0.f);
     program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
-    program->setUniformValue(_threshold, 0.f);
+    program->setUniformValue(_threshold, -1.f);
     program->setUniformValue(_nbColors, (GLint) -1);
     program->setUniformValue(_invertMode, (GLint) 0);
 
@@ -1419,6 +1420,7 @@ void ViewRenderWidget::resetShaderAttributes()
     texc[1] = texc[3] = 1.f;
     texc[2] = texc[4] = 1.f;
     texc[5] = texc[7] = 0.f;
+    program->setAttributeArray ("texCoord", ViewRenderWidget::texc, 2, 0);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
@@ -1453,10 +1455,10 @@ void ViewRenderWidget::setupFilteringShaderProgram(QString fshfile)
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL binding error; \n\n%1").arg(program->log()) ) );
 
     // set the pointer to the array for the texture attributes
-    program->enableAttributeArray("texCoord");
     program->setAttributeArray ("texCoord", ViewRenderWidget::texc, 2, 0);
-    program->enableAttributeArray("maskCoord");
+    program->enableAttributeArray("texCoord");
     program->setAttributeArray ("maskCoord", ViewRenderWidget::maskc, 2, 0);
+    program->enableAttributeArray("maskCoord");
 
     // get uniforms
     _baseColor = program->uniformLocation("baseColor");
@@ -1614,13 +1616,6 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
  **/
 GLuint ViewRenderWidget::buildLineList()
 {
-    GLuint texid = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D );
-    GLuint texid2 = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
-
-    GLclampf highpriority = 1.0;
-    glPrioritizeTextures(1, &texid, &highpriority);
-    glPrioritizeTextures(1, &texid2, &highpriority);
-
     GLuint base = glGenLists(4);
     glListBase(base);
 
@@ -1628,20 +1623,9 @@ GLuint ViewRenderWidget::buildLineList()
     glNewList(base, GL_COMPILE);
 
         glCallList(vertex_array_coords);
-        glPushAttrib(GL_CURRENT_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-        glColor4ub(0, 0, 0, 0);
-        glPushMatrix();
-        glScalef(1.28, 1.28, 1.0);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glPopMatrix();
-
-        glPopAttrib();
-
-        glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(2.0);
-      //  glColor4ub(COLOR_SOURCE, 180);
+        glBindTexture(GL_TEXTURE_2D, white_texture);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -1653,21 +1637,10 @@ GLuint ViewRenderWidget::buildLineList()
     glNewList(base + 1, GL_COMPILE);
 
         glCallList(vertex_array_coords);
-        glPushAttrib(GL_CURRENT_BIT);
-
-        glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
-        glColor4ub(0, 0, 0, 0);
-        glPushMatrix();
-        glScalef(1.28, 1.28, 1.0);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glPopMatrix();
-
-        glPopAttrib();
 
         glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(4.0);
         glPointSize(3.0);
-//        glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -1687,7 +1660,6 @@ GLuint ViewRenderWidget::buildLineList()
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
-
 
     glEndList();
 

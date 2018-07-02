@@ -210,7 +210,6 @@ public:
     static GLfloat coords[8];
     static GLfloat texc[8];
     static GLfloat maskc[8];
-    static GLfloat basecolor[4];
     static QGLShaderProgram *program;
     static QString glslShaderFile;
     static GLfloat filter_kernel[10][3][3];
