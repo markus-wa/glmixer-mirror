@@ -1444,6 +1444,10 @@ void GLMixer::on_actionCameraSource_triggered() {
             vs->open(cd->getUrl(), cd->getFormat(), cd->getFormatOptions());
 
             if ( s ){
+                // update source aspect ratio when known
+                QObject::connect(vs, SIGNAL(openned()), s, SLOT(updateAspectRatioStream()));
+
+                // prepare for drop
                 RenderingManager::getInstance()->addSourceToBasket(s);
                 qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New stream device source created (")<< cd->getFormat() + cd->getUrl() <<")";
                 emit status( tr("Stream source created with device %1.").arg( cd->getFormat() + cd->getUrl() ), 3000 );
@@ -1554,6 +1558,10 @@ void GLMixer::on_actionStreamSource_triggered(){
         vs->open(vsd->getUrl());
 
         if ( s ){
+            // update source aspect ratio when known
+            QObject::connect(vs, SIGNAL(openned()), s, SLOT(updateAspectRatioStream()));
+
+            // prepare for drop
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Network Stream source created with URL ")<< vsd->getUrl();
             emit status( tr("Source created with network stream %1.").arg( vsd->getUrl() ), 3000 );

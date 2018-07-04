@@ -180,6 +180,7 @@ void CameraDialog::updateSourcePreview(){
             s = new VideoStreamSource(vs, tex, 0);
             QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
             QObject::connect(vs, SIGNAL(openned()), this, SLOT(connectedInfo()));
+            QObject::connect(vs, SIGNAL(openned()), s, SLOT(updateAspectRatioStream()));
         }
         catch (...)  {
             qWarning() << tr("Video Stream Creation error; ");

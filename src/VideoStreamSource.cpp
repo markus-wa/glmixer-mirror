@@ -75,6 +75,14 @@ void VideoStreamSource::openStream()
     // received signal from stream that its open !
     if (!is)
         return;
+    // go to next stage
+    status = STREAM_OPENED;
+}
+
+void VideoStreamSource::updateAspectRatioStream()
+{
+    if (!is)
+        return;
 
     width = is->getFrameWidth();
     height = is->getFrameHeight();
@@ -84,11 +92,6 @@ void VideoStreamSource::openStream()
     scale /= getScaleX();
     scaleBy( scale, scale );
 
-    // go to next stage
-    status = STREAM_OPENED;
-
-//    // play the stream
-//    is->play(true);
 }
 
 VideoStreamSource::~VideoStreamSource()

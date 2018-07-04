@@ -42,6 +42,7 @@ public slots:
     void play(bool on);
     void updateFrame (VideoPicture *);
     void openStream();
+    void updateAspectRatioStream();
 
 private:
 

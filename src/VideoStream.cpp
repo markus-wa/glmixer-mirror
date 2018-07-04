@@ -39,7 +39,7 @@ extern "C"
  * Waiting time when update has nothing to do (ms)
  */
 #define UPDATE_SLEEP_DELAY 10
-
+#define MAX_QUEUE_SIZE 10
 
 class StreamOpeningThread: public videoStreamThread
 {
@@ -725,6 +725,9 @@ void VideoStream::flush_picture_queue()
 void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
 {
     VideoPicture *vp = NULL;
+
+    if (pictq.size() > MAX_QUEUE_SIZE)
+        return;
 
     try {
         // convert

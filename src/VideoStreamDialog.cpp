@@ -125,6 +125,7 @@ void VideoStreamDialog::updateSourcePreview(){
 
         QObject::connect(s, SIGNAL(failed()), this, SLOT(failedInfo()));
         QObject::connect(vs, SIGNAL(openned()), this, SLOT(connectedInfo()));
+        QObject::connect(vs, SIGNAL(openned()), s, SLOT(updateAspectRatioStream()));
 
         // update GUI
         ui->info->setCurrentIndex(1);
