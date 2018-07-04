@@ -304,7 +304,7 @@ protected:
 
     // the frame buffers
     QSize renderingSize;
-    QGLFramebufferObject *_fbo;
+    QGLFramebufferObject *_fbo, *_outputfbo;
     QGLFramebufferObject *previousframe_fbo;
     GLuint pboIds[2];
     int pbo_index, pbo_nextIndex;

@@ -5,6 +5,7 @@
 
 #include "glmixer.h"
 #include "BasketSource.h"
+#include "VideoFile.h"
 #include "common.h"
 
 
@@ -108,15 +109,17 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
             // the image not in the list
             if (previousitems.size() == 0) {
 
-//TODO : SUPPORT FOR GIF ANIM (works in OSX bundle) : NB images are ok QMovies with 1 frame.
-            //    QMovie movie(filename);
-            //    if (movie.isValid()) {
-            //        qDebug() << "Movie "<< filename << ": "<< movie.format() << movie.frameCount() << " frames";
-            //    }
+//TODO : SUPPORT FOR GIF ANIM
+
                 // try to make an image: accept if not null
-                QPixmap image(filename);
-                if (image.isNull()) {
-                    invalidfiles<< filename;
+                VideoFile mediafile;
+                if ( !mediafile.open( filename, -1, -1, true ) ) {
+                    invalidfiles << filename;
+                    continue;
+                }
+                VideoPicture *p = mediafile.getFirstFrame();
+                if ( !p ) {
+                    invalidfiles << filename;
                     continue;
                 }
 
@@ -130,9 +133,13 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
                 // create a new item with the image file information
                 newitem = new QListWidgetItem(this);
                 newitem->setText(urlname.baseName());
-                newitem->setIcon(image.scaledToHeight(64));
                 newitem->setData(Qt::UserRole, filename);
-                newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(image.width()).arg(image.height()));
+
+                // create a QImage from buffer
+                QImage icon((uchar *)p->getBuffer(), p->getWidth(), p->getHeight(), p->getRowLength() * 3,  QImage::Format_RGB888);
+                newitem->setIcon( QPixmap::fromImage(icon).scaledToHeight(64));
+
+                newitem->setToolTip(QString("%1 %2 x %3").arg(urlname.absoluteFilePath()).arg(p->getWidth()).arg(p->getHeight()));
 
             }
             // already in the list : clone the item
@@ -387,12 +394,8 @@ BasketSelectionDialog::~BasketSelectionDialog()
 
 void BasketSelectionDialog::errorLoadingFiles(QStringList l)
 {
-    QStringList e;
-    QList<QByteArray> F = QImageReader::supportedImageFormats();
-    foreach (QByteArray f, F)
-        e << f;
 
-    QMessageBox::warning(this, tr("Basket Source error"), tr("Only image files (%2) can be used in a Basket Source.\nThe following files have been ignored:\n\n%1").arg(l.join("\n")).arg(e.join(", ")) );
+    QMessageBox::warning(this, tr("Basket Source error"), tr("Only image files can be used in a Basket Source.\nThe following files have been ignored:\n\n%1").arg(l.join("\n")) );
 
 }
 

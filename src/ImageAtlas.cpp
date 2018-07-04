@@ -86,16 +86,20 @@ bool ImageAtlas::appendImages(QStringList files)
                 // create atlas element with filename
                 ImageAtlasElement e(files.takeFirst());
 
-                // try to make an image: accept if not null
-                QImage image(e.fileName());
-                if (image.isNull()) {
+                // try to make an image
+                VideoFile mediafile;
+                if ( !mediafile.open( e.fileName() ) ) {
+                    qWarning() << e.fileName() <<  QChar(124).toLatin1()
+                               << tr("Not a valid media file.");
+                    continue;
+                }
+                VideoPicture *p = mediafile.getFirstFrame();
+
+                if (!p ) {
                     qWarning() << e.fileName() <<  QChar(124).toLatin1()
                                << tr("Not a valid image file.");
                     continue;
                 }
-
-                if (image.format() != QImage::Format_ARGB32_Premultiplied)
-                    image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
                 // set rendering area
                 QRect coords(index.x()*_elementsSize.width(),
@@ -110,15 +114,10 @@ bool ImageAtlas::appendImages(QStringList files)
                 _atlasElements.append(e);
 
                 // render image in FBO atlas page
-    #if QT_VERSION >= 0x040700
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                             image.width(), image. height(),
-                             0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, image.constBits() );
-    #else
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                             image.width(), image. height(),
-                             0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, image.bits() );
-    #endif
+                GLenum format = (p->getFormat() == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, p->getRowLength());
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p->getWidth(),
+                             p->getHeight(), 0, format, GL_UNSIGNED_BYTE, p->getBuffer());
                 glCallList(ViewRenderWidget::quad_texured);
 
                 // next index
