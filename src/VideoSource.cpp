@@ -35,7 +35,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     Source(texture, d), format(GL_RGBA), is(f), vp(NULL),
     internalFormat(AV_PIX_FMT_RGB24), imgsize(0), unpackrowlenght(0), pboNeedsUpdate(false)
 {
-    if (!is)
+    if (!is || !is->isOpen())
         SourceConstructorException().raise();
 
     glActiveTexture(GL_TEXTURE0);
@@ -48,17 +48,18 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     pboIds[1] = 0;
     index = nextIndex = 0;
 
+    // fills in the first frame
+    VideoPicture *_vp = is->getFirstFrame();
+    if (!setVideoFormat(_vp))
+        SourceConstructorException().raise();
+
+
     // request to update the frame when sending message
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
     // forward the message on failure
     QObject::connect(is, SIGNAL(failed()), this, SIGNAL(failed()));
     // forward the message on play
     QObject::connect(is, SIGNAL(running(bool)), this, SIGNAL(playing(bool)) );
-
-    // fills in the first frame
-    VideoPicture *_vp = is->getFirstFrame();
-    if (!setVideoFormat(_vp))
-        SourceConstructorException().raise();
 
 }
 
@@ -277,8 +278,7 @@ bool VideoSource::setVideoFormat(const VideoPicture *p)
         internalFormat = p->getFormat();
         format = (internalFormat == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
 
-        GLint preferedinternalformat = GL_RGB;
-
+        GLint preferedinternalformat = format;
         if (glewIsSupported("GL_ARB_internalformat_query2"))
             glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 

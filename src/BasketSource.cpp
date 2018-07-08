@@ -215,6 +215,7 @@ void BasketSource::drawimage() {
                           0, 0, _atlas.size().width(), _atlas.size().height(),
                           GL_COLOR_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     }
     // TODO : else non-blit render
 }

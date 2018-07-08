@@ -46,6 +46,28 @@ bool ImageAtlas::appendImages(QStringList files)
     // create a temporary texture for filling images to atlas
     GLuint tex = 0;
     glGenTextures(1, &tex);
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT | GL_VIEWPORT_BIT);
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
 
     // how many elements to insert
     int c = files.count();
@@ -57,28 +79,6 @@ bool ImageAtlas::appendImages(QStringList files)
         // fill the fbo
         if (atlaspage->fbo()->bind()) {
 
-            glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT | GL_VIEWPORT_BIT);
-
-            glClearColor(0.f, 0.f, 0.f, 1.f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            glEnable(GL_TEXTURE_2D);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-            glColor4f(1.0, 1.0, 1.0, 1.0);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBlendEquation(GL_FUNC_ADD);
-
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-            glLoadIdentity();
-            gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadIdentity();
 
             QPoint index;
             for (int i = 0; i < atlaspage->count(); ++i) {
@@ -87,14 +87,13 @@ bool ImageAtlas::appendImages(QStringList files)
                 ImageAtlasElement e(files.takeFirst());
 
                 // try to make an image
-                VideoFile mediafile;
-                if ( !mediafile.open( e.fileName() ) ) {
+                VideoFile *mediafile = new VideoFile();
+                if ( !mediafile->open( e.fileName() ) ) {
                     qWarning() << e.fileName() <<  QChar(124).toLatin1()
                                << tr("Not a valid media file.");
                     continue;
                 }
-                VideoPicture *p = mediafile.getFirstFrame();
-
+                VideoPicture *p = mediafile->getFirstFrame();
                 if (!p ) {
                     qWarning() << e.fileName() <<  QChar(124).toLatin1()
                                << tr("Not a valid image file.");
@@ -116,9 +115,10 @@ bool ImageAtlas::appendImages(QStringList files)
                 // render image in FBO atlas page
                 GLenum format = (p->getFormat() == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
                 glPixelStorei(GL_UNPACK_ROW_LENGTH, p->getRowLength());
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p->getWidth(),
+                glTexImage2D(GL_TEXTURE_2D, 0, format, p->getWidth(),
                              p->getHeight(), 0, format, GL_UNSIGNED_BYTE, p->getBuffer());
                 glCallList(ViewRenderWidget::quad_texured);
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
                 // next index
                 if (index.x() < atlaspage->array().width())
@@ -128,14 +128,9 @@ bool ImageAtlas::appendImages(QStringList files)
                     // retour a la ligne
                     index = QPoint(0, index.y() + 1);
 
+                delete mediafile;
             }
 
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-            glMatrixMode(GL_MODELVIEW);
-            glPopMatrix();
-
-            glPopAttrib();
 
             atlaspage->fbo()->release();
         }
@@ -144,6 +139,13 @@ bool ImageAtlas::appendImages(QStringList files)
         c -= atlaspage->count();
     }
     while (c > 0); // loop while more elements to insert
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glPopAttrib();
 
     // remove texture
     glBindTexture(GL_TEXTURE_2D, 0);
