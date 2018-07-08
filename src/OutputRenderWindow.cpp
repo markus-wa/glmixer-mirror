@@ -33,8 +33,8 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-// Full screen is a frameless window (not fullscreen window state because this causes tearing artifacts)
-Qt::WindowFlags fullscreenOutputFlags = Qt::Window | Qt::FramelessWindowHint;
+// Full screen is a frameless window
+Qt::WindowFlags fullscreenOutputFlags = Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint;
 // window output has only limited flags (no close button)
 Qt::WindowFlags windowOutputFlags = Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint ;
 
@@ -331,7 +331,7 @@ void OutputRenderWindow::setFullScreen(bool on) {
             switching = true;
 
             // apply fullscreen
-            setWindowState( Qt::WindowNoState | Qt::WindowActive);
+            setWindowState( Qt::WindowNoState | Qt::WindowFullScreen);
             setWindowFlags( fullscreenOutputFlags );
 
             // use geometry from selected desktop for fullscreen
