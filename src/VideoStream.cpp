@@ -39,7 +39,7 @@ extern "C"
  * Waiting time when update has nothing to do (ms)
  */
 #define UPDATE_SLEEP_DELAY 10
-#define MAX_QUEUE_SIZE 10
+#define MAX_QUEUE_SIZE 2
 
 class StreamOpeningThread: public videoStreamThread
 {

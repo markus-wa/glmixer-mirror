@@ -42,7 +42,7 @@ QHash<QString, QString> avfoundation::getScreenList()
         CGDirectDisplayID screens[numScreens];
         CGGetActiveDisplayList(numScreens, screens, &numScreens);
         for (uint32_t i = 0; i < numScreens; i++) {
-            result[ QString("%1:").arg(d++) ] = QString("Capture screen %1").arg(i);
+            result[ QString("%1:").arg(d + i) ] = QString("Capture screen %1").arg(i);
         }
     }
 

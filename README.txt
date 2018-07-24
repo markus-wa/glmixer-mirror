@@ -177,6 +177,9 @@ OSX COMPILATION
     This will generate the DragNDrop package (pkg) containing the Bundle (actual application) that can be dropped to the Application folder.
 
 
+    Extra - compile ffmpeg widh DeckLink support :
+
+    ./configure  --prefix=/usr/local --enable-shared --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libwebp --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libopus --enable-libxvid --samples=fate-suite --enable-decklink --extra-cflags=-I/Users/herbelin/Development/DeckLinkSDK10.11.1/Mac/include --extra-ldflags=-L/Users/herbelin/Development/DeckLinkSDK10.11.1/Mac/include
 
 
 WINDOWS COMPILATION
