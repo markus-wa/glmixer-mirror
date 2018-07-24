@@ -398,8 +398,8 @@ void OpenSoundControlTranslator::removeSelection()
 void OpenSoundControlTranslator::on_OSCHelp_pressed()
 {
     // glmixer help
-//    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
 
     // global help OSC
-    QDesktopServices::openUrl(QUrl("http://opensoundcontrol.org/spec-1_0", QUrl::TolerantMode));
+//    QDesktopServices::openUrl(QUrl("http://opensoundcontrol.org/spec-1_0", QUrl::TolerantMode));
 }

@@ -145,6 +145,7 @@ public:
     SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
 
     inline bool empty() const { return _front_sources.empty(); }
+    inline int count() const { return _front_sources.size(); }
     inline SourceSet getCopy() { return SourceSet (_front_sources); }
     QStringList getSourceNameList() const;
 

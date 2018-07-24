@@ -546,12 +546,27 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
     // Target OBJECT : name of a source
     else {
         SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(object);
-        // if the given source exists
+        // if the given source name exists
         if ( RenderingManager::getInstance()->notAtEnd(sit))
             executeSource( *sit, property, args);
-        else
-            // inform that the source name is wrong
-            throw osc::InvalidObjectException();
+        // maybe the index of the source was given instead of the name
+        else {
+            bool name_is_a_number = false;
+            uint index = object.toUInt(&name_is_a_number);
+            // if a number is given and it is valid
+            if ( name_is_a_number && index < RenderingManager::getInstance()->count() ) {
+                uint i = 0;
+                for(sit = RenderingManager::getInstance()->getBegin(); sit != RenderingManager::getInstance()->getEnd(); sit++) {
+                    if ( index == i++ )
+                        break;
+                }
+                if ( RenderingManager::getInstance()->notAtEnd(sit))
+                    executeSource( *sit, property, args);
+            }
+            else
+                // inform that the source name is wrong
+                throw osc::InvalidObjectException();
+        }
     }
 
 }
