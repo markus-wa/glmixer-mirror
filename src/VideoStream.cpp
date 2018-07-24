@@ -62,7 +62,7 @@ void StreamOpeningThread::run()
     if (!is->openStream())
         emit failed();
     else
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Connected to stream.");
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
 
 }
 
@@ -394,7 +394,9 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
     formatoptions = options;
 
     // request opening of thread in open thread
-    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Connecting to stream...");
+    qDebug() << urlname  << formatname
+             << QStringList( formatoptions.values() ).join(" ")
+             << QChar(124).toLatin1() << tr("Connecting to stream...");
     open_tid->start();
 
     // not running yet
@@ -611,6 +613,8 @@ void VideoStream::close()
         avformat_flush(pFormatCtx);
         // close file & free context and all its contents and set it to NULL.
         avformat_close_input(&pFormatCtx);
+        // log
+        qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Stream closed.");
     }
 
     // reset pointers
@@ -621,7 +625,6 @@ void VideoStream::close()
     out_video_filter = NULL;
     video_st = NULL;
 
-    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Stream closed.");
 }
 
 
@@ -726,8 +729,11 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
 {
     VideoPicture *vp = NULL;
 
-    if (pictq.size() > MAX_QUEUE_SIZE)
+    if (pictq.size() > MAX_QUEUE_SIZE) {
+        // flush decoder
+        avformat_flush(pFormatCtx);
         return;
+    }
 
     try {
         // convert

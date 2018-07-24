@@ -246,38 +246,8 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     QHash<QString, QString> options;
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-
-        switch(ui->webcamResolution->currentIndex()) {
-        case 0:
-        case 1:
-            options["video_size"] = "1920x1080";
-            break;
-        case 2:
-            options["video_size"] = "1280x720";
-            break;
-        case 3:
-            options["video_size"] = "640x480";
-            break;
-        case 4:
-            options["video_size"] = "320x240";
-            break;
-        }
-
-        switch(ui->webcamFramerate->currentIndex()) {
-        case 0:
-        case 1:
-            options["framerate"] = "60";
-            break;
-        case 2:
-            options["framerate"] = "30";
-            break;
-        case 3:
-            options["framerate"] = "25";
-            break;
-        case 4:
-            options["framerate"] = "15";
-            break;
-        }
+        options["video_size"] = ui->webcamResolution->currentText();
+        options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
@@ -303,7 +273,7 @@ void CameraDialog::showEvent(QShowEvent *e){
     QHashIterator<QString, QString> i(devices);
     while (i.hasNext()) {
         i.next();
-        ui->webcamDevice->addItem(i.value(), i.key());
+        ui->webcamDevice->addItem( QString("%1 [%2]").arg(i.value()).arg(i.key()), i.key());
     }
 
     // read dimensions of the desktop to set screen capture maximum
@@ -375,38 +345,8 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
 
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-
-       switch(ui->webcamResolution->currentIndex()) {
-        case 1:
-            options["video_size"] = "1920x1080";
-            break;
-        case 2:
-            options["video_size"] = "1280x720";
-            break;
-        case 3:
-            options["video_size"] = "640x480";
-            break;
-        case 4:
-            options["video_size"] = "320x240";
-            break;
-        }
-
-        switch(ui->webcamFramerate->currentIndex()) {
-        case 0:
-        case 1:
-            options["framerate"] = "60";
-            break;
-        case 2:
-            options["framerate"] = "30";
-            break;
-        case 3:
-            options["framerate"] = "25";
-            break;
-        case 4:
-            options["framerate"] = "15";
-            break;
-        }
-
+        options["video_size"] = ui->webcamResolution->currentText();
+        options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
@@ -429,7 +369,7 @@ void CameraDialog::showEvent(QShowEvent *e){
     QHashIterator<QString, QString> i(devices);
     while (i.hasNext()) {
         i.next();
-        ui->webcamDevice->addItem(i.value(), i.key());
+        ui->webcamDevice->addItem( QString("%1 [%2]").arg(i.value()).arg(i.key()), i.key());
     }
 
     // fill-in list of screens
@@ -439,7 +379,7 @@ void CameraDialog::showEvent(QShowEvent *e){
     QHashIterator<QString, QString> j(screens);
     while (j.hasNext()) {
         j.next();
-        ui->screenCaptureSelection->addItem(j.value(), j.key());
+        ui->screenCaptureSelection->addItem( QString("%1 [%2]").arg(j.value()).arg(j.key()), j.key());
     }
 
     // decklink if available
@@ -497,38 +437,8 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
 
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-
-       switch(ui->webcamResolution->currentIndex()) {
-        case 1:
-            options["video_size"] = "1920x1080";
-            break;
-        case 2:
-            options["video_size"] = "1280x720";
-            break;
-        case 3:
-            options["video_size"] = "640x480";
-            break;
-        case 4:
-            options["video_size"] = "320x240";
-            break;
-        }
-
-        switch(ui->webcamFramerate->currentIndex()) {
-        case 0:
-        case 1:
-            options["framerate"] = "60";
-            break;
-        case 2:
-            options["framerate"] = "30";
-            break;
-        case 3:
-            options["framerate"] = "25";
-            break;
-        case 4:
-            options["framerate"] = "15";
-            break;
-        }
-
+        options["video_size"] = ui->webcamResolution->currentText();
+        options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {

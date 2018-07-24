@@ -207,7 +207,7 @@
      </property>
      <widget class="QWidget" name="deviceWebcam">
       <attribute name="title">
-       <string>Webcam</string>
+       <string>Generic</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
@@ -224,11 +224,6 @@
          </item>
          <item>
           <widget class="QComboBox" name="webcamFramerate">
-           <item>
-            <property name="text">
-             <string>Max</string>
-            </property>
-           </item>
            <item>
             <property name="text">
              <string>60</string>
@@ -266,27 +261,22 @@
           <widget class="QComboBox" name="webcamResolution">
            <item>
             <property name="text">
-             <string>Max</string>
+             <string>1920x1080</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>1080p</string>
+             <string>1280x720</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>720p</string>
+             <string>640x480</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>640p</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>320p</string>
+             <string>320x240</string>
             </property>
            </item>
           </widget>
@@ -331,7 +321,16 @@
           <string>Geometry</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
            <number>6</number>
           </property>
           <item row="0" column="0">

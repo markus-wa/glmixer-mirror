@@ -53,7 +53,7 @@ void CodecManager::printError(QString streamname, QString message, int err)
         errormessage =  tr("No such entry.");
         break;
     default:
-        errormessage =  tr("Unsupported format.");
+        errormessage =  tr("Stream or format unavailable.");
         break;
     }
 
