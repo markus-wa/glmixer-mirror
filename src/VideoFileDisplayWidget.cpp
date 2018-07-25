@@ -123,7 +123,7 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
         if (vp->hasAction(VideoPicture::ACTION_DELETE))
             delete vp;
 
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
         vp = NULL;
     }
