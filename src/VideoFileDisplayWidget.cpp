@@ -63,12 +63,12 @@ void VideoFileDisplayWidget::setVideo(VideoFile *f){
 
 void VideoFileDisplayWidget::initializeGL()
 {
-	glRenderWidget::initializeGL();
+    glRenderWidget::initializeGL();
     setBackgroundColor(palette().color(QPalette::Window));
 
     glGenTextures(1, &textureIndex);
-	GLclampf lowpriority = 0.1;
-	glPrioritizeTextures(1, &textureIndex, &lowpriority);
+    GLclampf lowpriority = 0.1;
+    glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     // ugly but fast for preview
@@ -109,6 +109,8 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, vp->getRowLength());
+
         if ( vp->getFormat() == AV_PIX_FMT_RGBA)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
                      vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -121,6 +123,8 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
         if (vp->hasAction(VideoPicture::ACTION_DELETE))
             delete vp;
 
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
         vp = NULL;
     }
     // end
@@ -131,27 +135,27 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 
 void VideoFileDisplayWidget::paintGL()
 {
-	glRenderWidget::paintGL();
+    glRenderWidget::paintGL();
 
-	if (is) {
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		if (useVideoAspectRatio) {
-			float windowaspectratio = (float) width() / (float) height();
-			if ( windowaspectratio < is->getStreamAspectRatio())
-				glScalef(   1.f, windowaspectratio / is->getStreamAspectRatio(), 1.f);
-			else
-				glScalef(   is->getStreamAspectRatio() / windowaspectratio,  1.f, 1.f);
-		}
+    if (is) {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        if (useVideoAspectRatio) {
+            float windowaspectratio = (float) width() / (float) height();
+            if ( windowaspectratio < is->getStreamAspectRatio())
+                glScalef(   1.f, windowaspectratio / is->getStreamAspectRatio(), 1.f);
+            else
+                glScalef(   is->getStreamAspectRatio() / windowaspectratio,  1.f, 1.f);
+        }
 
-		glCallList(squareDisplayList);
-	}
+        glCallList(squareDisplayList);
+    }
 }
 
 
 void VideoFileDisplayWidget::setVideoAspectRatio(bool usevideoratio){
 
-	useVideoAspectRatio = usevideoratio;
+    useVideoAspectRatio = usevideoratio;
 
 }
 
