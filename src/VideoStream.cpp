@@ -459,7 +459,7 @@ bool VideoStream::openStream()
     // set options for video decoder
     AVDictionary *opts = NULL;
     av_dict_set(&opts, "refcounted_frames", "1", 0);
-    av_dict_set(&opts, "threads", "auto", 0);
+    av_dict_set(&opts, "threads", "1", 0);
     // init the video decoder
     if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
         qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
@@ -731,7 +731,9 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
 
     if (pictq.size() > MAX_QUEUE_SIZE) {
         // flush decoder
-        avformat_flush(pFormatCtx);
+        // avformat_flush(pFormatCtx);        
+        // avcodec_flush_buffers(video_dec);
+
         return;
     }
 

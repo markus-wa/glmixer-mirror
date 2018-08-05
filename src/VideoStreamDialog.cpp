@@ -36,7 +36,7 @@ void VideoStreamDialog::showHelp()
 QString VideoStreamDialog::getUrl() {
 
     //    QString urlstream = "rtp://@239.0.0.1:5004";
-    QString urlstream = "udp://@localhost:1234";
+    QString urlstream = "udp://@:1234";
     //    QString urlstream = "udp://@239.0.0.1:1234";
     //    urlstream = "https://youtu.be/fmGM5vhy2IM";
     //    urlstream = "v4l2://";
@@ -71,7 +71,7 @@ void VideoStreamDialog::updateURL(){
 
     // Selected UDP
     if (ui->UDPStream->isChecked()) {
-        ui->URL->setText(QString("udp://@127.0.0.1:%1").arg(ui->UDPPort->value()));
+        ui->URL->setText(QString("udp://@:%1").arg(ui->UDPPort->value()));
     }
     // Selected RTP
     else if (ui->RTPStream->isChecked()) {
