@@ -112,7 +112,7 @@ LINUX COMPILATION
 
     To install it in your system, run cmake (as above but) with the following options :
 
-        $ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -D CMAKE_INSTALL_PREFIX=/usr -G Ninja ../glmixer-Source/
+        $ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_INSTALL_PREFIX=/usr -G Ninja ../glmixer-Source/
 
     After compiling the program, build the debian package :
 
@@ -162,7 +162,7 @@ OSX COMPILATION
     STEP 4 - Compile for OSX
 
     If you installed qt@4 with brew, specify where qmake is :
-        $ cmake -DCMAKE_BUILD_TYPE=Release -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -DUSE_UNDO=True -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DQT_QMAKE_EXECUTABLE=/usr/local/Cellar/qt@4/4.8.7_3/bin/qmake -G Ninja ../glmixer-Source/
+        $ cmake -DCMAKE_BUILD_TYPE=Release  -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DQT_QMAKE_EXECUTABLE=/usr/local/Cellar/qt@4/4.8.7_3/bin/qmake -G Ninja ../glmixer-Source/
 
     The rest is the same as in the generic instructions. To test your program;
 
@@ -206,7 +206,7 @@ WINDOWS COMPILATION
     STEP 4 - Compile for Windows
 
     To configure for Windows Release packaging:
-        $ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -DUSE_UNDO=True -D USE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source/
+        $ cmake -G Ninja ../glmixer-Source/
 
     The rest is the same as in the generic instructions. To test your program;
 
@@ -229,6 +229,5 @@ WINDOWS COMPILATION
 COMPILATION PROBLEMS
 
    *  "error: ‘next’ is not a member of ‘std’"
-
    -> Just add '-std=c++11' to CMAKE_CXX_FLAGS.
 

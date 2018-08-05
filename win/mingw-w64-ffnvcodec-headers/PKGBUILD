@@ -1,0 +1,24 @@
+
+_realname=ffnvcodec-headers
+pkgbase=mingw-w64-${_realname}
+pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
+pkgver=1.20180804 # date of the commit
+pkgrel=1
+epoch=2
+pkgdesc='ffmpeg NVIDIA CUVID NVEC NVDEC header files'
+arch=('any')
+url='https://trac.ffmpeg.org/wiki/HWAccelIntro'
+license=('custom')
+makedepends=(git make)
+source=('git+https://git.videolan.org/git/ffmpeg/nv-codec-headers.git')
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}"/nv-codec-headers
+  make
+}
+
+package() {
+  cd "${srcdir}"/nv-codec-headers
+  make install PREFIX="${pkgdir}${MINGW_PREFIX}"
+}
