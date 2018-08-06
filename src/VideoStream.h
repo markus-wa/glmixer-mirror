@@ -41,9 +41,7 @@
 /**
  * uncomment to monitor execution with debug information
  */
-#ifndef NDEBUG
-//#define VIDEOSTREAM_DEBUG
-#endif
+#define VIDEOSTREAM_DEBUG
 
 class videoStreamThread;
 

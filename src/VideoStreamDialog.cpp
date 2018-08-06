@@ -90,7 +90,6 @@ void VideoStreamDialog::connectedInfo()
 
 void VideoStreamDialog::failedInfo()
 {
-    cancelSourcePreview();
     ui->info->setCurrentIndex(3);
     respawn->start(1000);
 }

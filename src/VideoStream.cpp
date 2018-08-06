@@ -58,12 +58,19 @@ public:
 };
 
 void StreamOpeningThread::run()
-{
+{    
+#ifdef VIDEOSTREAM_DEBUG
+        fprintf(stderr, "\n%s - Start openning thread.", qPrintable(is->formatname));
+#endif
+
     if (!is->openStream())
         emit failed();
     else
         qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
 
+#ifdef VIDEOSTREAM_DEBUG
+        fprintf(stderr, "\n%s - Openning thread ended.", qPrintable(is->formatname));
+#endif
 }
 
 
@@ -106,6 +113,9 @@ void StreamDecodingThread::run()
     int64_t dts = 0; // Decoding time stamp
     int error_count = 0;
 
+#ifdef VIDEOSTREAM_DEBUG
+        fprintf(stderr, "\n%s - Start decoding thread...", qPrintable(is->formatname));
+#endif
 
     while (is && !is->quit && !_forceQuit)
     {
@@ -113,26 +123,23 @@ void StreamDecodingThread::run()
         av_frame_unref(_pFrame);
 
         // Read packet
-        if ( av_read_frame(is->pFormatCtx, pkt) < 0)
+        int ret = av_read_frame(is->pFormatCtx, pkt);
+        if ( ret < 0 )
         {
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
                 qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
-
                 avio_flush(is->pFormatCtx->pb);
                 avformat_flush(is->pFormatCtx);
-
                 error_count++;
                 if (error_count > 10)
                     forceQuit();
 
             }
-            else
-                // not really an error : read_frame reached the end of stream
-                // send an empty frame with stop flag
-                // (and pretending pts is one frame later)
-                is->queue_picture(NULL, pts, VideoPicture::ACTION_STOP );
-
+            
+#ifdef VIDEOSTREAM_DEBUG
+        fprintf(stderr, "\n%s - Stream cannot read packet.", qPrintable(is->formatname));
+#endif
             // do not treat the error; just wait a bit for the end of the packet and continue
             msleep(UPDATE_SLEEP_DELAY);
             continue;
@@ -144,6 +151,9 @@ void StreamDecodingThread::run()
 
             // send the packet to the decoder
             if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+#ifdef VIDEOSTREAM_DEBUG        
+                fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
+#endif
                 //msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
@@ -155,20 +165,20 @@ void StreamDecodingThread::run()
                 frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
                 // no error, just try again
-                if ( frameFinished == AVERROR(EAGAIN) || frameFinished == AVERROR_EOF ) {
+                if ( frameFinished == AVERROR(EAGAIN) ) {     
+#ifdef VIDEOSTREAM_DEBUG                
+                    fprintf(stderr, "\n%s - Try again.", qPrintable(is->formatname));
+#endif
                     // continue in main loop.
                     break;
                 }
                 // other kind of error
                 else if ( frameFinished < 0 ) {
-                    fprintf(stderr, "\n%s - Could not decode frame.", qPrintable(is->urlname));
+                    qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Could not decode frame.");
                     // decoding error
                     forceQuit();
                     break;
                 }
-
-                // No error, but did we get a full video frame?
-                VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
                 dts = 0;
@@ -186,9 +196,8 @@ void StreamDecodingThread::run()
                     is->pictq_cond->wait(is->pictq_mutex);
                 is->pictq_mutex->unlock();
 
-                // default
                 // add frame to the queue of pictures
-                is->queue_picture(_pFrame, pts, actionFrame);
+                is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW);
 
                 // free internal buffers
                 av_frame_unref(_pFrame);
@@ -206,7 +215,7 @@ void StreamDecodingThread::run()
     av_frame_unref(_pFrame);
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Decoding ended.");
+        fprintf(stderr, "\n%s - Decoding thread ended.", qPrintable(is->formatname));
 #endif
 
 }
@@ -307,7 +316,7 @@ void VideoStream::stop()
     if (decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Stopping.");
+        fprintf(stderr, "\n%s - Stopping stream...", qPrintable(formatname));
 #endif
 
         // request quit
@@ -327,7 +336,7 @@ void VideoStream::stop()
         decod_tid->wait();
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Stopped.");
+        fprintf(stderr, "\n%s - Stopped.", qPrintable(formatname));
 #endif
     }
 
@@ -342,7 +351,7 @@ void VideoStream::start()
     if (!decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Starting.");
+        fprintf(stderr, "\n%s - Starting stream...", qPrintable(formatname));
 #endif
 
         // reset quit flag
@@ -361,7 +370,7 @@ void VideoStream::start()
         emit running(true);
 
 #ifdef VIDEOSTREAM_DEBUG
-        qDebug() << urlname << formatname << QChar(124).toLatin1() << tr("Started.");
+        fprintf(stderr, "\n%s - Started.", qPrintable(formatname));
 #endif
     }
 
@@ -385,6 +394,10 @@ bool VideoStream::isOpen() const {
 
 void VideoStream::open(QString url, QString format, QHash<QString, QString> options)
 {
+#ifdef VIDEOSTREAM_DEBUG
+    fprintf(stderr, "\n%s %s - Openning stream...", qPrintable(format), qPrintable(url));
+#endif
+
     if (pFormatCtx)
         close();
 
@@ -396,11 +409,16 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
     // request opening of thread in open thread
     qDebug() << urlname  << formatname
              << QStringList( formatoptions.values() ).join(" ")
-             << QChar(124).toLatin1() << tr("Connecting to stream...");
+             << QChar(124).toLatin1() << tr("Connecting stream ...");
     open_tid->start();
 
     // not running yet
     quit = true;
+    
+#ifdef VIDEOSTREAM_DEBUG
+    fprintf(stderr, "\n%s - Stream openning...", qPrintable(formatname));
+#endif
+
 }
 
 bool VideoStream::openStream()
@@ -591,7 +609,7 @@ bool VideoStream::setupFiltering()
 void VideoStream::close()
 {
 #ifdef VIDEOSTREAM_DEBUG
-    qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Closing...");
+    fprintf(stderr, "\n%s - Closing stream...", qPrintable(formatname));
 #endif
 
     // Stop thread
@@ -625,6 +643,9 @@ void VideoStream::close()
     out_video_filter = NULL;
     video_st = NULL;
 
+#ifdef VIDEOSTREAM_DEBUG
+    fprintf(stderr, "\n%s - Stream closed.", qPrintable(formatname));
+#endif
 }
 
 
