@@ -149,33 +149,52 @@ void StreamDecodingThread::run()
         // (same for non video stream)
         if ( is->active && pkt->stream_index == is->videoStream ) {
 
-            // send the packet to the decoder
-            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
-#ifdef VIDEOSTREAM_DEBUG
-                fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
-#endif
-                //msleep(PARSING_SLEEP_DELAY);
-                continue;
-            }
+//            // send the packet to the decoder
+//            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+//#ifdef VIDEOSTREAM_DEBUG
+//                fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
+//#endif
+//                //msleep(PARSING_SLEEP_DELAY);
+//                continue;
+//            }
 
-            frameFinished = 0;
-            while (frameFinished >= 0) {
+//            frameFinished = 0;
+//            while (frameFinished >= 0) {
 
-                // get the packet from the decoder
-                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
+//                // get the packet from the decoder
+//                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
-                // no error, just try again
-                if ( frameFinished == AVERROR(EAGAIN) ) {
-                    // continue in main loop.
-                    break;
-                }
-                // other kind of error
-                else if ( frameFinished < 0 ) {
+//                // no error, just try again
+//                if ( frameFinished == AVERROR(EAGAIN) ) {
+//#ifdef VIDEOSTREAM_DEBUG
+//                //    fprintf(stderr, "\n%s - Try again.", qPrintable(is->formatname));
+//#endif
+//                    // continue in main loop.
+//                    continue;
+//                }
+//                // other kind of error
+//                else if ( frameFinished < 0 ) {
+//                    qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Could not decode frame.");
+//                    // decoding error
+//                    forceQuit();
+//                    break;
+//                }
+
+            int ret = 0;
+
+            do {
+                do {
+                    ret = avcodec_send_packet(is->video_dec, pkt);
+                } while(ret == AVERROR(EAGAIN));
+
+                if(ret == AVERROR_EOF || ret == AVERROR(EINVAL)) {
                     qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Could not decode frame.");
                     // decoding error
                     forceQuit();
                     break;
                 }
+
+                ret = avcodec_receive_frame(is->video_dec, _pFrame);
 
                 // get packet decompression time stamp (dts)
                 dts = 0;
@@ -200,6 +219,8 @@ void StreamDecodingThread::run()
                 av_frame_unref(_pFrame);
 
             } // end while (frameFinished > 0)
+
+            while(ret == AVERROR(EAGAIN));
 
         }
 
