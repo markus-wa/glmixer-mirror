@@ -250,8 +250,10 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     QHash<QString, QString> options;
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        options["video_size"] = ui->webcamResolution->currentText();
-        options["framerate"] = ui->webcamFramerate->currentText();
+        if (ui->webcamResolution->currentIndex()!=0)
+            options["video_size"] = ui->webcamResolution->currentText();
+        if (ui->webcamFramerate->currentIndex()!=0)
+            options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
@@ -349,8 +351,10 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
 
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        options["video_size"] = ui->webcamResolution->currentText();
-        options["framerate"] = ui->webcamFramerate->currentText();
+        if (ui->webcamResolution->currentIndex()!=0)
+            options["video_size"] = ui->webcamResolution->currentText();
+        if (ui->webcamFramerate->currentIndex()!=0)
+            options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
@@ -446,8 +450,10 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
 
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
-        options["video_size"] = ui->webcamResolution->currentText();
-        options["framerate"] = ui->webcamFramerate->currentText();
+        if (ui->webcamResolution->currentIndex()!=0)
+            options["video_size"] = ui->webcamResolution->currentText();
+        if (ui->webcamFramerate->currentIndex()!=0)
+            options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {

@@ -226,6 +226,11 @@
           <widget class="QComboBox" name="webcamFramerate">
            <item>
             <property name="text">
+             <string>Auto</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>60</string>
             </property>
            </item>
@@ -259,6 +264,11 @@
          </item>
          <item>
           <widget class="QComboBox" name="webcamResolution">
+           <item>
+            <property name="text">
+             <string>Auto</string>
+            </property>
+           </item>
            <item>
             <property name="text">
              <string>1920x1080</string>
