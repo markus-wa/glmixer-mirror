@@ -25,6 +25,7 @@
 
 #include "VideoStream.moc"
 #include "CodecManager.h"
+#include "glRenderWidget.h"
 
 extern "C"
 {
@@ -107,16 +108,16 @@ private:
 
 void StreamDecodingThread::run()
 {
+    QTime t;
     AVPacket pkt1, *pkt   = &pkt1;
     int frameFinished = 0;
-    double pts = 0.0; // Presentation time stamp
-    int64_t dts = 0; // Decoding time stamp
     int error_count = 0;
 
 #ifdef VIDEOSTREAM_DEBUG
         fprintf(stderr, "\n%s - Start decoding thread...", qPrintable(is->formatname));
 #endif
 
+    t.start();
     while (is && !is->quit && !_forceQuit)
     {
         // start with clean frame
@@ -149,61 +150,33 @@ void StreamDecodingThread::run()
         // (same for non video stream)
         if ( is->active && pkt->stream_index == is->videoStream ) {
 
-//            // send the packet to the decoder
-//            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
-//#ifdef VIDEOSTREAM_DEBUG
-//                fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
-//#endif
-//                //msleep(PARSING_SLEEP_DELAY);
-//                continue;
-//            }
+            // send the packet to the decoder
+            if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
+#ifdef VIDEOSTREAM_DEBUG
+                fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
+#endif
+                //msleep(PARSING_SLEEP_DELAY);
+                continue;
+            }
 
-//            frameFinished = 0;
-//            while (frameFinished >= 0) {
+            frameFinished = 0;
+            while (frameFinished >= 0) {
 
-//                // get the packet from the decoder
-//                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
+                // get the packet from the decoder
+                frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
-//                // no error, just try again
-//                if ( frameFinished == AVERROR(EAGAIN) ) {
-//#ifdef VIDEOSTREAM_DEBUG
-//                //    fprintf(stderr, "\n%s - Try again.", qPrintable(is->formatname));
-//#endif
-//                    // continue in main loop.
-//                    continue;
-//                }
-//                // other kind of error
-//                else if ( frameFinished < 0 ) {
-//                    qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Could not decode frame.");
-//                    // decoding error
-//                    forceQuit();
-//                    break;
-//                }
-
-            int ret = 0;
-
-            do {
-                do {
-                    ret = avcodec_send_packet(is->video_dec, pkt);
-                } while(ret == AVERROR(EAGAIN));
-
-                if(ret == AVERROR_EOF || ret == AVERROR(EINVAL)) {
+                // no error, just try again
+                if ( frameFinished == AVERROR(EAGAIN) ) {
+                    // continue sending packet in main loop.
+                    break;
+                }
+                // other kind of error
+                else if ( frameFinished < 0 ) {
                     qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Could not decode frame.");
                     // decoding error
                     forceQuit();
                     break;
                 }
-
-                ret = avcodec_receive_frame(is->video_dec, _pFrame);
-
-                // get packet decompression time stamp (dts)
-                dts = 0;
-                if (_pFrame->pts != (int64_t) AV_NOPTS_VALUE)
-                    dts = _pFrame->pts;
-                else
-                    dts = _pFrame->pkt_dts;
-                // compute PTS
-                pts = double(dts) * av_q2d(is->video_st->time_base);
 
                 // wait until we have space for a new pic
                 // the condition is released in video_refresh_timer()
@@ -213,19 +186,20 @@ void StreamDecodingThread::run()
                 is->pictq_mutex->unlock();
 
                 // add frame to the queue of pictures
-                is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW);
+                is->queue_picture(_pFrame, 0, VideoPicture::ACTION_SHOW);
 
                 // free internal buffers
                 av_frame_unref(_pFrame);
 
             } // end while (frameFinished > 0)
 
-            while(ret == AVERROR(EAGAIN));
-
         }
 
         // free internal buffers
         av_packet_unref(pkt);
+
+        // exponential moving average to compute FPS
+        is->frame_rate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * is->frame_rate;
 
     } // end while
 
@@ -241,7 +215,7 @@ void StreamDecodingThread::run()
 
 VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationHeight) :
     QObject(parent),
-    targetWidth(destinationWidth), targetHeight(destinationHeight), frame_rate(10.0)
+    targetWidth(destinationWidth), targetHeight(destinationHeight), frame_rate(60.0)
 {
     // first time a video file is created?
     CodecManager::registerAll();
@@ -669,8 +643,6 @@ void VideoStream::close()
 
 void VideoStream::video_refresh_timer()
 {
-    // by default timer will be restarted ASAP
-    int ptimer_delay = UPDATE_SLEEP_DELAY;
     // by default do not quit
     bool quit_after_frame = false;
     // empty pointers
@@ -697,7 +669,6 @@ void VideoStream::video_refresh_timer()
     // release lock
     pictq_mutex->unlock();
 
-
     if (currentvp)
     {
         // if this frame was tagged as stopping frame
@@ -713,22 +684,6 @@ void VideoStream::video_refresh_timer()
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
 
-            // before computing timer delay, set to default
-            ptimer_delay = UPDATE_SLEEP_DELAY;
-
-            // if there is a next picture
-            // we can compute when to present the next frame
-            if (nextvp) {
-
-                double delay = 0.0;
-                delay = nextvp->getPts() - currentvp->getPts() ;
-
-                // if delay is correct
-                if ( delay > 0 && delay < 1.0)
-                    // schedule normal delayed display of next frame
-                    ptimer_delay = (int) (delay * 1000.0);
-            }
-
         }
         // NOT VISIBLE ? skip this frame...
         else {
@@ -743,10 +698,7 @@ void VideoStream::video_refresh_timer()
         stop();
     // normal behavior : restart the ptimer for next frame
     else
-        ptimer->start( ptimer_delay );
-
-    // calculate frame rate
-    frame_rate = 0.6 * frame_rate + 0.4 * ( 1000.0 / (double) ptimer_delay );
+        ptimer->start( glRenderTimer::getInstance()->interval() );
 
 //    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
 }
@@ -769,10 +721,6 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
     VideoPicture *vp = NULL;
 
     if (pictq.size() > MAX_QUEUE_SIZE) {
-        // flush decoder
-        // avformat_flush(pFormatCtx);
-        // avcodec_flush_buffers(video_dec);
-
         return;
     }
 
