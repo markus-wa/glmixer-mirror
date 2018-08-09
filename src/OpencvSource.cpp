@@ -214,7 +214,6 @@ OpencvSource::~OpencvSource() {
     // end capture
     play(false);
     cvReleaseCapture(&capture);
-    fprintf(stderr, "cv release");
 
     // remove this element from the global list
     OpencvSource::_existingSources.remove(opencvCameraIndex);

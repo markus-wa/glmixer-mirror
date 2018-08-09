@@ -353,7 +353,7 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
         if (ui->webcamResolution->currentIndex()!=0)
             options["video_size"] = ui->webcamResolution->currentText();
-        if (ui->webcamFramerate->currentIndex()!=0)
+        if (ui->webcamFramerate->currentIndex()!=0) 
             options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture

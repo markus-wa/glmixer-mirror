@@ -379,7 +379,7 @@ ENDFOREACH(GLMIXER_UTILITY)
 
 # HERE IS THE INSTALLATION OF OSX AVFoundation
 if(APPLE)
-    set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} "-framework AVFoundation -framework CoreFoundation -framework CoreGraphics")
+    set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} "-framework AVFoundation -framework CoreFoundation -framework CoreGraphics -framework Cocoa")
 endif(APPLE)
 
 # HERE IS THE INSTALLATION OF WIN32 SOCK LIB
