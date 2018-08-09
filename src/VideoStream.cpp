@@ -58,7 +58,7 @@ public:
 };
 
 void StreamOpeningThread::run()
-{    
+{
 #ifdef VIDEOSTREAM_DEBUG
         fprintf(stderr, "\n%s - Start openning thread.", qPrintable(is->formatname));
 #endif
@@ -136,7 +136,7 @@ void StreamDecodingThread::run()
                     forceQuit();
 
             }
-            
+
 #ifdef VIDEOSTREAM_DEBUG
         fprintf(stderr, "\n%s - Stream cannot read packet.", qPrintable(is->formatname));
 #endif
@@ -151,7 +151,7 @@ void StreamDecodingThread::run()
 
             // send the packet to the decoder
             if ( avcodec_send_packet(is->video_dec, pkt) < 0 ) {
-#ifdef VIDEOSTREAM_DEBUG        
+#ifdef VIDEOSTREAM_DEBUG
                 fprintf(stderr, "\n%s - Stream cannot send packet.", qPrintable(is->formatname));
 #endif
                 //msleep(PARSING_SLEEP_DELAY);
@@ -165,10 +165,7 @@ void StreamDecodingThread::run()
                 frameFinished = avcodec_receive_frame(is->video_dec, _pFrame);
 
                 // no error, just try again
-                if ( frameFinished == AVERROR(EAGAIN) ) {     
-#ifdef VIDEOSTREAM_DEBUG                
-                    fprintf(stderr, "\n%s - Try again.", qPrintable(is->formatname));
-#endif
+                if ( frameFinished == AVERROR(EAGAIN) ) {
                     // continue in main loop.
                     break;
                 }
@@ -414,7 +411,7 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
 
     // not running yet
     quit = true;
-    
+
 #ifdef VIDEOSTREAM_DEBUG
     fprintf(stderr, "\n%s - Stream openning...", qPrintable(formatname));
 #endif
@@ -752,7 +749,7 @@ void VideoStream::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Actio
 
     if (pictq.size() > MAX_QUEUE_SIZE) {
         // flush decoder
-        // avformat_flush(pFormatCtx);        
+        // avformat_flush(pFormatCtx);
         // avcodec_flush_buffers(video_dec);
 
         return;

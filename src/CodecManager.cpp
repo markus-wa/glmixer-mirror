@@ -407,7 +407,9 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     return NULL;
 #else
 //    return NULL; // debug
-    snprintf(newcodecname, 128, "%s_cuvid", codec->name);
+    QString glvendor((char *)glGetString(GL_VENDOR));
+    if ( glvendor.contains("nvidia", Qt::CaseInsensitive) )
+        snprintf(newcodecname, 128, "%s_cuvid", codec->name);
 #endif
 
     hwcodec = avcodec_find_decoder_by_name(newcodecname);
