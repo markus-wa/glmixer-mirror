@@ -41,7 +41,7 @@
 /**
  * uncomment to monitor execution with debug information
  */
-#define VIDEOSTREAM_DEBUG
+//#define VIDEOSTREAM_DEBUG
 
 class videoStreamThread;
 
@@ -173,6 +173,7 @@ public:
     virtual void run() = 0;
 
 signals:
+    void success();
     void failed();
 
 protected:

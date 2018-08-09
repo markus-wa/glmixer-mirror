@@ -1449,7 +1449,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 
                 // prepare for drop
                 RenderingManager::getInstance()->addSourceToBasket(s);
-                qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New stream device source created (")<< cd->getFormat() + cd->getUrl() <<")";
+                qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New stream device source created (")<< cd->getFormat() << cd->getUrl() <<")";
                 emit status( tr("Stream source created with device %1.").arg( cd->getFormat() + cd->getUrl() ), 3000 );
             } else {
                 qCritical() << cd->getFormat() + cd->getUrl() <<  QChar(124).toLatin1() << tr("Could not create a stream device source.");

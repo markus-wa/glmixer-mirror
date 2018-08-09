@@ -100,6 +100,11 @@ SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
 )
 endif(APPLE)
 
+if(WIN32)    
+SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+    directshow.cpp
+)
+endif(WIN32)
 
 if(WIN32)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../win/style.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/style.qrc)

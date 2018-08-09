@@ -66,8 +66,10 @@ void StreamOpeningThread::run()
 
     if (!is->openStream())
         emit failed();
-    else
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
+    else {
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");        
+        emit success();
+    }
 
 #ifdef VIDEOSTREAM_DEBUG
         fprintf(stderr, "\n%s - Openning thread ended.", qPrintable(is->formatname));
@@ -125,10 +127,17 @@ void StreamDecodingThread::run()
 
         // Read packet
         int ret = av_read_frame(is->pFormatCtx, pkt);
+        if (ret == AVERROR(EAGAIN)) {
+            msleep(UPDATE_SLEEP_DELAY);
+            continue;
+        }
         if ( ret < 0 )
         {
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
+#ifdef VIDEOSTREAM_DEBUG
+                fprintf(stderr, "\n%s - Error reading frame.", qPrintable(is->formatname));
+#endif
                 qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
                 avio_flush(is->pFormatCtx->pb);
                 avformat_flush(is->pFormatCtx);
@@ -139,7 +148,8 @@ void StreamDecodingThread::run()
             }
 
 #ifdef VIDEOSTREAM_DEBUG
-        fprintf(stderr, "\n%s - Stream cannot read packet.", qPrintable(is->formatname));
+       // fprintf(stderr, "\n%s - Stream read packet error %d.", qPrintable(is->formatname), ret);
+        CodecManager::printError(is->formatname, "Error reading packet :", ret);
 #endif
             // do not treat the error; just wait a bit for the end of the packet and continue
             msleep(UPDATE_SLEEP_DELAY);
@@ -243,7 +253,7 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     Q_CHECK_PTR(open_tid);
     // forward signals
     QObject::connect(open_tid, SIGNAL(failed()), this, SIGNAL(failed()));
-    QObject::connect(open_tid, SIGNAL(finished()), this, SIGNAL(openned()));
+    QObject::connect(open_tid, SIGNAL(success()), this, SIGNAL(openned()));
 
     // start playing as soon as it is openned
     QObject::connect(open_tid, SIGNAL(finished()), this, SLOT(start()));
@@ -399,7 +409,7 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
     formatoptions = options;
 
     // request opening of thread in open thread
-    qDebug() << urlname  << formatname
+    qDebug() << formatname << urlname
              << QStringList( formatoptions.values() ).join(" ")
              << QChar(124).toLatin1() << tr("Connecting stream ...");
     open_tid->start();
@@ -469,7 +479,7 @@ bool VideoStream::openStream()
     // set options for video decoder
     AVDictionary *opts = NULL;
     av_dict_set(&opts, "refcounted_frames", "1", 0);
-    av_dict_set(&opts, "threads", "1", 0);
+    av_dict_set(&opts, "threads", "auto", 0);
     // init the video decoder
     if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
         qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name

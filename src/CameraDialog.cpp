@@ -38,6 +38,10 @@
 #include "avfoundation.h"
 #endif
 
+#ifdef Q_OS_WIN
+#include "directshow.h"
+#endif
+
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QProcessEnvironment>
@@ -408,9 +412,14 @@ void CameraDialog::setScreenCaptureArea(int index)
 
 QString CameraDialog::getUrl() const
 {
-    QString url = "0";
+    QString url = "";
 
-    if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+    // webcam
+    if (ui->deviceSelection->currentWidget() == ui->deviceWebcam )
+        // read data which gives the device id
+        url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex() ).toString();
+    // screen capture
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
         // read desktop
         url = "desktop";
     }
@@ -423,8 +432,7 @@ QString CameraDialog::getFormat() const
     QString format = "";
     // webcam
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam )
-        format = "vfwcap";
-        //format = "dshow";
+        format = "dshow";
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         format = "gdigrab";
@@ -449,7 +457,6 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
         options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
         options["offset_x"] = QString::number(ui->screen_x->value());
         options["offset_y"] = QString::number(ui->screen_y->value());
-        options["pix_fmt"] = "yuv420p";
     }
 
     return options;
@@ -460,15 +467,12 @@ void CameraDialog::showEvent(QShowEvent *e){
     // read the device list
     ui->webcamDevice->clear();
     QHash<QString, QString> devices;
-
-    devices = CodecManager::getDeviceList( "dshow" );
-    // fill-in list of devices
+    devices = directshow::getDeviceList();
     QHashIterator<QString, QString> i(devices);
     while (i.hasNext()) {
         i.next();
-        ui->webcamDevice->addItem( QString("%1 [%2]").arg(i.value()).arg(i.key()), i.key());
+        ui->webcamDevice->addItem( QString("%1").arg(i.value()), i.key());
     }
-
 
     // read dimensions of the desktop to set screen capture maximum
     screendimensions = QApplication::desktop()->screen()->geometry();
@@ -501,6 +505,8 @@ void CameraDialog::setScreenCaptureArea(int index)
 
     cancelSourcePreview();
 }
+
+
 
 #endif
 

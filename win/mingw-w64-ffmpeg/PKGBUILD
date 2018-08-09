@@ -20,8 +20,6 @@ depends=(
         "${MINGW_PACKAGE_PREFIX}-gsm"
         "${MINGW_PACKAGE_PREFIX}-lame"
         "${MINGW_PACKAGE_PREFIX}-libass"
-        "${MINGW_PACKAGE_PREFIX}-libbluray"
-        "${MINGW_PACKAGE_PREFIX}-libcaca"
         "${MINGW_PACKAGE_PREFIX}-libmodplug"
         "${MINGW_PACKAGE_PREFIX}-libtheora"
         "${MINGW_PACKAGE_PREFIX}-libvorbis"
@@ -33,7 +31,6 @@ depends=(
         "${MINGW_PACKAGE_PREFIX}-rtmpdump"
         "${MINGW_PACKAGE_PREFIX}-SDL2"
         "${MINGW_PACKAGE_PREFIX}-speex"
-        "${MINGW_PACKAGE_PREFIX}-wavpack"
         "${MINGW_PACKAGE_PREFIX}-x264"
         "${MINGW_PACKAGE_PREFIX}-x265"
         "${MINGW_PACKAGE_PREFIX}-xvidcore"
@@ -63,15 +60,12 @@ build() {
     --arch=${CARCH%%-*} \
     --disable-debug \
     --disable-static \
+    --enable-shared \
     --disable-doc \
-    --enable-dxva2 \
-    --enable-d3d11va \
     --enable-fontconfig \
     --enable-gnutls \
     --enable-gpl \
     --enable-libass \
-    --enable-libbluray \
-    --enable-libcaca \
     --enable-libcelt \
     --enable-libfreetype \
     --enable-libgsm \
@@ -90,11 +84,9 @@ build() {
     --enable-libxvid \
     --enable-libvpx \
     --enable-libwebp \
-    --enable-libwavpack \
     --enable-pic \
     --enable-postproc \
     --enable-runtime-cpudetect \
-    --enable-shared \
     --enable-swresample \
     --enable-version3 \
     --enable-zlib \

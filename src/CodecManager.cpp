@@ -85,7 +85,7 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), ifmt, &options);
     if (err < 0)
     {
-        printError(streamToOpen, "Error opening :", err);
+        printError(streamFormat+" "+streamToOpen, "Error opening :", err);
         return false;
     }
 
@@ -96,7 +96,7 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     err = avformat_find_stream_info(*_pFormatCtx, NULL);
     if (err < 0)
     {
-        printError(streamToOpen, "Error setting up :", err);
+        printError(streamFormat+" "+streamToOpen, "Error setting up :", err);
         return false;
     }
 
