@@ -1405,7 +1405,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 
     static CameraDialog *cd = 0;
     if (!cd)
-        cd = new CameraDialog(this);
+        cd = new CameraDialog(this, &settings);
 
     if (cd->exec() == QDialog::Accepted) {
 
@@ -1923,8 +1923,6 @@ void GLMixer::on_actionDeleteSource_triggered()
                 QString d = (*sit)->getName();
                 RenderingManager::getInstance()->removeSource(sit);
                 emit status( tr("Source %1 deleted.").arg( d ), 3000 );
-                
-    fprintf(stderr, "end on_actionDeleteSource_triggered\n");
             }
         }
     }

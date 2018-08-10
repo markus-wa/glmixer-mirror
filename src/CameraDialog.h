@@ -53,8 +53,9 @@ public:
 public slots:
     void done(int r);
 
-    void setScreenCaptureArea(int index);
-    void updateScreenCaptureArea();
+    void setScreenCaptureArea();
+    void updateScreenCaptureWidth(int index);
+    void updateScreenCaptureHeight(int value);
     void updateSourcePreview();
     void cancelSourcePreview();
     void connectedInfo(bool on = true);
@@ -71,6 +72,7 @@ private:
     QTimer *testingtimeout, *respawn;
     QSettings *appSettings;
     QRect screendimensions;
+    QRect capturedimensions;
 };
 
 #endif /* CAMERADIALOG_H_ */

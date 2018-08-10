@@ -79,6 +79,10 @@ CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
     ui->screenCaptureSelection->addItem( "Capture custom area" );
 #endif
 
+    // restore settings
+    if (appSettings) {
+
+    }
 }
 
 CameraDialog::~CameraDialog()
@@ -99,20 +103,27 @@ void CameraDialog::done(int r)
 
     // save settings
     if (appSettings) {
-
+        appSettings->setValue("ScreenCaptureSize", QRect(ui->screen_x->value(), ui->screen_y->value(), ui->screen_w_selection->currentIndex(), ui->screen_h->value()));
+        appSettings->setValue("ScreenCaptureMode", ui->screenCaptureSelection->currentIndex());
     }
 
     QDialog::done(r);
 }
 
-void CameraDialog::updateScreenCaptureArea()
-{
-    // limit x and y
-    int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
-    ui->screen_x->setMaximum(screendimensions.width() - w);
-    ui->screen_y->setMaximum(screendimensions.height() - ui->screen_h->value());
 
-    cancelSourcePreview();
+void CameraDialog::updateScreenCaptureWidth(int index)
+{
+    int w = ui->screen_w_selection->itemData(index).toInt();
+    ui->screen_x->setMaximum(screendimensions.width() - w);
+
+    setScreenCaptureArea();
+}
+
+void CameraDialog::updateScreenCaptureHeight(int value)
+{
+    ui->screen_y->setMaximum(screendimensions.height() - value);
+
+    setScreenCaptureArea();
 }
 
 void CameraDialog::connectedInfo(bool on)
@@ -242,6 +253,7 @@ QString CameraDialog::getFormat() const
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         format = "x11grab";
+
     return format;
 }
 
@@ -258,11 +270,10 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
         options["framerate"] = "30";
-        int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
-        options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
-        options["grab_x"] = QString::number(ui->screen_x->value());
-        options["grab_y"] = QString::number(ui->screen_y->value());
         options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
+        options["video_size"] = QString("%1x%2").arg(capturedimensions.width()).arg(capturedimensions.height());
+        options["grab_x"] = QString::number(capturedimensions.x());
+        options["grab_y"] = QString::number(capturedimensions.y());
     }
 
     return options;
@@ -293,23 +304,38 @@ void CameraDialog::showEvent(QShowEvent *e){
         ui->screen_w_selection->addItem(QString::number(w),w);
         w = roundPowerOfTwo(w/2);
     }
-    ui->screen_w_selection->setCurrentIndex(0);
-    // update display
-    setScreenCaptureArea( ui->screenCaptureSelection->currentIndex() );
+//    ui->screen_w_selection->setCurrentIndex(0);
+
+    // restore settings
+    if (appSettings) {
+        if (appSettings->contains("ScreenCaptureSize")) {
+            QRect sizescreencapture;
+            sizescreencapture = appSettings->value("ScreenCaptureSize").toRect();
+            ui->screen_w_selection->setCurrentIndex( sizescreencapture.width() );
+            ui->screen_h->setValue( sizescreencapture.height());
+            ui->screen_x->setValue( sizescreencapture.x());
+            ui->screen_y->setValue( sizescreencapture.y());
+        }
+        ui->screenCaptureSelection->setCurrentIndex( appSettings->value("ScreenCaptureMode", 0).toInt() );
+    }
+    else
+        ui->screenCaptureSelection->setCurrentIndex( 0 );
 
     QWidget::showEvent(e);
 }
 
 
-void CameraDialog::setScreenCaptureArea(int index)
+void CameraDialog::setScreenCaptureArea()
 {
+    int index = ui->screenCaptureSelection->currentIndex();
     ui->geometryBox->setEnabled(index != 0);
-    // custom
+
     if (index == 0)  {
-        ui->screen_x->setValue( screendimensions.x());
-        ui->screen_y->setValue( screendimensions.y());
-        ui->screen_w_selection->setCurrentIndex(0);
-        ui->screen_h->setValue( screendimensions.height());
+        capturedimensions = screendimensions;
+    }
+    else {
+        int w = ui->screen_w_selection->currentText().toInt();
+        capturedimensions = QRect(ui->screen_x->value(), ui->screen_y->value(), w, ui->screen_h->value());
     }
 
     cancelSourcePreview();
@@ -353,7 +379,7 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     if ( ui->deviceSelection->currentWidget() == ui->deviceWebcam ) {
         if (ui->webcamResolution->currentIndex()!=0)
             options["video_size"] = ui->webcamResolution->currentText();
-        if (ui->webcamFramerate->currentIndex()!=0) 
+        if (ui->webcamFramerate->currentIndex()!=0)
             options["framerate"] = ui->webcamFramerate->currentText();
     }
     // screen capture
@@ -407,7 +433,7 @@ void CameraDialog::showEvent(QShowEvent *e){
     QWidget::showEvent(e);
 }
 
-void CameraDialog::setScreenCaptureArea(int index)
+void CameraDialog::setScreenCaptureArea()
 {
     cancelSourcePreview();
 }
@@ -459,10 +485,9 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
         options["framerate"] = "30";
         options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
-        int w = ui->screen_w_selection->itemData( ui->screen_w_selection->currentIndex()).toInt();
-        options["video_size"] = QString("%1x%2").arg(w).arg(ui->screen_h->value());
-        options["offset_x"] = QString::number(ui->screen_x->value());
-        options["offset_y"] = QString::number(ui->screen_y->value());
+        options["video_size"] = QString("%1x%2").arg(capturedimensions.width()).arg(capturedimensions.height());
+        options["grab_x"] = QString::number(capturedimensions.x());
+        options["grab_y"] = QString::number(capturedimensions.y());
     }
 
     return options;
@@ -491,22 +516,36 @@ void CameraDialog::showEvent(QShowEvent *e){
         ui->screen_w_selection->addItem(QString::number(w),w);
         w = roundPowerOfTwo(w/2);
     }
-    ui->screen_w_selection->setCurrentIndex(0);
-    // update display
-    setScreenCaptureArea( ui->screenCaptureSelection->currentIndex() );
+
+    // restore settings
+    if (appSettings) {
+        if (appSettings->contains("ScreenCaptureSize")) {
+            QRect sizescreencapture;
+            sizescreencapture = appSettings->value("ScreenCaptureSize").toRect();
+            ui->screen_w_selection->setCurrentIndex( sizescreencapture.width() );
+            ui->screen_h->setValue( sizescreencapture.height());
+            ui->screen_x->setValue( sizescreencapture.x());
+            ui->screen_y->setValue( sizescreencapture.y());
+        }
+        ui->screenCaptureSelection->setCurrentIndex( appSettings->value("ScreenCaptureMode", 0).toInt() );
+    }
+    else
+        ui->screenCaptureSelection->setCurrentIndex( 0 );
 
     QWidget::showEvent(e);
 }
 
-void CameraDialog::setScreenCaptureArea(int index)
+void CameraDialog::setScreenCaptureArea()
 {
+    int index = ui->screenCaptureSelection->currentIndex();
     ui->geometryBox->setEnabled(index != 0);
-    // custom
+
     if (index == 0)  {
-        ui->screen_x->setValue( screendimensions.x());
-        ui->screen_y->setValue( screendimensions.y());
-        ui->screen_w_selection->setCurrentIndex(0);
-        ui->screen_h->setValue( screendimensions.height());
+        capturedimensions = screendimensions;
+    }
+    else {
+        int w = ui->screen_w_selection->currentText().toInt();
+        capturedimensions = QRect(ui->screen_x->value(), ui->screen_y->value(), w, ui->screen_h->value());
     }
 
     cancelSourcePreview();

@@ -19,6 +19,12 @@ VideoStreamDialog::VideoStreamDialog(QWidget *parent, QSettings *settings) :
     connect(respawn, SIGNAL(timeout()), this, SLOT(cancelSourcePreview()));
 
     ui->setupUi(this);
+
+    // restore settings
+    if (appSettings) {
+        if (appSettings->contains("VideoStreamURL"))
+            ui->URL->setText(appSettings->value("VideoStreamURL").toString());
+    }
 }
 
 VideoStreamDialog::~VideoStreamDialog()
@@ -61,7 +67,7 @@ void VideoStreamDialog::done(int r){
 
     // save settings
     if (appSettings) {
-
+        appSettings->setValue("VideoStreamURL", getUrl());
     }
 
     QDialog::done(r);

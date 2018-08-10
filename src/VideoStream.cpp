@@ -67,7 +67,7 @@ void StreamOpeningThread::run()
     if (!is->openStream())
         emit failed();
     else {
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");        
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
         emit success();
     }
 
@@ -148,8 +148,8 @@ void StreamDecodingThread::run()
             }
 
 #ifdef VIDEOSTREAM_DEBUG
-       // fprintf(stderr, "\n%s - Stream read packet error %d.", qPrintable(is->formatname), ret);
-        CodecManager::printError(is->formatname, "Error reading packet :", ret);
+        fprintf(stderr, "\n%s - Stream read packet error %d.", qPrintable(is->formatname), ret);
+        //CodecManager::printError(is->formatname, "Error reading packet :", ret);
 #endif
             // do not treat the error; just wait a bit for the end of the packet and continue
             msleep(UPDATE_SLEEP_DELAY);
