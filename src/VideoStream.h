@@ -38,11 +38,6 @@
 
 #include "VideoPicture.h"
 
-/**
- * uncomment to monitor execution with debug information
- */
-//#define VIDEOSTREAM_DEBUG
-
 class videoStreamThread;
 
 class VideoStream : public QObject

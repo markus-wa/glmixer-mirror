@@ -1,5 +1,7 @@
 #include "directshow.h"
 
+// see https://ffmpeg.zeranoe.com/forum/viewtopic.php?f=15&t=651&p=2963&hilit=enumerate#p2963
+
 #include <Windows.h>
 #include <dshow.h>
 #include <initguid.h>

@@ -483,11 +483,11 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
-        options["framerate"] = "30";
+ /*       options["framerate"] = "10";
         options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
         options["video_size"] = QString("%1x%2").arg(capturedimensions.width()).arg(capturedimensions.height());
         options["grab_x"] = QString::number(capturedimensions.x());
-        options["grab_y"] = QString::number(capturedimensions.y());
+        options["grab_y"] = QString::number(capturedimensions.y());*/
     }
 
     return options;

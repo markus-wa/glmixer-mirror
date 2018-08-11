@@ -28,13 +28,7 @@ public:
      *  Open a video stream
      */
     static bool openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen, QString streamFormat = QString::null, QHash<QString, QString> streamOptions = QHash<QString, QString>());
-    /**
-     *  Find video stream
-     *
-     * @return id of video stream or -1 on failure
-     */
-    static int getVideoStream(AVFormatContext *codeccontext);
-    /**
+     /**
      *  Find duration of a stream
      *
      * @return duration of the stream in second (-1 on error)

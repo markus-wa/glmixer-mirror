@@ -402,7 +402,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     filename = file;
 
+    // allocate context
     pFormatCtx = avformat_alloc_context();
+    //Flags modifying the (de)muxer behaviour.  Set by the user before avformat_open_input().
+    pFormatCtx->flags |= AVFMT_FLAG_GENPTS; //Generate missing pts even if it requires parsing future frames.
     if ( !CodecManager::openFormatContext( &pFormatCtx, filename) ) {
         // close
         close();
@@ -418,6 +421,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         close();
         return false;
     }
+    
 
     // keep reference to video stream
     video_st = pFormatCtx->streams[videoStream];
@@ -446,7 +450,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         video_dec = avcodec_alloc_context3(codec);
     }
 
-    // in any case, complain if no decodinc context could be created
+    // in any case, complain if no decoding context could be created
     if (!video_dec) {
         CodecManager::printError(filename, "Error creating decoder :", AVERROR(ENOMEM));
         // close
@@ -463,12 +467,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     }
 
     // options for decoder
-    video_dec->workaround_bugs   = 1;
+    video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
     video_dec->idct_algo         = FF_IDCT_AUTO;
     video_dec->skip_frame        = AVDISCARD_DEFAULT;
     video_dec->skip_idct         = AVDISCARD_DEFAULT;
     video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
-    video_dec->error_concealment = 3;
+    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
     video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
 
     // get the duration and frame rate of the video stream

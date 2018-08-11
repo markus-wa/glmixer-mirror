@@ -66,7 +66,7 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
 
     int err = 0;
 
-    // Check file
+    // Check context
     if ( !_pFormatCtx || !*_pFormatCtx)
         return false;
 
@@ -89,9 +89,6 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
         return false;
     }
 
-    // request to generate PTS
-    (*_pFormatCtx)->flags |= AVFMT_FLAG_GENPTS;
-
     // fill info stream
     err = avformat_find_stream_info(*_pFormatCtx, NULL);
     if (err < 0)
@@ -101,18 +98,6 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
     }
 
     return true;
-}
-
-
-// TODO : use av_find_best_stream instead of my own implementation ?
-int CodecManager::getVideoStream(AVFormatContext *codeccontext)
-{
-    // Find the first video stream index
-    int stream_index = -1;
-
-    stream_index = av_find_best_stream(codeccontext, AVMEDIA_TYPE_VIDEO,  -1, -1, NULL, 0);
-
-    return stream_index;
 }
 
 double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream)

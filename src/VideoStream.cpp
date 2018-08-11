@@ -42,6 +42,11 @@ extern "C"
 #define UPDATE_SLEEP_DELAY 10
 #define MAX_QUEUE_SIZE 2
 
+/**
+ * uncomment to monitor execution with debug information
+ */
+//#define VIDEOSTREAM_DEBUG
+
 class StreamOpeningThread: public videoStreamThread
 {
 public:
@@ -67,7 +72,7 @@ void StreamOpeningThread::run()
     if (!is->openStream())
         emit failed();
     else {
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");        
         emit success();
     }
 
@@ -86,10 +91,6 @@ public:
         _pFrame = av_frame_alloc();
         Q_CHECK_PTR(_pFrame);
 
-        av_init_packet(&_nullPacket);
-        _nullPacket.data = NULL;
-        _nullPacket.size = 0;
-
         setTerminationEnabled(true);
     }
 
@@ -103,7 +104,6 @@ public:
 
 private:
     AVFrame *_pFrame;
-    AVPacket _nullPacket;
 };
 
 
@@ -131,8 +131,10 @@ void StreamDecodingThread::run()
             msleep(UPDATE_SLEEP_DELAY);
             continue;
         }
-        if ( ret < 0 )
-        {
+        if ( ret < 0 )  {
+#ifdef VIDEOSTREAM_DEBUG
+            fprintf(stderr, "\n%s - Stream read packet error %d.", qPrintable(is->formatname), ret);
+#endif
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
 #ifdef VIDEOSTREAM_DEBUG
@@ -141,16 +143,15 @@ void StreamDecodingThread::run()
                 qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
                 avio_flush(is->pFormatCtx->pb);
                 avformat_flush(is->pFormatCtx);
-                error_count++;
-                if (error_count > 10)
-                    forceQuit();
 
             }
 
-#ifdef VIDEOSTREAM_DEBUG
-        fprintf(stderr, "\n%s - Stream read packet error %d.", qPrintable(is->formatname), ret);
-        //CodecManager::printError(is->formatname, "Error reading packet :", ret);
-#endif
+            error_count++;
+            if (error_count > 100) {
+                CodecManager::printError(is->formatname, "Too many Errors reading packet :", ret);
+                forceQuit();
+            }
+
             // do not treat the error; just wait a bit for the end of the packet and continue
             msleep(UPDATE_SLEEP_DELAY);
             continue;
@@ -200,6 +201,9 @@ void StreamDecodingThread::run()
 
                 // free internal buffers
                 av_frame_unref(_pFrame);
+                
+                // exponential moving average to compute FPS
+                is->frame_rate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * is->frame_rate;
 
             } // end while (frameFinished > 0)
 
@@ -207,9 +211,6 @@ void StreamDecodingThread::run()
 
         // free internal buffers
         av_packet_unref(pkt);
-
-        // exponential moving average to compute FPS
-        is->frame_rate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * is->frame_rate;
 
     } // end while
 
@@ -432,7 +433,12 @@ bool VideoStream::openStream()
     video_st = NULL;
     videoStream = -1;
 
+    // allocate context
     pFormatCtx = avformat_alloc_context();
+    //Flags modifying the (de)muxer behaviour.  Set by the user before avformat_open_input().
+    pFormatCtx->flags |= AVFMT_FLAG_NONBLOCK;// Do not block when reading packets from input.
+    pFormatCtx->flags |= AVFMT_FLAG_NOBUFFER;// Do not buffer frames when possible.
+    pFormatCtx->flags |= AVFMT_FLAG_DISCARD_CORRUPT;// Discard frames marked corrupted
     if ( !CodecManager::openFormatContext( &pFormatCtx, urlname, formatname, formatoptions) ){
         close();
         return false;
@@ -443,38 +449,40 @@ bool VideoStream::openStream()
     videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
     if (videoStream < 0 ||  !pFormatCtx->streams[videoStream] ) {
         // Cannot find video stream
-        qWarning() << urlname << formatname<< QChar(124).toLatin1()<< tr("Cannot find video stream.");
+        qWarning() << formatname << urlname << QChar(124).toLatin1()<< tr("Cannot find video stream.");
+        close();
+        return false;
+    }
+
+    // create video decoding context
+    video_dec = avcodec_alloc_context3(codec);
+    if (!video_dec) {
+        CodecManager::printError(formatname, "Error creating decoder :", AVERROR(ENOMEM));
+        // close
         close();
         return false;
     }
 
     // all ok, we can set the internal pointers to the good values
     video_st = pFormatCtx->streams[videoStream];
-
-    // create video decoding context
-    video_dec = avcodec_alloc_context3(codec);
-    if (!video_dec) {
-        CodecManager::printError(urlname, "Error creating decoder :", AVERROR(ENOMEM));
-        // close
-        close();
-        return false;
-    }
+    // store name of codec
+    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
 
     int err = avcodec_parameters_to_context(video_dec, video_st->codecpar);
     if (err < 0) {
-        CodecManager::printError(urlname, "Error configuring :", err);
+        CodecManager::printError(formatname, "Error configuring :", err);
         // close
         close();
         return false;
     }
 
     // options for decoder
-    video_dec->workaround_bugs   = 1;
+    video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
     video_dec->idct_algo         = FF_IDCT_AUTO;
     video_dec->skip_frame        = AVDISCARD_DEFAULT;
     video_dec->skip_idct         = AVDISCARD_DEFAULT;
     video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
-    video_dec->error_concealment = 3;
+    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK; 
 
     // set options for video decoder
     AVDictionary *opts = NULL;
@@ -482,22 +490,18 @@ bool VideoStream::openStream()
     av_dict_set(&opts, "threads", "auto", 0);
     // init the video decoder
     if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
-        qWarning() << avcodec_descriptor_get(video_dec->codec_id)->long_name
-                   << QChar(124).toLatin1() << tr("Unsupported Codec.");
+        qWarning() << codecname << QChar(124).toLatin1() << tr("Unsupported Codec.");
         close();
         av_dict_free(&opts);
         return false;
     }
     av_dict_free(&opts);
 
-    // store name of codec
-    codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
-
     // set picture size : no argument means use picture size from video stream
     if (targetWidth == 0)
-        targetWidth = video_st->codecpar->width;
+        targetWidth = video_dec->width;
     if (targetHeight == 0)
-        targetHeight = video_st->codecpar->height;
+        targetHeight = video_dec->height;
 
     if (targetWidth == 0 || targetHeight == 0)
     {
