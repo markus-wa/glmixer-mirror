@@ -68,8 +68,27 @@ CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
     ui->deviceSelection->removeTab( ui->deviceSelection->indexOf(ui->deviceOpenCV));
 #endif
 
+    // fill list of decklink video formats if available
+    if ( CodecManager::hasFormat("decklink") ) {
+        ui->decklinkVideoFormat->addItem("720x486 at 59.94 fps NTSC interlaced", "ntsc");
+        ui->decklinkVideoFormat->addItem("720x486 at 23.98 fps NTSC", "nt23");
+        ui->decklinkVideoFormat->addItem("720x576 at 50 fps PAL interlaced", "pal");
+        ui->decklinkVideoFormat->addItem("720x486 at 59.94 fps NTSC", "ntsp");
+        ui->decklinkVideoFormat->addItem("720x576 at 50 fps PAL", "palp");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 23.98 fps", "23ps");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 24 fps", "24ps");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 25 fps", "Hp25");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 29.97 fps", "Hp29");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 30 fps", "Hp30");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 50 fps interlaced", "Hi50");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 59.94 fps interlaced", "Hi59");
+        ui->decklinkVideoFormat->addItem("1920x1080 at 60 fps interlaced", "Hi60");
+        ui->decklinkVideoFormat->addItem("1280x720 at 50 fps", "hp50");
+        ui->decklinkVideoFormat->addItem("1280x720 at 59.94 fps", "hp59");
+        ui->decklinkVideoFormat->addItem("1280x720 at 60 fps", "hp60");
+    }
     // discard decklink if not available
-    if ( !CodecManager::hasFormat("decklink") )
+    else
         ui->deviceSelection->removeTab( ui->deviceSelection->indexOf(ui->deviceDecklink) );
 
 #ifdef Q_OS_MAC
@@ -388,7 +407,7 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
         options["capture_cursor"] = ui->screen_cursor->isChecked() ? "1" : "0";
     }
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink ) {
-        options["format_code"] = "hp60";
+        options["format_code"] = ui->decklinkVideoFormat->itemData(ui->decklinkVideoFormat->currentIndex() ).toString();
     }
 
     return options;
