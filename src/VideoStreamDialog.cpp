@@ -52,6 +52,19 @@ QString VideoStreamDialog::getUrl() {
     return urlstream;
 }
 
+QString VideoStreamDialog::getFormat() {
+
+    QString format = "";
+
+    // Selected UDP
+    if (ui->UDPStream->isChecked()) 
+        format = "mpegts";
+    // Selected RTP
+    else if (ui->RTPStream->isChecked()) 
+        format = "rtp_mpegts";
+
+    return format;
+}
 
 void VideoStreamDialog::showEvent(QShowEvent *e){
 
@@ -81,7 +94,6 @@ void VideoStreamDialog::updateURL(){
     }
     // Selected RTP
     else if (ui->RTPStream->isChecked()) {
-//        ui->URL->setText(QString("rtp://@239.0.0.1:%1").arg(ui->RTPPort->value()));
         ui->URL->setText(QString("rtp://@127.0.0.1:%1").arg(ui->RTPPort->value()));
     }
 
@@ -120,7 +132,7 @@ void VideoStreamDialog::cancelSourcePreview(){
 void VideoStreamDialog::updateSourcePreview(){
 
     VideoStream *vs = new VideoStream();
-    vs->open(getUrl());
+    vs->open(getUrl(), getFormat());
 
     GLuint tex = ui->preview->getNewTextureIndex();
 

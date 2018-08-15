@@ -83,7 +83,7 @@ public:
         SIMPLE_SOURCE = 0,
         CLONE_SOURCE,
         VIDEO_SOURCE,
-        CAMERA_SOURCE,
+        OPENCV_SOURCE,
         ALGORITHM_SOURCE,
         RENDERING_SOURCE,
         CAPTURE_SOURCE,

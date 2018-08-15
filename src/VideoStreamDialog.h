@@ -17,6 +17,7 @@ public:
     ~VideoStreamDialog();
 
     QString getUrl();
+    QString getFormat();
 
 public slots:
 

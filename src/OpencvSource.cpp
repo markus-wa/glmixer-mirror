@@ -30,7 +30,7 @@
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/core/version.hpp>
 
-Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
+Source::RTTI OpencvSource::type = Source::OPENCV_SOURCE;
 bool OpencvSource::playable = true;
 QMap<int, OpencvSource*> OpencvSource::_existingSources;
 

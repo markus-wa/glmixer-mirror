@@ -2043,7 +2043,7 @@ QDomElement RenderingManager::getSourceConfiguration(SourceSet::iterator its, QD
         sourceElem = ws->getConfiguration(doc, current);
     }
 #ifdef GLM_OPENCV
-    else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
+    else if ((*its)->rtti() == Source::OPENCV_SOURCE) {
         OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
         sourceElem = cs->getConfiguration(doc, current);
     }
@@ -2442,7 +2442,7 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         errors++;
 #endif
     }
-    else if ( type == Source::CAMERA_SOURCE )
+    else if ( type == Source::OPENCV_SOURCE )
     {
 #ifdef GLM_OPENCV
         QDomElement camera = t.firstChildElement("CameraIndex");

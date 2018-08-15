@@ -1043,7 +1043,7 @@ void GLMixer::newSource(Source::RTTI type) {
     case Source::BASKET_SOURCE:
         on_actionBasketSource_triggered();
         break;
-    case Source::CAMERA_SOURCE:
+    case Source::OPENCV_SOURCE:
         on_actionCameraSource_triggered();
         break;
     case Source::ALGORITHM_SOURCE:
@@ -1555,7 +1555,7 @@ void GLMixer::on_actionStreamSource_triggered(){
         Source *s = RenderingManager::getInstance()->newStreamSource(vs);
 
         // trigger openning of the stream
-        vs->open(vsd->getUrl());
+        vs->open(vsd->getUrl(), vsd->getFormat());
 
         if ( s ){
             // update source aspect ratio when known
@@ -1841,11 +1841,16 @@ void GLMixer::on_actionEditSource_triggered()
 
 void GLMixer::replaceCurrentSource()
 {
+    Source::RTTI t = Source::SIMPLE_SOURCE;
+
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs) ) {
 
+        // read the type of the current source
+        t = (*cs)->rtti();
+
         // if we replace a video source, help user by showing the same directory
-        if ( (*cs)->rtti() == Source::VIDEO_SOURCE ) {
+        if ( t == Source::VIDEO_SOURCE ) {
             VideoSource *vs = dynamic_cast<VideoSource *>(*cs);
             if (vs) {
                 VideoFile *vf = vs->getVideoFile();
@@ -1855,9 +1860,22 @@ void GLMixer::replaceCurrentSource()
                 }
             }
         }
+        // if we replace a stream source, help user by showing the appropriate dialog
+        else if ( t == Source::STREAM_SOURCE ) {
+            VideoStreamSource *vs = dynamic_cast<VideoStreamSource *>(*cs);
+            if (vs) {
+                VideoStream *vf = vs->getVideoStream();
+                // if the URL does not look like a network stream 
+                if ( !vf->getUrl().contains("://@") ) {
+                    // it is probably a device
+                    t = Source::OPENCV_SOURCE;
+                }
+            }
+        }
+
 #ifdef GLM_FFGL
         // if we replace a shadertoy, copy its code to clipboard
-        else if ( (*cs)->rtti() == Source::FFGL_SOURCE ) {
+        else if ( t == Source::FFGL_SOURCE ) {
 
             FFGLSource *ffs = dynamic_cast<FFGLSource *> (*cs);
             if (ffs) {
@@ -1882,7 +1900,7 @@ void GLMixer::replaceCurrentSource()
 #endif
 
         // show gui to re-create a source of same type
-        newSource( (*cs)->rtti() );
+        newSource( t );
 
         // drop the source and make new source current
         RenderingManager::getInstance()->dropReplaceSource(cs);

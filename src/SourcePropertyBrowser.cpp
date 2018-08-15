@@ -1407,59 +1407,56 @@ public:
             property->setToolTip("Type of the source");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-            infoManager->setValue(idToProperty["Type"], "Stream " + vf->getFormat());
-            addProperty(idToProperty["Type"]);
+            infoManager->setValue(property, "Stream " + vf->getFormat());
+            addProperty(property);
 
-            // File Name
+            // URL
             property = infoManager->addProperty( QLatin1String("Path") );
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
+            infoManager->setValue(property, vf->getUrl() );
+            property->setToolTip(vf->getUrl());
+            addProperty(property);
 
-            infoManager->setValue(idToProperty["Path"], vf->getUrl() );
-            idToProperty["Path"]->setToolTip(vf->getUrl());
-            addProperty(idToProperty["Path"]);
+            // Options
+            property = infoManager->addProperty( QLatin1String("Options") );
+            property->setToolTip("Parameters");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+            QStringList options;
+            QHashIterator<QString, QString> i(vf->getFormatOptions());
+            while (i.hasNext()) {
+                i.next();
+                options << QString("%1=%2").arg(i.key()).arg(i.value());
+            }
+            infoManager->setValue(property, options.join(", ") );
+            property->setToolTip( options.join(",") );
+            addProperty(property);
 
             // Codec
             property = infoManager->addProperty( QLatin1String("Codec") );
             property->setToolTip("Encoding codec of the media.");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
+            infoManager->setValue(property, vf->getCodecName() );
+            addProperty(property);
 
-            infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
-            addProperty(idToProperty["Codec"]);
-
-            // TODO : more information on stream
-
-//            if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
-
-//                // Frames size special case when power of two dimensions are generated
-//                property = sizeManager->addProperty( QLatin1String("Original size") );
-//                property->setToolTip("Resolution of the original frames.");
-//                property->setItalics(true);
-//                idToProperty[property->propertyName()] = property;
-
-//                sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(), vf->getStreamFrameHeight()) );
-//                addProperty(idToProperty["Original size"]);
-//            }
+            // Status
+            property = infoManager->addProperty( QLatin1String("Status") );
+            property->setToolTip("Current status.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+            if (vf->isActive())
+                infoManager->setValue(property, "Open & Active" );
+            else if (vf->isOpen())
+                infoManager->setValue(property, "Open" );
+            else 
+                infoManager->setValue(property, "Closed" );
+            addProperty(property);
 
         }
         connectManagers();
-
     }
-
-public slots:
-
-    // TODO Allow changing url
-//    void valueChanged(QtProperty *property, bool value)
-//    {
-//        if ( property == idToProperty["Ignore alpha"] ) {
-//            VideoFile *vf = vs->getVideoFile();
-//            if ( vf ) {
-//                vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
-//            }
-//        }
-//    }
-
 
 private:
 
@@ -1627,7 +1624,7 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
             pb = new CloneSourcePropertyBrowser(cs, parent);
     }
 #ifdef GLM_OPENCV
-    else if ( s->rtti() == Source::CAMERA_SOURCE ) {
+    else if ( s->rtti() == Source::OPENCV_SOURCE ) {
         OpencvSource *cs = dynamic_cast<OpencvSource *>(s);
         if (cs != 0)
             pb = new OpencvSourcePropertyBrowser(cs, parent);

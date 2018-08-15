@@ -125,7 +125,7 @@ bool VideoStreamSource::isPlayable() const
 
 bool VideoStreamSource::isPlaying() const
 {
-    return ( isPlayable() && is->isplaying() );
+    return ( isPlayable() && is->isActive() );
 }
 
 void VideoStreamSource::play(bool on)

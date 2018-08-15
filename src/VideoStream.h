@@ -55,7 +55,7 @@ public:
     void close();
     bool isOpen() const ;
 
-    inline bool isplaying() const {
+    inline bool isActive() const {
         return active;
     }
     inline QString getUrl() const {

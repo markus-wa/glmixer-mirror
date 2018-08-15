@@ -63,7 +63,7 @@ Source::RTTI NewSourceDialog::selectedType()
     else if ( text.contains("Basket"))
         t = Source::BASKET_SOURCE;
     else if ( text.contains("Device"))
-        t = Source::CAMERA_SOURCE;
+        t = Source::OPENCV_SOURCE;
     else if ( text.contains("Loop"))
         t = Source::RENDERING_SOURCE;
     else if ( text.contains("Pixmap"))

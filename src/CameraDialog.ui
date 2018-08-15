@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
-    <height>572</height>
+    <width>458</width>
+    <height>593</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,9 @@
      </property>
      <widget class="QWidget" name="pageInfo">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_5">
          <property name="text">
@@ -72,6 +75,9 @@
      </widget>
      <widget class="QWidget" name="pageConnecting">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_13">
          <property name="text">
@@ -96,6 +102,9 @@
      </widget>
      <widget class="QWidget" name="pageConnected">
       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_7">
          <property name="layoutDirection">
@@ -127,6 +136,9 @@
      </widget>
      <widget class="QWidget" name="pageError">
       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_10">
          <property name="text">
