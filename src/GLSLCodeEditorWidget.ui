@@ -40,7 +40,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="plugininfo">
           <attribute name="title">
@@ -320,7 +320,7 @@
            <item>
             <widget class="QTextBrowser" name="textBrowser">
              <property name="styleSheet">
-              <string notr="true">QTextEdit{
+              <string notr="true">QTextBrowser {
      border-width: 0px;
      color:palette(button-text);
      background-color: transparent;
