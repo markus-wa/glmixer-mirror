@@ -44,7 +44,6 @@ if(DEFINED CMAKE_BUILD_TYPE)
     set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo" )
 endif()
 
-
 if( APPLE )
     if(DEFINED CMAKE_OSX_ARCHITECTURES)
         # Default
@@ -154,9 +153,6 @@ find_package( OpenGL REQUIRED)
 set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
 
 
-# find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
-# set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES}  ${FOUNDATION_LIBRARY})
-
 # SOME HINTS FOR THE FIND_LIBRARY BELLOW
 set( CMAKE_INCLUDE_PATH
   ${CMAKE_INCLUDE_PATH}
@@ -173,12 +169,12 @@ set( CMAKE_INCLUDE_PATH
 SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK to compile with Session switcher")
 SET(USE_TAG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Tag manager")
 SET(USE_UNDO ON CACHE BOOL "CHECK if you want to compile the Undo functionnality")
-SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
 SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
 SET(USE_SNAPSHOT_MANAGEMENT ON CACHE BOOL "CHECK to compile with snapshots manager")
 set(USE_FREEFRAMEGL "1.6" CACHE STRING "Choose if you want to compile with FreeFrame GL library")
 
 # UNSTABLE MODULE : DISABLED BY DEFAULT
+SET(USE_OPENCV OFF CACHE BOOL "CHECK if you want to compile with OpenCV library")
 SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "EXPERIMENTAL History manager")
 SET(USE_SHAREDMEMORY OFF CACHE BOOL "DEPRECATED Shared Memory support")
 SET(USE_NVIDIA_CUDA OFF CACHE BOOL "EXPERIMENTAL NVIDIA CUDA Video Decoding")
@@ -299,47 +295,6 @@ if(USE_FREEFRAMEGL)
     endif(UNIX)
 
 endif(USE_FREEFRAMEGL)
-
-if(USE_NVIDIA_CUDA)
-
-    find_package(CUDA REQUIRED)
-
-    # Found CUDA package
-    if(CUDA_VERSION)
-        #
-        # Search for libnvcuvid.so in NVidia drivers (not in the package)
-        #
-        # Query nvidia-settings for the version string
-        execute_process(COMMAND nvidia-settings -q 0/NvidiaDriverVersion OUTPUT_VARIABLE NVIDIA_DRIVER_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
-        # make a list of the string
-        separate_arguments(NVIDIA_DRIVER_STRING)
-        # get the last element of the list (e.g. 361.42)
-        list(GET NVIDIA_DRIVER_STRING -1 NVIDIA_DRIVER_VERSION)
-        # keep only the major version (e.g. replace '.42' by empty string)
-        string(REGEX REPLACE "\\.[0-9]+" "" NVIDIA_DRIVER_MAJOR_VERSION ${NVIDIA_DRIVER_VERSION})
-        # suggest the path where to find the library (e.g. /usr/lib/nvidia-361)
-        string(CONCAT NVIDIA_DRIVER_PATH "/usr/lib/nvidia-" ${NVIDIA_DRIVER_MAJOR_VERSION})
-        # find the library in the given driver path
-        find_library(NVIDIA_NVCUVID_LIBRARY NAMES nvcuvid PATHS ${NVIDIA_DRIVER_PATH})
-        if(NVIDIA_NVCUVID_LIBRARY)
-         message( STATUS "Found nvcuvid: " ${NVIDIA_NVCUVID_LIBRARY})
-        endif(NVIDIA_NVCUVID_LIBRARY)
-
-        # put together all CUDA Libraries (for linker)
-        SET(CUDA_LIBRARIES ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY} ${NVIDIA_NVCUVID_LIBRARY} )
-
-        # Enter libCUDADecoder to compile it
-        add_subdirectory(libCUDADecoder)
-
-    else (CUDA_VERSION)
-        unset(USE_NVIDIA_CUDA CACHE)
-    endif(CUDA_VERSION)
-
-endif(USE_NVIDIA_CUDA)
-
-if(USE_NVIDIA_CUDA)
-        message(STATUS "Using Nvidia CUDA version ${CUDA_VERSION}")
-endif(USE_NVIDIA_CUDA)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 

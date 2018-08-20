@@ -102,9 +102,9 @@ LINUX COMPILATION
 
     STEP 1 - Install programs and libraries (Ubuntu)
 
-        $ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libopencv-highgui-dev libavfilter-dev libv4l-dev xsltproc
+        $ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libavfilter-dev libv4l-dev xsltproc
 
-    (This installs all necessary packages such as xsltproc, libqtcore4, libqtgui4, libqt4-xml, libqt4-opengl, qt4-qmake, libqt4-dev, libqt4-opengl-dev, libavcodec-dev, libswscale-dev, libavformat-dev, libavutil-dev, libavfilter-dev, libglew-dev, libvorbis-dev, libx264-dev, libxvidcore-dev, libv4l-dev, libcv-dev, libcvaux-dev, libhighgui-dev, libv4l-dev).
+    (This installs all necessary packages such as xsltproc, libqtcore4, libqtgui4, libqt4-xml, libqt4-opengl, qt4-qmake, libqt4-dev, libqt4-opengl-dev, libavcodec-dev, libswscale-dev, libavformat-dev, libavutil-dev, libavfilter-dev, libglew-dev, libvorbis-dev, libx264-dev, libxvidcore-dev, libv4l-dev).
 
     STEPS 2 to 4 - See above
 
@@ -177,11 +177,6 @@ OSX COMPILATION
     This will generate the DragNDrop package (pkg) containing the Bundle (actual application) that can be dropped to the Application folder.
 
 
-    Extra - compile ffmpeg widh DeckLink support :
-
-    ./configure  --prefix=/usr/local --enable-shared --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libwebp --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libopus --enable-libxvid --samples=fate-suite --enable-decklink --extra-cflags=-I/Users/herbelin/Development/DeckLinkSDK10.11.1/Mac/include --extra-ldflags=-L/Users/herbelin/Development/DeckLinkSDK10.11.1/Mac/include
-
-
 WINDOWS COMPILATION
 
     STEP 1 - Install programs and libraries (OSX)
@@ -230,4 +225,13 @@ COMPILATION PROBLEMS
 
    *  "error: ‘next’ is not a member of ‘std’"
    -> Just add '-std=c++11' to CMAKE_CXX_FLAGS.
+
+EXTRA
+
+
+   * Compile ffmpeg widh DeckLink support :
+
+./configure  --prefix=/usr/local --enable-shared --enable-gpl --enable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libwebp --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libopus --enable-libxvid --samples=fate-suite --enable-decklink --extra-cflags=-I/Path/To/DeckLinkSDK/include --extra-ldflags=-L/Path/To/DeckLinkSDK/include
+
+Where "/Path/To/DeckLinkSDK" is the path where you installed the Decklink SDK from https://www.blackmagicdesign.com/developer/
 

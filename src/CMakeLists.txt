@@ -94,13 +94,13 @@ SET(GLMIXER_SRCS
     CameraDialog.cpp
 )
 
-if(APPLE)    
+if(APPLE)
 SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
     avfoundation.mm
 )
 endif(APPLE)
 
-if(WIN32)    
+if(WIN32)
 SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
     directshow.cpp
 )
@@ -232,18 +232,6 @@ if(USE_OPENCV)
         OpencvSource.cpp
     )
 endif(USE_OPENCV)
-
-# if we use CUDA
-if(USE_NVIDIA_CUDA)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_CUDA" ) # make QtCreator happy
-    add_definitions(-DGLM_CUDA)
-    include_directories(${LIBCUDADECODER_SOURCE_DIR} )
-    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
-        CUDAVideoFile.cpp
-    )
-    message( STATUS "Using CUDA")
-endif(USE_NVIDIA_CUDA)
-
 
 # if Snapshots Management was set
 if(USE_SNAPSHOT_MANAGEMENT)
@@ -392,11 +380,7 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries.
-if(USE_NVIDIA_CUDA)
-    target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack CUDADecoder ${GLMIXER_LIBRARIES} ${QT_LIBRARIES} ${CUDA_LIBRARIES})
-else(USE_NVIDIA_CUDA)
-    target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
-endif(USE_NVIDIA_CUDA)
+target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
 
 
 # multiplatform cpack info
@@ -473,12 +457,7 @@ ELSE(APPLE)
         execute_process(COMMAND lsb_release -si OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
         execute_process(COMMAND lsb_release -sr OUTPUT_VARIABLE DISTRIB_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        if(USE_NVIDIA_CUDA)
-        SET(CPACK_SYSTEM_NAME "${DISTRIBUTION}_${DISTRIB_VERSION}_${ARCHITECTURE}_nvidia${NVIDIA_DRIVER_VERSION}")
-        else(USE_NVIDIA_CUDA)
         SET(CPACK_SYSTEM_NAME "${DISTRIBUTION}_${DISTRIB_VERSION}_${ARCHITECTURE}")
-        endif(USE_NVIDIA_CUDA)
-
         SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
         SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
         SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
@@ -489,7 +468,6 @@ ELSE(APPLE)
         # autogenerate dependency information
         SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
         SET(CPACK_STRIP_FILES ON)
-
 
     ENDIF(WIN32)
 ENDIF(APPLE)
@@ -659,9 +637,9 @@ ELSE(APPLE)
       IF (EXISTS "${CMAKE_SOURCE_DIR}/.svn")
         message( STATUS "Generating ChangeLog from SVN (please be patient...)" )
 
-        execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
+        execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh -l 200 ${CMAKE_SOURCE_DIR}
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                        TIMEOUT 5
+                        TIMEOUT 10
                         OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog")
         execute_process(COMMAND gzip -9 -n -c ${CMAKE_BINARY_DIR}/ChangeLog
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
