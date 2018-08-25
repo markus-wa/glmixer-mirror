@@ -33,10 +33,6 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-// Full screen is a frameless window
-Qt::WindowFlags fullscreenOutputFlags = Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint;
-// window output has only limited flags (no close button)
-Qt::WindowFlags windowOutputFlags = Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint ;
 
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
@@ -201,8 +197,9 @@ void OutputRenderWidget::paintGL()
     }
     // or Draw quad with fbo texture in a more basic OpenGL way
     else
-    {
+    {        
         // apply the texture of the frame buffer
+        glColor4ub(255, 255, 255, 255);
         glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -264,15 +261,15 @@ void OutputRenderWidget::mouseDoubleClickEvent(QMouseEvent *) {
 
 }
 
-OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), windowOutputFlags )
+
+OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint  )
 {
     // this is not a windet, but a window
     useWindowAspectRatio = false;
     setCursor(Qt::BlankCursor);
     setMinimumSize(160,120);
     // set initial geometry
-//    setWindowState(Qt::WindowNoState);
-    setWindowState( Qt::WindowNoState | Qt::WindowActive);
+    setWindowState(Qt::WindowNoState);
     windowGeometry = QRect(100,100,848,480);
     setGeometry( windowGeometry );
     switching = false;
@@ -324,21 +321,19 @@ void OutputRenderWindow::setFullScreen(bool on) {
     if ( windowFlags().testFlag(Qt::Window) ) {
 
         // discard non-changing state (NOT XOR)
-        if ( !(on ^ windowFlags().testFlag(Qt::FramelessWindowHint)) )
+        if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
             return;
 
         if (on) {
             switching = true;
-
-            // apply fullscreen
-            setWindowState( Qt::WindowNoState | Qt::WindowFullScreen);
-            setWindowFlags( fullscreenOutputFlags );
 
             // use geometry from selected desktop for fullscreen
             setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
             // no reason to repeat the move, but it seems necessary under OSX...
             move(QApplication::desktop()->screenGeometry(fullscreenMonitorIndex).topLeft());
 
+            // apply fullscreen
+            setWindowState( Qt::WindowNoState | Qt::WindowFullScreen);
             show();
         }
         else
@@ -349,12 +344,8 @@ void OutputRenderWindow::setFullScreen(bool on) {
 #endif
             // appy normal window state
             setWindowState( Qt::WindowNoState | Qt::WindowActive);
-            setWindowFlags( windowOutputFlags );
-
-            // use saved & previous window geometry
+            // use saved & previous window geometry otherwise
             setGeometry( windowGeometry );
-            // no reason to repeat the move, but it seems necessary under OSX...
-            move( windowGeometry.topLeft());
 
             show();
             switching = false;
@@ -372,7 +363,7 @@ void OutputRenderWindow::setScreenCount(int count)
 
     // disable fullscreen in this monitor if it is not available anymore
     if ( fullscreenMonitorIndex > fullscreenMonitorCount-1 ) {
-        if ( windowFlags().testFlag(Qt::FramelessWindowHint) )
+        if (windowState().testFlag(Qt::WindowFullScreen) )
             setFullScreen( false );
     }
 }
@@ -386,7 +377,7 @@ void OutputRenderWindow::setFullScreenMonitor(int index)
     // if different
     if ( fullscreenMonitorIndex != previousIndex ) {
         // if already fullscreen in another monitor, disable fullscreen
-        if ( windowFlags().testFlag(Qt::FramelessWindowHint) )
+        if (windowState().testFlag(Qt::WindowFullScreen) )
             setFullScreen( false );
     }
 }
@@ -406,7 +397,7 @@ void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {
 
     // toggle fullscreen / window on double clic
     if ( windowFlags().testFlag(Qt::Window) )
-        emit toggleFullscreen(! (windowFlags().testFlag(Qt::FramelessWindowHint)) 	);
+        emit toggleFullscreen(! (windowState() & Qt::WindowFullScreen) 	);
 
 }
 
@@ -478,7 +469,7 @@ QByteArray OutputRenderWindow::saveState()  {
     QDataStream stream(&data, QIODevice::WriteOnly);
 
     // window geometry
-    stream << windowGeometry << windowFlags().testFlag(Qt::FramelessWindowHint);
+    stream << windowGeometry << windowState().testFlag(Qt::WindowFullScreen);
 
     return data;
 }
