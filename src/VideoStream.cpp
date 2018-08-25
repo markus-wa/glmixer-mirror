@@ -409,32 +409,40 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
     formatname = format;
     formatoptions = options;
 
+    // not running yet
+    quit = true;
+
     // request opening of thread in open thread
     qDebug() << formatname << urlname
              << QStringList( formatoptions.values() ).join(" ")
              << QChar(124).toLatin1() << tr("Connecting stream ...");
+
+    // open in current thread gor gdigrab format 
+    // don't ask why, its just the only way i found to make it work...
+    if (formatname == "gdigrab")
+        openStream();
+
+    // Start Openning thread (will send signals)
     open_tid->start();
-
-    // not running yet
-    quit = true;
-
+    
 #ifdef VIDEOSTREAM_DEBUG
     fprintf(stderr, "\n%s - Stream openning...", qPrintable(formatname));
 #endif
-
 }
 
 bool VideoStream::openStream()
 {
-    // re-open if alredy openned
+    // do not re-open if alredy openned
     if (pFormatCtx)
-        close();
+        return true;
+
     pFormatCtx = NULL;
     video_st = NULL;
     videoStream = -1;
 
     // allocate context
     pFormatCtx = avformat_alloc_context();
+
     //Flags modifying the (de)muxer behaviour.  Set by the user before avformat_open_input().
     pFormatCtx->flags |= AVFMT_FLAG_NONBLOCK;// Do not block when reading packets from input.
     pFormatCtx->flags |= AVFMT_FLAG_NOBUFFER;// Do not buffer frames when possible.
@@ -465,6 +473,7 @@ bool VideoStream::openStream()
 
     // all ok, we can set the internal pointers to the good values
     video_st = pFormatCtx->streams[videoStream];
+
     // store name of codec
     codecname = avcodec_descriptor_get(video_dec->codec_id)->long_name;
 
@@ -476,16 +485,18 @@ bool VideoStream::openStream()
         return false;
     }
 
-    // options for decoder
+    // options for decoder    
+    video_dec->codec_id          = codec->id;
+    video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
     video_dec->idct_algo         = FF_IDCT_AUTO;
     video_dec->skip_frame        = AVDISCARD_DEFAULT;
     video_dec->skip_idct         = AVDISCARD_DEFAULT;
     video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
-    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK; 
+    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;  
 
     // set options for video decoder
-    AVDictionary *opts = NULL;
+    AVDictionary *opts = NULL;       
     av_dict_set(&opts, "refcounted_frames", "1", 0);
     av_dict_set(&opts, "threads", "auto", 0);
     // init the video decoder
@@ -503,10 +514,10 @@ bool VideoStream::openStream()
     if (targetHeight == 0)
         targetHeight = video_dec->height;
 
-    if (targetWidth == 0 || targetHeight == 0)
-    {
+    if (targetWidth == 0 || targetHeight == 0) {
         // Cannot initialize the conversion context!
         qWarning() << urlname  << formatname << QChar(124).toLatin1()<< tr("Cannot read stream.");
+        close();
         return false;
     }
 
@@ -607,6 +618,10 @@ bool VideoStream::setupFiltering()
 
     avfilter_inout_free(&inputs);
     avfilter_inout_free(&outputs);
+
+#ifdef VIDEOSTREAM_DEBUG
+        fprintf(stderr, "\n%s - Filter %s initialized...", qPrintable(formatname), filter_str);
+#endif
 
     return true;
 }

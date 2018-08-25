@@ -374,9 +374,9 @@ QString CameraDialog::getUrl() const
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         // read index of the first screen
         url = ui->screenCaptureSelection->itemData( ui->screenCaptureSelection->currentIndex()).toString();
-    // decklink capture
+    // decklink 
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
-        // read data which gives the device id
+        // read data which gives the input stream description string
         url = ui->decklinkDevice->itemData( ui->decklinkDevice->currentIndex() ).toString();
 
     return url;
@@ -406,6 +406,7 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
         options["framerate"] = "30";
         options["capture_cursor"] = ui->screen_cursor->isChecked() ? "1" : "0";
     }
+    // decklink
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink ) {
         options["format_code"] = ui->decklinkVideoFormat->itemData(ui->decklinkVideoFormat->currentIndex() ).toString();
     }
@@ -437,7 +438,6 @@ void CameraDialog::showEvent(QShowEvent *e){
 
     // decklink if available
     if ( CodecManager::hasFormat("decklink") ) {
-
         ui->decklinkDevice->clear();
         QHash<QString, QString> devices;
         devices = CodecManager::getDeviceList( "decklink" );
@@ -446,7 +446,6 @@ void CameraDialog::showEvent(QShowEvent *e){
             i.next();
             ui->decklinkDevice->addItem(i.value(), i.key());
         }
-
     }
 
     QWidget::showEvent(e);
@@ -468,10 +467,13 @@ QString CameraDialog::getUrl() const
         // read data which gives the device id
         url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex() ).toString();
     // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) 
         // read desktop
         url = "desktop";
-    }
+    // decklink 
+    else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
+        // read data which gives the input stream description string
+        url = ui->decklinkDevice->itemData( ui->decklinkDevice->currentIndex() ).toString();
 
     return url;
 }
@@ -485,6 +487,9 @@ QString CameraDialog::getFormat() const
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         format = "gdigrab";
+    // decklink
+    else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
+        format = "decklink";        
 
     return format;
 }
@@ -502,11 +507,18 @@ QHash<QString, QString> CameraDialog::getFormatOptions() const
     }
     // screen capture
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) {
- /*       options["framerate"] = "10";
+        options["framerate"] = "30";
         options["draw_mouse"] = ui->screen_cursor->isChecked() ? "1" : "0";
-        options["video_size"] = QString("%1x%2").arg(capturedimensions.width()).arg(capturedimensions.height());
-        options["grab_x"] = QString::number(capturedimensions.x());
-        options["grab_y"] = QString::number(capturedimensions.y());*/
+        if (ui->screenCaptureSelection->currentIndex() != 0) {
+            options["video_size"] = QString("%1x%2").arg(capturedimensions.width()).arg(capturedimensions.height());
+            options["offset_x"] = QString::number(capturedimensions.x());
+            options["offset_y"] = QString::number(capturedimensions.y());
+            //options["show_region"] = "0";
+        }
+    }
+    // decklink
+    else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink ) {
+        options["format_code"] = ui->decklinkVideoFormat->itemData(ui->decklinkVideoFormat->currentIndex() ).toString();
     }
 
     return options;
@@ -550,6 +562,19 @@ void CameraDialog::showEvent(QShowEvent *e){
     }
     else
         ui->screenCaptureSelection->setCurrentIndex( 0 );
+
+
+    // decklink if available
+    if ( CodecManager::hasFormat("decklink") ) {
+        ui->decklinkDevice->clear();
+        QHash<QString, QString> devices;
+        devices = CodecManager::getDeviceList( "decklink" );
+        QHashIterator<QString, QString> i(devices);
+        while (i.hasNext()) {
+            i.next();
+            ui->decklinkDevice->addItem(i.value(), i.key());
+        }
+    }
 
     QWidget::showEvent(e);
 }
