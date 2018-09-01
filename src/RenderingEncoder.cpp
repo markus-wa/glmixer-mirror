@@ -518,18 +518,18 @@ void RenderingEncoder::addFrame(uint8_t *data){
         return;
     }
 
-    if (data) {
+    if (data) 
         // read the pixels from the given buffer and store into the temporary buffer queue
         memmove( buf->data, data, qMin( buf->size, encoder->getFrameWidth() * encoder->getFrameHeight() * 3) );
-
-    } else
-#ifdef RECORDING_READ_PIXEL
-        // ReadPixel of _fbo
-        glReadPixels(0, 0, encoder->getFrameWidth(), encoder->getFrameHeight(), GL_RGB, GL_UNSIGNED_BYTE, buf->data);
-#else
+    else {
         // read the pixels from the texture
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buf->data);
-#endif
+        if (RenderingManager::useGetTextureExtension()) 
+            glGetTextureSubImage( RenderingManager::getInstance()->getFrameBufferTexture(), 0, 0, 0, 0, encoder->getFrameWidth(), encoder->getFrameHeight(), 1, GL_RGB, GL_UNSIGNED_BYTE, buf->size, buf->data);
+        else {
+            glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buf->data);
+        }
+    }
 
     // record time
     encoding_duration += encoding_frame_interval;

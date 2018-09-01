@@ -33,6 +33,11 @@
 #include "FFGLPluginSource.h"
 #endif
 
+// use glReadPixel or glGetTextImage ?
+// read pixels & pbo should be the fastest
+// https://stackoverflow.com/questions/38140527/glreadpixels-vs-glgetteximage
+#define RECORDING_READ_PIXEL 1
+
 typedef enum {
     QUALITY_QUARTER = 0,
     QUALITY_HD,
@@ -210,7 +215,7 @@ public:
         return output_frame_period;
     }
 
-    QImage captureFrameBuffer();
+    QImage captureFrameBuffer() const;
 
     inline bool clearToWhite() const {
         return clearWhite;
@@ -243,6 +248,8 @@ public:
 
     static inline bool usePboExtension() { return pbo_extension; }
     static void setUsePboExtension(bool on);
+    
+    static inline bool useGetTextureExtension() { return get_texture_extension; }
 
     int getAvailableSourceCount() { return maxSourceCount - _front_sources.size(); }
 
@@ -344,7 +351,7 @@ protected:
     bool _spoutEnabled, _spoutInitialized;
 #endif
 
-    static bool blit_fbo_extension, pbo_extension;
+    static bool blit_fbo_extension, pbo_extension, get_texture_extension;
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];
 };
 

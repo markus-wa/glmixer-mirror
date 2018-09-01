@@ -89,6 +89,7 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
 bool RenderingManager::pbo_extension = true;
+bool RenderingManager::get_texture_extension = true;
 
 // see https://en.wikipedia.org/wiki/Graphics_display_resolution
 QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = {
@@ -162,6 +163,8 @@ RenderingManager *RenderingManager::getInstance() {
         // ok to instanciate rendering manager
         _instance = new RenderingManager;
         Q_CHECK_PTR(_instance);
+        
+        RenderingManager::get_texture_extension = glewIsSupported("GL_ARB_get_texture_sub_image");
     }
 
     return _instance;
@@ -502,13 +505,6 @@ void RenderingManager::postRenderToFrameBuffer() {
         if ( _recorder->acceptFrame() )
         {
 
-#ifdef RECORDING_READ_PIXEL
-            // bind fbo context for ReadPixel
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-#else
-            // read texture from the framebuferobject and record this frame
-            glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-#endif
             // use pixel buffer object if initialized
             if (pboIds[0] && pboIds[1]) {
 
@@ -516,11 +512,18 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
 
 #ifdef RECORDING_READ_PIXEL
+                // bind fbo context for ReadPixel
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
                 // ReadPixel of _fbo
                 glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-#else
+#else                
                 // read pixels from texture
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+                if (ARB_get_texture_sub_image)
+                    glGetTextureSubImage(_fbo->texture(), 0, 0, 0, 0, _fbo->width(), _fbo->height(), 1, GL_RGB, GL_UNSIGNED_BYTE, 3 * _fbo->width() * _fbo->height(), 0);       
+                else {
+                    glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+                    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);    
+                }             
 #endif
                 // map the other PBO to process its data by CPU
                 glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
@@ -531,8 +534,10 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
             }
             // just get current texture if not using pixel buffer object
-            else
+            else {
+                // record from texture
                 _recorder->addFrame();
+            }
 
 #ifdef GLM_SHM
             // share to memory if needed
@@ -707,7 +712,7 @@ Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
     return ( (Source *) s );
 }
 
-QImage RenderingManager::captureFrameBuffer() {
+QImage RenderingManager::captureFrameBuffer() const {
 
     QImage img = _fbo ? _fbo->toImage() : QImage();
 

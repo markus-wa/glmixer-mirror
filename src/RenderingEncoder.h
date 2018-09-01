@@ -40,8 +40,6 @@
 #define MAX_RECORDING_BUFFER_SIZE 1153433600
 // default 200 MB
 #define DEFAULT_RECORDING_BUFFER_SIZE 209715200
-// use glReadPixel or glGetTextImage ?
-#define RECORDING_READ_PIXEL 1
 
 extern "C" {
 #include <libavutil/frame.h>
