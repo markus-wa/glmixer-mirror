@@ -163,7 +163,7 @@ RenderingManager *RenderingManager::getInstance() {
         // ok to instanciate rendering manager
         _instance = new RenderingManager;
         Q_CHECK_PTR(_instance);
-        
+
         RenderingManager::get_texture_extension = glewIsSupported("GL_ARB_get_texture_sub_image");
     }
 
@@ -516,14 +516,14 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
                 // ReadPixel of _fbo
                 glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-#else                
+#else
                 // read pixels from texture
                 if (ARB_get_texture_sub_image)
-                    glGetTextureSubImage(_fbo->texture(), 0, 0, 0, 0, _fbo->width(), _fbo->height(), 1, GL_RGB, GL_UNSIGNED_BYTE, 3 * _fbo->width() * _fbo->height(), 0);       
+                    glGetTextureSubImage(_fbo->texture(), 0, 0, 0, 0, _fbo->width(), _fbo->height(), 1, GL_RGB, GL_UNSIGNED_BYTE, 3 * _fbo->width() * _fbo->height(), 0);
                 else {
                     glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-                    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);    
-                }             
+                    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+                }
 #endif
                 // map the other PBO to process its data by CPU
                 glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
@@ -2162,18 +2162,21 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
             if (newSourceVideoFile){
 
                 double markin = -1.0, markout = -1.0;
-                // old version used different system for marking : ignore the values for now
+                // old version used different system for marking : ignore these values
                 if ( !( version.toDouble() < 0.7) ) {
                     markin = marks.attribute("In").toDouble();
                     markout = marks.attribute("Out").toDouble();
                 }
+
+                bool iac = Filename.attribute("IgnoreAlpha", "0").toInt();
+                bool hwc = Filename.attribute("HardwareCodec", "0").toInt();
 
                 // can we open this existing file ?
                 // try to open until success (or maximum 3 tentatives)
                 int tentative = 0;
                 bool success = false;
                 while (!success && tentative < 3) {
-                    success = newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ;
+                    success = newSourceVideoFile->open( fileNameToOpen, hwc, iac, markin, markout) ;
                     tentative++;
                 }
                 // inform if there was a problem

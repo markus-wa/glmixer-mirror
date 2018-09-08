@@ -113,7 +113,7 @@ void ImageFilesList::appendImageFiles(QList<QUrl> urlList)
 
                 // try to make an image: accept if not null
                 VideoFile mediafile;
-                if ( !mediafile.open( filename, -1, -1, true ) ) {
+                if ( !mediafile.open( filename, false, true ) ) {
                     invalidfiles << filename;
                     continue;
                 }

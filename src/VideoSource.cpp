@@ -141,6 +141,7 @@ QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
         QDomElement f = doc.createElement("Filename");
         f.setAttribute("PowerOfTwo", (int) is->getPowerOfTwoConversion());
         f.setAttribute("IgnoreAlpha", (int) is->ignoresAlphaChannel());
+        f.setAttribute("HardwareCodec", (int) is->useHardwareCodec());
         QString completefilename = QFileInfo( is->getFileName() ).absoluteFilePath();
         if (current.isReadable())
             f.setAttribute("Relative", current.relativeFilePath( completefilename ) );

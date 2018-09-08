@@ -1865,7 +1865,7 @@ void GLMixer::replaceCurrentSource()
             VideoStreamSource *vs = dynamic_cast<VideoStreamSource *>(*cs);
             if (vs) {
                 VideoStream *vf = vs->getVideoStream();
-                // if the URL does not look like a network stream 
+                // if the URL does not look like a network stream
                 if ( !vf->getUrl().contains("://@") ) {
                     // it is probably a device
                     t = Source::OPENCV_SOURCE;

@@ -66,6 +66,7 @@ public:
      *  @return codec 'cuvid' or 'videotoolbox'
      */
     static AVCodec *getEquivalentHardwareAcceleratedCodec(AVCodec *codec);
+    static bool supportsHardwareAcceleratedCodec(QString file);
     /**
      * Displays a dialog window (QDialog) listing the formats and video codecs supported for reading.
      *

@@ -190,7 +190,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
-    interlaced = false;  // TODO: detect and deinterlace
+    hardwrareCodec = false;  // by default do not use hardware codec
 
     // reset
     quit = true; // not running yet
@@ -393,7 +393,7 @@ bool VideoFile::isOpen() const {
 
 
 
-bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
+bool VideoFile::open(QString file, bool useHardwareCodec, bool ignoreAlphaChannel, double markIn, double markOut)
 {
     // re-open if alredy openned
     if (pFormatCtx)
@@ -421,14 +421,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         close();
         return false;
     }
-    
+
 
     // keep reference to video stream
     video_st = pFormatCtx->streams[videoStream];
     nb_frames = video_st->nb_frames;
 
     // try to replace the codec with a better one (hardware accelerated)
-    if (nb_frames > 2) {
+    if (useHardwareCodec && nb_frames > 2) {
         AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
         // find a potential match
         if (hwcodec != NULL) {
@@ -440,6 +440,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
                 codec = hwcodec;
                 qDebug() << filename << QChar(124).toLatin1()
                          << tr("Using GPU accelerated %1.").arg(codec->long_name);
+                // remember use of hardware codec
+                hardwrareCodec = true;
             }
         }
     }

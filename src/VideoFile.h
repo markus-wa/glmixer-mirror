@@ -180,7 +180,7 @@ public:
      * @param markOut Position of the mark OUT where to stop.
      * @return true on success
      */
-    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
+    bool open(QString file, bool useHardwareCodec = false, bool ignoreAlphaChannel = false, double  markIn = -1.0, double  markOut = -1.0);
 
     /**
      * Test if a file was open for this VideoFile.
@@ -622,7 +622,7 @@ public slots:
     /**
      *
      */
-    bool isInterlaced() const { return interlaced; }
+    inline bool useHardwareCodec() const { return hardwrareCodec; }
 
 protected slots:
     /**
@@ -668,7 +668,7 @@ protected:
     AVFilterGraph *graph;
 
     int videoStream;
-    bool ignoreAlpha, interlaced;
+    bool ignoreAlpha, hardwrareCodec;
     enum AVPixelFormat targetFormat;
 
     // seeking management

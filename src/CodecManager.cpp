@@ -391,7 +391,6 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     // not applicable
     return NULL;
 #else
-//    return NULL; // debug
     QString glvendor((char *)glGetString(GL_VENDOR));
     if ( glvendor.contains("nvidia", Qt::CaseInsensitive) )
         snprintf(newcodecname, 128, "%s_cuvid", codec->name);
@@ -401,6 +400,65 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
 
     return hwcodec;
 }
+
+bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
+{
+    bool frameFilled = false;
+    AVFormatContext *pFormatCtx;
+    pFormatCtx = avformat_alloc_context();
+
+    if ( CodecManager::openFormatContext( &pFormatCtx, filename) ) {
+
+        int videoStream = 0;
+        AVCodec *codec = NULL;
+        videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
+        if (videoStream >= 0 && codec != NULL) {
+
+            AVCodec *hw_codec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+            if (hw_codec != NULL) {
+
+                AVCodecContext *hw_video_dec = avcodec_alloc_context3(hw_codec);
+                if (hw_video_dec) {
+
+                    if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
+
+                        if (avcodec_open2(hw_video_dec, hw_codec, NULL) >= 0) {
+
+                            // ok, let's try the hw codec
+                            int trial = 0;
+                            AVPacket pkt1, *pkt = &pkt1;
+                            AVFrame *tmpframe = av_frame_alloc();
+                            while (!frameFilled && ++trial < 50)
+                            {
+                                if ( av_read_frame(pFormatCtx, pkt) < 0)
+                                    break;
+                                if ( pkt->stream_index != videoStream )
+                                    continue;
+                                if ( avcodec_send_packet(hw_video_dec, pkt) < 0 )
+                                    break;
+
+                                int ret = avcodec_receive_frame(hw_video_dec, tmpframe);
+                                if (ret == AVERROR(EAGAIN) )
+                                    continue;
+                                if (ret < 0 )
+                                    break;
+
+                                // eventually managed to fill a frame !
+                                frameFilled = true;
+                            }
+                        }
+                    }
+                    avcodec_free_context(&hw_video_dec);
+                }
+            }
+        }
+        avformat_close_input(&pFormatCtx);
+    }
+
+    return frameFilled;
+}
+
+
 
 QHash<QString, QString> CodecManager::getDeviceList(QString formatname)
 {

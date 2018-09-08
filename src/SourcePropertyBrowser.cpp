@@ -52,6 +52,7 @@
 #include <QtColorEditorFactory>
 #include <QFileInfo>
 
+#include "CodecManager.h"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 #include "RenderingSource.h"
@@ -992,17 +993,20 @@ public:
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
 
-            infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("ON") : QObject::tr("OFF") );
-            addProperty(idToProperty["Interlaced"]);
+            // Hardware codec
+            property = boolManager->addProperty("GPU decoder");
+            property->setToolTip("Use GPU Hardware decoder if available.");
+            idToProperty[property->propertyName()] = property;
+            boolManager->setValue(property, vf->useHardwareCodec());
+            addProperty(property);
 
             if (vf->hasAlphaChannel()) {
                 // Ignore alpha channel
                 property = boolManager->addProperty("Ignore alpha");
                 property->setToolTip("Do not use the alpha channel of the images (black instead).");
                 idToProperty[property->propertyName()] = property;
-
-                boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
-                addProperty(idToProperty["Ignore alpha"]);
+                boolManager->setValue(property, vf->ignoresAlphaChannel());
+                addProperty(property);
             }
 
             if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
@@ -1037,7 +1041,16 @@ public slots:
         if ( property == idToProperty["Ignore alpha"] ) {
             VideoFile *vf = vs->getVideoFile();
             if ( vf ) {
-                vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+                vf->open(vf->getFileName(), vf->useHardwareCodec(), value, vf->getMarkIn(), vf->getMarkOut());
+            }
+        }
+        else if ( property == idToProperty["GPU decoder"] ) {
+
+            VideoFile *vf = vs->getVideoFile();
+            if ( vf ) {
+                bool play = vs->isPlaying();
+                vf->open(vf->getFileName(), value, vf->ignoresAlphaChannel(), vf->getMarkIn(), vf->getMarkOut());
+                vs->play(play);
             }
         }
     }
@@ -1450,7 +1463,7 @@ public:
                 infoManager->setValue(property, "Open & Active" );
             else if (vf->isOpen())
                 infoManager->setValue(property, "Open" );
-            else 
+            else
                 infoManager->setValue(property, "Closed" );
             addProperty(property);
 
