@@ -190,7 +190,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
-    hardwrareCodec = false;  // by default do not use hardware codec
+    useHwCodec = false;  // by default do not use hardware codec
+    hasHwCodec = false;
 
     // reset
     quit = true; // not running yet
@@ -393,7 +394,7 @@ bool VideoFile::isOpen() const {
 
 
 
-bool VideoFile::open(QString file, bool useHardwareCodec, bool ignoreAlphaChannel, double markIn, double markOut)
+bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChannel, double markIn, double markOut)
 {
     // re-open if alredy openned
     if (pFormatCtx)
@@ -428,21 +429,25 @@ bool VideoFile::open(QString file, bool useHardwareCodec, bool ignoreAlphaChanne
     nb_frames = video_st->nb_frames;
 
     // try to replace the codec with a better one (hardware accelerated)
-    if (useHardwareCodec && nb_frames > 2) {
-        AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+    // NB: this is only meaningful for videos, aka more than 1 frame
+    AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+    if (hwcodec != NULL && nb_frames > 2) {
         // find a potential match
-        if (hwcodec != NULL) {
-            // try to create video decoding context with harware accelerated codec
-            video_dec = avcodec_alloc_context3(hwcodec);
-            // does it work ?
-            if (video_dec) {
-                // ok, let's try the hw codec
-                codec = hwcodec;
-                qDebug() << filename << QChar(124).toLatin1()
-                         << tr("Using GPU accelerated %1.").arg(codec->long_name);
-                // remember use of hardware codec
-                hardwrareCodec = true;
-            }
+        hasHwCodec = true;
+    }
+
+    // openning paramater asks to try to use hardware codec
+    if (hasHwCodec && tryHardwareCodec) {
+        // try to create video decoding context with harware accelerated codec
+        video_dec = avcodec_alloc_context3(hwcodec);
+        // does it work ?
+        if (video_dec) {
+            // good, let's use the hw codec !
+            codec = hwcodec;
+            qDebug() << filename << QChar(124).toLatin1()
+                     << tr("Using GPU accelerated %1.").arg(codec->long_name);
+            // remember use of hardware codec
+            useHwCodec = true;
         }
     }
 

@@ -622,7 +622,8 @@ public slots:
     /**
      *
      */
-    inline bool useHardwareCodec() const { return hardwrareCodec; }
+    bool hasHardwareCodec() const { return hasHwCodec; }
+    inline bool useHardwareCodec() const { return useHwCodec; }
 
 protected slots:
     /**
@@ -668,7 +669,7 @@ protected:
     AVFilterGraph *graph;
 
     int videoStream;
-    bool ignoreAlpha, hardwrareCodec;
+    bool ignoreAlpha, useHwCodec, hasHwCodec;
     enum AVPixelFormat targetFormat;
 
     // seeking management

@@ -376,7 +376,8 @@ bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
             // does the format has ALPHA ?
             || ( av_pix_fmt_desc_get(pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
             // special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_desc_get(pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL ) );
+           // || ( av_pix_fmt_desc_get(pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL )
+               );
 
 }
 

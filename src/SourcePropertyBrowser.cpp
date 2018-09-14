@@ -921,94 +921,58 @@ public:
             property->setToolTip("Type of the source");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-            infoManager->setValue(idToProperty["Type"], "Video or Image file" );
-            addProperty(idToProperty["Type"]);
+            infoManager->setValue(property, "Video or Image file" );
+            addProperty(property);
 
             // File Name
             property = infoManager->addProperty( QLatin1String("File name") );
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["File name"], videoFileInfo.fileName() );
-            idToProperty["File name"]->setToolTip(vf->getFileName());
-            addProperty(idToProperty["File name"]);
+            infoManager->setValue(property, videoFileInfo.fileName() );
+            property->setToolTip(vf->getFileName());
+            addProperty(property);
 
             // File Location
             property = infoManager->addProperty( QLatin1String("File path") );
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["File path"], videoFileInfo.absolutePath() );
-            idToProperty["File path"]->setToolTip(vf->getFileName());
-            addProperty(idToProperty["File path"]);
+            infoManager->setValue(property, videoFileInfo.absolutePath() );
+            property->setToolTip(videoFileInfo.absolutePath());
+            addProperty(property);
 
             // File size
             property = infoManager->addProperty( QLatin1String("File size") );
             property->setToolTip("Size of the file on disk.");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["File size"], getByteSizeString( videoFileInfo.size() ) );
-            addProperty(idToProperty["File size"]);
+            infoManager->setValue(property, getByteSizeString( videoFileInfo.size() ) );
+            addProperty(property);
 
             // Codec
             property = infoManager->addProperty( QLatin1String("Codec") );
             property->setToolTip("Encoding codec of the media.");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
-            addProperty(idToProperty["Codec"]);
-
-            // Pixel Format
-            property = infoManager->addProperty( QLatin1String("Pixel format") );
-            property->setToolTip("Format of pixels of the media.");
-            property->setItalics(true);
-            idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
-            addProperty(idToProperty["Pixel format"]);
+            infoManager->setValue(property, vf->getCodecName() );
+            addProperty(property);
 
             // Duration
             property = infoManager->addProperty( QLatin1String("Duration") );
             property->setToolTip("Duration of the media.");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
+            infoManager->setValue(property, getStringFromTime(vf->getDuration()) );
+            addProperty(property);
 
-            infoManager->setValue(idToProperty["Duration"], getStringFromTime(vf->getDuration()) );
-            addProperty(idToProperty["Duration"]);
-
-            // Duration
+            // Number frames
             property = infoManager->addProperty( QLatin1String("Frames") );
             property->setToolTip("Number of frames in the media.");
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
-
-            infoManager->setValue(idToProperty["Frames"], QString::number(vf->getNumFrames()) );
-            addProperty(idToProperty["Frames"]);
-
-            // interlacing
-            property = infoManager->addProperty( QLatin1String("Interlaced") );
-            property->setToolTip("Is the source encoded with interlaced frames?");
-            property->setItalics(true);
-            idToProperty[property->propertyName()] = property;
-
-            // Hardware codec
-            property = boolManager->addProperty("GPU decoder");
-            property->setToolTip("Use GPU Hardware decoder if available.");
-            idToProperty[property->propertyName()] = property;
-            boolManager->setValue(property, vf->useHardwareCodec());
+            infoManager->setValue(property, QString::number(vf->getNumFrames()) );
             addProperty(property);
 
-            if (vf->hasAlphaChannel()) {
-                // Ignore alpha channel
-                property = boolManager->addProperty("Ignore alpha");
-                property->setToolTip("Do not use the alpha channel of the images (black instead).");
-                idToProperty[property->propertyName()] = property;
-                boolManager->setValue(property, vf->ignoresAlphaChannel());
-                addProperty(property);
-            }
-
+            // frame size
             if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
 
                 // Frames size special case when power of two dimensions are generated
@@ -1019,6 +983,34 @@ public:
 
                 sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(), vf->getStreamFrameHeight()) );
                 addProperty(idToProperty["Original size"]);
+            }
+
+            // Pixel Format
+            property = infoManager->addProperty( QLatin1String("Format") );
+            property->setToolTip("Format of pixels of the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+            infoManager->setValue(property, vf->getPixelFormatName() );
+            addProperty(property);
+
+            // alpha format
+            if (vf->hasAlphaChannel()) {
+                // Ignore alpha channel
+                property = boolManager->addProperty("Ignore alpha");
+                property->setToolTip("Do not use the alpha channel of the images (black instead).");
+                idToProperty[property->propertyName()] = property;
+                boolManager->setValue(property, vf->ignoresAlphaChannel());
+                addProperty(property);
+            }
+
+            // hardware GPU decoding
+            if (vf->hasHardwareCodec()) {
+                // Hardware codec
+                property = boolManager->addProperty("GPU");
+                property->setToolTip("Use GPU Hardware decoder");
+                idToProperty[property->propertyName()] = property;
+                boolManager->setValue(property, vf->useHardwareCodec());
+                addProperty(property);
             }
 
         }
@@ -1034,25 +1026,31 @@ public slots:
         {
             if ( it->property() == idToProperty["Ignore alpha"])
                 boolManager->setValue(idToProperty["Ignore alpha"], false);
+            else if ( it->property() == idToProperty["GPU"])
+                boolManager->setValue(idToProperty["GPU"], false);
         }
     }
     void valueChanged(QtProperty *property, bool value)
     {
+        // remember if video was playing
+        bool play = vs->isPlaying();
+        // re-open file with different openning parameter
         if ( property == idToProperty["Ignore alpha"] ) {
             VideoFile *vf = vs->getVideoFile();
             if ( vf ) {
                 vf->open(vf->getFileName(), vf->useHardwareCodec(), value, vf->getMarkIn(), vf->getMarkOut());
             }
         }
-        else if ( property == idToProperty["GPU decoder"] ) {
-
+        else if ( property == idToProperty["GPU"] ) {
             VideoFile *vf = vs->getVideoFile();
             if ( vf ) {
-                bool play = vs->isPlaying();
                 vf->open(vf->getFileName(), value, vf->ignoresAlphaChannel(), vf->getMarkIn(), vf->getMarkOut());
-                vs->play(play);
+                // pixel format might have changed
+                infoManager->setValue(idToProperty["Format"], vf->getPixelFormatName() );
             }
         }
+        // restore play
+        vs->play(play);
     }
 
 
