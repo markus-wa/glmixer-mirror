@@ -1084,7 +1084,8 @@ void GLMixer::newSource(Source::RTTI type) {
 void GLMixer::on_actionMediaSource_triggered(){
 
     bool smartScale = false;
-    QStringList fileNames = getMediaFileNames(smartScale);
+    bool hwDecoding = false;
+    QStringList fileNames = getMediaFileNames(smartScale, hwDecoding);
 
     // open all files from the list
     QStringListIterator fileNamesIt(fileNames);
@@ -1108,7 +1109,7 @@ void GLMixer::on_actionMediaSource_triggered(){
             // if the video file was created successfully
             if (newSourceVideoFile){
                 // can we open the file ?
-                if ( newSourceVideoFile->open( filename ) ) {
+                if ( newSourceVideoFile->open( filename, hwDecoding ) ) {
                     Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
                     // create the source as it is a valid video file (this also set it to be the current source)
                     if ( s ) {
@@ -3799,7 +3800,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
     return fileName;
 }
 
-QStringList GLMixer::getMediaFileNames(bool &smartScaling) {
+QStringList GLMixer::getMediaFileNames(bool &smartScalingRequest, bool &hwDecodingRequest) {
 
     QStringList fileNames;
     QFileInfo fi( settings.value("recentMediaFile", "").toString() );
@@ -3825,7 +3826,8 @@ QStringList GLMixer::getMediaFileNames(bool &smartScaling) {
         // open dialog
         if (mfd->exec()) {
             fileNames = mfd->selectedFiles();
-            smartScaling = mfd->configCustomSize();
+            smartScalingRequest = mfd->requestCustomSize();
+            hwDecodingRequest   = mfd->requestHarwareDecoder();
         }
     }
 

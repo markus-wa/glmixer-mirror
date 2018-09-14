@@ -47,6 +47,10 @@ VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent
         customSizeCheckBox->setEnabled(false);
     }
 
+
+    QObject::connect(customSizeCheckBox, SIGNAL(clicked()), this, SLOT(updateFilePreview()));
+    QObject::connect(hardwareDecodingcheckBox, SIGNAL(clicked()), this, SLOT(updateFilePreview()));
+
 }
 
 VideoFileDialogPreview::~VideoFileDialogPreview() {
@@ -62,7 +66,6 @@ void VideoFileDialogPreview::closeFilePreview() {
         CodecNameLineEdit->clear();
         endLineEdit->clear();
         widthLineEdit->clear();
-        heightLineEdit->clear();
         // stop video
         is->stop();
         // delete video File
@@ -83,7 +86,6 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
     CodecNameLineEdit->clear();
     endLineEdit->clear();
     widthLineEdit->clear();
-    heightLineEdit->clear();
 
     if (is) {
         delete is;
@@ -114,26 +116,28 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
 
             // enable all
             setEnabled(true);
+
             // activate preview
             previewWidget->setVideo(is);
             previewWidget->updateFrame(is->getFirstFrame());
+
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
             CodecNameLineEdit->home(false);
-            endLineEdit->setText( QString::number(qMax(1, is->getNumFrames())) );
-            // is there more than one frame ?
+            endLineEdit->setText( QString("%1 frames").arg(qMax(1, is->getNumFrames())) );
+            widthLineEdit->setText( QString("%1 x %2 px").arg(is->getStreamFrameWidth()).arg(is->getStreamFrameHeight()));
+
+            // is there more than one frame to play?
             if ( is->getNumFrames() > 1 ) {
                 startButton->setEnabled( true );
                 is->start();
             }
-            // display size
-            widthLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameWidth()).arg(is->getFrameWidth()));
-            heightLineEdit->setText( QString("%1 (%2)").arg(is->getStreamFrameHeight()).arg(is->getFrameHeight()));
+
         }
     }
 }
 
-void VideoFileDialogPreview::on_customSizeCheckBox_toggled(bool on){
+void VideoFileDialogPreview::updateFilePreview(){
 
     if (is && is->isOpen())
         showFilePreview(is->getFileName());

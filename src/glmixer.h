@@ -158,7 +158,7 @@ public slots:
     // interaction
     void drop(QDropEvent *event);
     QString getFileName(QString title, QString filters, QString saveExtention = QString(), QString suggestion = QString());
-    QStringList getMediaFileNames(bool &generatePowerOfTwoRequest);
+    QStringList getMediaFileNames(bool &smartScalingRequest, bool &hwDecodingRequest);
 
     // timer display
     void setDisplayTimeEnabled(bool on);

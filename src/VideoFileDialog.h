@@ -41,7 +41,8 @@ public:
     VideoFileDialog( QWidget * parent = 0, const QString & caption = QString());
     ~VideoFileDialog();
 
-    bool configCustomSize();
+    bool requestCustomSize();
+    bool requestHarwareDecoder();
     void showEvent ( QShowEvent * );
     void hideEvent ( QHideEvent * );
 

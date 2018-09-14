@@ -40,8 +40,8 @@ public:
 
 public slots:
     void showFilePreview(const QString & file);
+    void updateFilePreview();
     void closeFilePreview();
-    void on_customSizeCheckBox_toggled(bool);
 
 private:
 

@@ -72,9 +72,14 @@ void VideoFileDialog::setPreviewVisible(bool visible){
         preview->showFilePreview( this->selectedFiles().first() );
 }
 
-bool VideoFileDialog::configCustomSize(){
+bool VideoFileDialog::requestCustomSize(){
 
     return preview->customSizeCheckBox->isChecked();
+}
+
+bool VideoFileDialog::requestHarwareDecoder(){
+
+    return preview->hardwareDecodingcheckBox->isChecked();
 }
 
 
@@ -88,7 +93,7 @@ void VideoFileDialog::showEvent ( QShowEvent *e )
     if (firstshow) {
         firstshow = false;
         resize(sizeHint());
-    } 
+    }
 
     QFileDialog::showEvent(e);
 }
