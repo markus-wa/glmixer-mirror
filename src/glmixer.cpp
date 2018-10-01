@@ -1210,7 +1210,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         previousSource = (*csi);
 
         // display source preview
-        infobar->setText( tr("Current Source :") + (*csi)->getInfo() );
+        QString infotext = tr("Current Source :") + (*csi)->getInfo();
+        infotext = infobar->fontMetrics().elidedText(infotext, Qt::ElideRight, statusBar()->width() - 30);
+        infobar->setText( infotext );
         sourcePreview->setSource(*csi);
         vcontrolDockWidgetContents->setEnabled( true );
 
