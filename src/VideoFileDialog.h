@@ -52,12 +52,13 @@ public:
 
 public slots:
     void setPreviewVisible(bool visible);
+    void updatePreview(const QString &);
 
 private:
 
     VideoFileDialogPreview *preview;
     QCheckBox *pv;
-
+    QFileInfo file;
 };
 
 #endif /* VideoFileDialog_H_ */

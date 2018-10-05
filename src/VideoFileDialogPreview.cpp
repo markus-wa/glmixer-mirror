@@ -74,7 +74,7 @@ void VideoFileDialogPreview::closeFilePreview() {
     }
 }
 
-void VideoFileDialogPreview::showFilePreview(const QString & file){
+void VideoFileDialogPreview::showFilePreview(const QString & file, bool tryHardwareCodec){
 
     // reset all to disabled
     startButton->setChecked( false );
@@ -112,7 +112,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
         QObject::connect(is, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
         QObject::connect(is, SIGNAL(running(bool)), videoControlFrame, SLOT(setEnabled(bool)));
 
-        if ( is->open(file) ) {
+        if ( is->open(file, tryHardwareCodec) ) {
 
             // enable all
             setEnabled(true);
@@ -140,7 +140,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
 void VideoFileDialogPreview::updateFilePreview(){
 
     if (is && is->isOpen())
-        showFilePreview(is->getFileName());
+        showFilePreview(is->getFileName(), hardwareDecodingcheckBox->isChecked());
 }
 
 

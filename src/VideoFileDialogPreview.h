@@ -39,7 +39,7 @@ public:
     ~VideoFileDialogPreview();
 
 public slots:
-    void showFilePreview(const QString & file);
+    void showFilePreview(const QString & file, bool tryHardwareCodec = false);
     void updateFilePreview();
     void closeFilePreview();
 

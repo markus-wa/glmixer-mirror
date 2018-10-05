@@ -66,7 +66,24 @@ public:
      *  @return codec 'cuvid' or 'videotoolbox'
      */
     static AVCodec *getEquivalentHardwareAcceleratedCodec(AVCodec *codec);
+    /**
+     *  Test hardware accelerated codec for this file.
+     *
+     *  @return true if could decode file with HW acceleration
+     */
     static bool supportsHardwareAcceleratedCodec(QString file);
+    /**
+     *  Test Nvidia Opengl hardware drivers
+     *
+     *  @return true if nvidia drivers are detected
+     */
+    static bool hasNVidiaHardwareAcceleration();
+    /**
+     *  Decide to use hardware acceleration
+     *
+     */
+    static bool useHardwareAcceleration();
+    static void setHardwareAcceleration(bool use);
     /**
      * Displays a dialog window (QDialog) listing the formats and video codecs supported for reading.
      *
@@ -80,16 +97,30 @@ public:
      * @param height Value for height to convert in power of two (will be changed)
      */
     static void convertSizePowerOfTwo(int &width, int &height);
-
+    /**
+     *  qwarning with text error message from error code
+     */
     static void printError(QString streamname, QString message, int err);
-
+    /**
+     *  Request the list of devices for a given format (e.g. v4l)
+     *
+     *  @return list of devices for a given format
+     */
     static QHash<QString, QString> getDeviceList(QString formatname);
+    /**
+     *  Test ffmpeg format by name
+     *
+     *  @return true if the format is available
+     */
     static bool hasFormat(QString formatname);
 
 private:
 
     CodecManager(QObject *parent = 0);
     static CodecManager *_instance;
+
+    bool _useHardwareAcceleration;
+    bool _hasNVidiaHardwareAcceleration;
 
 };
 

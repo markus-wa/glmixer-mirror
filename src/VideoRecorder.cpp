@@ -209,7 +209,15 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
 
     // allocate context
     QStringList codeclist;
-    codeclist << "h264_nvenc" << "h264_videotoolbox" << "libx264"  << "h264_omx"  ;
+    if (CodecManager::useHardwareAcceleration() ) {
+#ifdef Q_OS_MAC
+        codeclist << "h264_videotoolbox";
+#else
+        codeclist << "h264_nvenc";
+#endif
+    }
+    codeclist << "libx264"  << "h264_omx";
+
     setupContext(codeclist, "mp4", AV_PIX_FMT_YUV420P);
 
     // set profile
@@ -261,7 +269,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
     }
     else {
         // option for videotoolbox
-        if ((strcmp(codec->name, "h264_videotoolbox") == 0)) 
+        if ((strcmp(codec->name, "h264_videotoolbox") == 0))
             av_dict_set(&opts, "realtime", "1", 0);
 
         // encoder quality can only be controlled via bit_rate
@@ -291,7 +299,7 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
     // specifics for this recorder
     suffix = "mkv";
     description = "High Efficiency Video Codec (*.mkv)";
-    
+
     // select variable bit rate quality factor (percent)
     unsigned long vbr = 54;   // default to 54% quality, default crf 23
     switch (quality) {
@@ -311,7 +319,11 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
 
     // allocate context
     QStringList codeclist;
-    codeclist << "hevc_nvenc"  << "libx265" ;
+#ifndef Q_OS_MAC
+    if (CodecManager::useHardwareAcceleration() )
+        codeclist << "hevc_nvenc";
+#endif
+    codeclist << "libx265" ;
     setupContext(codeclist, "matroska", AV_PIX_FMT_YUV420P);
 
     if ((strcmp(codec->name, "libx265") == 0)) {
@@ -351,7 +363,7 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
         // Clip bit rate to min
         if (vbr < 4000) // magic number
             vbr = 4000;
-        codec_context->bit_rate = vbr;  
+        codec_context->bit_rate = vbr;
     }
 */
     // OPTIONNAL

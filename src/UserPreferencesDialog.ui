@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>658</width>
-    <height>605</height>
+    <width>685</width>
+    <height>609</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -816,18 +816,9 @@ p, li { white-space: pre-wrap; }
                    </widget>
                   </item>
                   <item>
-                   <widget class="QCheckBox" name="disableOutputRecording">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide the output window when recording (useful if rendering is slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
+                   <widget class="QCheckBox" name="disableHWCodec">
                     <property name="text">
-                     <string>Disable output when recording</string>
+                     <string>Disable GPU decoding/encoding</string>
                     </property>
                    </widget>
                   </item>
@@ -965,6 +956,22 @@ p, li { white-space: pre-wrap; }
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="disableOutputRecording">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide the output window when recording (useful if rendering is slow).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Disable output when recording</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

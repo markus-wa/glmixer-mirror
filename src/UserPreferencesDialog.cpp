@@ -31,6 +31,7 @@
 #include "OutputRenderWindow.h"
 #include "VideoFile.h"
 #include "RenderingEncoder.h"
+#include "CodecManager.h"
 
 #include <QFileDialog>
 #include <QApplication>
@@ -60,6 +61,16 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     QObject::connect(updatePeriod, SIGNAL(valueChanged(int)), previewOutput, SLOT(setUpdatePeriod(int)));
 
     // TODO fill in the list of available languages
+
+
+#ifdef Q_OS_LINUX
+    // under linux, the HW accell is only with nvidia
+    if ( !CodecManager::hasNVidiaHardwareAcceleration() ) {
+        disableHWCodec->setChecked( true );
+        disableHWCodec->setEnabled( false );
+    }
+#endif
+
 
 #ifndef GLM_SHM
     sharedMemoryBox->setVisible(false);
@@ -148,13 +159,14 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         disableFiltering->setChecked(false);
         disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
         disablePixelBufferObject->setChecked(!GLEW_EXT_pixel_buffer_object);
-        disableOutputRecording->setChecked(false);
+        disableHWCodec->setChecked(false);
     }
 
     if (stackedPreferences->currentWidget() == PageRecording) {
         fullscreenMonitor->setCurrentIndex(0);
         outputSkippedFrames->setValue(1);
         on_outputSkippedFrames_valueChanged( outputSkippedFrames->value() );
+        disableOutputRecording->setChecked(false);
         recordingFormatSelection->setCurrentIndex(0);
         recordingQualitySelection->setCurrentIndex(0);
         recordingFramerateMode->setValue(4);
@@ -380,6 +392,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     allowOneInstance->setChecked(oneinstance);
     useCustomTimer->setChecked(customtimer);
 
+    // ab. Hardware Codec
+    bool hwcodec = true;
+    stream >> hwcodec;
+    disableHWCodec->setChecked(!hwcodec);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -477,6 +494,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // aa. Single Instance
     stream << allowOneInstance->isChecked();
     stream << useCustomTimer->isChecked();
+
+    // ab. Hardware Codec
+    stream << !disableHWCodec->isChecked();
 
     return data;
 }

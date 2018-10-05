@@ -20,11 +20,20 @@ CodecManager::CodecManager(QObject *parent) : QObject(parent)
     avdevice_register_all();
 
 #ifndef NDEBUG
-         /* print warning info from ffmpeg */
-         av_log_set_level( AV_LOG_WARNING  );
+    /* print warning info from ffmpeg */
+    av_log_set_level( AV_LOG_WARNING  );
 #else
-         av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
+    av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
+
+    // test nvidia
+    // https://developer.nvidia.com/nvidia-video-codec-sdk#NVDECFeatures
+    QString glvendor((char *)glGetString(GL_VENDOR));
+    int v = 0;
+    glGetIntegerv(GL_MAJOR_VERSION, &v);
+    _hasNVidiaHardwareAcceleration =  (v>3) && glvendor.contains("nvidia", Qt::CaseInsensitive);
+    // disabled by default
+    _useHardwareAcceleration = false;
 }
 
 
@@ -83,16 +92,14 @@ bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString stre
 
     // open stream
     err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), ifmt, &options);
-    if (err < 0)
-    {
+    if (err < 0) {
         printError(streamFormat+" "+streamToOpen, "Error opening :", err);
         return false;
     }
 
     // fill info stream
     err = avformat_find_stream_info(*_pFormatCtx, NULL);
-    if (err < 0)
-    {
+    if (err < 0) {
         printError(streamFormat+" "+streamToOpen, "Error setting up :", err);
         return false;
     }
@@ -211,15 +218,15 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
     QLabel *label;
     QPlainTextEdit *options;
     QLabel *label_2;
-        QTreeWidget *availableFormatsTreeWidget;
+    QTreeWidget *availableFormatsTreeWidget;
     QLabel *label_3;
-        QTreeWidget *availableCodecsTreeWidget;
+    QTreeWidget *availableCodecsTreeWidget;
     QDialogButtonBox *buttonBox;
 
-        QDialog *ffmpegInfoDialog = new QDialog;
-        QIcon icon;
-        icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
-        ffmpegInfoDialog->setWindowIcon(icon);
+    QDialog *ffmpegInfoDialog = new QDialog;
+    QIcon icon;
+    icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
+    ffmpegInfoDialog->setWindowIcon(icon);
     ffmpegInfoDialog->resize(450, 600);
     verticalLayout = new QVBoxLayout(ffmpegInfoDialog);
     label = new QLabel(ffmpegInfoDialog);
@@ -227,18 +234,18 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
     label_3 = new QLabel(ffmpegInfoDialog);
 
     availableFormatsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
-        availableFormatsTreeWidget->setAlternatingRowColors(true);
-        availableFormatsTreeWidget->setRootIsDecorated(false);
-        availableFormatsTreeWidget->header()->setVisible(true);
+    availableFormatsTreeWidget->setAlternatingRowColors(true);
+    availableFormatsTreeWidget->setRootIsDecorated(false);
+    availableFormatsTreeWidget->header()->setVisible(true);
 
-        availableCodecsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
-        availableCodecsTreeWidget->setAlternatingRowColors(true);
+    availableCodecsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
+    availableCodecsTreeWidget->setAlternatingRowColors(true);
     availableCodecsTreeWidget->setRootIsDecorated(false);
-        availableCodecsTreeWidget->header()->setVisible(true);
+    availableCodecsTreeWidget->header()->setVisible(true);
 
     buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
-        buttonBox->setOrientation(Qt::Horizontal);
-        buttonBox->setStandardButtons(QDialogButtonBox::Close);
+    buttonBox->setOrientation(Qt::Horizontal);
+    buttonBox->setStandardButtons(QDialogButtonBox::Close);
     QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog, SLOT(reject()));
 
     ffmpegInfoDialog->setWindowTitle(tr("About Libav formats and codecs"));
@@ -258,91 +265,91 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
     label_2->setText( tr("Available codecs:"));
     label_3->setText( tr("Available formats:"));
 
-        QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
-        title->setText(1, tr("Description"));
-        title->setText(0, tr("Name"));
+    QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
+    title->setText(1, tr("Description"));
+    title->setText(0, tr("Name"));
 
-        title = availableCodecsTreeWidget->headerItem();
-        title->setText(1, tr("Description"));
-        title->setText(0, tr("Name"));
+    title = availableCodecsTreeWidget->headerItem();
+    title->setText(1, tr("Description"));
+    title->setText(0, tr("Name"));
 
-        QTreeWidgetItem *formatitem;
-        AVInputFormat *ifmt = NULL;
-        AVCodec *p = NULL, *p2;
-        const char *last_name;
+    QTreeWidgetItem *formatitem;
+    AVInputFormat *ifmt = NULL;
+    AVCodec *p = NULL, *p2;
+    const char *last_name;
 
-        last_name = "000";
-        for (;;)
+    last_name = "000";
+    for (;;)
+    {
+        const char *name = NULL;
+        const char *long_name = NULL;
+
+        while ((ifmt = av_iformat_next(ifmt)))
         {
-                const char *name = NULL;
-                const char *long_name = NULL;
-
-                while ((ifmt = av_iformat_next(ifmt)))
-                {
-                        if ((name == NULL || strcmp(ifmt->name, name) < 0) && strcmp(
-                                        ifmt->name, last_name) > 0)
-                        {
-                                name = ifmt->name;
-                                long_name = ifmt->long_name;
-                        }
-                }
-                if (name == NULL)
-                        break;
-                last_name = name;
-
-                formatitem = new QTreeWidgetItem(availableFormatsTreeWidget);
-                formatitem->setText(0, QString(name));
-                formatitem->setText(1, QString(long_name));
-                availableFormatsTreeWidget->addTopLevelItem(formatitem);
+            if ((name == NULL || strcmp(ifmt->name, name) < 0) && strcmp(
+                        ifmt->name, last_name) > 0)
+            {
+                name = ifmt->name;
+                long_name = ifmt->long_name;
+            }
         }
+        if (name == NULL)
+            break;
+        last_name = name;
 
-        last_name = "000";
-        for (;;)
+        formatitem = new QTreeWidgetItem(availableFormatsTreeWidget);
+        formatitem->setText(0, QString(name));
+        formatitem->setText(1, QString(long_name));
+        availableFormatsTreeWidget->addTopLevelItem(formatitem);
+    }
+
+    last_name = "000";
+    for (;;)
+    {
+        int decode = 0;
+        int cap = 0;
+
+        p2 = NULL;
+        while ((p = av_codec_next(p)))
         {
-                int decode = 0;
-                int cap = 0;
-
-                p2 = NULL;
-                while ((p = av_codec_next(p)))
-                {
-                        if ((p2 == NULL || strcmp(p->name, p2->name) < 0) && strcmp(
-                                        p->name, last_name) > 0)
-                        {
-                                p2 = p;
-                                decode = cap = 0;
-                        }
-                        if (p2 && strcmp(p->name, p2->name) == 0)
-                        {
-                                if (p->decode)
-                                        decode = 1;
-                                cap |= p->capabilities;
-                        }
-                }
-                if (p2 == NULL)
-                        break;
-                last_name = p2->name;
-
-                if (decode && p2->type == AVMEDIA_TYPE_VIDEO)
-                {
-                        formatitem = new QTreeWidgetItem(availableCodecsTreeWidget);
-                        formatitem->setText(0, QString(p2->name));
-                        formatitem->setText(1, QString(p2->long_name));
-                        availableCodecsTreeWidget->addTopLevelItem(formatitem);
-                }
+            if ((p2 == NULL || strcmp(p->name, p2->name) < 0) && strcmp(
+                        p->name, last_name) > 0)
+            {
+                p2 = p;
+                decode = cap = 0;
+            }
+            if (p2 && strcmp(p->name, p2->name) == 0)
+            {
+                if (p->decode)
+                    decode = 1;
+                cap |= p->capabilities;
+            }
         }
+        if (p2 == NULL)
+            break;
+        last_name = p2->name;
+
+        if (decode && p2->type == AVMEDIA_TYPE_VIDEO)
+        {
+            formatitem = new QTreeWidgetItem(availableCodecsTreeWidget);
+            formatitem->setText(0, QString(p2->name));
+            formatitem->setText(1, QString(p2->long_name));
+            availableCodecsTreeWidget->addTopLevelItem(formatitem);
+        }
+    }
 
     verticalLayout->setSpacing(10);
     verticalLayout->addWidget(label);
     verticalLayout->addWidget(options);
     verticalLayout->addWidget(label_2);
-        verticalLayout->addWidget(availableCodecsTreeWidget);
+    verticalLayout->addWidget(availableCodecsTreeWidget);
     verticalLayout->addWidget(label_3);
-        verticalLayout->addWidget(availableFormatsTreeWidget);
-        verticalLayout->addWidget(buttonBox);
+    verticalLayout->addWidget(availableFormatsTreeWidget);
+    verticalLayout->addWidget(buttonBox);
 
-        ffmpegInfoDialog->exec();
+    ffmpegInfoDialog->exec();
 
-        delete verticalLayout;
+    delete verticalLayout;
     delete label;
     delete label_2;
     delete label_3;
@@ -350,7 +357,6 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
     delete availableFormatsTreeWidget;
     delete availableCodecsTreeWidget;
     delete buttonBox;
-
     delete ffmpegInfoDialog;
 }
 
@@ -381,23 +387,56 @@ bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
 
 }
 
+bool CodecManager::hasNVidiaHardwareAcceleration()
+{
+    registerAll();
+
+    return _instance->_hasNVidiaHardwareAcceleration;
+}
+
+bool CodecManager::useHardwareAcceleration()
+{
+    registerAll();
+
+#ifdef Q_OS_LINUX
+    // under linux, the HW accell is only with nvidia
+    if ( !_instance->_hasNVidiaHardwareAcceleration )
+        return false;
+#endif
+
+    return _instance->_useHardwareAcceleration;
+}
+
+void CodecManager::setHardwareAcceleration(bool use)
+{
+    registerAll();
+
+    _instance->_useHardwareAcceleration = use;
+}
+
 
 AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
 {
+    // see http://net-zeal.de/hardware-acceleration-for-video-encoding-decoding-with-ffmpeg/
     AVCodec *hwcodec = NULL;
 
-    // see http://net-zeal.de/hardware-acceleration-for-video-encoding-decoding-with-ffmpeg/
-    char newcodecname[128];
-#ifdef Q_OS_MAC
-    // not applicable
-    return NULL;
-#else
-    QString glvendor((char *)glGetString(GL_VENDOR));
-    if ( glvendor.contains("nvidia", Qt::CaseInsensitive) )
+    // only if configured to use HW accel
+    if ( useHardwareAcceleration() ) {
+#ifndef Q_OS_MAC
+#ifdef Q_OS_LINUX
+        // linux nvidia support with CUDA Video
+        char newcodecname[128];
         snprintf(newcodecname, 128, "%s_cuvid", codec->name);
+        hwcodec = avcodec_find_decoder_by_name(newcodecname);
+#else
+        // TODO
+        // windows intel support with Intel Quick Sync Video
+        char newcodecname[128];
+        snprintf(newcodecname, 128, "%s_qsv", codec->name);
+        hwcodec = avcodec_find_decoder_by_name(newcodecname);
 #endif
-
-    hwcodec = avcodec_find_decoder_by_name(newcodecname);
+#endif
+    }
 
     return hwcodec;
 }

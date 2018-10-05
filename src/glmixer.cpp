@@ -3078,11 +3078,17 @@ void GLMixer::on_actionPreferences_triggered()
 
         int mem = VideoFile::getMemoryUsagePolicy();
         bool usepbo = RenderingManager::usePboExtension();
+        bool hwacc = CodecManager::useHardwareAcceleration();
 
         restorePreferences( upd->getUserPreferences() );
 
-        if (mem != VideoFile::getMemoryUsagePolicy() || usepbo != RenderingManager::usePboExtension()) {
-            QMessageBox::information(this, QCoreApplication::applicationName(), "Your preferences will be used to create new sources. \nTo apply the changes to the currently playing session, save it and reload.");
+        if ( !RenderingManager::getInstance()->empty()
+             && ( mem != VideoFile::getMemoryUsagePolicy()
+             || usepbo != RenderingManager::usePboExtension()
+             || hwacc != CodecManager::useHardwareAcceleration() )
+           )
+        {
+            QMessageBox::information(this, QCoreApplication::applicationName(), "Your preferences will only take effect for new sources.\nTo apply the changes to the sources in the current session, save session and reload.");
         }
 
     }
@@ -3288,6 +3294,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> activetiming;
     glRenderTimer::getInstance()->setActiveTimingMode(activetiming);
 
+    // ab. Hardware Codec
+    bool hwcodec = false;
+    stream >> hwcodec;
+    CodecManager::setHardwareAcceleration(hwcodec);
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3401,6 +3412,9 @@ QByteArray GLMixer::getPreferences() const {
     // aa. Single Instance
     stream << _singleInstanceEnabled;
     stream << glRenderTimer::getInstance()->isActiveTimingMode();
+
+    // ab. Hardware Codec
+    stream << CodecManager::useHardwareAcceleration();
 
     return data;
 }

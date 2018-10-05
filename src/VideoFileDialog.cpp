@@ -28,6 +28,7 @@
 #include <QLabel>
 
 #include "VideoFileDialog.moc"
+#include "CodecManager.h"
 
 VideoFileDialog::VideoFileDialog(QWidget * parent, const QString & caption) : QFileDialog(parent, caption) {
 
@@ -55,7 +56,7 @@ VideoFileDialog::VideoFileDialog(QWidget * parent, const QString & caption) : QF
     QObject::connect(pv, SIGNAL(toggled(bool)), this, SLOT(setPreviewVisible(bool)));
     pv->setChecked(true);
 
-    QObject::connect(this, SIGNAL(currentChanged ( const QString & )), preview, SLOT(showFilePreview(const QString &)));
+    QObject::connect(this, SIGNAL(currentChanged(const QString &)), SLOT(updatePreview(const QString &)));
 
 }
 
@@ -65,25 +66,25 @@ VideoFileDialog::~VideoFileDialog() {
     delete pv;
 }
 
-void VideoFileDialog::setPreviewVisible(bool visible){
-
+void VideoFileDialog::setPreviewVisible(bool visible)
+{
     preview->setVisible(visible);
     if (visible && !selectedFiles().empty())
         preview->showFilePreview( this->selectedFiles().first() );
 }
 
-bool VideoFileDialog::requestCustomSize(){
-
+bool VideoFileDialog::requestCustomSize()
+{
     return preview->customSizeCheckBox->isChecked();
 }
 
-bool VideoFileDialog::requestHarwareDecoder(){
-
+bool VideoFileDialog::requestHarwareDecoder()
+{
     return preview->hardwareDecodingcheckBox->isChecked();
 }
 
 
-void VideoFileDialog::showEvent ( QShowEvent *e )
+void VideoFileDialog::showEvent( QShowEvent *e )
 {
     // restore preview
     setPreviewVisible(pv->isChecked());
@@ -95,14 +96,37 @@ void VideoFileDialog::showEvent ( QShowEvent *e )
         resize(sizeHint());
     }
 
+    // do not offer hardware decoding option if not enabled
+    preview->hardwareDecodingcheckBox->setVisible(CodecManager::useHardwareAcceleration());
+
     QFileDialog::showEvent(e);
 }
 
-void VideoFileDialog::hideEvent ( QHideEvent *e )
+void VideoFileDialog::hideEvent( QHideEvent *e )
 {
     // close preview (necessary otherwise file remains open)
     preview->closeFilePreview();
     QFileDialog::hideEvent(e);
 }
 
+
+void VideoFileDialog::updatePreview(const QString &filename)
+{
+    file = QFileInfo(filename);
+
+    if ( file.exists() ) {
+        // do not try hardware decoding option if not enabled
+        if ( CodecManager::useHardwareAcceleration() ) {
+            // try hardware decoding
+            if ( CodecManager::supportsHardwareAcceleratedCodec(file.absoluteFilePath()) ) {
+                preview->hardwareDecodingcheckBox->setEnabled(true);
+            } else {
+                preview->hardwareDecodingcheckBox->setChecked(false);
+                preview->hardwareDecodingcheckBox->setEnabled(false);
+            }
+        }
+    }
+
+    preview->showFilePreview(file.absoluteFilePath(), preview->hardwareDecodingcheckBox->isChecked());
+}
 
