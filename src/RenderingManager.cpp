@@ -2547,7 +2547,14 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         QString pl = Playlist.text();
 
         newsource = RenderingManager::_instance->newBasketSource(fileNames, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), period, bidir, shuf, pl, depth);
-
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not create backet source.");
+            errors++;
+        }
+        else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                 << tr("Basket source created.");
 
     }
     else if ( type == Source::CLONE_SOURCE)
