@@ -657,11 +657,15 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
             QString filename = currentItem->getCustomMaskTexture();
             if (filename.isEmpty())
                 filename = getPNGFile(filename);
-            currentItem->setCustomMaskTexture( filename );
+            if (!filename.isEmpty()) {
+                // apply change to custom mask
+                currentItem->setCustomMaskTexture( filename );
+                currentItem->setMask( value );
+            }
         }
-
-        // apply change to mask
-        currentItem->setMask( value );
+        else
+            // apply change to mask
+            currentItem->setMask( value );
     }
     else if ( property == idToProperty["Filter"] ) {
         // set the current filter
