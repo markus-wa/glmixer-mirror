@@ -2803,17 +2803,25 @@ void GLMixer::drop(QDropEvent *event)
 QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
 {
     // fill side Bar URLS with standard locations
-    // (use a set to avoid duplicates)
-    QSet<QUrl> urls = sideurls.toSet();
+    QList<QUrl> urls = sideurls;
     urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
          << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
          << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
-         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
-         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
+        
+#ifdef Q_OS_WIN
     QFileInfoList driv = QDir::drives();
     while (!driv.isEmpty())
-         urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
-    return urls.toList();
+         urls << QUrl::fromLocalFile(driv.takeFirst().absoluteFilePath());
+#endif
+#ifdef Q_OS_MAC
+    QFileInfoList vol = QDir("/Volumes/").entryInfoList(QDir::Dirs);
+    vol.takeFirst();
+    while (!vol.isEmpty()) 
+        urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
+#endif
+
+    return urls;
 }
 
 void GLMixer::readSettings( QString pathtobin )
