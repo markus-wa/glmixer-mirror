@@ -34,6 +34,19 @@ extern "C"
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
+
+static enum AVPixelFormat get_hw_format_videotoolbox(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_VIDEOTOOLBOX)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_VIDEOTOOLBOX surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
 }
 
 #include "VideoFile.moc"
@@ -122,17 +135,20 @@ public:
         // allocate a frame to fill
         _pFrame = av_frame_alloc();
         Q_CHECK_PTR(_pFrame);
+        _tmpFrame = av_frame_alloc();
+        Q_CHECK_PTR(_tmpFrame);
     }
     ~DecodingThread()
     {
         // free the allocated frame
         av_frame_free(&_pFrame);
+        av_frame_free(&_tmpFrame);
     }
 
     void run();
 
 private:
-    AVFrame *_pFrame;
+    AVFrame *_pFrame, *_tmpFrame;
 };
 
 
@@ -423,33 +439,32 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
         return false;
     }
 
-
     // keep reference to video stream
     video_st = pFormatCtx->streams[videoStream];
     nb_frames = video_st->nb_frames;
 
-    // try to replace the codec with a better one (hardware accelerated)
-    // NB: this is only meaningful for videos, aka more than 1 frame
-    AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
-    if (hwcodec != NULL && nb_frames > 2) {
-        // find a potential match
-        hasHwCodec = true;
-    }
+    // // try to replace the codec with a better one (hardware accelerated)
+    // // NB: this is only meaningful for videos, aka more than 1 frame
+    // AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+    // if (hwcodec != NULL && nb_frames > 2) {
+    //     // find a potential match
+    //     hasHwCodec = true;
+    // }
 
-    // openning paramater asks to try to use hardware codec
-    if (hasHwCodec && tryHardwareCodec) {
-        // try to create video decoding context with harware accelerated codec
-        video_dec = avcodec_alloc_context3(hwcodec);
-        // does it work ?
-        if (video_dec) {
-            // good, let's use the hw codec !
-            codec = hwcodec;
-            qDebug() << filename << QChar(124).toLatin1()
-                     << tr("Using GPU accelerated %1.").arg(codec->long_name);
-            // remember use of hardware codec
-            useHwCodec = true;
-        }
-    }
+    // // openning paramater asks to try to use hardware codec
+    // if (hasHwCodec && tryHardwareCodec) {
+    //     // try to create video decoding context with harware accelerated codec
+    //     video_dec = avcodec_alloc_context3(hwcodec);
+    //     // does it work ?
+    //     if (video_dec) {
+    //         // good, let's use the hw codec !
+    //         codec = hwcodec;
+    //         qDebug() << filename << QChar(124).toLatin1()
+    //                  << tr("Using GPU accelerated %1.").arg(codec->long_name);
+    //         // remember use of hardware codec
+    //         useHwCodec = true;
+    //     }
+    // }
 
     // if video decoding context not already created (i.e. no hardware accelerated)
     if (!video_dec) {
@@ -472,6 +487,62 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
         close();
         return false;
     }
+
+
+///// BHBN TEST HW ACCELL
+
+//if (tryHardwareCodec) 
+{
+
+    AVBufferRef *hw_device_ctx = NULL;
+    enum AVPixelFormat hw_pix_fmt;
+    enum AVHWDeviceType type;
+
+    // try to get a hw config for the codec
+    const AVCodecHWConfig *config = avcodec_get_hw_config(codec, 0);
+    if (config) {
+        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
+
+            // found a valid hw configuration 
+            hw_pix_fmt = config->pix_fmt;
+            type = config->device_type;
+
+            // Create a hw context
+            if ( av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0) 
+                fprintf(stderr, "Failed to create harware acceleration context.\n");
+            else {
+
+                // set function for pixel format
+                switch (hw_pix_fmt) {
+                    case AV_PIX_FMT_VIDEOTOOLBOX:
+                        video_dec->get_format  = get_hw_format_videotoolbox;
+                    break;
+                    default:
+                        hw_pix_fmt = AV_PIX_FMT_NONE;
+                }
+
+                // set hw decoding context to the decoder
+                if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
+
+                    video_dec->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+
+                    // inform all ok
+                    fprintf(stderr, "Codec %s supports %s harware acceleration.\n",  codec->name, av_hwdevice_get_type_name(type));
+                }
+
+            }
+            
+        }
+        else 
+            fprintf(stderr, "Codec %s does not support %s hardware acceleration.\n", codec->name, av_hwdevice_get_type_name(config->device_type));
+    }
+    else        
+        fprintf(stderr, "Codec %s does not support hardware acceleration.\n", codec->name);
+
+}
+
+
+///// BHBN TEST HW ACCELL
 
     // options for decoder
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
@@ -778,7 +849,7 @@ double VideoFile::fill_first_frame(bool seek)
             else if ( frameFinished == AVERROR_EOF ||  frameFinished < 0 ) {
 #ifdef VIDEOFILE_DEBUG
                 fprintf(stderr, "\n%s - Error receive frame (%s).", qPrintable(filename), av_make_error_string(errstr, sizeof(errstr),retcd));
-            #endif
+#endif
                 trial = 499;
                 break;
             }
@@ -807,8 +878,25 @@ double VideoFile::fill_first_frame(bool seek)
     // we got the frame
     if (frameFilled) {
 
+        if (tmpframe && tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+            AVFrame *frame = av_frame_alloc();
+            /* retrieve data from GPU to CPU */
+            if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
+                fprintf(stderr, "Error transferring the data to system memory\n");
+                // free unused frame
+                av_frame_free(&frame);    
+            }
+            // success
+            else {
+                // free previous frame
+                av_frame_free(&tmpframe);
+                // swap frames
+                tmpframe = frame;
+            }
+        } 
+
         // convert it
-        if ( av_buffersrc_add_frame_flags(in_video_filter, tmpframe, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
+        if ( tmpframe && av_buffersrc_add_frame_flags(in_video_filter, tmpframe, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
 
             try {
                 // create the picture
@@ -1413,11 +1501,13 @@ void DecodingThread::run()
     int64_t previous_intpts = 0; // Previous decoding time stamp (checking for continuity)
     int error_count = 0;
     bool eof = false;
+    AVFrame *frame = NULL;
 
     while (is && !is->quit && !_forceQuit)
     {
         // start with clean frame
         av_frame_unref(_pFrame);
+        av_frame_unref(_tmpFrame);
 
         eof = false;
         /**
@@ -1540,16 +1630,28 @@ void DecodingThread::run()
                     break;
                 }
 
+
+frame = _pFrame;
+if ( _pFrame->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+    /* retrieve data from GPU to CPU */
+    if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
+        fprintf(stderr, "Error transferring the data to system memory\n");
+    }
+    else 
+        // use hw decoded frame
+        frame = _tmpFrame;
+} 
+
                 // by default, a frame will be displayed
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
                 // get packet decompression time stamp (dts)
                 intdts = 0;
-                if (_pFrame->pts != AV_NOPTS_VALUE)
-                    intdts = _pFrame->pts; // good case
-                else if (_pFrame->pkt_dts != AV_NOPTS_VALUE)
+                if (frame->pts != AV_NOPTS_VALUE)
+                    intdts = frame->pts; // good case
+                else if (frame->pkt_dts != AV_NOPTS_VALUE)
                     // bad case
-                    intdts = _pFrame->pkt_dts;
+                    intdts = frame->pkt_dts;
                 else
                     // increment if no valid pts given
                     intdts = previous_intpts + pkt->duration;
@@ -1563,13 +1665,13 @@ void DecodingThread::run()
                     actionFrame |= VideoPicture::ACTION_RESET_PTS;
 
                 // compute presentation time stamp
-                pts = is->synchronize_video(_pFrame, double(intdts) * av_q2d(is->video_st->time_base));
+                pts = is->synchronize_video(frame, double(intdts) * av_q2d(is->video_st->time_base));
 
 //                fprintf(stderr, "intdts = %d   pts = %f   %d", (int)intdts, pts, (int)pkt->duration);
 
                 // ?? WHY ? it is in ffplay...
                 if (is->video_st->sample_aspect_ratio.num) {
-                    _pFrame->sample_aspect_ratio = is->video_st->sample_aspect_ratio;
+                    frame->sample_aspect_ratio = is->video_st->sample_aspect_ratio;
                 }
 
                 // if seeking in decoded frames
@@ -1643,12 +1745,13 @@ void DecodingThread::run()
                     }
 
                     // add frame to the queue of pictures
-                    is->queue_picture(_pFrame, pts, actionFrame);
+                    is->queue_picture(frame, pts, actionFrame);
 //                    fprintf(stderr, "queue pic  pts = %f   ", pts);
                 }
 
                 // clean frame
                 av_frame_unref(_pFrame);
+                av_frame_unref(_tmpFrame);
 
             } // end while (frameFinished)
 
