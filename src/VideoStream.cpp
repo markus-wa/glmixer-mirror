@@ -499,6 +499,7 @@ bool VideoStream::openStream()
     AVDictionary *opts = NULL;       
     av_dict_set(&opts, "refcounted_frames", "1", 0);
     av_dict_set(&opts, "threads", "auto", 0);
+
     // init the video decoder
     if ( avcodec_open2(video_dec, codec, &opts) < 0 ) {
         qWarning() << codecname << QChar(124).toLatin1() << tr("Unsupported Codec.");

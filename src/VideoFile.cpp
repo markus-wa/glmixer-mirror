@@ -34,7 +34,10 @@ extern "C"
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
+#include <libavutil/pixdesc.h>
 
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 static enum AVPixelFormat get_hw_format_videotoolbox(AVCodecContext *ctx,
                                         const enum AVPixelFormat *pix_fmts)
 {
@@ -46,6 +49,19 @@ static enum AVPixelFormat get_hw_format_videotoolbox(AVCodecContext *ctx,
     fprintf(stderr, "Failed to get AV_PIX_FMT_VIDEOTOOLBOX surface format.\n");
     return AV_PIX_FMT_NONE;
 }
+
+static enum AVPixelFormat get_hw_format_directxva2(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_DXVA2_VLD)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+#endif
 
 }
 
@@ -489,6 +505,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     }
 
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 ///// BHBN TEST HW ACCELL
 
 //if (tryHardwareCodec) 
@@ -506,6 +523,9 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
             // found a valid hw configuration 
             hw_pix_fmt = config->pix_fmt;
             type = config->device_type;
+            
+            fprintf(stderr, "Trying codec %s supports %s harware acceleration with %s pixel format.\n",  codec->name, av_hwdevice_get_type_name(type), av_pix_fmt_desc_get(hw_pix_fmt)->name);
+
 
             // Create a hw context
             if ( av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0) 
@@ -516,6 +536,9 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
                 switch (hw_pix_fmt) {
                     case AV_PIX_FMT_VIDEOTOOLBOX:
                         video_dec->get_format  = get_hw_format_videotoolbox;
+                    break;
+                    case AV_PIX_FMT_DXVA2_VLD:
+                        video_dec->get_format  = get_hw_format_directxva2;
                     break;
                     default:
                         hw_pix_fmt = AV_PIX_FMT_NONE;
@@ -529,6 +552,8 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
                     // inform all ok
                     fprintf(stderr, "Codec %s supports %s harware acceleration.\n",  codec->name, av_hwdevice_get_type_name(type));
                 }
+                else        
+                    fprintf(stderr, "Codec %s does not support hardware acceleration pixel format.\n", codec->name);
 
             }
             
@@ -543,6 +568,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
 
 
 ///// BHBN TEST HW ACCELL
+#endif
 
     // options for decoder
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
@@ -878,7 +904,8 @@ double VideoFile::fill_first_frame(bool seek)
     // we got the frame
     if (frameFilled) {
 
-        if (tmpframe && tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+        if (tmpframe && tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX || tmpframe->format == AV_PIX_FMT_DXVA2_VLD) {
             AVFrame *frame = av_frame_alloc();
             /* retrieve data from GPU to CPU */
             if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
@@ -894,6 +921,7 @@ double VideoFile::fill_first_frame(bool seek)
                 tmpframe = frame;
             }
         } 
+#endif
 
         // convert it
         if ( tmpframe && av_buffersrc_add_frame_flags(in_video_filter, tmpframe, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
@@ -1631,16 +1659,18 @@ void DecodingThread::run()
                 }
 
 
-frame = _pFrame;
-if ( _pFrame->format == AV_PIX_FMT_VIDEOTOOLBOX) {
-    /* retrieve data from GPU to CPU */
-    if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
-        fprintf(stderr, "Error transferring the data to system memory\n");
-    }
-    else 
-        // use hw decoded frame
-        frame = _tmpFrame;
-} 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+                frame = _pFrame;
+                if ( _pFrame->format == AV_PIX_FMT_VIDEOTOOLBOX || _pFrame->format == AV_PIX_FMT_DXVA2_VLD) {
+                    /* retrieve data from GPU to CPU */
+                    if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
+                        fprintf(stderr, "Error transferring the data to system memory\n");
+                    }
+                    else 
+                        // use hw decoded frame
+                        frame = _tmpFrame;
+                } 
+#endif
 
                 // by default, a frame will be displayed
                 VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;

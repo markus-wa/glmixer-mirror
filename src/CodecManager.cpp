@@ -4,9 +4,7 @@
 extern "C"
 {
 #include <libavutil/common.h>
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
-#endif
 }
 
 CodecManager *CodecManager::_instance = 0;
@@ -423,18 +421,18 @@ AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
     // only if configured to use HW accel
     if ( useHardwareAcceleration() ) {
 #ifndef Q_OS_MAC
-#ifdef Q_OS_LINUX
+
         // linux nvidia support with CUDA Video
         char newcodecname[128];
-        snprintf(newcodecname, 128, "%s_cuvid", codec->name);
-        hwcodec = avcodec_find_decoder_by_name(newcodecname);
-#else
-        // TODO
-        // windows intel support with Intel Quick Sync Video
-        char newcodecname[128];
-        snprintf(newcodecname, 128, "%s_qsv", codec->name);
-        hwcodec = avcodec_find_decoder_by_name(newcodecname);
-#endif
+       snprintf(newcodecname, 128, "%s_cuvid", codec->name);
+       hwcodec = avcodec_find_decoder_by_name(newcodecname);
+
+        // // TODO
+        // // windows intel support with Intel Quick Sync Video
+        // char newcodecname[128];
+        //  snprintf(newcodecname, 128, "%s_qsv", codec->name);
+        //  hwcodec = avcodec_find_decoder_by_name(newcodecname);
+
 #endif
     }
 

@@ -65,6 +65,7 @@ build() {
     --enable-fontconfig \
     --enable-gnutls \
     --enable-gpl \
+    --enable-nonfree \
     --enable-libass \
     --enable-libcelt \
     --enable-libfreetype \
@@ -91,13 +92,7 @@ build() {
     --enable-version3 \
     --enable-zlib \
     --enable-libaom \
-    --enable-cuda \
-    --enable-cuvid \
-    --enable-nvenc \
-    --enable-nonfree \
-    --enable-libnpp \
-    --extra-cflags=-I/opt/cuda/include \
-    --extra-ldflags=-L/opt/cuda/lib/x64
+    --enable-dxva2
 
   make
 }
