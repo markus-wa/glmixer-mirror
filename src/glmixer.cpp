@@ -2808,7 +2808,7 @@ QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
          << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
          << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
          << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
-        
+
 #ifdef Q_OS_WIN
     QFileInfoList driv = QDir::drives();
     while (!driv.isEmpty())
@@ -2816,9 +2816,17 @@ QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
 #endif
 #ifdef Q_OS_MAC
     QFileInfoList vol = QDir("/Volumes/").entryInfoList(QDir::Dirs);
-    vol.takeFirst();
-    while (!vol.isEmpty()) 
-        urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
+    if (!vol.isEmpty()) {
+        vol.takeFirst();
+        while (!vol.isEmpty())
+            urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
+    }
+#endif
+#ifdef Q_OS_UNIX
+    QFileInfoList vol = QDir("/media/").entryInfoList(QDir::Dirs);
+    if (!vol.isEmpty())
+            urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
+
 #endif
 
     return urls;

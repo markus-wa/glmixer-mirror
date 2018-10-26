@@ -692,6 +692,8 @@ protected:
     double current_frame_pts;
     QTimer *ptimer;
     VideoClock _videoClock;
+    double play_speed;
+    bool smooth_stop;
 
     // picture queue management
     int pictq_max_count;
