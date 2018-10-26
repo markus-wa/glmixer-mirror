@@ -133,8 +133,23 @@ int VideoFile::getPlaySpeedFactor()
 
 double VideoFile::getPlaySpeed()
 {
-    return _videoClock.speed();
+    return play_speed;
 }
+
+void VideoFile::setPlaySpeed(double s)
+{
+    // change the picture queue size according to play speed
+    // this is because, in principle, more frames are skipped when play faster
+    // and we empty the queue faster
+    //    double sizeq = qBound(2.0, (double) nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
+    //    sizeq *= s;
+    //    pictq_max_count = qBound(2, (int) sizeq, (int) nb_frames);
+
+    play_speed = s;
+    _videoClock.setSpeed( play_speed );
+    emit playSpeedChanged( play_speed );
+}
+
 
 /**
  * *
@@ -194,6 +209,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     mark_in = 0.0;
     mark_out = 0.0;
     mark_stop = 0.0;
+    play_speed = 1.0;
     targetFormat = AV_PIX_FMT_RGB24;
 
     // Contruct some objects
@@ -222,6 +238,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
+    smooth_stop = false;
     useHwCodec = false;  // by default do not use hardware codec
     hasHwCodec = false;
 
@@ -399,22 +416,6 @@ void VideoFile::start()
 }
 
 
-void VideoFile::setPlaySpeed(double s)
-{
-    // change the picture queue size according to play speed
-    // this is because, in principle, more frames are skipped when play faster
-    // and we empty the queue faster
-    //    double sizeq = qBound(2.0, (double) nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
-
-    //    sizeq *= s;
-
-    //    pictq_max_count = qBound(2, (int) sizeq, (int) nb_frames);
-
-    _videoClock.setSpeed( s );
-    emit playSpeedChanged(s);
-}
-
-
 
 int VideoFile::getNumFrames() const {
     return nb_frames;
@@ -508,7 +509,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 ///// BHBN TEST HW ACCELL
 
-//if (tryHardwareCodec) 
+//if (tryHardwareCodec)
 {
 
     AVBufferRef *hw_device_ctx = NULL;
@@ -520,15 +521,15 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     if (config) {
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
 
-            // found a valid hw configuration 
+            // found a valid hw configuration
             hw_pix_fmt = config->pix_fmt;
             type = config->device_type;
-            
+
             fprintf(stderr, "Trying codec %s supports %s harware acceleration with %s pixel format.\n",  codec->name, av_hwdevice_get_type_name(type), av_pix_fmt_desc_get(hw_pix_fmt)->name);
 
 
             // Create a hw context
-            if ( av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0) 
+            if ( av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0)
                 fprintf(stderr, "Failed to create harware acceleration context.\n");
             else {
 
@@ -552,16 +553,16 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
                     // inform all ok
                     fprintf(stderr, "Codec %s supports %s harware acceleration.\n",  codec->name, av_hwdevice_get_type_name(type));
                 }
-                else        
+                else
                     fprintf(stderr, "Codec %s does not support hardware acceleration pixel format.\n", codec->name);
 
             }
-            
+
         }
-        else 
+        else
             fprintf(stderr, "Codec %s does not support %s hardware acceleration.\n", codec->name, av_hwdevice_get_type_name(config->device_type));
     }
-    else        
+    else
         fprintf(stderr, "Codec %s does not support hardware acceleration.\n", codec->name);
 
 }
@@ -911,7 +912,7 @@ double VideoFile::fill_first_frame(bool seek)
             if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
                 fprintf(stderr, "Error transferring the data to system memory\n");
                 // free unused frame
-                av_frame_free(&frame);    
+                av_frame_free(&frame);
             }
             // success
             else {
@@ -920,7 +921,7 @@ double VideoFile::fill_first_frame(bool seek)
                 // swap frames
                 tmpframe = frame;
             }
-        } 
+        }
 #endif
 
         // convert it
@@ -1658,18 +1659,19 @@ void DecodingThread::run()
                     break;
                 }
 
+                // change var name
+                frame = _pFrame;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-                frame = _pFrame;
                 if ( _pFrame->format == AV_PIX_FMT_VIDEOTOOLBOX || _pFrame->format == AV_PIX_FMT_DXVA2_VLD) {
                     /* retrieve data from GPU to CPU */
                     if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
                         fprintf(stderr, "Error transferring the data to system memory\n");
                     }
-                    else 
+                    else
                         // use hw decoded frame
                         frame = _tmpFrame;
-                } 
+                }
 #endif
 
                 // by default, a frame will be displayed
