@@ -538,7 +538,7 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
         emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 
         // make sure no other events are accepted until the end of the transition
-        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
         proxyView->setEnabled(false);
         QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
 
@@ -831,8 +831,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
         // single clic to select next session
         proxyView->setToolTip("Double click on a session to choose target session");
-        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
 
     }
     // mode is automatic
@@ -842,8 +842,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         proxyView->setEnabled(true);
         //  activate transition to next session (double clic or Return)
         proxyView->setToolTip("Double click on a session to initiate the transition");
-        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
 
         easingCurvePicker->scrollToItem(easingCurvePicker->item( easingCurvePicker->currentRow() ), QAbstractItemView::PositionAtCenter );
     }
