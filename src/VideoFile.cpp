@@ -916,7 +916,7 @@ double VideoFile::fill_first_frame(bool seek)
     if (frameFilled) {
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-        if (tmpframe && tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX || tmpframe->format == AV_PIX_FMT_DXVA2_VLD) {
+        if (tmpframe && ( tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX || tmpframe->format == AV_PIX_FMT_DXVA2_VLD ) ) {
             AVFrame *frame = av_frame_alloc();
             /* retrieve data from GPU to CPU */
             if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
