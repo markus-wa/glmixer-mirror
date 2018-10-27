@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1256</width>
-    <height>859</height>
+    <width>1751</width>
+    <height>1064</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -842,8 +842,8 @@ border-bottom-left-radius: 5px;
            </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>34</height>
+             <width>56</width>
+             <height>40</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1741,8 +1741,8 @@ QToolButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1256</width>
-     <height>21</height>
+     <width>1751</width>
+     <height>27</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -3431,31 +3431,6 @@ QToolButton:hover {
    <addaction name="actionPause_recording"/>
    <addaction name="actionSave_snapshot"/>
   </widget>
-  <widget class="QToolBar" name="sourceControlToolBar">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="windowTitle">
-    <string>Control selection</string>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>24</width>
-     <height>24</height>
-    </size>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionSourcePlay"/>
-   <addaction name="actionSourcePause"/>
-   <addaction name="actionSourceRestart"/>
-   <addaction name="actionSourceSeekBackward"/>
-   <addaction name="actionSourceSeekForward"/>
-  </widget>
   <widget class="QDockWidget" name="layoutDockWidget">
    <property name="enabled">
     <bool>true</bool>
@@ -3503,8 +3478,8 @@ QToolButton:hover {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>270</width>
-          <height>68</height>
+          <width>277</width>
+          <height>70</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -3753,18 +3728,6 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="tagsDockWidgetContent">
     <layout class="QVBoxLayout" name="tagsDockWidgetContentLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
-      <number>6</number>
-     </property>
      <item>
       <layout class="QHBoxLayout" name="buttonsselectlayout">
        <property name="spacing">
@@ -3811,6 +3774,81 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="buttonSelectClear">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_25">
+       <item>
+        <widget class="QToolButton" name="buttonSelectionPlay">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="buttonSelectionPause">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="buttonSelectionRestart">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="buttonSelectionSeekBackward">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="buttonSelectionSeekForward">
          <property name="text">
           <string>...</string>
          </property>

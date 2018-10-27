@@ -232,7 +232,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
     toolBarsMenu->addAction(toolsToolBar->toggleViewAction());
     toolBarsMenu->addAction(renderingToolBar->toggleViewAction());
-    toolBarsMenu->addAction(sourceControlToolBar->toggleViewAction());
 
     QActionGroup *viewActions = new QActionGroup(this);
     Q_CHECK_PTR(viewActions);
@@ -415,6 +414,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     tagsManager = new TagsManager(this);
     tagsDockWidgetContentLayout->addWidget(tagsManager);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
+
 #else
     // DISABLE TAG MANAGER
     delete tagsDockWidget;
@@ -625,6 +625,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     buttonSelectAll->setDefaultAction(actionSelectAll);
     buttonSelectInvert->setDefaultAction(actionSelectInvert);
     buttonSelectClear->setDefaultAction(actionSelectNone);
+    buttonSelectionPlay->setDefaultAction(actionSourcePlay);
+    buttonSelectionPause->setDefaultAction(actionSourcePause);
+    buttonSelectionRestart->setDefaultAction(actionSourceRestart);
+    buttonSelectionSeekBackward->setDefaultAction(actionSourceSeekBackward);
+    buttonSelectionSeekForward->setDefaultAction(actionSourceSeekForward);
     QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
     QObject::connect(actionSelectInvert, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(invertSelection()));
     QObject::connect(actionSelectCurrent, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectCurrentSource()));
@@ -3500,10 +3505,10 @@ void GLMixer::updateStatusControlActions() {
     }
 
     sourceControlMenu->setEnabled( playEnabled );
-    sourceControlToolBar->setEnabled( playEnabled );
+    actionSourcePlay->setEnabled( controlsEnabled );
+    actionSourcePause->setEnabled( controlsEnabled );
     actionSourceRestart->setEnabled( controlsEnabled );
     actionSourceSeekBackward->setEnabled( controlsEnabled );
-    actionSourcePause->setEnabled( controlsEnabled );
     actionSourceSeekForward->setEnabled( controlsEnabled );
 
     actionDeleteSource->setEnabled(clipboardEnabled);
