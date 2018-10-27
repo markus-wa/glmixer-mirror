@@ -461,6 +461,8 @@ public slots:
      *
      * @param pause If argument is true, pauses the reading of the video, if it is false, resumes play.
      */
+    void suspend();
+    void resume();
     void pause(bool pause);
     /**
      *  Set the IN mark to the movie first frame.
@@ -694,9 +696,9 @@ protected:
     QTimer *ptimer;
     VideoClock *pclock;
     double play_speed;
-    bool smooth_stop;
-    int smooth_stop_duration;
-    QPropertyAnimation *smooth_stop_animation;
+    bool smooth_pause;
+    int smooth_pause_duration;
+    QPropertyAnimation *smooth_pause_animation;
 
     // picture queue management
     int pictq_max_count;

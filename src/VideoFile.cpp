@@ -107,55 +107,10 @@ int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
 
 void VideoFile::play(bool startorstop)
 {
-    // using smooth stop
-    if (smooth_stop) {
-
-        // cancel all animation
-        if (smooth_stop_animation->state() == QAbstractAnimation::Running )
-            smooth_stop_animation->stop();
-
-        // set duration
-        smooth_stop_animation->setDuration(smooth_stop_duration);
-        // init to current speed
-        smooth_stop_animation->setStartValue( pclock->speed() );
-
-        // schedule start
-        if (startorstop)
-        {
-            // do not stop at end
-            QObject::disconnect(smooth_stop_animation, SIGNAL(finished()), this, SLOT(stop()) );
-
-            // set target for start
-            smooth_stop_animation->setEasingCurve(QEasingCurve::InQuad);
-            smooth_stop_animation->setEndValue( play_speed );
-
-            // start playing
-            start();
-
-        }
-        // schedule stop
-        else {
-            // stop at the end
-            QObject::connect(smooth_stop_animation, SIGNAL(finished()), this, SLOT(stop()) );
-
-            // set target for stop
-            smooth_stop_animation->setEasingCurve(QEasingCurve::OutQuad);
-            smooth_stop_animation->setEndValue( 0.1 );
-
-        }
-
-        // initiate animation
-        smooth_stop_animation->start();
-
-    }
-    // not using smooth stop
-    else {
-        // immediate action
-        if (startorstop)
-            start();
-        else
-            stop();
-    }
+    if (startorstop)
+        start();
+    else
+        stop();
 }
 
 void VideoFile::setPlaySpeedFactor(int s)
@@ -289,11 +244,11 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     // initialize clock control
     pclock = new VideoClock(this);
     Q_CHECK_PTR(pclock);
-    smooth_stop = false;
-    smooth_stop_duration = 3000;
-    smooth_stop_animation = new QPropertyAnimation(pclock, "speed");
-    Q_CHECK_PTR(smooth_stop_animation);
-    smooth_stop_animation->setDuration(smooth_stop_duration);
+    smooth_pause = true;
+    smooth_pause_duration = 3000;
+    smooth_pause_animation = new QPropertyAnimation(pclock, "speed");
+    Q_CHECK_PTR(smooth_pause_animation);
+    smooth_pause_animation->setDuration(smooth_pause_duration);
 
     // reset
     quit = true; // not running yet
@@ -363,7 +318,7 @@ VideoFile::~VideoFile()
     delete seek_cond;
     delete ptimer;
     delete pclock;
-    delete smooth_stop_animation;
+    delete smooth_pause_animation;
 
 #ifdef VIDEOFILE_DEBUG
     fprintf(stderr, "\n%s - Media deleted.", qPrintable(filename));
@@ -1885,12 +1840,71 @@ void DecodingThread::run()
 }
 
 
+void VideoFile::suspend()
+{
+    pclock->pause(true);
+    emit paused(true);
+}
+
+void VideoFile::resume()
+{
+    pclock->pause(false);
+    emit paused(false);
+}
+
 void VideoFile::pause(bool pause)
 {
     if (!quit && pause != pclock->paused() )
     {
-        pclock->pause(pause);
-        emit paused(pause);
+
+        // using smoothing
+        if (smooth_pause) {
+
+            // cancel all animation
+            if (smooth_pause_animation->state() == QAbstractAnimation::Running )
+                smooth_pause_animation->stop();
+
+            // set duration
+            smooth_pause_animation->setDuration(smooth_pause_duration);
+            // init to current speed
+            smooth_pause_animation->setStartValue( pclock->speed() );
+
+            // smooth suspend
+            if (pause)
+            {
+                // suspend at the end
+                QObject::connect(smooth_pause_animation, SIGNAL(finished()), this, SLOT(suspend()) );
+
+                // set target for stop
+                smooth_pause_animation->setEasingCurve(QEasingCurve::OutQuad);
+                smooth_pause_animation->setEndValue( 0.1 );
+
+            }
+            // smooth resume
+            else {
+
+                // do not suspend at end
+                QObject::disconnect(smooth_pause_animation, SIGNAL(finished()), this, SLOT(suspend()) );
+
+                // set target for start
+                smooth_pause_animation->setEasingCurve(QEasingCurve::InQuad);
+                smooth_pause_animation->setEndValue( play_speed );
+
+                // start playing
+                resume();
+            }
+
+            // initiate animation
+            smooth_pause_animation->start();
+
+        }
+        // not using smoothing
+        else {
+
+            pclock->pause(pause);
+            emit paused(pause);
+        }
+
     }
 }
 
