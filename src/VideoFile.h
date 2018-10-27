@@ -40,6 +40,7 @@ extern "C" {
 #include <QTimer>
 #include <QFile>
 #include <QTextStream>
+#include <QPropertyAnimation>
 
 #include "VideoClock.h"
 #include "VideoPicture.h"
@@ -691,9 +692,11 @@ protected:
     double video_pts;
     double current_frame_pts;
     QTimer *ptimer;
-    VideoClock _videoClock;
+    VideoClock *pclock;
     double play_speed;
     bool smooth_stop;
+    int smooth_stop_duration;
+    QPropertyAnimation *smooth_stop_animation;
 
     // picture queue management
     int pictq_max_count;

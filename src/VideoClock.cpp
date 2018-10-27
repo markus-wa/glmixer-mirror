@@ -5,7 +5,7 @@ extern "C"
 #include <libavutil/common.h>
 }
 
-#include "VideoClock.h"
+#include "VideoClock.moc"
 
 
 /**
@@ -15,7 +15,7 @@ extern "C"
 
 
 
-VideoClock::VideoClock()  {
+VideoClock::VideoClock(QObject *parent) : QObject(parent) {
     _requested_speed = -1.0;
     _speed = 1.0;
     _frame_base = 0.04;

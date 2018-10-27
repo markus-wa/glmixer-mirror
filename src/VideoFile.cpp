@@ -107,10 +107,55 @@ int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
 
 void VideoFile::play(bool startorstop)
 {
-    if (startorstop)
-        start();
-    else
-        stop();
+    // using smooth stop
+    if (smooth_stop) {
+
+        // cancel all animation
+        if (smooth_stop_animation->state() == QAbstractAnimation::Running )
+            smooth_stop_animation->stop();
+
+        // set duration
+        smooth_stop_animation->setDuration(smooth_stop_duration);
+        // init to current speed
+        smooth_stop_animation->setStartValue( pclock->speed() );
+
+        // schedule start
+        if (startorstop)
+        {
+            // do not stop at end
+            QObject::disconnect(smooth_stop_animation, SIGNAL(finished()), this, SLOT(stop()) );
+
+            // set target for start
+            smooth_stop_animation->setEasingCurve(QEasingCurve::InQuad);
+            smooth_stop_animation->setEndValue( play_speed );
+
+            // start playing
+            start();
+
+        }
+        // schedule stop
+        else {
+            // stop at the end
+            QObject::connect(smooth_stop_animation, SIGNAL(finished()), this, SLOT(stop()) );
+
+            // set target for stop
+            smooth_stop_animation->setEasingCurve(QEasingCurve::OutQuad);
+            smooth_stop_animation->setEndValue( 0.1 );
+
+        }
+
+        // initiate animation
+        smooth_stop_animation->start();
+
+    }
+    // not using smooth stop
+    else {
+        // immediate action
+        if (startorstop)
+            start();
+        else
+            stop();
+    }
 }
 
 void VideoFile::setPlaySpeedFactor(int s)
@@ -146,7 +191,7 @@ void VideoFile::setPlaySpeed(double s)
     //    pictq_max_count = qBound(2, (int) sizeq, (int) nb_frames);
 
     play_speed = s;
-    _videoClock.setSpeed( play_speed );
+    pclock->setSpeed( play_speed );
     emit playSpeedChanged( play_speed );
 }
 
@@ -238,9 +283,17 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
-    smooth_stop = false;
     useHwCodec = false;  // by default do not use hardware codec
     hasHwCodec = false;
+
+    // initialize clock control
+    pclock = new VideoClock(this);
+    Q_CHECK_PTR(pclock);
+    smooth_stop = false;
+    smooth_stop_duration = 3000;
+    smooth_stop_animation = new QPropertyAnimation(pclock, "speed");
+    Q_CHECK_PTR(smooth_stop_animation);
+    smooth_stop_animation->setDuration(smooth_stop_duration);
 
     // reset
     quit = true; // not running yet
@@ -309,6 +362,8 @@ VideoFile::~VideoFile()
     delete seek_mutex;
     delete seek_cond;
     delete ptimer;
+    delete pclock;
+    delete smooth_stop_animation;
 
 #ifdef VIDEOFILE_DEBUG
     fprintf(stderr, "\n%s - Media deleted.", qPrintable(filename));
@@ -326,7 +381,7 @@ void VideoFile::reset()
 
     // if reset after openning, reset clock and indicate time base
     if (video_st && frame_rate > 0)
-        _videoClock.reset(0.0, 1.0 / frame_rate);
+        pclock->reset(0.0, 1.0 / frame_rate);
 }
 
 void VideoFile::stop()
@@ -977,7 +1032,7 @@ void VideoFile::video_refresh_timer()
         // if all is in order, deal with the picture in the queue
         // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
         // NB: if paused BUT the first pict in the queue is tagged for ACTION_RESET_PTS, then still proceed
-        if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
+        if (video_st && !pictq.empty() && (!pclock->paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
         {
 
             // now working on the head of the queue, that we take off the queue
@@ -1002,7 +1057,7 @@ void VideoFile::video_refresh_timer()
     if (currentvp)
     {
         // deal with speed change before setting up the frame
-        _videoClock.applyRequestedSpeed();
+        pclock->applyRequestedSpeed();
 
         // store time of this current frame
         current_frame_pts =  currentvp->getPts();
@@ -1018,7 +1073,7 @@ void VideoFile::video_refresh_timer()
         // this frame was tagged to reset the timer (seeking frame usually)
         if ( currentvp->hasAction(VideoPicture::ACTION_RESET_PTS) ) {
             // reset clock to the time of the frame
-            _videoClock.reset(current_frame_pts);
+            pclock->reset(current_frame_pts);
             // inform that seeking is done
             emit seekEnabled(true);
         }
@@ -1041,13 +1096,13 @@ void VideoFile::video_refresh_timer()
                 // if next frame we will be seeking
                 if ( nextvp->hasAction(VideoPicture::ACTION_RESET_PTS) )
                     // update at normal fps, discarding computing of delay
-                    delay = _videoClock.timeBase();
+                    delay = pclock->timeBase();
                 else
                     // otherwise read presentation time and compute delay till next frame
-                    delay = ( nextvp->getPts() - _videoClock.time() ) / _videoClock.speed() ;
+                    delay = ( nextvp->getPts() - pclock->time() ) / pclock->speed() ;
 
                 // if delay is correct
-                if ( delay > _videoClock.minFrameDelay() ) {
+                if ( delay > pclock->minFrameDelay() ) {
                     // schedule normal delayed display of next frame
                     ptimer_delay = (int) (delay * 1000.0);
 
@@ -1055,7 +1110,7 @@ void VideoFile::video_refresh_timer()
                 } else {
 
                     // retry shortly (but not too fast to avoid glitches)
-                    ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
+                    ptimer_delay = (int) (pclock->minFrameDelay() * 1000.0);
 
                     // remove the show tag for that frame (i.e. skip it)
                     nextvp->removeAction(VideoPicture::ACTION_SHOW);
@@ -1067,7 +1122,7 @@ void VideoFile::video_refresh_timer()
             else {
 
 //                _videoClock.reset(current_frame_pts);
-                ptimer_delay = (int) (_videoClock.timeBase() * 1000.0);
+                ptimer_delay = (int) (pclock->timeBase() * 1000.0);
 
             }
         }
@@ -1078,7 +1133,7 @@ void VideoFile::video_refresh_timer()
         }
 
         if (fast_forward) {
-            _videoClock.reset(current_frame_pts);
+            pclock->reset(current_frame_pts);
             ptimer_delay = UPDATE_SLEEP_DELAY;
         }
 
@@ -1144,7 +1199,7 @@ void VideoFile::seekToPosition(double t)
         emit seekEnabled(false);
 
         // if paused, unpause for 1 frame
-        if ( _videoClock.paused() )
+        if ( pclock->paused() )
             seekForwardOneFrame();
     }
 }
@@ -1832,15 +1887,15 @@ void DecodingThread::run()
 
 void VideoFile::pause(bool pause)
 {
-    if (!quit && pause != _videoClock.paused() )
+    if (!quit && pause != pclock->paused() )
     {
-        _videoClock.pause(pause);
+        pclock->pause(pause);
         emit paused(pause);
     }
 }
 
 bool VideoFile::isPaused() const {
-    return _videoClock.paused();
+    return pclock->paused();
 }
 
 void VideoFile::setMemoryUsagePolicy(int percent)

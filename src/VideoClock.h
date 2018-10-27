@@ -1,9 +1,13 @@
 #ifndef VIDEOCLOCK_H
 #define VIDEOCLOCK_H
 
+#include <QObject>
 
-class VideoClock
+class VideoClock : public QObject
 {
+    Q_OBJECT
+    Q_PROPERTY(double speed READ speed WRITE setSpeed)
+
     bool _paused;
     double _speed;
     double _time_on_start;
@@ -14,10 +18,9 @@ class VideoClock
     double _requested_speed;
 
 public:
-    VideoClock();
+    VideoClock(QObject *parent = 0);
     void reset(double deltat, double timebase = -1.0);
     void pause(bool);
-    void setSpeed(double);
     void applyRequestedSpeed();
 
     bool paused() const;
@@ -26,6 +29,11 @@ public:
     double timeBase() const;
     double minFrameDelay() const;
     double maxFrameDelay() const;
+
+public slots:
+    void setSpeed(double);
+
+
 };
 
 #endif // VIDEOCLOCK_H
