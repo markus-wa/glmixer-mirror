@@ -463,7 +463,7 @@ public slots:
      */
     void suspend();
     void resume();
-    void pause(bool pause);
+    void pause(bool pause, int smooth = 0);
     /**
      *  Set the IN mark to the movie first frame.
      */
@@ -696,8 +696,6 @@ protected:
     QTimer *ptimer;
     VideoClock *pclock;
     double play_speed;
-    bool smooth_pause;
-    int smooth_pause_duration;
     QPropertyAnimation *smooth_pause_animation;
 
     // picture queue management

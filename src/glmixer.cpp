@@ -412,9 +412,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef GLM_TAG
     // setup the tags toolbox
     tagsManager = new TagsManager(this);
-    tagsDockWidgetContentLayout->addWidget(tagsManager);
+    tagsDockWidgetContentLayout->insertWidget(1, tagsManager);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
-
+    QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), tagsManager, SLOT(connectSelection(bool)));
 #else
     // DISABLE TAG MANAGER
     delete tagsDockWidget;
@@ -635,9 +635,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionSelectCurrent, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectCurrentSource()));
     QObject::connect(actionSelectNone, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(clearSelection()));
 
+    // connect selection manager with GUI
+    updateStatusControlActions();
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), this, SLOT(updateStatusControlActions()));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
+
 
     // Setup the timeline
     timeLineEdit->setFont( QFont(getMonospaceFont(), 9) );
@@ -3506,6 +3509,7 @@ void GLMixer::updateStatusControlActions() {
     sourceControlMenu->setEnabled( playEnabled );
     actionSourcePlay->setEnabled( controlsEnabled );
     actionSourcePause->setEnabled( controlsEnabled );
+    selectionPause->setEnabled( controlsEnabled );
     actionSourceRestart->setEnabled( controlsEnabled );
     actionSourceSeekBackward->setEnabled( controlsEnabled );
     actionSourceSeekForward->setEnabled( controlsEnabled );
@@ -3580,17 +3584,20 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
 
 void GLMixer::on_actionSourcePause_triggered(){
 
+    // read value of smooth pause
+    int smooth = qRound( smoothSelectionPause->value() * 1000.0 );
+
     // toggle pause/resume of current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs) && currentVideoFile )
-        currentVideoFile->pause(!currentVideoFile->isPaused());
+        currentVideoFile->pause(!currentVideoFile->isPaused(), smooth);
 
     // loop over the selection and toggle pause/resume of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
             if ( vf )
-                vf->pause(!vf->isPaused());
+                vf->pause(!vf->isPaused(), smooth);
         }
 }
 

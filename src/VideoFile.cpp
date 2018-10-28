@@ -244,11 +244,9 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     // initialize clock control
     pclock = new VideoClock(this);
     Q_CHECK_PTR(pclock);
-    smooth_pause = true;
-    smooth_pause_duration = 3000;
     smooth_pause_animation = new QPropertyAnimation(pclock, "speed");
     Q_CHECK_PTR(smooth_pause_animation);
-    smooth_pause_animation->setDuration(smooth_pause_duration);
+    smooth_pause_animation->setDuration(100);
 
     // reset
     quit = true; // not running yet
@@ -1852,20 +1850,20 @@ void VideoFile::resume()
     emit paused(false);
 }
 
-void VideoFile::pause(bool pause)
+void VideoFile::pause(bool pause, int smooth)
 {
     if (!quit && pause != pclock->paused() )
     {
 
         // using smoothing
-        if (smooth_pause) {
+        if (smooth > 20) {
 
             // cancel all animation
             if (smooth_pause_animation->state() == QAbstractAnimation::Running )
                 smooth_pause_animation->stop();
 
             // set duration
-            smooth_pause_animation->setDuration(smooth_pause_duration);
+            smooth_pause_animation->setDuration(smooth);
             // init to current speed
             smooth_pause_animation->setStartValue( pclock->speed() );
 

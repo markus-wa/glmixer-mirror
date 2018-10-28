@@ -36,6 +36,8 @@ public slots:
 
     // Source to operate
     void connectSource(SourceSet::iterator);
+    // Selection to operate
+    void connectSelection(bool);
 
 protected slots:
     void deselectItem();

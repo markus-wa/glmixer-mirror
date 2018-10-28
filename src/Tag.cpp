@@ -10,11 +10,11 @@ void Tag::initialize()
         // item 0 : default tag
         _tags.append( new Tag("Yellow", QColor(255,255,60)) );
         // other tags
-        _tags.append( new Tag("Cyan", QColor(0, 255, 220)) );
         _tags.append( new Tag("Orange", QColor(255, 150, 0)) );
         _tags.append( new Tag("Red", QColor(255, 30, 30)) );
         _tags.append( new Tag("Purple", QColor(160, 100, 255)) );
         _tags.append( new Tag("Blue", QColor(30, 170, 255)) );
+        _tags.append( new Tag("Cyan", QColor(0, 255, 220)) );
     }
 }
 

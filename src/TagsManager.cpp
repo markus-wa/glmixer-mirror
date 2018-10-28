@@ -13,6 +13,7 @@ TagsManager::TagsManager(QWidget *parent) :
     QWidget(parent), ui(new Ui::TagsManager), currentSource(NULL)
 {
     ui->setupUi(this);
+    ui->tagsMessage->setCurrentIndex(1);
 
     // fill the list of items with all possible tags
     for (int i=0; i < Tag::getNumTags(); ++i) {
@@ -161,10 +162,23 @@ void TagsManager::connectSource(SourceSet::iterator csi)
     if (RenderingManager::getInstance()->isValid(csi)) {
         // remember current source pointer
         currentSource = *csi;
+
+        ui->tagsMessage->setCurrentIndex(0);
     }
     else {
         // disable current source
         currentSource = NULL;
+        ui->tagsMessage->setCurrentIndex(1);
     }
+
+}
+
+
+void TagsManager::connectSelection(bool selection)
+{
+    if (currentSource)
+        return;
+
+    ui->tagsMessage->setCurrentIndex( selection ? 0 : 1);
 
 }
