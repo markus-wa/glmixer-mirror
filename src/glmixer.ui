@@ -3826,7 +3826,7 @@ QToolButton:hover {
         <item>
          <widget class="QToolButton" name="buttonSelectionPlay">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -3850,6 +3850,12 @@ QToolButton:hover {
         </item>
         <item>
          <widget class="QToolButton" name="buttonSelectionRestart">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>...</string>
           </property>
@@ -3863,6 +3869,12 @@ QToolButton:hover {
         </item>
         <item>
          <widget class="QToolButton" name="buttonSelectionSeekBackward">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>...</string>
           </property>
@@ -3876,6 +3888,12 @@ QToolButton:hover {
         </item>
         <item>
          <widget class="QToolButton" name="buttonSelectionSeekForward">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>...</string>
           </property>
@@ -3911,7 +3929,7 @@ QToolButton:hover {
         <item>
          <widget class="QToolButton" name="buttonSelectionPause">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>

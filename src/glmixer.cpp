@@ -2985,6 +2985,10 @@ void GLMixer::readSettings( QString pathtobin )
     switcherSession->restoreSettings();
 #endif
 
+    // selection control
+    int smooth = settings.value("SmoothPause", "0").toInt();
+    smoothSelectionPause->setValue( (double) smooth / 1000.0 );
+
     qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings restored.");
 }
 
@@ -3050,6 +3054,10 @@ void GLMixer::saveSettings()
     // save settings of session switcher
     switcherSession->saveSettings();
 #endif
+
+    // selection control
+    int smooth = qRound( smoothSelectionPause->value() * 1000.0 );
+    settings.setValue("SmoothPause", smooth);
 
     // make sure system saves settings NOW
     settings.sync();

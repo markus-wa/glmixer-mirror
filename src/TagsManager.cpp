@@ -13,7 +13,7 @@ TagsManager::TagsManager(QWidget *parent) :
     QWidget(parent), ui(new Ui::TagsManager), currentSource(NULL)
 {
     ui->setupUi(this);
-    ui->tagsMessage->setCurrentIndex(1);
+    ui->tagsMessage->setCurrentIndex(1 );
 
     // fill the list of items with all possible tags
     for (int i=0; i < Tag::getNumTags(); ++i) {
