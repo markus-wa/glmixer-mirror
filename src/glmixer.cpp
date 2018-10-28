@@ -211,9 +211,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
 #endif
     toolBarsMenu->addAction(snapshotsDockWidget->toggleViewAction());
-#ifdef GLM_TAG
-    toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
-#endif
+    toolBarsMenu->addAction(selectionDockWidget->toggleViewAction());
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
     toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
@@ -410,14 +408,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #endif
 
 #ifdef GLM_TAG
-    // setup the tags toolbox
+    // setup the tags manager
     tagsManager = new TagsManager(this);
     tagsDockWidgetContentLayout->insertWidget(1, tagsManager);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), tagsManager, SLOT(connectSelection(bool)));
-#else
-    // DISABLE TAG MANAGER
-    delete tagsDockWidget;
+
 #endif
 
 #ifdef GLM_HISTORY
@@ -3085,13 +3081,12 @@ void GLMixer::on_actionResetToolbars_triggered()
     restoreDockWidget(vcontrolDockWidget);
     restoreDockWidget(cursorDockWidget);
     restoreDockWidget(mixingDockWidget);
+    restoreDockWidget(selectionDockWidget);
 
 #ifdef GLM_SESSION
     restoreDockWidget(switcherDockWidget);
 #endif
-#ifdef GLM_TAG
-    restoreDockWidget(tagsDockWidget);
-#endif
+
 #ifdef GLM_HISTORY
     restoreDockWidget(actionHistoryDockWidget);
 #endif

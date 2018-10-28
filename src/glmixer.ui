@@ -3712,7 +3712,7 @@ QToolButton:hover {
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="tagsDockWidget">
+  <widget class="QDockWidget" name="selectionDockWidget">
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/tagDefault.png</normaloff>:/glmixer/icons/tagDefault.png</iconset>
