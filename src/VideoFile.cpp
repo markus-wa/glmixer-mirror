@@ -1768,12 +1768,12 @@ void VideoFile::pause(bool pause, int smooth)
     if (!quit && pause != pclock->paused() )
     {
 
+        // cancel all animation
+        if (smooth_pause_animation->state() == QAbstractAnimation::Running )
+            smooth_pause_animation->stop();
+
         // using smoothing
         if (smooth > 20) {
-
-            // cancel all animation
-            if (smooth_pause_animation->state() == QAbstractAnimation::Running )
-                smooth_pause_animation->stop();
 
             // set duration
             smooth_pause_animation->setDuration(smooth);
@@ -1813,6 +1813,7 @@ void VideoFile::pause(bool pause, int smooth)
         else {
 
             pclock->pause(pause);
+            pclock->setSpeed(play_speed);
             emit paused(pause);
         }
 
