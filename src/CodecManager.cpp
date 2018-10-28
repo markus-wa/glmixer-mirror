@@ -5,6 +5,46 @@ extern "C"
 {
 #include <libavutil/common.h>
 #include <libavutil/pixdesc.h>
+
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+static enum AVPixelFormat get_hw_format_videotoolbox(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_VIDEOTOOLBOX)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_VIDEOTOOLBOX surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+static enum AVPixelFormat get_hw_format_directxva2(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_DXVA2_VLD)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+static enum AVPixelFormat get_hw_format_vaapi(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_VAAPI_VLD)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+#endif
+
 }
 
 CodecManager *CodecManager::_instance = 0;
@@ -24,12 +64,6 @@ CodecManager::CodecManager(QObject *parent) : QObject(parent)
     av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
 
-    // test nvidia
-    // https://developer.nvidia.com/nvidia-video-codec-sdk#NVDECFeatures
-    QString glvendor((char *)glGetString(GL_VENDOR));
-    int v = 0;
-    glGetIntegerv(GL_MAJOR_VERSION, &v);
-    _hasNVidiaHardwareAcceleration =  (v>3) && glvendor.contains("nvidia", Qt::CaseInsensitive);
     // disabled by default
     _useHardwareAcceleration = false;
 }
@@ -110,11 +144,13 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
     double d = 0.0;
 
     // get duration from stream
-    if (codeccontext->streams[stream] && codeccontext->streams[stream]->duration != (int64_t) AV_NOPTS_VALUE )
+    if (codeccontext->streams[stream] && codeccontext->streams[stream]->duration != (int64_t) AV_NOPTS_VALUE ) {
         d = double(codeccontext->streams[stream]->duration) * av_q2d(codeccontext->streams[stream]->time_base);
+    }
     // else try to get the duration from context (codec info)
-    else if (codeccontext && codeccontext->duration != (int64_t) AV_NOPTS_VALUE )
+    else if (codeccontext && codeccontext->duration != (int64_t) AV_NOPTS_VALUE ) {
         d = double(codeccontext->duration) * av_q2d(AV_TIME_BASE_Q);
+    }
     // else try to get duration from frame rate
     else {
         double fps = CodecManager::getFrameRateStream(codeccontext, stream);
@@ -385,22 +421,9 @@ bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
 
 }
 
-bool CodecManager::hasNVidiaHardwareAcceleration()
-{
-    registerAll();
-
-    return _instance->_hasNVidiaHardwareAcceleration;
-}
-
 bool CodecManager::useHardwareAcceleration()
 {
     registerAll();
-
-#ifdef Q_OS_LINUX
-    // under linux, the HW accell is only with nvidia
-    if ( !_instance->_hasNVidiaHardwareAcceleration )
-        return false;
-#endif
 
     return _instance->_useHardwareAcceleration;
 }
@@ -413,85 +436,123 @@ void CodecManager::setHardwareAcceleration(bool use)
 }
 
 
-AVCodec *CodecManager::getEquivalentHardwareAcceleratedCodec(AVCodec *codec)
+const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec)
 {
-    // see http://net-zeal.de/hardware-acceleration-for-video-encoding-decoding-with-ffmpeg/
-    AVCodec *hwcodec = NULL;
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 
-    // only if configured to use HW accel
-    if ( useHardwareAcceleration() ) {
-#ifndef Q_OS_MAC
+    if (!useHardwareAcceleration())
+        return 0;
 
-        // linux nvidia support with CUDA Video
-        char newcodecname[128];
-       snprintf(newcodecname, 128, "%s_cuvid", codec->name);
-       hwcodec = avcodec_find_decoder_by_name(newcodecname);
-
-        // // TODO
-        // // windows intel support with Intel Quick Sync Video
-        // char newcodecname[128];
-        //  snprintf(newcodecname, 128, "%s_qsv", codec->name);
-        //  hwcodec = avcodec_find_decoder_by_name(newcodecname);
-
+    const AVCodecHWConfig *config = avcodec_get_hw_config(codec, 0);
+    if (config) {
+        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
+            return config;
+        }
+    }
 #endif
+
+    return 0;
+}
+
+
+bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
+{
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+
+    if (!config || !CodecContext)
+        return false;
+
+    // found a valid hw configuration
+    // deal with harware pixel format
+    enum AVPixelFormat hw_pix_fmt;
+    hw_pix_fmt = config->pix_fmt;
+
+    // Create a hw context
+    AVBufferRef *hw_device_ctx = NULL;
+    if ( av_hwdevice_ctx_create(&hw_device_ctx, config->device_type, NULL, NULL, 0) == 0)
+    {
+        // set function for pixel format
+        switch (config->pix_fmt) {
+        case AV_PIX_FMT_VIDEOTOOLBOX:
+            CodecContext->get_format  = get_hw_format_videotoolbox;
+            break;
+        case AV_PIX_FMT_DXVA2_VLD:
+            CodecContext->get_format  = get_hw_format_directxva2;
+            break;
+        case AV_PIX_FMT_VAAPI_VLD:
+            CodecContext->get_format  = get_hw_format_vaapi;
+            break;
+        default:
+            hw_pix_fmt = AV_PIX_FMT_NONE;
+        }
+
+        // set hw decoding context to the decoder
+        if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
+
+            CodecContext->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+
+            // inform all ok
+            return true;
+        }
     }
 
-    return hwcodec;
+#endif
+    return false;
 }
 
 bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
 {
     bool frameFilled = false;
-    AVFormatContext *pFormatCtx;
-    pFormatCtx = avformat_alloc_context();
+//    AVFormatContext *pFormatCtx;
+//    pFormatCtx = avformat_alloc_context();
 
-    if ( CodecManager::openFormatContext( &pFormatCtx, filename) ) {
+//    if ( CodecManager::openFormatContext( &pFormatCtx, filename) ) {
 
-        int videoStream = 0;
-        AVCodec *codec = NULL;
-        videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
-        if (videoStream >= 0 && codec != NULL) {
+//        int videoStream = 0;
+//        AVCodec *codec = NULL;
+//        videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
+//        if (videoStream >= 0 && codec != NULL) {
 
-            AVCodec *hw_codec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
-            if (hw_codec != NULL) {
+//            AVCodec *hw_codec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
+//            if (hw_codec != NULL) {
 
-                AVCodecContext *hw_video_dec = avcodec_alloc_context3(hw_codec);
-                if (hw_video_dec) {
+//                AVCodecContext *hw_video_dec = avcodec_alloc_context3(hw_codec);
+//                if (hw_video_dec) {
 
-                    if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
+//                    if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
 
-                        if (avcodec_open2(hw_video_dec, hw_codec, NULL) >= 0) {
+//                        if (avcodec_open2(hw_video_dec, hw_codec, NULL) >= 0) {
 
-                            // ok, let's try the hw codec
-                            int trial = 0;
-                            AVPacket pkt1, *pkt = &pkt1;
-                            AVFrame *tmpframe = av_frame_alloc();
-                            while (!frameFilled && ++trial < 50)
-                            {
-                                if ( av_read_frame(pFormatCtx, pkt) < 0)
-                                    break;
-                                if ( pkt->stream_index != videoStream )
-                                    continue;
-                                if ( avcodec_send_packet(hw_video_dec, pkt) < 0 )
-                                    break;
+//                            // ok, let's try the hw codec
+//                            int trial = 0;
+//                            AVPacket pkt1, *pkt = &pkt1;
+//                            AVFrame *tmpframe = av_frame_alloc();
+//                            while (!frameFilled && ++trial < 50)
+//                            {
+//                                if ( av_read_frame(pFormatCtx, pkt) < 0)
+//                                    break;
+//                                if ( pkt->stream_index != videoStream )
+//                                    continue;
+//                                if ( avcodec_send_packet(hw_video_dec, pkt) < 0 )
+//                                    break;
 
-                                int ret = avcodec_receive_frame(hw_video_dec, tmpframe);
-                                if (ret == AVERROR(EAGAIN) )
-                                    continue;
-                                if (ret < 0 )
-                                    break;
+//                                int ret = avcodec_receive_frame(hw_video_dec, tmpframe);
+//                                if (ret == AVERROR(EAGAIN) )
+//                                    continue;
+//                                if (ret < 0 )
+//                                    break;
 
-                                // eventually managed to fill a frame !
-                                frameFilled = true;
-                            }
-                        }
-                    }
-                    avcodec_free_context(&hw_video_dec);
-                }
-            }
-        }
-        avformat_close_input(&pFormatCtx);
-    }
+//                                // eventually managed to fill a frame !
+//                                frameFilled = true;
+//                            }
+//                        }
+//                    }
+//                    avcodec_free_context(&hw_video_dec);
+//                }
+//            }
+//        }
+//        avformat_close_input(&pFormatCtx);
+//    }
 
     return frameFilled;
 }

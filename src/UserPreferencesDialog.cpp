@@ -63,15 +63,6 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     // TODO fill in the list of available languages
 
 
-#ifdef Q_OS_LINUX
-    // under linux, the HW accell is only with nvidia
-    if ( !CodecManager::hasNVidiaHardwareAcceleration() ) {
-        disableHWCodec->setChecked( true );
-        disableHWCodec->setEnabled( false );
-    }
-#endif
-
-
 #ifndef GLM_SHM
     sharedMemoryBox->setVisible(false);
 #endif

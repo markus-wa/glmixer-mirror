@@ -35,34 +35,6 @@ extern "C"
 #include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
 #include <libavutil/pixdesc.h>
-
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-static enum AVPixelFormat get_hw_format_videotoolbox(AVCodecContext *ctx,
-                                        const enum AVPixelFormat *pix_fmts)
-{
-    const enum AVPixelFormat *p;
-    for (p = pix_fmts; *p != -1; p++) {
-        if (*p == AV_PIX_FMT_VIDEOTOOLBOX)
-            return *p;
-    }
-    fprintf(stderr, "Failed to get AV_PIX_FMT_VIDEOTOOLBOX surface format.\n");
-    return AV_PIX_FMT_NONE;
-}
-
-static enum AVPixelFormat get_hw_format_directxva2(AVCodecContext *ctx,
-                                        const enum AVPixelFormat *pix_fmts)
-{
-    const enum AVPixelFormat *p;
-    for (p = pix_fmts; *p != -1; p++) {
-        if (*p == AV_PIX_FMT_DXVA2_VLD)
-            return *p;
-    }
-    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
-    return AV_PIX_FMT_NONE;
-}
-#endif
-
 }
 
 #include "VideoFile.moc"
@@ -513,71 +485,37 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
         return false;
     }
 
+    // reset hardware capability
+    useHwCodec = false;
+    hasHwCodec = false;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-///// BHBN TEST HW ACCELL
+    // test hardware acceleration
+    const AVCodecHWConfig *hwconfig = CodecManager::getCodecHardwareAcceleration(codec);
+    if ( hwconfig && nb_frames > 2) {
+         // this codec has hardware acceleration capabilities
+         hasHwCodec = true;
 
-//if (tryHardwareCodec)
-{
+         qDebug() << filename << QChar(124).toLatin1()
+                  <<  tr("Codec %1 supports %2 harware acceleration %3.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type)).arg(av_pix_fmt_desc_get(hwconfig->pix_fmt)->name);
+     }
 
-    AVBufferRef *hw_device_ctx = NULL;
-    enum AVPixelFormat hw_pix_fmt;
-    enum AVHWDeviceType type;
+    // try to use hardware acceleration
+    if (tryHardwareCodec && hasHwCodec) {
 
-    // try to get a hw config for the codec
-    const AVCodecHWConfig *config = avcodec_get_hw_config(codec, 0);
-    if (config) {
-        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
+        if ( CodecManager::applyCodecHardwareAcceleration(video_dec, hwconfig) ) {
 
-            // found a valid hw configuration
-            hw_pix_fmt = config->pix_fmt;
-            type = config->device_type;
+            // this video file use hardware acceleration
+            useHwCodec = true;
 
-            fprintf(stderr, "Trying codec %s supports %s harware acceleration with %s pixel format.\n",  codec->name, av_hwdevice_get_type_name(type), av_pix_fmt_desc_get(hw_pix_fmt)->name);
-
-
-            // Create a hw context
-            if ( av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0)
-                fprintf(stderr, "Failed to create harware acceleration context.\n");
-            else {
-
-                // set function for pixel format
-                switch (hw_pix_fmt) {
-                    case AV_PIX_FMT_VIDEOTOOLBOX:
-                        video_dec->get_format  = get_hw_format_videotoolbox;
-                    break;
-                    case AV_PIX_FMT_DXVA2_VLD:
-                        video_dec->get_format  = get_hw_format_directxva2;
-                    break;
-                    default:
-                        hw_pix_fmt = AV_PIX_FMT_NONE;
-                }
-
-                // set hw decoding context to the decoder
-                if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
-
-                    video_dec->hw_device_ctx = av_buffer_ref(hw_device_ctx);
-
-                    // inform all ok
-                    fprintf(stderr, "Codec %s supports %s harware acceleration.\n",  codec->name, av_hwdevice_get_type_name(type));
-                }
-                else
-                    fprintf(stderr, "Codec %s does not support hardware acceleration pixel format.\n", codec->name);
-
-            }
+            qDebug() << filename << QChar(124).toLatin1()
+                     <<  tr("Using Codec %1 %2 harware acceleration.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
 
         }
         else
-            fprintf(stderr, "Codec %s does not support %s hardware acceleration.\n", codec->name, av_hwdevice_get_type_name(config->device_type));
+            fprintf(stderr, "Codec %s does not support hardware acceleration.\n", codec->name);
+
     }
-    else
-        fprintf(stderr, "Codec %s does not support hardware acceleration.\n", codec->name);
 
-}
-
-
-///// BHBN TEST HW ACCELL
-#endif
 
     // options for decoder
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
@@ -914,7 +852,7 @@ double VideoFile::fill_first_frame(bool seek)
     if (frameFilled) {
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-        if (tmpframe && ( tmpframe->format == AV_PIX_FMT_VIDEOTOOLBOX || tmpframe->format == AV_PIX_FMT_DXVA2_VLD ) ) {
+        if (tmpframe && useHwCodec ) {
             AVFrame *frame = av_frame_alloc();
             /* retrieve data from GPU to CPU */
             if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
@@ -1671,7 +1609,7 @@ void DecodingThread::run()
                 frame = _pFrame;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-                if ( _pFrame->format == AV_PIX_FMT_VIDEOTOOLBOX || _pFrame->format == AV_PIX_FMT_DXVA2_VLD) {
+                if ( is->useHwCodec ) {
                     /* retrieve data from GPU to CPU */
                     if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
                         fprintf(stderr, "Error transferring the data to system memory\n");

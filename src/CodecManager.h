@@ -60,24 +60,17 @@ public:
      */
     static bool pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt);
     /**
-     *  Try to find an hardware accelerated codec equivalent
-     *  to the codec given, the same if nothing found.
+     *  Try to find an hardware accelerated codec
      *
-     *  @return codec 'cuvid' or 'videotoolbox'
      */
-    static AVCodec *getEquivalentHardwareAcceleratedCodec(AVCodec *codec);
+    static const AVCodecHWConfig *getCodecHardwareAcceleration(AVCodec *codec);
+    static bool applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *hwconfig);
     /**
      *  Test hardware accelerated codec for this file.
      *
      *  @return true if could decode file with HW acceleration
      */
     static bool supportsHardwareAcceleratedCodec(QString file);
-    /**
-     *  Test Nvidia Opengl hardware drivers
-     *
-     *  @return true if nvidia drivers are detected
-     */
-    static bool hasNVidiaHardwareAcceleration();
     /**
      *  Decide to use hardware acceleration
      *
@@ -120,7 +113,6 @@ private:
     static CodecManager *_instance;
 
     bool _useHardwareAcceleration;
-    bool _hasNVidiaHardwareAcceleration;
 
 };
 
