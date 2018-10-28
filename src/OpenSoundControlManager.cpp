@@ -679,7 +679,10 @@ void OpenSoundControlManager::executeRequest(QString property, QVariantList args
                     emit error(QString("Invalid request : index %1 outside of range [0..%2].").arg(n).arg(list.count()-1) );
                 else {
                     // reply to request with name of source
-                    broadcastDatagram( list[n] );
+                    QVariantList args;
+                    args.append((int) n);
+                    args.append(list[n]);
+                    broadcastDatagram( OSC_REQUEST_NAME, args );
                     emit log(QString("Replied /glmixer/%1").arg(list[n]) );
                 }
             }
