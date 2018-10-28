@@ -66,7 +66,7 @@ public:
     static const AVCodecHWConfig *getCodecHardwareAcceleration(AVCodec *codec);
     static bool applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *hwconfig);
     /**
-     *  Test hardware accelerated codec for this file.
+     *  Test hardware decoding this file.
      *
      *  @return true if could decode file with HW acceleration
      */

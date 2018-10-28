@@ -440,29 +440,6 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     video_st = pFormatCtx->streams[videoStream];
     nb_frames = video_st->nb_frames;
 
-    // // try to replace the codec with a better one (hardware accelerated)
-    // // NB: this is only meaningful for videos, aka more than 1 frame
-    // AVCodec *hwcodec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
-    // if (hwcodec != NULL && nb_frames > 2) {
-    //     // find a potential match
-    //     hasHwCodec = true;
-    // }
-
-    // // openning paramater asks to try to use hardware codec
-    // if (hasHwCodec && tryHardwareCodec) {
-    //     // try to create video decoding context with harware accelerated codec
-    //     video_dec = avcodec_alloc_context3(hwcodec);
-    //     // does it work ?
-    //     if (video_dec) {
-    //         // good, let's use the hw codec !
-    //         codec = hwcodec;
-    //         qDebug() << filename << QChar(124).toLatin1()
-    //                  << tr("Using GPU accelerated %1.").arg(codec->long_name);
-    //         // remember use of hardware codec
-    //         useHwCodec = true;
-    //     }
-    // }
-
     // if video decoding context not already created (i.e. no hardware accelerated)
     if (!video_dec) {
         // create video decoding context with default codec
@@ -494,9 +471,6 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     if ( hwconfig && nb_frames > 2) {
          // this codec has hardware acceleration capabilities
          hasHwCodec = true;
-
-         qDebug() << filename << QChar(124).toLatin1()
-                  <<  tr("Codec %1 supports %2 harware acceleration %3.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type)).arg(av_pix_fmt_desc_get(hwconfig->pix_fmt)->name);
      }
 
     // try to use hardware acceleration
@@ -508,11 +482,12 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
             useHwCodec = true;
 
             qDebug() << filename << QChar(124).toLatin1()
-                     <<  tr("Using Codec %1 %2 harware acceleration.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
+                     <<  tr("Using Codec %1 %2 hardware acceleration.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
 
         }
         else
-            fprintf(stderr, "Codec %s does not support hardware acceleration.\n", codec->name);
+            qWarning() << filename << QChar(124).toLatin1()
+                     <<  tr("Failed to use %2 hardware acceleration for %1 codec.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
 
     }
 

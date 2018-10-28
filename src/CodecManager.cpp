@@ -40,7 +40,19 @@ static enum AVPixelFormat get_hw_format_vaapi(AVCodecContext *ctx,
         if (*p == AV_PIX_FMT_VAAPI_VLD)
             return *p;
     }
-    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
+    fprintf(stderr, "Failed to get AV_PIX_FMT_VAAPI_VLD surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+static enum AVPixelFormat get_hw_format_vdpau(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == AV_PIX_FMT_VDPAU)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get AV_PIX_FMT_VDPAU surface format.\n");
     return AV_PIX_FMT_NONE;
 }
 #endif
@@ -160,7 +172,7 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
 
     // inform in case duration of file is certainly a bad estimate
     if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE && codeccontext->streams[stream]->nb_frames > 2) {
-        qWarning() << codeccontext->filename << QChar(124).toLatin1()<< tr("Unspecified duration in codec.");
+        qWarning() << codeccontext->url << QChar(124).toLatin1()<< tr("Unspecified duration in codec.");
     }
 
     return d;
@@ -435,18 +447,33 @@ void CodecManager::setHardwareAcceleration(bool use)
     _instance->_useHardwareAcceleration = use;
 }
 
+// see https://trac.ffmpeg.org/wiki/HWAccelIntro
 
 const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec)
 {
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-
     if (!useHardwareAcceleration())
         return 0;
 
-    const AVCodecHWConfig *config = avcodec_get_hw_config(codec, 0);
-    if (config) {
-        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
-            return config;
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+
+#ifdef Q_OS_WIN
+    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_DXVA2;
+#else
+#ifdef Q_OS_MAC
+    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+#else
+    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_VDPAU;
+//    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_VAAPI;
+#endif
+#endif
+
+    // look for hardware config matching the appropriate type
+    for (int i = 0; i < 2 ; ++i) {
+        const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
+        if (config && config->device_type == type) {
+            if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
+                return config;
+            }
         }
     }
 #endif
@@ -462,7 +489,6 @@ bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, 
     if (!config || !CodecContext)
         return false;
 
-    // found a valid hw configuration
     // deal with harware pixel format
     enum AVPixelFormat hw_pix_fmt;
     hw_pix_fmt = config->pix_fmt;
@@ -481,6 +507,9 @@ bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, 
             break;
         case AV_PIX_FMT_VAAPI_VLD:
             CodecContext->get_format  = get_hw_format_vaapi;
+            break;
+        case AV_PIX_FMT_VDPAU:
+            CodecContext->get_format  = get_hw_format_vdpau;
             break;
         default:
             hw_pix_fmt = AV_PIX_FMT_NONE;
@@ -503,56 +532,59 @@ bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, 
 bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
 {
     bool frameFilled = false;
-//    AVFormatContext *pFormatCtx;
-//    pFormatCtx = avformat_alloc_context();
+    AVFormatContext *pFormatCtx;
+    pFormatCtx = avformat_alloc_context();
 
-//    if ( CodecManager::openFormatContext( &pFormatCtx, filename) ) {
+    if ( CodecManager::openFormatContext( &pFormatCtx, filename) ) {
 
-//        int videoStream = 0;
-//        AVCodec *codec = NULL;
-//        videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
-//        if (videoStream >= 0 && codec != NULL) {
+        int videoStream = 0;
+        AVCodec *codec = NULL;
+        videoStream = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
+        if (videoStream >= 0 && codec != NULL) {
 
-//            AVCodec *hw_codec = CodecManager::getEquivalentHardwareAcceleratedCodec(codec);
-//            if (hw_codec != NULL) {
+            const AVCodecHWConfig *hwconfig = getCodecHardwareAcceleration(codec);
+            if (hwconfig != NULL) {
 
-//                AVCodecContext *hw_video_dec = avcodec_alloc_context3(hw_codec);
-//                if (hw_video_dec) {
+                AVCodecContext *hw_video_dec = avcodec_alloc_context3(codec);
+                if (hw_video_dec) {
 
-//                    if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
+                    if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
 
-//                        if (avcodec_open2(hw_video_dec, hw_codec, NULL) >= 0) {
+                        if ( applyCodecHardwareAcceleration(hw_video_dec, hwconfig) ) {
 
-//                            // ok, let's try the hw codec
-//                            int trial = 0;
-//                            AVPacket pkt1, *pkt = &pkt1;
-//                            AVFrame *tmpframe = av_frame_alloc();
-//                            while (!frameFilled && ++trial < 50)
-//                            {
-//                                if ( av_read_frame(pFormatCtx, pkt) < 0)
-//                                    break;
-//                                if ( pkt->stream_index != videoStream )
-//                                    continue;
-//                                if ( avcodec_send_packet(hw_video_dec, pkt) < 0 )
-//                                    break;
+                            if (avcodec_open2(hw_video_dec, codec, NULL) >= 0) {
 
-//                                int ret = avcodec_receive_frame(hw_video_dec, tmpframe);
-//                                if (ret == AVERROR(EAGAIN) )
-//                                    continue;
-//                                if (ret < 0 )
-//                                    break;
+                                // ok, let's try the hw codec
+                                int trial = 0;
+                                AVPacket pkt1, *pkt = &pkt1;
+                                AVFrame *tmpframe = av_frame_alloc();
+                                while (!frameFilled && ++trial < 50)
+                                {
+                                    if ( av_read_frame(pFormatCtx, pkt) < 0)
+                                        break;
+                                    if ( pkt->stream_index != videoStream )
+                                        continue;
+                                    if ( avcodec_send_packet(hw_video_dec, pkt) < 0 )
+                                        break;
 
-//                                // eventually managed to fill a frame !
-//                                frameFilled = true;
-//                            }
-//                        }
-//                    }
-//                    avcodec_free_context(&hw_video_dec);
-//                }
-//            }
-//        }
-//        avformat_close_input(&pFormatCtx);
-//    }
+                                    int ret = avcodec_receive_frame(hw_video_dec, tmpframe);
+                                    if (ret == AVERROR(EAGAIN) )
+                                        continue;
+                                    if (ret < 0 )
+                                        break;
+
+                                    // eventually managed to fill a frame !
+                                    frameFilled = true;
+                                }
+                            }
+                        }
+                    }
+                    avcodec_free_context(&hw_video_dec);
+                }
+            }
+        }
+        avformat_close_input(&pFormatCtx);
+    }
 
     return frameFilled;
 }
