@@ -109,6 +109,7 @@ class FolderModelFiller : public QThread
  {
      Q_OBJECT
 
+     void fillFolder(QFileInfo folder, int depth = 0);
      void run();
 
      QStandardItemModel *model;

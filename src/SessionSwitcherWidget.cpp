@@ -133,25 +133,47 @@ void FolderModelFiller::run()
 
         // here test for folder to exist with QFile Info
         QFileInfo folder(path);
-        if (folder.exists() && folder.isDir()) {
+        fillFolder(folder);
 
-            QDir dir(folder.absoluteFilePath());
-            QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
-
-            // fill list
-            for (int i = 0; i < fileList.size(); ++i) {
-                // create a new line
-                model->insertRow(0);
-                // fill the line
-                if ( !fillItemData(model, 0, fileList.at(i) ) ) {
-                    qWarning() << fileList.at(i).absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file : not listed in session switcher.");
-                    // undo the new line on error
-                    model->removeRow(0);
-                }
-            }
-        }
     }
 }
+
+
+void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
+{
+    // recursive limit
+    if (depth > 5) {
+
+        qWarning() << folder.absoluteFilePath() << QChar(124).toLatin1() << tr("Session Switcher is not openning subfolders at depth above 5 from selected folder.");
+        return;
+    }
+
+    if (folder.exists() && folder.isDir()) {
+
+        QDir dir(folder.absoluteFilePath());
+
+        // recursive for subfolders
+        QFileInfoList dirList = dir.entryInfoList(QDir::Dirs | QDir::Readable | QDir::NoDotAndDotDot);
+        for (int d = 0; d < dirList.size(); ++d) {
+            fillFolder( dirList.at(d), depth +1);
+        }
+
+        // fill list of glms
+        QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files | QDir::Readable );
+        for (int f = 0; f < fileList.size(); ++f) {
+            // create a new line
+            model->insertRow(0);
+            // fill the line
+            if ( !fillItemData(model, 0, fileList.at(f) ) ) {
+                qWarning() << fileList.at(f).absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file : not listed in session switcher.");
+                // undo the new line on error
+                model->removeRow(0);
+            }
+        }
+
+    }
+}
+
 
 FolderModelFiller::FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p)
     : QThread(parent), model(m), path(p)
@@ -187,7 +209,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionDuration->setMinimum(100);
     transitionDuration->setMaximum(5000);
     transitionDuration->setValue(1000);
-    transitionDurationLabel = new QLabel(tr("&Duration (ms):"));
+    transitionDuration->setSuffix(" ms");
+    transitionDurationLabel = new QLabel(tr("Duration"));
     transitionDurationLabel->setBuddy(transitionDuration);
     transitionDuration->setToolTip(tr("How long is the transition (miliseconds)"));
 
@@ -386,9 +409,9 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
 
     if ( fileinfo.exists() && fileinfo.isFile() ) {
 
-        // if the openning folder function returns true, it did change folder and so the list is updated
-        if (openFolder(fileinfo.absolutePath()))
-            return;
+//        // if the openning folder function returns true, it did change folder and so the list is updated
+//        if (openFolder(fileinfo.absolutePath()))
+//            return;
 
         // the folder is already the good one, change only the file item
         if (folderModelAccesslock.tryLock(100)) {
