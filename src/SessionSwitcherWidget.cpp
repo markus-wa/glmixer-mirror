@@ -380,6 +380,9 @@ void SessionSwitcherWidget::reloadFolder()
 void SessionSwitcherWidget::browseFolder()
 {
     QFileInfo sessionFolder( folderHistory->currentText() );
+    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+    if (sessionFile.isFile())
+        sessionFolder = QFileInfo( sessionFile.absolutePath() );
 
     if ( sessionFolder.exists() ) {
 
@@ -409,10 +412,6 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
 
     if ( fileinfo.exists() && fileinfo.isFile() ) {
 
-//        // if the openning folder function returns true, it did change folder and so the list is updated
-//        if (openFolder(fileinfo.absolutePath()))
-//            return;
-
         // the folder is already the good one, change only the file item
         if (folderModelAccesslock.tryLock(100)) {
 
@@ -423,21 +422,37 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
             if (items.isEmpty()) {
                 // done with folder Model
                 folderModelAccesslock.unlock();
-                // try reloading the folder
-                reloadFolder();
+                // try loading the folder
+                openFolder(fileinfo.absolutePath());
             }
             // else, update modified fields for all files found
             else {
-                QStandardItem *item = items.first();
-                if ( !fillItemData(folderModel, item->row(), fileinfo) ) {
-                    qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
+
+                // loop over the list of items with the given name
+                QModelIndex index;
+                QStandardItem *item = NULL;
+                while( !items.isEmpty()){
+                    item = items.takeFirst();
+                    index = proxyFolderModel->mapFromSource(item->index());
+
+                    // if we found an item with the same filename and path
+                    if ( fileinfo.absoluteFilePath() == proxyFolderModel->data(index, Qt::UserRole).toString() ) {
+
+                        // update the item data
+                        if ( !fillItemData(folderModel, item->row(), fileinfo) )
+                            qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
+
+                        break;
+                    }
                 }
+
+
                 // done with folder Model
                 folderModelAccesslock.unlock();
 
                 // restore selection in tree view
-                if (item->index().isValid())
-                    proxyView->setCurrentIndex( proxyFolderModel->mapFromSource(item->index()));
+                if (index.isValid())
+                    proxyView->setCurrentIndex( index );
             }
         }
     }
