@@ -129,6 +129,7 @@ public slots:
     void enableSeek(bool);
     void refreshTiming();
     void switchToSessionFile(QString filename);
+    void renameSessionFile(QString oldfilename, QString newfilename);
     void actionLoad_RecentSession_triggered();
     void confirmSessionFileName();
     void updateStatusControlActions();

@@ -68,10 +68,7 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
         return false;
 
     QDomDocument doc;
-    QString errorStr;
-    int errorLine;
-    int errorColumn;
-    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
+    if ( !doc.setContent(&file, true) )
         return false;
 
     QDomElement root = doc.documentElement();
@@ -81,6 +78,7 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if ( srcconfig.isNull() )
         return false;
+
     // get number of sources in the session
     int nbElem = srcconfig.childNodes().count();
 
@@ -100,7 +98,7 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     model->setData(model->index(row, 0), fileinfo.completeBaseName());
     model->setData(model->index(row, 0), filename, Qt::UserRole);
     model->setData(model->index(row, 0), (int) ar, Qt::UserRole+1);
-    model->itemFromIndex (model->index(row, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (model->index(row, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
     model->itemFromIndex (model->index(row, 0))->setToolTip(tooltip);
 
     model->setData(model->index(row, 1), nbElem);
@@ -117,6 +115,7 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     model->setData(model->index(row, 3), filename, Qt::UserRole);
     model->itemFromIndex (model->index(row, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(row, 3))->setToolTip(tooltip);
+
 
     // all good
     return true;
@@ -144,7 +143,8 @@ void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
     // recursive limit
     if (depth > 5) {
 
-        qWarning() << folder.absoluteFilePath() << QChar(124).toLatin1() << tr("Session Switcher is not openning subfolders at depth above 5 from selected folder.");
+        qWarning() << folder.absoluteFilePath() << QChar(124).toLatin1()
+                   << tr("Session Switcher is not openning subfolders at depth above 5 from selected folder.");
         return;
     }
 
@@ -165,7 +165,8 @@ void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
             model->insertRow(0);
             // fill the line
             if ( !fillItemData(model, 0, fileList.at(f) ) ) {
-                qWarning() << fileList.at(f).absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file : not listed in session switcher.");
+                qWarning() << fileList.at(f).absoluteFilePath() << QChar(124).toLatin1()
+                           << tr("Ignoring invalid glm file.");
                 // undo the new line on error
                 model->removeRow(0);
             }
@@ -190,9 +191,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSelection = new QComboBox(this);
     transitionSelection->addItem("Instantaneous");
     transitionSelection->addItem("Fade to black");
-    transitionSelection->addItem("Fade to custom color   -->");
+    transitionSelection->addItem("Fade to custom color");
     transitionSelection->addItem("Fade with last frame");
-    transitionSelection->addItem("Fade with image file   -->");
+    transitionSelection->addItem("Fade with image file");
     transitionSelection->setToolTip(tr("Select the transition mode"));
     transitionSelection->setCurrentIndex(-1);
 
@@ -280,6 +281,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderModel->setHeaderData(1, Qt::Horizontal, QString("n"));
     folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("W:H"));
     folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Modified"));
+
     sortingColumn = 3;
     sortingOrder = Qt::AscendingOrder;
     folderModel->sort(sortingColumn, sortingOrder);
@@ -315,6 +317,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderHistory->setDuplicatesEnabled(false);
 
     proxyView = new QTreeView(this);
+    proxyView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSortingEnabled(false);
@@ -330,13 +333,19 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     proxyView->setContextMenuPolicy(Qt::ActionsContextMenu);
     QAction *reloadAction = new QAction(tr("Reload folder"), proxyView);
-    proxyView->insertAction(0, reloadAction);
+    proxyView->addAction(reloadAction);
     QObject::connect(reloadAction, SIGNAL(triggered()), this, SLOT(reloadFolder()) );
-    QAction *openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show folder in browser"), proxyView);
-    proxyView->insertAction(0, openUrlAction);
+
+    QAction *openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show file in browser"), proxyView);
+    proxyView->addAction(openUrlAction);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(browseFolder()) );
+
+    QAction *renameSessionAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename file"), proxyView);
+    proxyView->addAction(renameSessionAction);
+    QObject::connect(renameSessionAction, SIGNAL(triggered()), this, SLOT(renameSession()) );
+
     QAction *deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete file"), proxyView);
-    proxyView->insertAction(0, deleteSessionAction);
+    proxyView->addAction(deleteSessionAction);
     QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
 
 
@@ -349,6 +358,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), RenderingManager::getSessionSwitcher(), SLOT(setTransitionCurve(int)));
     connect(transitionSlider, SIGNAL(valueChanged(int)), this, SLOT(transitionSliderChanged(int)));
     connect(transitionTab, SIGNAL(currentChanged(int)), this, SLOT(setTransitionMode(int)));
+
 
     QGridLayout *mainLayout = new QGridLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -398,11 +408,71 @@ void SessionSwitcherWidget::deleteSession()
     QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
 
     if ( sessionFile.isFile() ) {
+
+        // delete file
         QDir sessionDir(sessionFile.canonicalPath());
-
         sessionDir.remove(sessionFile.fileName());
-
         reloadFolder();
+    }
+}
+
+void SessionSwitcherWidget::renameSession()
+{
+    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+
+    if ( sessionFile.isFile() ) {
+
+        // grab edit signal
+        connect(folderModel, SIGNAL(itemChanged(QStandardItem *)), this, SLOT(sessionNameChanged(QStandardItem *)));
+        // trigger edit of first column in current index
+        QModelIndex index = proxyView->model()->index( proxyView->currentIndex().row(), 0);
+        proxyView->edit(index);
+
+    }
+}
+
+
+
+void SessionSwitcherWidget::sessionNameChanged( QStandardItem * item )
+{
+    // discard edit signal
+    disconnect(folderModel, SIGNAL(itemChanged(QStandardItem *)), this, SLOT(sessionNameChanged(QStandardItem *)));
+
+    // access session file
+    QFileInfo sessionFile( item->data(Qt::UserRole).toString() );
+    if ( sessionFile.isFile() ) {
+
+        // set folder and filename
+        QDir sessionDir(sessionFile.canonicalPath());
+        QFileInfo newSessionFile(sessionDir, QString("%1.glm").arg(item->text()));
+
+        // actual renaming of the file
+        if ( sessionDir.rename( sessionFile.fileName(), newSessionFile.fileName() ) ) {
+
+            qDebug() << sessionFile.absoluteFilePath() << QChar(124).toLatin1()
+                     << tr("Session file renamed to '%1'").arg(newSessionFile.fileName());
+
+            // inform main GUI
+            emit sessionRenamed(sessionFile.absoluteFilePath(), newSessionFile.absoluteFilePath());
+
+            // update the file item
+            if (folderModelAccesslock.tryLock(100)) {
+                // update the item data
+                if ( !fillItemData(folderModel, item->row(), newSessionFile) ) {
+                    qWarning() << newSessionFile.absoluteFilePath() << QChar(124).toLatin1()
+                               << tr("failed update data renamed session file.");
+                }
+
+                folderModelAccesslock.unlock();
+            }
+        }
+        else {
+            // cancel item edit
+            item->setText( sessionFile.completeBaseName() );
+            qWarning() << sessionFile.absoluteFilePath() << QChar(124).toLatin1()
+                       << tr("Failed to rename session file.");
+        }
+
     }
 }
 
@@ -440,7 +510,8 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
 
                         // update the item data
                         if ( !fillItemData(folderModel, item->row(), fileinfo) )
-                            qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1() << tr("Invalid glm file.");
+                            qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1()
+                                       << tr("Ignoring invalid glm file.");
 
                         break;
                     }
@@ -576,7 +647,7 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
         emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 
         // make sure no other events are accepted until the end of the transition
-        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
         proxyView->setEnabled(false);
         QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
 
@@ -869,8 +940,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
         // single clic to select next session
         proxyView->setToolTip("Double click on a session to choose target session");
-        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
 
     }
     // mode is automatic
@@ -880,8 +951,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         proxyView->setEnabled(true);
         //  activate transition to next session (double clic or Return)
         proxyView->setToolTip("Double click on a session to initiate the transition");
-        connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
 
         easingCurvePicker->scrollToItem(easingCurvePicker->item( easingCurvePicker->currentRow() ), QAbstractItemView::PositionAtCenter );
     }

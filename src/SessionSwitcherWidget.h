@@ -45,6 +45,7 @@ public slots:
     void discardFolder();
     void folderChanged(const QString &foldername);
     void fileChanged(const QString &filename);
+    void sessionNameChanged(QStandardItem *item);
 
     void startTransitionToSession(const QModelIndex & index);
     void startTransitionToNextSession();
@@ -69,9 +70,11 @@ public slots:
     void reloadFolder();
     void browseFolder();
     void deleteSession();
+    void renameSession();
 
 signals:
     void sessionTriggered(QString);
+    void sessionRenamed(QString before, QString after);
 
 private:
 

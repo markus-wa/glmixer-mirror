@@ -444,6 +444,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
     QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
     QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
+    QObject::connect(switcherSession, SIGNAL(sessionRenamed(QString, QString)), this, SLOT(renameSessionFile(QString, QString)) );
 
     QAction *nextSession = new QAction("Next Session", this);
     nextSession->setShortcut(QKeySequence("Ctrl+PgDown"));
@@ -2376,6 +2377,20 @@ void GLMixer::actionLoad_RecentSession_triggered()
 }
 
 
+void GLMixer::renameSessionFile(QString oldfilename, QString newfilename)
+{
+    // if the session file which was renamed is the current session file
+    if ( currentSessionFileName == oldfilename ) {
+
+        if (QFileInfo(newfilename).isFile()) {
+            // update current session file name
+            currentSessionFileName = newfilename;
+
+            confirmSessionFileName();
+        }
+    }
+}
+
 void GLMixer::switchToSessionFile(QString filename){
 
     if (filename.isEmpty() || !QFileInfo(filename).isFile())
@@ -2819,14 +2834,13 @@ QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
          urls << QUrl::fromLocalFile(driv.takeFirst().absoluteFilePath());
 #else
 #ifdef Q_OS_MAC
-    QFileInfoList vol = QDir("/Volumes/").entryInfoList(QDir::Dirs);
+    QFileInfoList vol = QDir("/Volumes/").entryInfoList(QDir::Dirs| QDir::Readable | QDir::NoDotAndDotDot);
     if (!vol.isEmpty()) {
-        vol.takeFirst();
         while (!vol.isEmpty())
             urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
     }
 #else
-    QFileInfoList vol = QDir("/media/").entryInfoList(QDir::Dirs);
+    QFileInfoList vol = QDir("/media/").entryInfoList(QDir::Dirs| QDir::Readable | QDir::NoDotAndDotDot);
     if (!vol.isEmpty())
             urls << QUrl::fromLocalFile(vol.takeFirst().absoluteFilePath());
 #endif
