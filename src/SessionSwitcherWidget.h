@@ -52,7 +52,7 @@ public slots:
     void startTransitionToPreviousSession();
     // unblock the GUI suspended when loading new session
     void unsuspend();
-    void selectSession(const QModelIndex & index);
+    void setTransitionDestinationSession(const QModelIndex & index);
 
     void setTransitionType(int t);
     void setTransitionMode(int m);
@@ -69,6 +69,7 @@ public slots:
 
     void reloadFolder();
     void browseFolder();
+    void openSession();
     void deleteSession();
     void renameSession();
 

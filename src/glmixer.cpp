@@ -2412,6 +2412,10 @@ void GLMixer::switchToSessionFile(QString filename){
     }
 }
 
+QString GLMixer::getCurrentSessionFilename() const
+{
+    return currentSessionFileName;
+}
 
 QString GLMixer::getRestorelastSessionFilename()
 {
@@ -3536,7 +3540,7 @@ void GLMixer::updateStatusControlActions() {
     actionCut->setEnabled(clipboardEnabled);
  }
 
-bool GLMixer::useSystemDialogs()
+bool GLMixer::useSystemDialogs() const
 {
     return usesystemdialogs;
 }
@@ -3984,7 +3988,7 @@ void GLMixer::resetCurrentCursor()
     }
 }
 
-QString GLMixer::getNotes()
+QString GLMixer::getNotes() const
 {
     return blocNoteEdit->toPlainText().trimmed();
 }

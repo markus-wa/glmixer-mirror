@@ -56,9 +56,10 @@ public:
     void timerEvent ( QTimerEvent * event );
 
     // gets
-    bool useSystemDialogs();
+    bool useSystemDialogs() const;
+    QString getCurrentSessionFilename() const;
     QString getRestorelastSessionFilename();
-    QString getNotes();
+    QString getNotes() const;
 
 public slots:
 

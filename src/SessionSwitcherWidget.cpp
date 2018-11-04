@@ -298,10 +298,16 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     dirButton->setIcon(icon);
 
     QToolButton *dirDeleteButton = new QToolButton(this);
-    dirDeleteButton->setToolTip(tr("Remove a folder from the list"));
+    dirDeleteButton->setToolTip(tr("Remove folder from the list"));
     QIcon icon2;
     icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirDeleteButton->setIcon(icon2);
+
+    QToolButton *dirReloadButton = new QToolButton(this);
+    dirReloadButton->setToolTip(tr("Refresh folder view"));
+    QIcon icon3;
+    icon3.addFile(QString::fromUtf8(":/glmixer/icons/view-refresh.png"), QSize(), QIcon::Normal, QIcon::Off);
+    dirReloadButton->setIcon(icon3);
 
     customButton = new QToolButton(this);
     customButton->setIcon( QIcon() );
@@ -312,7 +318,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderHistory->setValidator(new folderValidator(this));
     folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
     folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
-    //	folderHistory->setMaximumWidth(250);
     folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     folderHistory->setDuplicatesEnabled(false);
 
@@ -324,33 +329,34 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->sortByColumn(sortingColumn, sortingOrder);
     proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    proxyView->header()->setResizeMode(QHeaderView::Interactive);
-    proxyView->header()->resizeSection(1, 25);
-    proxyView->header()->resizeSection(2, 35);
+//    proxyView->header()->setResizeMode(QHeaderView::Interactive);
+//    proxyView->header()->resizeSection(1, 25);
+//    proxyView->header()->resizeSection(2, 35);
     proxyView->setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"%1\";\n"
         "}").arg(getMonospaceFont()));
 
     proxyView->setContextMenuPolicy(Qt::ActionsContextMenu);
-    QAction *reloadAction = new QAction(tr("Reload folder"), proxyView);
-    proxyView->addAction(reloadAction);
-    QObject::connect(reloadAction, SIGNAL(triggered()), this, SLOT(reloadFolder()) );
+    QAction *loadAction = new QAction(QIcon(":/glmixer/icons/fileopen.png"), tr("Open"), proxyView);
+    proxyView->addAction(loadAction);
+    QObject::connect(loadAction, SIGNAL(triggered()), this, SLOT(openSession()) );
+
+    QAction *renameSessionAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename"), proxyView);
+    proxyView->addAction(renameSessionAction);
+    QObject::connect(renameSessionAction, SIGNAL(triggered()), this, SLOT(renameSession()) );
+
+    QAction *deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), proxyView);
+    proxyView->addAction(deleteSessionAction);
+    QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
 
     QAction *openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show file in browser"), proxyView);
     proxyView->addAction(openUrlAction);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(browseFolder()) );
 
-    QAction *renameSessionAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename file"), proxyView);
-    proxyView->addAction(renameSessionAction);
-    QObject::connect(renameSessionAction, SIGNAL(triggered()), this, SLOT(renameSession()) );
-
-    QAction *deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete file"), proxyView);
-    proxyView->addAction(deleteSessionAction);
-    QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
-
 
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
+    connect(dirReloadButton, SIGNAL(clicked()),  this, SLOT(reloadFolder()));
     connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
     connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(setTransitionType(int)));
@@ -366,9 +372,10 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     mainLayout->addWidget(customButton, 0, 3);
     mainLayout->addWidget(transitionTab, 1, 0, 1, 4);
     mainLayout->addWidget(proxyView, 2, 0, 1, 4);
-    mainLayout->addWidget(folderHistory, 3, 0, 1, 2);
-    mainLayout->addWidget(dirButton, 3, 2);
-    mainLayout->addWidget(dirDeleteButton, 3, 3);
+    mainLayout->addWidget(folderHistory, 3, 0, 1, 1);
+    mainLayout->addWidget(dirButton, 3, 1);
+    mainLayout->addWidget(dirDeleteButton, 3, 2);
+    mainLayout->addWidget(dirReloadButton, 3, 3);
     setLayout(mainLayout);
 
 }
@@ -403,12 +410,37 @@ void SessionSwitcherWidget::browseFolder()
     }
 }
 
+void SessionSwitcherWidget::openSession()
+{
+    if (!proxyView->currentIndex().isValid())
+        return;
+
+    startTransitionToSession(proxyView->currentIndex());
+}
+
 void SessionSwitcherWidget::deleteSession()
 {
+    if (!proxyView->currentIndex().isValid())
+        return;
+
+    bool deletefile = false;
     QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
 
     if ( sessionFile.isFile() ) {
 
+        // request confirmation if session is open
+        if (GLMixer::getInstance()->getCurrentSessionFilename() == sessionFile.absoluteFilePath() ) {
+
+            QString msg = tr("Session '%1' is running.\n\nDo you really want to delete the file?").arg(sessionFile.fileName());
+            if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
+                deletefile = true;
+            }
+        }
+        else
+            deletefile = true;
+    }
+
+    if (deletefile) {
         // delete file
         QDir sessionDir(sessionFile.canonicalPath());
         sessionDir.remove(sessionFile.fileName());
@@ -418,6 +450,9 @@ void SessionSwitcherWidget::deleteSession()
 
 void SessionSwitcherWidget::renameSession()
 {
+    if (!proxyView->currentIndex().isValid())
+        return;
+
     QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
 
     if ( sessionFile.isFile() ) {
@@ -430,8 +465,6 @@ void SessionSwitcherWidget::renameSession()
 
     }
 }
-
-
 
 void SessionSwitcherWidget::sessionNameChanged( QStandardItem * item )
 {
@@ -672,7 +705,7 @@ void SessionSwitcherWidget::startTransitionToPreviousSession()
      }
 }
 
-void SessionSwitcherWidget::selectSession(const QModelIndex & index)
+void SessionSwitcherWidget::setTransitionDestinationSession(const QModelIndex & index)
 {
     // read file name
     nextSession = proxyFolderModel->data(index, Qt::UserRole).toString();
@@ -941,7 +974,7 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         // single clic to select next session
         proxyView->setToolTip("Double click on a session to choose target session");
         disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(setTransitionDestinationSession(QModelIndex) ));
 
     }
     // mode is automatic
@@ -952,7 +985,7 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         //  activate transition to next session (double clic or Return)
         proxyView->setToolTip("Double click on a session to initiate the transition");
         connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(setTransitionDestinationSession(QModelIndex) ));
 
         easingCurvePicker->scrollToItem(easingCurvePicker->item( easingCurvePicker->currentRow() ), QAbstractItemView::PositionAtCenter );
     }
