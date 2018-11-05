@@ -109,6 +109,7 @@ public slots:
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();
     void on_timeLineEdit_clicked();
+    void on_smoothSelectionPauseMode_currentIndexChanged(int);
 
     void on_actionSourcePlay_triggered();
     void on_actionSourceRestart_triggered();

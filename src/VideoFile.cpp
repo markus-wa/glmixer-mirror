@@ -1763,7 +1763,7 @@ void VideoFile::resume()
     emit paused(false);
 }
 
-void VideoFile::pause(bool pause, int smooth)
+void VideoFile::pause(bool pause, PauseMode mode, int duration)
 {
     if (!quit && pause != pclock->paused() )
     {
@@ -1773,22 +1773,38 @@ void VideoFile::pause(bool pause, int smooth)
             smooth_pause_animation->stop();
 
         // using smoothing
-        if (smooth > 20) {
+        if (mode > PAUSE_INSTANTANEOUS && duration > 20) {
 
             // set duration
-            smooth_pause_animation->setDuration(smooth);
+            smooth_pause_animation->setDuration(duration);
             // init to current speed
-            smooth_pause_animation->setStartValue( pclock->speed() );
 
-            // smooth suspend
+            // smooth suspend¨
             if (pause)
             {
                 // suspend at the end
                 QObject::connect(smooth_pause_animation, SIGNAL(finished()), this, SLOT(suspend()) );
 
-                // set target for stop
-                smooth_pause_animation->setEasingCurve(QEasingCurve::OutQuad);
-                smooth_pause_animation->setEndValue( 0.1 );
+                // set mode
+                switch (mode) {
+                case PAUSE_QUARTIC:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::OutQuart);
+                    break;
+                case PAUSE_EXPONENTIAL:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::OutExpo);
+                    break;
+                case PAUSE_CIRCULAR:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::OutCirc);
+                    break;
+                default:
+                case PAUSE_LINEAR:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::Linear);
+                    break;
+                }
+
+                // set targets
+                smooth_pause_animation->setStartValue( pclock->speed() );
+                smooth_pause_animation->setEndValue( 0.04 );
 
             }
             // smooth resume
@@ -1797,8 +1813,25 @@ void VideoFile::pause(bool pause, int smooth)
                 // do not suspend at end
                 QObject::disconnect(smooth_pause_animation, SIGNAL(finished()), this, SLOT(suspend()) );
 
-                // set target for start
-                smooth_pause_animation->setEasingCurve(QEasingCurve::InQuad);
+                // set mode
+                switch (mode) {
+                case PAUSE_QUARTIC:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::InQuart);
+                    break;
+                case PAUSE_EXPONENTIAL:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::InExpo);
+                    break;
+                case PAUSE_CIRCULAR:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::InCirc);
+                    break;
+                default:
+                case PAUSE_LINEAR:
+                    smooth_pause_animation->setEasingCurve(QEasingCurve::Linear);
+                    break;
+                }
+
+                // set targets
+                smooth_pause_animation->setStartValue( 0.04 );
                 smooth_pause_animation->setEndValue( play_speed );
 
                 // start playing

@@ -77,7 +77,7 @@ void VideoClock::setSpeed(double s) {
 
     // limit range
     // request new speed
-    _requested_speed = s > 10.0 ? 10.0 : s < 0.1 ? 0.1 : s;
+    _requested_speed = s > 10.0 ? 10.0 : s < 0.04 ? 0.04 : s;
 }
 
 void VideoClock::applyRequestedSpeed() {
@@ -91,6 +91,7 @@ void VideoClock::applyRequestedSpeed() {
 
         // set speed
         _speed = _requested_speed;
+//        fprintf(stderr, "%d;%d\n", (int) (time() * 1000.0),  (int) (_speed * 1000.0) );
         _requested_speed = -1.0;
     }
 }

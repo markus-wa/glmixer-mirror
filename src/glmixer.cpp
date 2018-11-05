@@ -3000,8 +3000,8 @@ void GLMixer::readSettings( QString pathtobin )
 #endif
 
     // selection control
-    int smooth = settings.value("SmoothPause", "0").toInt();
-    smoothSelectionPause->setValue( (double) smooth / 1000.0 );
+    smoothSelectionPauseDuration->setValue( settings.value("SmoothPause", "1000").toInt() );
+    smoothSelectionPauseMode->setCurrentIndex( settings.value("SmoothMode", "0").toInt() );
 
     qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings restored.");
 }
@@ -3070,8 +3070,8 @@ void GLMixer::saveSettings()
 #endif
 
     // selection control
-    int smooth = qRound( smoothSelectionPause->value() * 1000.0 );
-    settings.setValue("SmoothPause", smooth);
+    settings.setValue("SmoothPause", smoothSelectionPauseDuration->value());
+    settings.setValue("SmoothMode", smoothSelectionPauseMode->currentIndex());
 
     // make sure system saves settings NOW
     settings.sync();
@@ -3603,22 +3603,31 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
 
 }
 
+
+void GLMixer::on_smoothSelectionPauseMode_currentIndexChanged(int)
+{
+    VideoFile::PauseMode smooth = (VideoFile::PauseMode) smoothSelectionPauseMode->currentIndex();
+    smoothSelectionPauseTiming->setDisabled(smooth == VideoFile::PAUSE_INSTANTANEOUS);
+
+}
+
 void GLMixer::on_actionSourcePause_triggered(){
 
     // read value of smooth pause
-    int smooth = qRound( smoothSelectionPause->value() * 1000.0 );
+    VideoFile::PauseMode smooth = (VideoFile::PauseMode) smoothSelectionPauseMode->currentIndex();
+    int duration = smoothSelectionPauseDuration->value();
 
     // toggle pause/resume of current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs) && currentVideoFile )
-        currentVideoFile->pause(!currentVideoFile->isPaused(), smooth);
+        currentVideoFile->pause(!currentVideoFile->isPaused(), smooth, duration);
 
     // loop over the selection and toggle pause/resume of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
             if ( vf )
-                vf->pause(!vf->isPaused(), smooth);
+                vf->pause(!vf->isPaused(), smooth, duration);
         }
 }
 

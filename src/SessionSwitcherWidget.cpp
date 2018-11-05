@@ -207,7 +207,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionDuration->setMaximum(5000);
     transitionDuration->setValue(1000);
     transitionDuration->setSuffix(" ms");
-    transitionDurationLabel = new QLabel(tr("Duration"));
+    transitionDurationLabel = new QLabel(tr("Duration "));
+//    transitionDurationLabel->setAlignment(Qt::AlignRight);
     transitionDurationLabel->setBuddy(transitionDuration);
     transitionDuration->setToolTip(tr("How long is the transition (miliseconds)"));
 

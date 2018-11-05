@@ -1,5 +1,10 @@
 <RCC>
   <qresource prefix="/glmixer">
+    <file>images/curve_pause_instantaneous.png</file>
+    <file>images/curve_pause_circle.png</file>
+    <file>images/curve_pause_expo.png</file>
+    <file>images/curve_pause_quart.png</file>
+    <file>images/curve_pause_linear.png</file>
     <file>icons/foldersearch.png</file>
     <file>icons/size-ratio-square.png</file>
     <file>icons/flip-reset.png</file>

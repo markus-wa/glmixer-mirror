@@ -130,6 +130,14 @@ Q_OBJECT
 
 public:
 
+    typedef enum {
+        PAUSE_INSTANTANEOUS = 0,
+        PAUSE_LINEAR,
+        PAUSE_QUARTIC,
+        PAUSE_EXPONENTIAL,
+        PAUSE_CIRCULAR
+    } PauseMode;
+
     /**
      *  Constructor of a VideoFile.
      *
@@ -463,7 +471,9 @@ public slots:
      */
     void suspend();
     void resume();
-    void pause(bool pause, int smooth = 0);
+
+
+    void pause(bool pause, PauseMode mode = PAUSE_INSTANTANEOUS, int duration = 0);
     /**
      *  Set the IN mark to the movie first frame.
      */

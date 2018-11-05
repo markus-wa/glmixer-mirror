@@ -63,5 +63,10 @@
         <file>images/off_workspace_1.png</file>
         <file>images/loading.png</file>
         <file>images/new_basket.png</file>
+        <file>images/curve_pause_instantaneous.png</file>
+        <file>images/curve_pause_circle.png</file>
+        <file>images/curve_pause_expo.png</file>
+        <file>images/curve_pause_linear.png</file>
+        <file>images/curve_pause_quart.png</file>
     </qresource>
 </RCC>
