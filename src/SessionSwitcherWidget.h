@@ -27,6 +27,7 @@
 #define SESSIONSWITCHERWIDGET_H_
 
 #define MAX_RECENT_FOLDERS 10
+#define MAX_RECURSE_FOLDERS 5
 
 #include <QtGui>
 #include "RenderingManager.h"
@@ -42,10 +43,17 @@ public:
 public slots:
 
     bool openFolder(QString directory = QString::null);
-    void discardFolder();
     void folderChanged(const QString &foldername);
+    void discardFolder();
+    void reloadFolder();
+    void browseFolder();
+    void setRecursiveFolder(bool);
+
     void fileChanged(const QString &filename);
     void sessionNameChanged(QStandardItem *item);
+    void openSession();
+    void deleteSession();
+    void renameSession();
 
     void startTransitionToSession(const QModelIndex & index);
     void startTransitionToNextSession();
@@ -67,11 +75,6 @@ public slots:
     void restoreTransition();
     void restoreFolderView();
 
-    void reloadFolder();
-    void browseFolder();
-    void openSession();
-    void deleteSession();
-    void renameSession();
 
 signals:
     void sessionTriggered(QString);
@@ -101,7 +104,8 @@ private:
     QLabel *overlayLabel;
     QLabel *currentSessionLabel, *nextSessionLabel;
     QString nextSession;
-    bool nextSessionSelected, suspended;
+    QToolButton *dirRecursiveButton;
+    bool nextSessionSelected, suspended, recursive;
 
     // sorting stuff
     Qt::SortOrder sortingOrder;
@@ -118,9 +122,10 @@ class FolderModelFiller : public QThread
 
      QStandardItemModel *model;
      QString path;
+     int depth;
 
 public:
-     FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p);
+     FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p, int d);
 
 };
 

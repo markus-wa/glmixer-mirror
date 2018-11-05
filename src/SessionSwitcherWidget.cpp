@@ -132,7 +132,7 @@ void FolderModelFiller::run()
 
         // here test for folder to exist with QFile Info
         QFileInfo folder(path);
-        fillFolder(folder);
+        fillFolder(folder, depth);
 
     }
 }
@@ -141,10 +141,10 @@ void FolderModelFiller::run()
 void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
 {
     // recursive limit
-    if (depth > 5) {
+    if (depth > MAX_RECURSE_FOLDERS) {
 
         qWarning() << folder.absoluteFilePath() << QChar(124).toLatin1()
-                   << tr("Session Switcher is not openning subfolders at depth above 5 from selected folder.");
+                   << tr("Session Switcher is not openning subfolders at depth above %1 from selected folder.").arg(MAX_RECURSE_FOLDERS);
         return;
     }
 
@@ -176,15 +176,15 @@ void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
 }
 
 
-FolderModelFiller::FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p)
-    : QThread(parent), model(m), path(p)
+FolderModelFiller::FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p, int d)
+    : QThread(parent), model(m), path(p), depth(d)
 {
 
 }
 
 
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
-    appSettings(settings), m_iconSize(48,48), nextSessionSelected(false), suspended(false)
+    appSettings(settings), m_iconSize(48,48), nextSessionSelected(false), suspended(false), recursive(false)
 {
     QGridLayout *g;
 
@@ -303,11 +303,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirDeleteButton->setIcon(icon2);
 
-    QToolButton *dirReloadButton = new QToolButton(this);
-    dirReloadButton->setToolTip(tr("Refresh folder view"));
+    dirRecursiveButton = new QToolButton(this);
+    dirRecursiveButton->setCheckable(true);
+    dirRecursiveButton->setToolTip(tr("Include subfolders (up to depth %1)").arg(MAX_RECURSE_FOLDERS));
     QIcon icon3;
-    icon3.addFile(QString::fromUtf8(":/glmixer/icons/view-refresh.png"), QSize(), QIcon::Normal, QIcon::Off);
-    dirReloadButton->setIcon(icon3);
+    icon3.addFile(QString::fromUtf8(":/glmixer/icons/downarrow.png"), QSize(), QIcon::Normal, QIcon::On);
+    icon3.addFile(QString::fromUtf8(":/glmixer/icons/uparrow.png"), QSize(), QIcon::Normal, QIcon::Off);
+    dirRecursiveButton->setIcon(icon3);
 
     customButton = new QToolButton(this);
     customButton->setIcon( QIcon() );
@@ -322,16 +324,15 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderHistory->setDuplicatesEnabled(false);
 
     proxyView = new QTreeView(this);
+    proxyView->setModel(proxyFolderModel);
+    proxyView->sortByColumn(sortingColumn, sortingOrder);
+    proxyView->setSortingEnabled(false);
     proxyView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
-    proxyView->setSortingEnabled(false);
-    proxyView->sortByColumn(sortingColumn, sortingOrder);
-    proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-//    proxyView->header()->setResizeMode(QHeaderView::Interactive);
-//    proxyView->header()->resizeSection(1, 25);
-//    proxyView->header()->resizeSection(2, 35);
+    proxyView->header()->setDefaultSectionSize(10);
+    proxyView->header()->setStretchLastSection ( true );
     proxyView->setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"%1\";\n"
         "}").arg(getMonospaceFont()));
@@ -356,7 +357,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
-    connect(dirReloadButton, SIGNAL(clicked()),  this, SLOT(reloadFolder()));
+    connect(dirRecursiveButton, SIGNAL(toggled(bool)),  this, SLOT(setRecursiveFolder(bool)));
     connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
     connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(setTransitionType(int)));
@@ -372,10 +373,10 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     mainLayout->addWidget(customButton, 0, 3);
     mainLayout->addWidget(transitionTab, 1, 0, 1, 4);
     mainLayout->addWidget(proxyView, 2, 0, 1, 4);
-    mainLayout->addWidget(folderHistory, 3, 0, 1, 1);
-    mainLayout->addWidget(dirButton, 3, 1);
+    mainLayout->addWidget(dirButton, 3, 0);
+    mainLayout->addWidget(folderHistory, 3, 1, 1, 1);
     mainLayout->addWidget(dirDeleteButton, 3, 2);
-    mainLayout->addWidget(dirReloadButton, 3, 3);
+    mainLayout->addWidget(dirRecursiveButton, 3, 3);
     setLayout(mainLayout);
 
 }
@@ -408,6 +409,13 @@ void SessionSwitcherWidget::browseFolder()
         if ( sessionURL.isValid() )
             QDesktopServices::openUrl(sessionURL);
     }
+}
+
+
+void SessionSwitcherWidget::setRecursiveFolder(bool on)
+{
+    recursive = on;
+    reloadFolder();
 }
 
 void SessionSwitcherWidget::openSession()
@@ -585,7 +593,7 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
         proxyView->setSortingEnabled(false);
 
         // Threaded version of fillFolderModel(folderModel, text);
-        FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername);
+        FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername, recursive ? 0 : MAX_RECURSE_FOLDERS);
         if (!workerThread) {
             folderModelAccesslock.unlock();
             return;
@@ -815,19 +823,23 @@ void SessionSwitcherWidget::saveSettings()
     }
 
     appSettings->setValue("transitionHeader", proxyView->header()->saveState());
+
+    appSettings->setValue("recentFolderRecursive", recursive);
+    appSettings->setValue("recentFolderLast", folderHistory->currentText());
 }
 
 void SessionSwitcherWidget::restoreSettings()
 {
+    // recursive
+    bool rec = appSettings->value("recentFolderRecursive", "false").toBool();
+    dirRecursiveButton->setChecked(rec);;
+
     // list of folders
     QStringList folders(QDir::currentPath());
     if ( appSettings->contains("recentFolderList") )
         folders = appSettings->value("recentFolderList").toStringList();
-
-    // apply folder list
     disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     folderHistory->addItems( folders );
-    folderHistory->setCurrentIndex(0);
     connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
 
     // order of transition
@@ -837,11 +849,9 @@ void SessionSwitcherWidget::restoreSettings()
     proxyView->sortByColumn(sortingColumn, sortingOrder);
     proxyView->setCurrentIndex(proxyView->currentIndex());
 
-    // read folder
-    folderChanged(folderHistory->itemText(0));
-
     RenderingManager::getSessionSwitcher()->setTransitionColor( appSettings->value("transitionColor").value<QColor>());
 
+    // transition configs
     QString mediaFileName = appSettings->value("transitionMedia", "").toString();
     if (QFileInfo(mediaFileName).exists())
         RenderingManager::getSessionSwitcher()->setTransitionMedia(mediaFileName);
@@ -857,6 +867,11 @@ void SessionSwitcherWidget::restoreSettings()
     if ( appSettings->contains("transitionHeader") )
         proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
 
+    // all ok, read last openned folder
+    if ( appSettings->contains("recentFolderLast") )
+        folderChanged(appSettings->value("recentFolderLast").toString());
+    else
+        folderChanged(folderHistory->currentText());
 }
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()
