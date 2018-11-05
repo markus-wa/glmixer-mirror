@@ -141,12 +141,8 @@ void FolderModelFiller::run()
 void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
 {
     // recursive limit
-    if (depth > MAX_RECURSE_FOLDERS) {
-
-        qWarning() << folder.absoluteFilePath() << QChar(124).toLatin1()
-                   << tr("Session Switcher is not openning subfolders at depth above %1 from selected folder.").arg(MAX_RECURSE_FOLDERS);
+    if (depth > MAX_RECURSE_FOLDERS)
         return;
-    }
 
     if (folder.exists() && folder.isDir()) {
 
@@ -305,10 +301,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     dirRecursiveButton = new QToolButton(this);
     dirRecursiveButton->setCheckable(true);
-    dirRecursiveButton->setToolTip(tr("Include subfolders (up to depth %1)").arg(MAX_RECURSE_FOLDERS));
+    dirRecursiveButton->setToolTip(tr("Search in subfolders (max depth %1)").arg(MAX_RECURSE_FOLDERS));
     QIcon icon3;
-    icon3.addFile(QString::fromUtf8(":/glmixer/icons/downarrow.png"), QSize(), QIcon::Normal, QIcon::On);
-    icon3.addFile(QString::fromUtf8(":/glmixer/icons/uparrow.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon3.addFile(QString::fromUtf8(":/glmixer/icons/foldersearch.png"), QSize(), QIcon::Normal);
     dirRecursiveButton->setIcon(icon3);
 
     customButton = new QToolButton(this);
