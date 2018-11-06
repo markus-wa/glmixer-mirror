@@ -624,6 +624,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     buttonSelectClear->setDefaultAction(actionSelectNone);
     buttonSelectionPlay->setDefaultAction(actionSourcePlay);
     buttonSelectionPause->setDefaultAction(actionSourcePause);
+    smoothSelectionPauseTiming->setVisible(false);
     buttonSelectionRestart->setDefaultAction(actionSourceRestart);
     buttonSelectionSeekBackward->setDefaultAction(actionSourceSeekBackward);
     buttonSelectionSeekForward->setDefaultAction(actionSourceSeekForward);
@@ -3607,7 +3608,7 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
 void GLMixer::on_smoothSelectionPauseMode_currentIndexChanged(int)
 {
     VideoFile::PauseMode smooth = (VideoFile::PauseMode) smoothSelectionPauseMode->currentIndex();
-    smoothSelectionPauseTiming->setDisabled(smooth == VideoFile::PAUSE_INSTANTANEOUS);
+    smoothSelectionPauseTiming->setVisible(smooth != VideoFile::PAUSE_INSTANTANEOUS);
 
 }
 

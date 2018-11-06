@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1747</width>
-    <height>1168</height>
+    <width>1627</width>
+    <height>1006</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,16 +31,7 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -203,16 +194,7 @@ QToolButton:hover {
           <property name="spacing">
            <number>2</number>
           </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
          </layout>
@@ -439,16 +421,7 @@ border-bottom-left-radius: 5px;
      <item>
       <widget class="QWidget" name="output_elapsed_widget" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_23">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -505,16 +478,7 @@ border-bottom-left-radius: 5px;
         </sizepolicy>
        </property>
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
        </layout>
@@ -523,16 +487,7 @@ border-bottom-left-radius: 5px;
      <item>
       <widget class="QWidget" name="output_recording_widget" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_24">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -578,18 +533,6 @@ border-bottom-left-radius: 5px;
       <layout class="QHBoxLayout" name="previewDockWidgetButtonsLayout">
        <property name="spacing">
         <number>3</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
        </property>
        <item>
         <widget class="QToolButton" name="output_onair">
@@ -752,16 +695,7 @@ border-bottom-left-radius: 5px;
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -1161,16 +1095,7 @@ border-bottom-left-radius: 5px;
                <property name="spacing">
                 <number>3</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1324,16 +1249,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -1622,16 +1538,7 @@ QToolButton:hover {
          </size>
         </property>
         <layout class="QVBoxLayout" name="dockwidgetoptionslayout">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -1741,8 +1648,8 @@ QToolButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1747</width>
-     <height>27</height>
+     <width>1627</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -3453,16 +3360,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="layoutDockWidgetContent">
     <layout class="QVBoxLayout" name="verticalLayout_6">
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
@@ -3478,8 +3376,8 @@ QToolButton:hover {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>270</width>
-          <height>68</height>
+          <width>277</width>
+          <height>76</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -3558,16 +3456,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>3</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -3728,6 +3617,12 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="tagsDockWidgetContent">
     <layout class="QVBoxLayout" name="tagsDockWidgetContentLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <property name="margin">
+      <number>6</number>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="buttonsselectlayout">
        <property name="spacing">
@@ -3796,16 +3691,7 @@ QToolButton:hover {
         <property name="spacing">
          <number>3</number>
         </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -3896,16 +3782,7 @@ QToolButton:hover {
      <item>
       <widget class="QWidget" name="selectionPause" native="true">
        <layout class="QGridLayout" name="gridLayout_2">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item row="0" column="0">
@@ -3935,21 +3812,24 @@ QToolButton:hover {
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Speed decrease/increase function.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
           <property name="iconSize">
            <size>
-            <width>64</width>
-            <height>32</height>
+            <width>32</width>
+            <height>16</height>
            </size>
           </property>
           <property name="frame">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <item>
            <property name="text">
-            <string>Instantaneous</string>
+            <string>Instant</string>
            </property>
            <property name="icon">
-            <iconset resource="../icons.qrc">
+            <iconset resource="../images.qrc">
              <normaloff>:/glmixer/images/curve_pause_instantaneous.png</normaloff>:/glmixer/images/curve_pause_instantaneous.png</iconset>
            </property>
           </item>
@@ -3958,7 +3838,7 @@ QToolButton:hover {
             <string>Sharp</string>
            </property>
            <property name="icon">
-            <iconset resource="../icons.qrc">
+            <iconset resource="../images.qrc">
              <normaloff>:/glmixer/images/curve_pause_linear.png</normaloff>:/glmixer/images/curve_pause_linear.png</iconset>
            </property>
           </item>
@@ -3967,7 +3847,7 @@ QToolButton:hover {
             <string>Linear</string>
            </property>
            <property name="icon">
-            <iconset resource="../icons.qrc">
+            <iconset resource="../images.qrc">
              <normaloff>:/glmixer/images/curve_pause_quart.png</normaloff>:/glmixer/images/curve_pause_quart.png</iconset>
            </property>
           </item>
@@ -3976,7 +3856,7 @@ QToolButton:hover {
             <string>Smooth</string>
            </property>
            <property name="icon">
-            <iconset resource="../icons.qrc">
+            <iconset resource="../images.qrc">
              <normaloff>:/glmixer/images/curve_pause_expo.png</normaloff>:/glmixer/images/curve_pause_expo.png</iconset>
            </property>
           </item>
@@ -3985,7 +3865,7 @@ QToolButton:hover {
             <string>Soft</string>
            </property>
            <property name="icon">
-            <iconset resource="../icons.qrc">
+            <iconset resource="../images.qrc">
              <normaloff>:/glmixer/images/curve_pause_circle.png</normaloff>:/glmixer/images/curve_pause_circle.png</iconset>
            </property>
           </item>
@@ -3994,19 +3874,10 @@ QToolButton:hover {
         <item row="1" column="0" colspan="2">
          <widget class="QWidget" name="smoothSelectionPauseTiming" native="true">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_26">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
+           <property name="margin">
             <number>0</number>
            </property>
            <item>
@@ -4069,16 +3940,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
     </layout>
@@ -4096,16 +3958,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
     </layout>
