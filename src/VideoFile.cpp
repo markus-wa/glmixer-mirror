@@ -476,7 +476,8 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     // try to use hardware acceleration
     if (tryHardwareCodec && hasHwCodec) {
 
-        if ( CodecManager::applyCodecHardwareAcceleration(video_dec, hwconfig) ) {
+        CodecManager::applyCodecHardwareAcceleration(video_dec, hwconfig);
+        if ( video_dec->hw_device_ctx != NULL ) {
 
             // this video file use hardware acceleration
             useHwCodec = true;
@@ -740,6 +741,7 @@ double VideoFile::fill_first_frame(bool seek)
 
     AVPacket pkt1, *pkt = &pkt1;
     AVFrame *tmpframe = av_frame_alloc();
+    AVFrame *hwframe = av_frame_alloc();
 
     bool frameFilled = false;
     double pts = mark_in;
@@ -826,32 +828,33 @@ double VideoFile::fill_first_frame(bool seek)
     // we got the frame
     if (frameFilled) {
 
+        // reference the tmp frame filled
+        AVFrame *frame = tmpframe;
+
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-        if (tmpframe && useHwCodec ) {
-            AVFrame *frame = av_frame_alloc();
+        if (useHwCodec ) {
             /* retrieve data from GPU to CPU */
-            if ( av_hwframe_transfer_data(frame, tmpframe, 0) < 0) {
-                fprintf(stderr, "Error transferring the data to system memory\n");
-                // free unused frame
-                av_frame_free(&frame);
+            if ( av_hwframe_transfer_data(hwframe, tmpframe, 0) >= 0) {
+                // reference the hardware frame
+                frame = hwframe;
             }
-            // success
+            // error
             else {
-                // free previous frame
-                av_frame_free(&tmpframe);
-                // swap frames
-                tmpframe = frame;
+                fprintf(stderr, "Error transferring the data to system memory\n");
+                frame = NULL;
             }
         }
 #endif
 
-        // convert it
-        if ( tmpframe && av_buffersrc_add_frame_flags(in_video_filter, tmpframe, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
+        // convert it and copy content of frame
+        if ( frame && av_buffersrc_add_frame_flags(in_video_filter, frame, AV_BUFFERSRC_FLAG_KEEP_REF) >= 0 ) {
 
             try {
                 // create the picture
-                firstPicture = new VideoPicture(out_video_filter, pts);
-                firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
+                if (  av_buffersink_get_frame(out_video_filter, frame) >= 0 ) {
+                    firstPicture = new VideoPicture(frame, pts);
+                    firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
+                }
 
             } catch (AllocationException &e){
                 qWarning() << tr("Cannot create picture; ") << e.message();
@@ -861,8 +864,6 @@ double VideoFile::fill_first_frame(bool seek)
         else
             frameFilled = false;
 
-        // free frame
-        av_frame_unref(tmpframe);
     }
 
     if (!frameFilled)
@@ -874,6 +875,7 @@ double VideoFile::fill_first_frame(bool seek)
 
 
     av_frame_free(&tmpframe);
+    av_frame_free(&hwframe);
 //    avcodec_flush_buffers(video_dec);
 
     first_picture_changed = false;
@@ -1587,10 +1589,18 @@ void DecodingThread::run()
                 if ( is->useHwCodec ) {
                     /* retrieve data from GPU to CPU */
                     if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
-                        fprintf(stderr, "Error transferring the data to system memory\n");
+#ifdef VIDEOFILE_DEBUG
+                        fprintf(stderr, "\n%s - Error transferring the data to system memory.", qPrintable(is->filename));
+#endif
+                        error_count++;
+                        if (error_count < 10)
+                            continue;
+
+                        // recurrent decoding error
+                        break;
                     }
                     else
-                        // use hw decoded frame
+                        // all ok, use hw decoded frame
                         frame = _tmpFrame;
                 }
 #endif
@@ -1730,6 +1740,7 @@ void DecodingThread::run()
 
     // clean frame
     av_frame_unref(_pFrame);
+    av_frame_unref(_tmpFrame);
 
     // if normal exit
     if (is) {

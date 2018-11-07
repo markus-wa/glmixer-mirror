@@ -213,7 +213,7 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
 #ifdef Q_OS_MAC
         codeclist << "h264_videotoolbox";
 #else
-        codeclist << "h264_nvenc";
+        codeclist << "h264_nvenc" << "h264_vaapi";
 #endif
     }
     codeclist << "libx264"  << "h264_omx";
@@ -244,6 +244,18 @@ VideoRecorderH264::VideoRecorderH264(QString filename, int w, int h, int fps, en
         vbr = (int)(( (100-vbr) * 51)/100);
         snprintf(crf, 10, "%d", (int) vbr);
         av_dict_set(&opts, "crf", crf, 0);
+    }
+    else if ((strcmp(codec->name, "h264_vaapi") == 0)) {
+        // configure h264_vaapi encoder quality
+        // see https://ffmpeg.org/ffmpeg-codecs.html#VAAPI-encoders
+
+        //av_dict_set(&opts, "compression_level", "5", 0); // fast
+
+        // encoder quality controlled via VBR
+        char crf[10];
+        vbr = (int)(( (100-vbr) * 51)/100);
+        snprintf(crf, 10, "%d", (int) vbr);
+        av_dict_set(&opts, "q", crf, 0);
     }
     else if ((strcmp(codec->name, "h264_nvenc") == 0)) {
         // configure nvenc_h264 encoder quality
@@ -321,7 +333,7 @@ VideoRecorderHEVC::VideoRecorderHEVC(QString filename, int w, int h, int fps, en
     QStringList codeclist;
 #ifndef Q_OS_MAC
     if (CodecManager::useHardwareAcceleration() )
-        codeclist << "hevc_nvenc";
+        codeclist << "hevc_nvenc" << "hevc_vaapi";
 #endif
     codeclist << "libx265" ;
     setupContext(codeclist, "matroska", AV_PIX_FMT_YUV420P);
@@ -827,7 +839,7 @@ void VideoRecorder::setupContext(QStringList codecnames, QString formatname, AVP
         VideoRecorderException("Cannot allocate format context.").raise();
 
     // fill in format context
-    snprintf(format_context->filename, sizeof(format_context->filename), "%s", qPrintable(fileName) );
+    snprintf(format_context->url, sizeof(format_context->url), "%s", qPrintable(fileName) );
     format_context->oformat = av_guess_format(qPrintable(formatname), NULL, NULL);
     if (!format_context->oformat)
         VideoRecorderException("Video format not found.").raise();

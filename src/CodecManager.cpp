@@ -482,12 +482,12 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
 }
 
 
-bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
+void CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
 {
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 
     if (!config || !CodecContext)
-        return false;
+        return;
 
     // deal with harware pixel format
     enum AVPixelFormat hw_pix_fmt;
@@ -518,15 +518,16 @@ bool CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, 
         // set hw decoding context to the decoder
         if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
 
+            // copy hardware device context
             CodecContext->hw_device_ctx = av_buffer_ref(hw_device_ctx);
 
-            // inform all ok
-            return true;
+            // free tmp buffer
+            av_buffer_unref(&hw_device_ctx);
         }
     }
 
 #endif
-    return false;
+
 }
 
 bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
@@ -550,7 +551,8 @@ bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
 
                     if (avcodec_parameters_to_context(hw_video_dec, pFormatCtx->streams[videoStream]->codecpar) >= 0) {
 
-                        if ( applyCodecHardwareAcceleration(hw_video_dec, hwconfig) ) {
+                        applyCodecHardwareAcceleration(hw_video_dec, hwconfig);
+                        if ( hw_video_dec->hw_device_ctx != NULL ) {
 
                             if (avcodec_open2(hw_video_dec, codec, NULL) >= 0) {
 
