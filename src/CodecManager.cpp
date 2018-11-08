@@ -172,7 +172,7 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
 
     // inform in case duration of file is certainly a bad estimate
     if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE && codeccontext->streams[stream]->nb_frames > 2) {
-        qWarning() << codeccontext->url << QChar(124).toLatin1()<< tr("Unspecified duration in codec.");
+        qWarning() << codeccontext->filename << QChar(124).toLatin1()<< tr("Unspecified duration in codec.");
     }
 
     return d;
