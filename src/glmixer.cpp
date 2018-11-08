@@ -1836,7 +1836,7 @@ void GLMixer::on_actionEditSource_triggered()
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
         // edit mean show the dialog to change source
-        SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
+        SourceFileEditDialog sed(this, *cs, tr("%1 - Source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 
         if (sed.exec() == QDialog::Rejected) {
             // requet to re-create source
