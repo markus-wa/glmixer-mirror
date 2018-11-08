@@ -427,28 +427,23 @@ void SessionSwitcherWidget::deleteSession()
     if (!proxyView->currentIndex().isValid())
         return;
 
-    bool deletefile = false;
     QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
-
     if ( sessionFile.isFile() ) {
 
         // request confirmation if session is open
-        if (GLMixer::getInstance()->getCurrentSessionFilename() == sessionFile.absoluteFilePath() ) {
-
-            QString msg = tr("Session '%1' is running.\n\nDo you really want to delete the file?").arg(sessionFile.fileName());
-            if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
-                deletefile = true;
+        if ( GLMixer::getInstance()->getCurrentSessionFilename() == sessionFile.absoluteFilePath() )  {
+            QMessageBox::information(this, tr("%1").arg(QCoreApplication::applicationName()), tr("You cannot remove session %1 when it is openned.").arg(sessionFile.fileName()));
+        } 
+        else {
+            QString msg = tr("Do you really want to delete this file?\n\n%1").arg(sessionFile.absoluteFilePath());
+            if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg, 
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
+                // delete file
+                QDir sessionDir(sessionFile.canonicalPath());
+                sessionDir.remove(sessionFile.fileName());
+                reloadFolder();
             }
         }
-        else
-            deletefile = true;
-    }
-
-    if (deletefile) {
-        // delete file
-        QDir sessionDir(sessionFile.canonicalPath());
-        sessionDir.remove(sessionFile.fileName());
-        reloadFolder();
     }
 }
 

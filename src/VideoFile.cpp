@@ -851,10 +851,8 @@ double VideoFile::fill_first_frame(bool seek)
 
             try {
                 // create the picture
-                if (  av_buffersink_get_frame(out_video_filter, frame) >= 0 ) {
-                    firstPicture = new VideoPicture(frame, pts);
-                    firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
-                }
+                firstPicture = new VideoPicture(out_video_filter, pts);
+                firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
 
             } catch (AllocationException &e){
                 qWarning() << tr("Cannot create picture; ") << e.message();
