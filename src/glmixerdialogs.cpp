@@ -493,8 +493,9 @@ void LoggingWidget::on_logTexts_doubleClicked() {
 
     QString origin = logTexts->currentItem()->text(1);
     QFileInfo file(origin);
-    if (file.exists())
-        QDesktopServices::openUrl( QUrl::fromLocalFile(file.absolutePath()) );
+    QFileInfo dir(file.absolutePath());
+    if (dir.exists())
+        QDesktopServices::openUrl( QUrl::fromLocalFile(dir.filePath()) );
 }
 
 
@@ -638,7 +639,12 @@ void LoggingWidget::setupui() {
     logTexts->setWordWrap(true);
     logTexts->setHeaderHidden(false);
     logTexts->setExpandsOnDoubleClick(false);
+    logTexts->setColumnWidth(0, 600);
     logTexts->header()->setVisible(true);
+    QTreeWidgetItem *___qtreewidgetitem = logTexts->headerItem();
+    ___qtreewidgetitem->setText(1, tr("Origin"));
+    ___qtreewidgetitem->setText(0, tr("Message"));
+
     // Use fixed size font
 #ifdef Q_OS_WIN32
     logTexts->setFont(QFont(getMonospaceFont(), QApplication::font().pointSize() + 1));
@@ -648,9 +654,6 @@ void LoggingWidget::setupui() {
 
     logsVerticalLayout->addWidget(logTexts);
 
-    QTreeWidgetItem *___qtreewidgetitem = logTexts->headerItem();
-    ___qtreewidgetitem->setText(1, tr("Origin"));
-    ___qtreewidgetitem->setText(0, tr("Message"));
 }
 
 

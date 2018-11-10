@@ -114,7 +114,7 @@ public:
     bool restoreState(const QByteArray &state);
 
     QSize sizeHint() const {
-        return QSize(600, 250);
+        return QSize(800, 300);
     }
 
 signals:

@@ -2271,8 +2271,11 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
 
         }
         else {
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                       << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+
+            qWarning() << Filename.text() << QChar(124).toLatin1() << tr("Cannot create source %1: No such file in absolute path location.").arg(child.attribute("name"));
+
+            qWarning() << current.absoluteFilePath( Filename.attribute("Relative", "") ) << QChar(124).toLatin1() << tr("Cannot create source %1: No such file in relative path location.").arg(child.attribute("name"));
+
             errors++;
         }
 
