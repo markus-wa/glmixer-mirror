@@ -75,6 +75,8 @@ public slots:
     void restoreTransition();
     void restoreFolderView();
 
+    // contex menu
+    void ctxMenu(const QPoint &pos);
 
 signals:
     void sessionTriggered(QString);
@@ -94,7 +96,6 @@ private:
     QTabWidget *transitionTab;
     QSlider *transitionSlider;
     QToolButton *customButton;
-    QSettings *appSettings;
     QListWidget *easingCurvePicker;
     QSpinBox *transitionDuration;
     QSize m_iconSize;
@@ -110,6 +111,9 @@ private:
     // sorting stuff
     Qt::SortOrder sortingOrder;
     int sortingColumn;
+
+    QSettings *appSettings;
+    QAction *loadAction, *renameSessionAction, *deleteSessionAction, *openUrlAction;
 };
 
 

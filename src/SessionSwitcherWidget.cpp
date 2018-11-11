@@ -277,7 +277,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
     folderModel->setHeaderData(1, Qt::Horizontal, QString("n"));
     folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("W:H"));
-    folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Modified"));
+    folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Date"));
 
     sortingColumn = 3;
     sortingOrder = Qt::AscendingOrder;
@@ -327,26 +327,29 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    proxyView->header()->setDefaultSectionSize(10);
-    proxyView->header()->setStretchLastSection ( true );
+    proxyView->header()->setDragEnabled(false);
+    proxyView->header()->setDefaultSectionSize(50);
     proxyView->setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"%1\";\n"
         "}").arg(getMonospaceFont()));
 
-    proxyView->setContextMenuPolicy(Qt::ActionsContextMenu);
-    QAction *loadAction = new QAction(QIcon(":/glmixer/icons/fileopen.png"), tr("Open"), proxyView);
+
+    proxyView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(proxyView, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(ctxMenu(const QPoint &)));
+
+    loadAction = new QAction(QIcon(":/glmixer/icons/fileopen.png"), tr("Open"), proxyView);
     proxyView->addAction(loadAction);
     QObject::connect(loadAction, SIGNAL(triggered()), this, SLOT(openSession()) );
 
-    QAction *renameSessionAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename"), proxyView);
+    renameSessionAction = new QAction(QIcon(":/glmixer/icons/rename.png"), tr("Rename"), proxyView);
     proxyView->addAction(renameSessionAction);
     QObject::connect(renameSessionAction, SIGNAL(triggered()), this, SLOT(renameSession()) );
 
-    QAction *deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), proxyView);
+    deleteSessionAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), proxyView);
     proxyView->addAction(deleteSessionAction);
     QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
 
-    QAction *openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show file in browser"), proxyView);
+    openUrlAction = new QAction(QIcon(":/glmixer/icons/folderopen.png"), tr("Show file in browser"), proxyView);
     proxyView->addAction(openUrlAction);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(browseFolder()) );
 
@@ -433,10 +436,10 @@ void SessionSwitcherWidget::deleteSession()
         // request confirmation if session is open
         if ( GLMixer::getInstance()->getCurrentSessionFilename() == sessionFile.absoluteFilePath() )  {
             QMessageBox::information(this, tr("%1").arg(QCoreApplication::applicationName()), tr("You cannot remove session %1 when it is openned.").arg(sessionFile.fileName()));
-        } 
+        }
         else {
             QString msg = tr("Do you really want to delete this file?\n\n%1").arg(sessionFile.absoluteFilePath());
-            if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg, 
+            if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg,
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
                 // delete file
                 QDir sessionDir(sessionFile.canonicalPath());
@@ -1061,4 +1064,31 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 void SessionSwitcherWidget::unsuspend()
 {
     suspended = false;
+}
+
+
+void SessionSwitcherWidget::ctxMenu(const QPoint &pos)
+{
+    static QMenu *contextmenu_item = NULL;
+    if (contextmenu_item == NULL) {
+        contextmenu_item = new QMenu(this);
+        contextmenu_item->addAction(loadAction);
+        contextmenu_item->addAction(renameSessionAction);
+        contextmenu_item->addAction(deleteSessionAction);
+        contextmenu_item->addAction(openUrlAction);
+    }
+    static QMenu *contextmenu_background = NULL;
+    if (contextmenu_background == NULL) {
+        contextmenu_background = new QMenu(this);
+        contextmenu_background->addAction(openUrlAction);
+    }
+
+    QModelIndex index = proxyView->indexAt(pos);
+    if (index.isValid()) {
+        contextmenu_item->popup(proxyView->viewport()->mapToGlobal(pos));
+    }
+    else {
+        proxyView->reset();
+        contextmenu_background->popup(proxyView->viewport()->mapToGlobal(pos));
+    }
 }
