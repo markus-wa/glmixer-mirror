@@ -100,6 +100,16 @@ void ProtoSource::_setAlphaCoordinates(double ax, double ay) {
     texalpha = 1.0 - MINI(d, 1.0);
 }
 
+void ProtoSource::_setAlphaCoordinateX(double ax) {
+
+    _setAlphaCoordinates(ax, alphay);
+}
+
+void ProtoSource::_setAlphaCoordinateY(double ay) {
+
+    _setAlphaCoordinates(alphax, ay);
+}
+
 void ProtoSource::_setAlpha(double a) {
 
     // apply new alpha
