@@ -274,11 +274,14 @@ void VideoFile::close()
 
 VideoFile::~VideoFile()
 {
+    // end silently
+    QObject::disconnect(this, 0, 0, 0);
+    // just to make sure stop() will not fill first frame
+    restart_where_stopped = true;
+
     // make sure all is closed
     close();
     clear_picture_queue();
-
-    QObject::disconnect(this, 0, 0, 0);
 
     // delete threads
     delete decod_tid;
