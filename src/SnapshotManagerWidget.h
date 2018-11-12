@@ -21,9 +21,11 @@ public slots:
     void clear();
     void newSnapshot(QString id);
     void deleteSnapshot(QString id);
+    void updateSnapshot(QString id);
 
     void deleteSelectedSnapshot();
     void restoreSelectedSnapshot();
+    void updateSelectedSnapshot();
     void renameSelectedSnapshot();
 
     void on_snapshotsList_itemDoubleClicked(QListWidgetItem *);
@@ -36,7 +38,7 @@ public slots:
 private:
     Ui::SnapshotManagerWidget *ui;
     QSettings *appSettings;
-    QAction *newAction, *restoreAction, *deleteAction, *renameAction;
+    QAction *newAction, *restoreAction, *updateAction, *deleteAction, *renameAction;
 };
 
 #endif // FORM_H

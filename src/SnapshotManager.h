@@ -32,6 +32,7 @@ public:
     QString getSnapshotLabel(QString id);
     void setSnapshotLabel(QString id, QString label);
     void removeSnapshot(QString id);
+    void renewSnapshot(QString id);
 
     /**
      * Access content of snapshots
@@ -55,6 +56,7 @@ signals:
     void clear();
     void snap();
     void newSnapshot(QString id);
+    void updateSnapshot(QString id);
     void deleteSnapshot(QString id);
     void snapshotRestored();
     void status(QString, int);

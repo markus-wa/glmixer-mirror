@@ -19,6 +19,10 @@ SnapshotManagerWidget::SnapshotManagerWidget(QWidget *parent, QSettings *setting
     restoreAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Apply"), this);
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(restoreSelectedSnapshot()));
 
+    updateAction = new QAction(QIcon(":/glmixer/icons/view-refresh.png"), tr("Update"), this);
+    updateAction->setEnabled(true);
+    connect(updateAction, SIGNAL(triggered()), this, SLOT(updateSelectedSnapshot()));
+
     deleteAction = new QAction(QIcon(":/glmixer/icons/fileclose.png"), tr("Delete"), this);
     deleteAction->setEnabled(false);
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedSnapshot()));
@@ -29,6 +33,7 @@ SnapshotManagerWidget::SnapshotManagerWidget(QWidget *parent, QSettings *setting
 
     // connect with snapshot manager
     connect(SnapshotManager::getInstance(), SIGNAL(newSnapshot(QString)), SLOT(newSnapshot(QString)));
+    connect(SnapshotManager::getInstance(), SIGNAL(updateSnapshot(QString)), SLOT(updateSnapshot(QString)));
     connect(SnapshotManager::getInstance(), SIGNAL(deleteSnapshot(QString)), SLOT(deleteSnapshot(QString)));
     connect(SnapshotManager::getInstance(), SIGNAL(clear()), SLOT(clear()));
 
@@ -60,6 +65,25 @@ void SnapshotManagerWidget::newSnapshot(QString id)
     ui->snapshotsList->setCurrentItem(item);
 }
 
+// connected to signal newSnapshot
+void SnapshotManagerWidget::updateSnapshot(QString id)
+{
+    QIcon icon;
+    icon.addPixmap( QPixmap::fromImage( SnapshotManager::getInstance()->getSnapshotImage(id) ) );
+    QString label = SnapshotManager::getInstance()->getSnapshotLabel(id);
+
+    for (int r = 0; r < ui->snapshotsList->count(); ++r) {
+        QListWidgetItem *it = ui->snapshotsList->item(r);
+        if ( it && id == it->data(Qt::UserRole).toString() ) {
+
+            it->setIcon(icon);
+            it->setText(label);
+            break;
+        }
+    }
+
+}
+
 // connected to signal removeSnapshot
 void SnapshotManagerWidget::deleteSnapshot(QString id)
 {
@@ -83,6 +107,16 @@ void SnapshotManagerWidget::deleteSelectedSnapshot()
     {
         QString id = ui->snapshotsList->currentItem()->data(Qt::UserRole).toString();
         SnapshotManager::getInstance()->removeSnapshot(id);
+    }
+}
+
+// connected to signal renewSnapshot
+void SnapshotManagerWidget::updateSelectedSnapshot()
+{
+    if ( ui->snapshotsList->currentItem() )
+    {
+        QString id = ui->snapshotsList->currentItem()->data(Qt::UserRole).toString();
+        SnapshotManager::getInstance()->renewSnapshot(id);
     }
 }
 
@@ -145,6 +179,7 @@ void SnapshotManagerWidget::ctxMenu(const QPoint &pos)
     if (contextmenu_item == NULL) {
         contextmenu_item = new QMenu(this);
         contextmenu_item->addAction(restoreAction);
+        contextmenu_item->addAction(updateAction);
         contextmenu_item->addAction(renameAction);
         contextmenu_item->addAction(deleteAction);
     }

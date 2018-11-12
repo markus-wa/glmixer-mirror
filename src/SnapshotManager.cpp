@@ -171,6 +171,42 @@ QString SnapshotManager::getSnapshotLabel(QString id)
     return label;
 }
 
+void SnapshotManager::renewSnapshot(QString id)
+{
+    if (!_snapshotsList.contains(id))
+        return;
+
+    QDomElement root = _snapshotsDescription.firstChildElement(id);
+    if (root.isNull())
+        return;
+
+    // remember label
+    QString label = root.attribute("label", id);
+
+    // delete content
+    _snapshotsDescription.removeChild(root);
+    _snapshotsList.remove(id);
+
+    // capture screenshot
+    QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+    if (capture.isNull())
+        capture = QImage(QString::fromUtf8(":/glmixer/icons/snapshot.png"));
+
+    // add element in list
+    _snapshotsList[id] = SnapshotManager::generateSnapshotIcon(capture);
+
+    // create node
+    appendSnapshotDescrition(id, id, RenderingManager::getInstance()->getConfiguration(_snapshotsDescription));
+
+    // restore label
+    _snapshotsDescription.firstChildElement(id).setAttribute("label", label);
+
+    // inform GUI
+    emit snap();
+    emit updateSnapshot(id);
+    emit status(tr("Snapshot %1 updated.").arg(label), 2000);
+}
+
 void SnapshotManager::removeSnapshot(QString id)
 {
     if (!_snapshotsList.contains(id))
