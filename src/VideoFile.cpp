@@ -210,8 +210,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     restart_where_stopped = true; // by default restart where stopped
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
-    useHwCodec = false;  // by default do not use hardware codec
-    hasHwCodec = false;
+    hasHwCodec = false;  // by default do not use hardware codec
+    pHardwareCodec = NULL;
 
     // initialize clock control
     pclock = new VideoClock(this);
@@ -242,6 +242,11 @@ void VideoFile::close()
     // free decoder
     if (video_dec)
         avcodec_free_context(&video_dec);
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+    if (pHardwareCodec)
+        av_buffer_unref(&pHardwareCodec);
+#endif
 
     // close & free format context
     if (pFormatCtx) {
@@ -466,8 +471,10 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     }
 
     // reset hardware capability
-    useHwCodec = false;
     hasHwCodec = false;
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+    pHardwareCodec = NULL;
 
     // test hardware acceleration
     const AVCodecHWConfig *hwconfig = CodecManager::getCodecHardwareAcceleration(codec);
@@ -479,11 +486,8 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     // try to use hardware acceleration
     if (tryHardwareCodec && hasHwCodec) {
 
-        CodecManager::applyCodecHardwareAcceleration(video_dec, hwconfig);
-        if ( video_dec->hw_device_ctx != NULL ) {
-
-            // this video file use hardware acceleration
-            useHwCodec = true;
+        pHardwareCodec = CodecManager::applyCodecHardwareAcceleration(video_dec, hwconfig);
+        if ( pHardwareCodec != NULL ) {
 
             qDebug() << filename << QChar(124).toLatin1()
                      <<  tr("Using Codec %1 %2 hardware acceleration.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
@@ -494,7 +498,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
                      <<  tr("Failed to use %2 hardware acceleration for %1 codec.").arg(codec->name).arg(av_hwdevice_get_type_name(hwconfig->device_type));
 
     }
-
+#endif
 
     // options for decoder
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
@@ -835,7 +839,7 @@ double VideoFile::fill_first_frame(bool seek)
         AVFrame *frame = tmpframe;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-        if (useHwCodec ) {
+        if ( pHardwareCodec ) {
             /* retrieve data from GPU to CPU */
             if ( av_hwframe_transfer_data(hwframe, tmpframe, 0) >= 0) {
                 // reference the hardware frame
@@ -1587,7 +1591,7 @@ void DecodingThread::run()
                 frame = _pFrame;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-                if ( is->useHwCodec ) {
+                if ( is->pHardwareCodec ) {
                     /* retrieve data from GPU to CPU */
                     if ( av_hwframe_transfer_data(_tmpFrame, _pFrame, 0) < 0) {
 #ifdef VIDEOFILE_DEBUG

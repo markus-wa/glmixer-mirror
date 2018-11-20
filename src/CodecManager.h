@@ -63,8 +63,10 @@ public:
      *  Try to find an hardware accelerated codec
      *
      */
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     static const AVCodecHWConfig *getCodecHardwareAcceleration(AVCodec *codec);
-    static void applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *hwconfig);
+    static AVBufferRef *applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *hwconfig);
+#endif
     /**
      *  Test hardware decoding this file.
      *

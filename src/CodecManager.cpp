@@ -447,6 +447,7 @@ void CodecManager::setHardwareAcceleration(bool use)
     _instance->_useHardwareAcceleration = use;
 }
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 // see https://trac.ffmpeg.org/wiki/HWAccelIntro
 
 const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec)
@@ -482,53 +483,54 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
 }
 
 
-void CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
+AVBufferRef * CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
 {
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
 
-    if (!config || !CodecContext)
-        return;
-
-    // deal with harware pixel format
-    enum AVPixelFormat hw_pix_fmt;
-    hw_pix_fmt = config->pix_fmt;
-
-    // Create a hw context
     AVBufferRef *hw_device_ctx = NULL;
-    if ( av_hwdevice_ctx_create(&hw_device_ctx, config->device_type, NULL, NULL, 0) == 0)
-    {
-        // set function for pixel format
-        switch (config->pix_fmt) {
-        case AV_PIX_FMT_VIDEOTOOLBOX:
-            CodecContext->get_format  = get_hw_format_videotoolbox;
-            break;
-        case AV_PIX_FMT_DXVA2_VLD:
-            CodecContext->get_format  = get_hw_format_directxva2;
-            break;
-        case AV_PIX_FMT_VAAPI_VLD:
-            CodecContext->get_format  = get_hw_format_vaapi;
-            break;
-        case AV_PIX_FMT_VDPAU:
-            CodecContext->get_format  = get_hw_format_vdpau;
-            break;
-        default:
-            hw_pix_fmt = AV_PIX_FMT_NONE;
+
+    if (config && CodecContext) {
+
+        // deal with harware pixel format
+        enum AVPixelFormat hw_pix_fmt;
+        hw_pix_fmt = config->pix_fmt;
+
+        // Create a hw context
+        if ( av_hwdevice_ctx_create(&hw_device_ctx, config->device_type, NULL, NULL, 0) == 0)
+        {
+            // set function for pixel format
+            switch (config->pix_fmt) {
+            case AV_PIX_FMT_VIDEOTOOLBOX:
+                CodecContext->get_format  = get_hw_format_videotoolbox;
+                break;
+            case AV_PIX_FMT_DXVA2_VLD:
+                CodecContext->get_format  = get_hw_format_directxva2;
+                break;
+            case AV_PIX_FMT_VAAPI_VLD:
+                CodecContext->get_format  = get_hw_format_vaapi;
+                break;
+            case AV_PIX_FMT_VDPAU:
+                CodecContext->get_format  = get_hw_format_vdpau;
+                break;
+            default:
+                hw_pix_fmt = AV_PIX_FMT_NONE;
+            }
+
+            // set hw decoding context to the decoder
+            if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
+
+                // copy hardware device context
+                CodecContext->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+
+            }
         }
 
-        // set hw decoding context to the decoder
-        if ( hw_pix_fmt != AV_PIX_FMT_NONE ) {
-
-            // copy hardware device context
-            CodecContext->hw_device_ctx = av_buffer_ref(hw_device_ctx);
-
-            // free tmp buffer
-            av_buffer_unref(&hw_device_ctx);
-        }
     }
+
+    return hw_device_ctx;
+}
 
 #endif
 
-}
 
 bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
 {

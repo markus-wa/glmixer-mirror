@@ -636,7 +636,7 @@ public slots:
      *
      */
     bool hasHardwareCodec() const { return hasHwCodec; }
-    inline bool useHardwareCodec() const { return useHwCodec; }
+    inline bool useHardwareCodec() const { return pHardwareCodec != NULL; }
 
 protected slots:
     /**
@@ -682,8 +682,11 @@ protected:
     AVFilterGraph *graph;
 
     int videoStream;
-    bool ignoreAlpha, useHwCodec, hasHwCodec;
+    bool ignoreAlpha, hasHwCodec;
     enum AVPixelFormat targetFormat;
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+    AVBufferRef *pHardwareCodec;
+#endif
 
     // seeking management
     QMutex *seek_mutex;
