@@ -292,13 +292,6 @@ VideoPicture::~VideoPicture()
 #endif
     }
 
-#ifdef GLM_CUDA
-    if (g_pInteropFrame)
-    {
-        cuMemFree(g_pInteropFrame);
-    }
-#endif
-
 }
 
 void VideoPicture::saveToPPM(QString filename) const
@@ -330,22 +323,6 @@ void VideoPicture::saveToPPM(QString filename) const
     }
 }
 
-#ifdef GLM_CUDA
-
-void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
-{
-    g_pInteropFrame = pInteropFrame;
-
-    // remember pts
-    pts = Pts;
-
-    pixel_format = AV_PIX_FMT_RGBA;
-
-    // no AVFrame
-    data = 0;
-}
-
-#endif
 
 int VideoPicture::getBufferSize() const
 {

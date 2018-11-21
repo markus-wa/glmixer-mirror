@@ -11,10 +11,6 @@ extern "C" {
 #include <QMutex>
 #include <QString>
 
-#ifdef GLM_CUDA
-#include <cuda.h>
-#endif
-
 /**
  * Size of a Mega Byte
  */
@@ -71,14 +67,6 @@ public:
      * @return pointer to an array of unsigned bytes (char or uint8_t)
      */
     char *getBuffer() const;
-
-#ifdef GLM_CUDA
-    /**
-     * Fill the VideoPicture
-     *
-     */
-    void fill(CUdeviceptr pInteropFrame, double Pts = 0.0);
-#endif
 
     /**
       * Deletes the VideoPicture and frees the av picture
@@ -177,10 +165,6 @@ private:
     int width, height, rowlength;
     Action action;
     AVFrame *frame;
-
-#ifdef GLM_CUDA
-    CUdeviceptr    g_pInteropFrame;
-#endif
 
     class PictureMap
     {

@@ -734,6 +734,17 @@ bool VideoFile::hasAlphaChannel() const
     return CodecManager::pixelFormatHasAlphaChannel(video_dec->pix_fmt);
 }
 
+bool VideoFile::useHardwareCodec() const {
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+    return pHardwareCodec != NULL;
+#else
+    return false;
+#endif
+
+}
+
+
 double VideoFile::fill_first_frame(bool seek)
 {
     int retcd = 0;

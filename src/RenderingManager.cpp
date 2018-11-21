@@ -68,10 +68,6 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include <FFGL.h>
 #endif
 
-#ifdef GLM_CUDA
-#include "CUDAVideoFile.h"
-#endif
-
 #ifdef GLM_UNDO
 #include "UndoManager.h"
 #endif
@@ -2140,17 +2136,6 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
                 power2 = true;
             }
 
-#ifdef GLM_CUDA
-            // trying to use CUDA for decoding
-            try {
-                newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
-                qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
-            }
-            catch (AllocationException &e){
-                qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
-                newSourceVideoFile = 0;
-            }
-#endif
             if (!newSourceVideoFile) {
                 if (power2)
                     newSourceVideoFile = new VideoFile(this, true, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());

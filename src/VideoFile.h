@@ -124,9 +124,6 @@ class VideoFile: public QObject
 Q_OBJECT
 
     friend class DecodingThread;
-#ifdef GLM_CUDA
-    friend class CUDADecodingThread;
-#endif
 
 public:
 
@@ -635,8 +632,8 @@ public slots:
     /**
      *
      */
-    bool hasHardwareCodec() const { return hasHwCodec; }
-    inline bool useHardwareCodec() const { return pHardwareCodec != NULL; }
+    bool useHardwareCodec() const;
+    inline bool hasHardwareCodec() const { return hasHwCodec; }
 
 protected slots:
     /**
