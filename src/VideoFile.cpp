@@ -211,7 +211,10 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     stop_to_black = false;
     ignoreAlpha = false; // by default do not ignore alpha channel
     hasHwCodec = false;  // by default do not use hardware codec
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     pHardwareCodec = NULL;
+#endif
 
     // initialize clock control
     pclock = new VideoClock(this);
@@ -338,16 +341,18 @@ void VideoFile::stop()
 
         if (!restart_where_stopped)
         {
+            // we'll not use the queue
+            clear_picture_queue();
             // recreate first picture in case begin has changed
             current_frame_pts = fill_first_frame(true);
-            emit frameReady( firstPicture );
             emit timeChanged( current_frame_pts );
+            // update frame with first picture
+            emit frameReady( firstPicture );
         }
 
         if (stop_to_black)
             emit frameReady( blackPicture );
 
-        ptimer->stop();
 
 #ifdef VIDEOFILE_DEBUG
         fprintf(stderr, "\n%s - Stopped.", qPrintable(filename));

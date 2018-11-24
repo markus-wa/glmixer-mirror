@@ -72,7 +72,7 @@ void StreamOpeningThread::run()
     if (!is->openStream())
         emit failed();
     else {
-        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");        
+        qDebug() << is->urlname << is->formatname << QChar(124).toLatin1() << tr("Stream connected.");
         emit success();
     }
 
@@ -201,7 +201,7 @@ void StreamDecodingThread::run()
 
                 // free internal buffers
                 av_frame_unref(_pFrame);
-                
+
                 // exponential moving average to compute FPS
                 is->frame_rate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * is->frame_rate;
 
@@ -284,6 +284,7 @@ VideoStream::~VideoStream()
         QObject::disconnect(open_tid, 0, 0, 0);
         QObject::connect(open_tid, SIGNAL(terminated()), open_tid, SLOT(deleteLater()));
         open_tid->terminate();
+        open_tid->wait();
     }
     else
         delete open_tid;
@@ -292,6 +293,7 @@ VideoStream::~VideoStream()
         QObject::disconnect(decod_tid, 0, 0, 0);
         QObject::connect(decod_tid, SIGNAL(terminated()), decod_tid, SLOT(deleteLater()));
         decod_tid->terminate();
+        decod_tid->wait();
     }
     else
         delete decod_tid;
@@ -417,14 +419,14 @@ void VideoStream::open(QString url, QString format, QHash<QString, QString> opti
              << QStringList( formatoptions.values() ).join(" ")
              << QChar(124).toLatin1() << tr("Connecting stream ...");
 
-    // open in current thread gor gdigrab format 
+    // open in current thread gor gdigrab format
     // don't ask why, its just the only way i found to make it work...
     if (formatname == "gdigrab")
         openStream();
 
     // Start Openning thread (will send signals)
     open_tid->start();
-    
+
 #ifdef VIDEOSTREAM_DEBUG
     fprintf(stderr, "\n%s - Stream openning...", qPrintable(formatname));
 #endif
@@ -485,7 +487,7 @@ bool VideoStream::openStream()
         return false;
     }
 
-    // options for decoder    
+    // options for decoder
     video_dec->codec_id          = codec->id;
     video_dec->flags2           |= AV_CODEC_FLAG2_FAST;
     video_dec->workaround_bugs   = FF_BUG_AUTODETECT;
@@ -493,10 +495,10 @@ bool VideoStream::openStream()
     video_dec->skip_frame        = AVDISCARD_DEFAULT;
     video_dec->skip_idct         = AVDISCARD_DEFAULT;
     video_dec->skip_loop_filter  = AVDISCARD_DEFAULT;
-    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;  
+    video_dec->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
 
     // set options for video decoder
-    AVDictionary *opts = NULL;       
+    AVDictionary *opts = NULL;
     av_dict_set(&opts, "refcounted_frames", "1", 0);
     av_dict_set(&opts, "threads", "auto", 0);
 
@@ -637,8 +639,6 @@ void VideoStream::close()
     // Stop thread
     stop();
 
-    // flush
-    flush_picture_queue();
 
     // free filter
     if (graph)
@@ -656,6 +656,9 @@ void VideoStream::close()
         // log
         qDebug() << urlname  << formatname << QChar(124).toLatin1() << tr("Stream closed.");
     }
+
+    // flush
+    flush_picture_queue();
 
     // reset pointers
     pFormatCtx = NULL;

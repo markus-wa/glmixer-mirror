@@ -997,6 +997,18 @@ public:
             infoManager->setValue(property, vf->getPixelFormatName() );
             addProperty(property);
 
+            // stop options
+            property = boolManager->addProperty("Rewind stop");
+            property->setToolTip("Restart video at first frame when stopped.");
+            idToProperty[property->propertyName()] = property;
+            boolManager->setValue(property, vf->getOptionRestartToMarkIn());
+            addProperty(property);
+            property = boolManager->addProperty("Black stop");
+            property->setToolTip("Show black frame when stopped.");
+            idToProperty[property->propertyName()] = property;
+            boolManager->setValue(property, vf->getOptionRevertToBlackWhenStop());
+            addProperty(property);
+
             // alpha format
             if (vf->hasAlphaChannel()) {
                 // Ignore alpha channel
@@ -1032,26 +1044,36 @@ public slots:
                 boolManager->setValue(idToProperty["Ignore alpha"], false);
             else if ( it->property() == idToProperty["GPU"])
                 boolManager->setValue(idToProperty["GPU"], false);
+            else if ( it->property() == idToProperty["Rewind stop"])
+                boolManager->setValue(idToProperty["Rewind stop"], false);
+            else if ( it->property() == idToProperty["Black stop"])
+                boolManager->setValue(idToProperty["Black stop"], false);
         }
     }
     void valueChanged(QtProperty *property, bool value)
     {
         // remember if video was playing
         bool play = vs->isPlaying();
-        // re-open file with different openning parameter
-        if ( property == idToProperty["Ignore alpha"] ) {
-            VideoFile *vf = vs->getVideoFile();
-            if ( vf ) {
+        VideoFile *vf = vs->getVideoFile();
+        if ( vf ) {
+
+            // re-open file with different openning parameter
+            if ( property == idToProperty["Ignore alpha"] ) {
                 vf->open(vf->getFileName(), vf->useHardwareCodec(), value, vf->getMarkIn(), vf->getMarkOut());
             }
-        }
-        else if ( property == idToProperty["GPU"] ) {
-            VideoFile *vf = vs->getVideoFile();
-            if ( vf ) {
+            else if ( property == idToProperty["GPU"] ) {
                 vf->open(vf->getFileName(), value, vf->ignoresAlphaChannel(), vf->getMarkIn(), vf->getMarkOut());
                 // pixel format might have changed
                 infoManager->setValue(idToProperty["Format"], vf->getPixelFormatName() );
             }
+            // apply options
+            else if ( property == idToProperty["Rewind stop"] ) {
+                vf->setOptionRestartToMarkIn( value );
+            }
+            else if ( property == idToProperty["Black stop"] ) {
+                vf->setOptionRevertToBlackWhenStop( value );
+            }
+
         }
         // restore play
         vs->play(play);

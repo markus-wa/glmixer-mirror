@@ -184,7 +184,8 @@ void MixerView::paint()
         //
         // 1. Draw it into render FBO
         //
-        if (!s->isStandby()) {
+        if (!s->isStandby())
+        {
             RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
         }
 

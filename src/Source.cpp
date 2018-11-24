@@ -601,6 +601,9 @@ void Source::setStandby(bool on) {
         _ffgl_plugins.play( standby == NOT_STANDBY );
 #endif
 
+    update();
+    update();
+
     emit standingby(standby);
 }
 
