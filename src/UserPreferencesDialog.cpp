@@ -135,10 +135,15 @@ void UserPreferencesDialog::setModeMinimal(bool on)
 
 void UserPreferencesDialog::restoreAllDefaultPreferences() {
 
-    for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
+    QString msg = tr("Do you want to reset GLMixer to factory settings and appearance?");
+    if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg,
+    QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
+        // reset all
+        for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
         restoreDefaultPreferences();
 
-    GLMixer::getInstance()->on_actionResetToolbars_triggered();
+        GLMixer::getInstance()->on_actionResetToolbars_triggered();
+    }
 }
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
@@ -197,7 +202,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         displayFramerate->setChecked(false);
         restoreLastSession->setChecked(true);
         useCustomDialogs->setChecked(true);
-        saveExitSession->setChecked(true);
+        saveExitSession->setChecked(false);
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
         displayTimer->setChecked(false);
