@@ -392,7 +392,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         setEnabled(true);
         source = *csi;
         propertyChanged("Color", source->getColor());
-        propertyChanged("Key Color", source->getChromaKeyColor());
+        propertyChanged("ChromaKeyColor", source->getChromaKeyColor());
 
 #ifdef GLM_FFGL
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
@@ -403,7 +403,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         presetsList->setCurrentItem(0);
         source = 0;
         propertyChanged("Color", palette().color(QPalette::Window));
-        propertyChanged("Key Color",  palette().color(QPalette::Window));
+        propertyChanged("ChromaKeyColor",  palette().color(QPalette::Window));
 #ifdef GLM_FFGL
         pluginBrowser->clear();
 #endif
@@ -421,7 +421,7 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, bool value)
 {
     if (propertyname == "Pixelated")
         blendingPixelatedButton->setChecked(value);
-    else if (propertyname == "Chroma key")
+    else if (propertyname == "ChromaKey")
         chromakeyEnable->setChecked(value);
 }
 
@@ -453,7 +453,7 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
         filterList->setCurrentRow(value);
         filterList->scrollTo( filterList->currentIndex() );
     }
-    else if (propertyname == "Key Tolerance")
+    else if (propertyname == "ChromaKeyTolerance")
         chromakeySlider->setValue(value);
 
 }
@@ -461,12 +461,12 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
 
 void MixingToolboxWidget::propertyChanged(QString propertyname, const QColor &c)
 {
-    QPixmap p = QPixmap(32, 32);
+    QPixmap p(32, 32);
     p.fill(c);
 
     if (propertyname == "Color")
         blendingColorButton->setIcon( QIcon(p) );
-    else if (propertyname == "Key Color")
+    else if (propertyname == "ChromaKeyColor")
         chromakeyColor->setIcon( QIcon(p) );
 }
 
@@ -535,7 +535,7 @@ void MixingToolboxWidget::on_invertReset_pressed()
 
 void MixingToolboxWidget::on_chromakeyEnable_toggled(bool value)
 {
-    emit(valueChanged("Chroma key", value));
+    emit(valueChanged("ChromaKey", value));
 }
 
 void MixingToolboxWidget::on_chromakeyColor_pressed()
@@ -548,13 +548,13 @@ void MixingToolboxWidget::on_chromakeyColor_pressed()
             color = QColorDialog::getColor(source->getChromaKeyColor(), this, "Select Color", QColorDialog::DontUseNativeDialog);
 
         if (color.isValid())
-            emit( valueChanged("Key Color", color));
+            emit( valueChanged("ChromaKeyColor", color));
     }
 }
 
 void MixingToolboxWidget::on_chromakeySlider_valueChanged(int value)
 {
-    emit(valueChanged("Key Tolerance", value));
+    emit(valueChanged("ChromaKeyTolerance", value));
 }
 
 void MixingToolboxWidget::on_saturationSlider_valueChanged(int value)

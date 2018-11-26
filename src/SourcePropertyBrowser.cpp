@@ -333,18 +333,18 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     enumManager->setEnumNames(property, enumNames);
     root->addSubProperty(property);
 
-    // Chroma key on/off
-    QtProperty *chroma = boolManager->addProperty("Chroma key");
+    // ChromaKey on/off
+    QtProperty *chroma = boolManager->addProperty("ChromaKey");
     chroma->setToolTip("Enables chroma-keying (removes a key color).");
     idToProperty[chroma->propertyName()] = chroma;
     root->addSubProperty(chroma);
-    // chroma key Color
-    property = colorManager->addProperty("Key Color");
+    // ChromaKey Color
+    property = colorManager->addProperty("ChromaKeyColor");
     idToProperty[property->propertyName()] = property;
     property->setToolTip("Color used for the chroma-keying.");
     chroma->addSubProperty(property);
     // threshold
-    property = intManager->addProperty( QLatin1String("Key Tolerance") );
+    property = intManager->addProperty( QLatin1String("ChromaKeyTolerance") );
     property->setToolTip("Percentage of tolerance around the key color");
     idToProperty[property->propertyName()] = property;
     intManager->setRange(property, 0, 100);
@@ -352,7 +352,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     chroma->addSubProperty(property);
 #ifdef GLM_FFGL
     // FreeFrameGL Plugins
-    QtProperty *ffgl = infoManager->addProperty("FFGL Plugins");
+    QtProperty *ffgl = infoManager->addProperty("Plugins");
     ffgl->setToolTip("List of FreeFrameGL Plugins");
     ffgl->setItalics(true);
     idToProperty[ffgl->propertyName()] = ffgl;
@@ -543,7 +543,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
     if ( property == idToProperty["Color"] ) {
         currentItem->setColor(value);
     }
-    else if ( property == idToProperty["Key Color"] ) {
+    else if ( property == idToProperty["ChromaKeyColor"] ) {
         currentItem->setChromaKeyColor(value);
     }
 
@@ -587,10 +587,10 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
     else if ( property == idToProperty["FixedAspectRatio"] ) {
         currentItem->setFixedAspectRatio(value);
     }
-    else if ( property == idToProperty["Chroma key"] ) {
+    else if ( property == idToProperty["ChromaKey"] ) {
         currentItem->setChromaKey(value);
-        idToProperty["Key Color"]->setEnabled(value);
-        idToProperty["Key Tolerance"]->setEnabled(value);
+        idToProperty["ChromaKeyColor"]->setEnabled(value);
+        idToProperty["ChromaKeyTolerance"]->setEnabled(value);
     }
 
 }
@@ -618,7 +618,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
     else if ( property == idToProperty["Posterized"] ) {
         currentItem->setPosterized(value);
     }
-    else if ( property == idToProperty["Key Tolerance"] ) {
+    else if ( property == idToProperty["ChromaKeyTolerance"] ) {
         currentItem->setChromaKeyTolerance(value);
     }
 
@@ -735,68 +735,68 @@ void SourcePropertyBrowser::updateProperty(QString name)
 
 void SourcePropertyBrowser::updateProperty(QString name, Source *s)
 {
-    if (name.contains("Name"))
+    if (name.compare("Name") == 0)
         stringManager->setValue(idToProperty["Name"], s->getName() );
-    else if ( name.contains("Geometry") ) {
+    else if ( name.compare("Geometry")  == 0) {
         pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
         doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
         pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
         rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
     }
-    else if ( name.contains("Position") )
+    else if ( name.compare("Position")  == 0)
         pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
-    else if ( name.contains("Angle"))
+    else if ( name.compare("Angle") == 0)
         doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
-    else if ( name.contains("Scale"))
+    else if ( name.compare("Scale") == 0)
         pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
-    else if ( name.contains("FixedAspectRatio"))
+    else if ( name.compare("FixedAspectRatio") == 0)
         boolManager->setValue(idToProperty["FixedAspectRatio"], s->isFixedAspectRatio());
-    else if ( name.contains("Crop"))
+    else if ( name.compare("Crop") == 0)
         rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
-    else if ( name.contains("Depth"))
+    else if ( name.compare("Depth") == 0)
         doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
-    else if ( name.contains("Alpha"))
+    else if ( name.compare("Alpha") == 0)
         doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
-    else if ( name.contains("Blending")) {
+    else if ( name.compare("Blending") == 0) {
         int preset = intFromBlendingPreset( s->getBlendFuncDestination(), s->getBlendEquation() );
         enumManager->setValue(idToProperty["Blending"], preset );
         idToProperty["Destination"]->setEnabled(preset == 0);
         idToProperty["Equation"]->setEnabled(preset == 0);
     }
-    else if ( name.contains("Destination"))
+    else if ( name.compare("Destination") == 0)
         enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
-    else if ( name.contains("Equation"))
+    else if ( name.compare("Equation") == 0)
         enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
-    else if ( name.contains("Mask"))
+    else if ( name.compare("Mask") == 0)
         enumManager->setValue(idToProperty["Mask"], s->getMask());
-    else if ( name.contains("Color"))
+    else if ( name.compare("Color") == 0)
         colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
-    else if ( name.contains("Pixelated"))
+    else if ( name.compare("Pixelated") == 0)
         boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
-    else if ( name.contains("Invert"))
+    else if ( name.compare("Invert") == 0)
         enumManager->setValue(idToProperty["Invert"], (int) s->getInvertMode() );
-    else if ( name.contains("Saturation"))
+    else if ( name.compare("Saturation") == 0)
         intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-    else if ( name.contains("Brightness"))
+    else if ( name.compare("Brightness") == 0)
         intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-    else if ( name.contains("Contrast"))
+    else if ( name.compare("Contrast") == 0)
         intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-    else if ( name.contains("HueShift"))
+    else if ( name.compare("HueShift") == 0)
         intManager->setValue(idToProperty["HueShift"], s->getHueShift());
-    else if ( name.contains("Threshold"))
+    else if ( name.compare("Threshold") == 0)
         intManager->setValue(idToProperty["Threshold"], s->getThreshold() );
-    else if ( name.contains("Posterized"))
+    else if ( name.compare("Posterized") == 0)
         intManager->setValue(idToProperty["Posterized"], s->getPosterized() );
-    else if ( name.contains("Chroma key")) {
-        boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
-        idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-        idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+    else if ( name.compare("ChromaKeyColor") == 0)
+        colorManager->setValue(idToProperty["ChromaKeyColor"], QColor( s->getChromaKeyColor() ) );
+    else if ( name.compare("ChromaKeyTolerance") == 0)
+        intManager->setValue(idToProperty["ChromaKeyTolerance"], s->getChromaKeyTolerance() );
+    else if ( name.compare("ChromaKey") == 0) {
+        boolManager->setValue(idToProperty["ChromaKey"], s->getChromaKey());
+        idToProperty["ChromaKeyColor"]->setEnabled(s->getChromaKey());
+        idToProperty["ChromaKeyTolerance"]->setEnabled(s->getChromaKey());
     }
-    else if ( name.contains("Key Color"))
-        colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
-    else if ( name.contains("Key Tolerance"))
-        intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
-    else if ( name.contains("Filter")) {
+    else if ( name.compare("Filter") == 0) {
         if (ViewRenderWidget::filteringEnabled()) {
             enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
             idToProperty["Filter"]->setEnabled( true );
@@ -806,12 +806,12 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         }
     }
 #ifdef GLM_FFGL
-    else if ( name.contains("FFGL Plugins")) {
+    else if ( name.compare("Plugins") == 0) {
         // fill in the FFGL plugins if exist
         if(s->hasFreeframeGLPlugin())
-            infoManager->setValue(idToProperty["FFGL Plugins"], s->getFreeframeGLPluginStack()->namesList().join(", ") );
+            infoManager->setValue(idToProperty["Plugins"], s->getFreeframeGLPluginStack()->namesList().join(", ") );
         else
-            infoManager->setValue(idToProperty["FFGL Plugins"], "none");
+            infoManager->setValue(idToProperty["Plugins"], "none");
     }
 #endif
 
