@@ -6,7 +6,6 @@
 #include "OpenSoundControlManager.moc"
 
 #include "OscOutboundPacketStream.h"
-#include "OscReceivedElements.h"
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
 #include "glmixer.h"
@@ -200,7 +199,8 @@ void OpenSoundControlManager::readPendingDatagrams()
         _udpReceive->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
         // initialize error message
-        bool ok = false;
+//        bool ok = false;
+        QStringList errors;
         QString logstring = QString("'%1' ").arg(datagram.data());
 
         // PROCESS THE UDP Datagram
@@ -217,102 +217,130 @@ void OpenSoundControlManager::readPendingDatagrams()
                 if (_verbose)
                     emit log( logstring );
 
-                // read arguments list
-                QVariantList args;
-                QString values;
-                osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
-                for( ;arg != message.ArgumentsEnd(); arg++) {
+               errors << executeMessage(message);
 
-                    if ((arg)->IsInt32()) {
-                        args.append( (int) (arg)->AsInt32() );
-                        values.append(" " + QString::number((int)(arg)->AsInt32()));
-                    } else if ((arg)->IsInt64()) {
-                        args.append( (int) (arg)->AsInt64() );
-                        values.append(" " + QString::number((int)(arg)->AsInt64()));
-                    } else if ((arg)->IsFloat()) {
-                        args.append( (double) (arg)->AsFloat() );
-                        values.append(" " + QString::number((double)(arg)->AsFloat(), 'f', 4));
-                    } else if ((arg)->IsDouble()) {
-                        args.append( (double) (arg)->AsDouble() );
-                        values.append(" " + QString::number((double)(arg)->AsDouble(), 'f', 4));
-                    } else if ((arg)->IsBool()) {
-                        args.append( (bool) (arg)->AsBool() );
-                        values.append(" " + QString::number((int)(arg)->AsBool()));
-                    }  else if ((arg)->IsString()) {
-                        args.append( QString( (arg)->AsString() ) );
-                        values.append(" " + QString( (arg)->AsString() ));
-                    } else if ((arg)->IsNil() || (arg)->IsInfinitum()) {
-                        args.append( (double) std::numeric_limits<double>::max() );
-                        values.append(" N");
-                    } else
-                        throw osc::WrongArgumentTypeException();
-                }
+               //logstring += "Failed (" + errors.join(", ") + ")";
 
-                // read pattern
-                QString pattern = message.AddressPattern();
+            }
+            else if (p.IsBundle()) {
 
-                // List of all patterns to test, including original message
-                QStringList patterns;
-                patterns << pattern;
 
-                // include all translations to patterns for testing
-                QListIterator< QPair<QString, QString> > t(*(_dictionnary));
-                while (t.hasNext()) {
-                    QPair<QString, QString> p = t.next();
-                    if (pattern.contains( p.first )){
-                        QString translatedPattern = pattern;
-                        translatedPattern.replace(p.first, p.second);
-                        patterns << translatedPattern;
+                osc::ReceivedBundle bundle(p);
+
+                if (_verbose)
+                    emit log( QString("Bundle with %1 elements").arg(bundle.ElementCount()) );
+
+                osc::ReceivedBundle::const_iterator m = bundle.ElementsBegin();
+                for( ;m != bundle.ElementsEnd(); m++) {
+
+                    if ( (m)->IsMessage() ) {
+
+                        osc::ReceivedMessage message(*m);
+                        errors << executeMessage(message);
+
                     }
+
                 }
-
-                // try all patterns (after multiple translations)
-                QStringList errors;
-                foreach (const QString &pat, patterns) {
-
-                    if (_verbose)
-                        emit log(tr("\tTrying ") + pat + values);
-
-                    try {
-                        // execute this message
-                        executeMessage(pat, args);
-
-                        // verbose log for success if no exception
-                        if (_verbose)
-                            emit log(tr("\tExecuted."));
-
-                        // at least one execution was successful
-                        ok = true;
-                    }
-                    catch( osc::Exception& e ){
-                        errors << pat + " " + e.what();
-                        if (_verbose)
-                            emit log(tr("\tFailed - ") + e.what() );
-                    }
-                }
-
-                logstring += "Failed (" + errors.join(", ") + ")";
 
             }
             else
-                throw osc::BundleNotSupportedException();
+                throw osc::MalformedBundleException();
 
         }
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
-            ok = false;
             logstring += e.what();
         }
 
-        if (!ok)
+        if (errors.size() > 0) {
+            // append error messages to logs
+            logstring += "Failed (" + errors.join(", ") + ")";
+            // display log message
             emit error(logstring + " (from " + sender.toString() + ")");
+        }
 
     }
 
 }
 
 
+QStringList OpenSoundControlManager::executeMessage(osc::ReceivedMessage message)
+{
+    // read arguments list
+    QVariantList args;
+    QString values;
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+    for( ;arg != message.ArgumentsEnd(); arg++) {
+
+        if ((arg)->IsInt32()) {
+            args.append( (int) (arg)->AsInt32() );
+            values.append(" " + QString::number((int)(arg)->AsInt32()));
+        } else if ((arg)->IsInt64()) {
+            args.append( (int) (arg)->AsInt64() );
+            values.append(" " + QString::number((int)(arg)->AsInt64()));
+        } else if ((arg)->IsFloat()) {
+            args.append( (double) (arg)->AsFloat() );
+            values.append(" " + QString::number((double)(arg)->AsFloat(), 'f', 4));
+        } else if ((arg)->IsDouble()) {
+            args.append( (double) (arg)->AsDouble() );
+            values.append(" " + QString::number((double)(arg)->AsDouble(), 'f', 4));
+        } else if ((arg)->IsBool()) {
+            args.append( (bool) (arg)->AsBool() );
+            values.append(" " + QString::number((int)(arg)->AsBool()));
+        }  else if ((arg)->IsString()) {
+            args.append( QString( (arg)->AsString() ) );
+            values.append(" " + QString( (arg)->AsString() ));
+        } else if ((arg)->IsNil() || (arg)->IsInfinitum()) {
+            args.append( (double) std::numeric_limits<double>::max() );
+            values.append(" N");
+        } else
+            throw osc::WrongArgumentTypeException();
+    }
+
+    // read pattern
+    QString pattern = message.AddressPattern();
+
+    // List of all patterns to test, including original message
+    QStringList patterns;
+    patterns << pattern;
+
+    // include all translations to patterns for testing
+    QListIterator< QPair<QString, QString> > t(*(_dictionnary));
+    while (t.hasNext()) {
+        QPair<QString, QString> p = t.next();
+        if (pattern.contains( p.first )){
+            QString translatedPattern = pattern;
+            translatedPattern.replace(p.first, p.second);
+            patterns << translatedPattern;
+        }
+    }
+
+    // try all patterns (after multiple translations)
+    QStringList errors;
+    foreach (const QString &pat, patterns) {
+
+        if (_verbose)
+            emit log(tr("\tTrying ") + pat + values);
+
+        try {
+            // execute this message
+            executeMessage(pat, args);
+
+            // verbose log for success if no exception
+            if (_verbose)
+                emit log(tr("\tExecuted."));
+
+        }
+        catch( osc::Exception& e ){
+            errors << pat + " " + e.what();
+            if (_verbose)
+                emit log(tr("\tFailed - ") + e.what() );
+        }
+    }
+
+    return errors;
+}
 
 void OpenSoundControlManager::executeMessage(QString pattern, QVariantList args)
 {

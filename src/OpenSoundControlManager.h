@@ -29,6 +29,8 @@
 #include <QString>
 #include <QUdpSocket>
 
+#include "OscReceivedElements.h"
+
 #define OSC_VOID "void"
 #define OSC_VOID_LOG "log"
 #define OSC_VOID_IGNORE "ignore"
@@ -113,7 +115,6 @@ public:
     qint16 getPortBroadcast();
 
     void broadcastDatagram(QString property, QVariantList args = QVariantList());
-    void executeMessage(QString pattern, QVariantList args);
 
     // translator
     void addTranslation(QString before, QString after);
@@ -139,6 +140,8 @@ private:
     OpenSoundControlManager();
     static OpenSoundControlManager *_instance;
 
+    QStringList executeMessage(osc::ReceivedMessage m);
+    void executeMessage(QString pattern, QVariantList args);
     void execute(QString object, QString property, QVariantList args);
     void executeSource(class Source *s, QString property, QVariantList args);
     void executeRender(QString property, QVariantList args);
