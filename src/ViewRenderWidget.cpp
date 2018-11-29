@@ -902,6 +902,9 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     makeCurrent();
     event->accept();
 
+    if (busy || faded)
+        return;
+
     // inform mouse was pressed
     emit mousePressed(true);
 
