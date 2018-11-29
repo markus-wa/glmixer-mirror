@@ -125,7 +125,7 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 {
     if (QFileInfo(filename).isFile()) {
         customTransitionMedia = filename;
-        setTransitionType(TRANSITION_CUSTOM_MEDIA); 
+        setTransitionType(TRANSITION_CUSTOM_MEDIA);
     }
 }
 
@@ -165,7 +165,7 @@ void SessionSwitcher::setTransitionType(transitionType t)
 
 void SessionSwitcher::endTransition()
 {
-    RenderingManager::getRenderingWidget()->setFaded(false);
+    RenderingManager::getRenderingWidget()->setSuspended(false);
 }
 
 
@@ -202,7 +202,8 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
     // so, we also delay a little the start of the transition to make sure it is fully applied
     QTimer::singleShot(60, overlayAnimation, SLOT(start()));
 
-    RenderingManager::getRenderingWidget()->setFaded(!instanteneous);
+    RenderingManager::getRenderingWidget()->setSuspended(!instanteneous);
+    RenderingManager::getRenderingWidget()->showMessage("Please wait during transition...", duration);
 }
 
 

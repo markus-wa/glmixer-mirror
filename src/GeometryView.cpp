@@ -1039,7 +1039,7 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
     if (!s) return;
 
     // move the source individually
-    grabSource(s, x, y, dx, dy);
+       grabSource(s, x, y, dx, dy);
 
     // if the source is the selection, move the selection too
     if ( s == SelectionManager::getInstance()->selectionSource() ) {

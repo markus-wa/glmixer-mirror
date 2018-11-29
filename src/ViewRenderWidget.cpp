@@ -188,7 +188,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), busy(false), flashIntensity(0), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
+    glRenderWidget(), faded(false), suspended(false), busy(false), flashIntensity(0), zoomLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
     setObjectName("ViewRenderWidget");
     setAcceptDrops ( true );
@@ -757,27 +757,38 @@ void ViewRenderWidget::paintGL()
     // 3. draw a semi-transparent overlay if view should be faded out
     //
     //
-    if (busy) {
-        // the busy overlay is in two call lists for animation
-        glCallList(ViewRenderWidget::fading + 1);
-        glScalef( 800.0 / (float) width(), 800.0 / (float) height(), 1.0);
-        // animation of busy circle by steps of 36 degrees (10 dots)
-        angle = fmod(angle + 3602.0, 360.0);
-        glRotatef( angle - fmod(angle, 36.0), 0.0, 0.0, 1.0);
-        glCallList(ViewRenderWidget::fading + 2);
-    }
-    else if (faded) {
+
+    if (faded){
         // the fading overlay is in a single call list with given color
-        glColor4ub(COLOR_FADING, 128);
+        glColor4ub(COLOR_FADING, 98);
         glCallList(ViewRenderWidget::fading);
     }
-    else if (flashIntensity > 0) {
+
+    if (flashIntensity > 0) {
         // the fading overlay is in a single call list with given color
         glColor4ub(COLOR_FLASHING, flashIntensity);
         glCallList(ViewRenderWidget::fading);
         flashIntensity = flashIntensity < 10 ? 0 : flashIntensity / 2;
     }
-    // if not faded, means the area is active
+
+    if (suspended) {
+
+        if (busy) {
+            // the busy overlay is in two call lists for animation
+            glCallList(ViewRenderWidget::fading + 1);
+            glScalef( 800.0 / (float) width(), 800.0 / (float) height(), 1.0);
+            // animation of busy circle by steps of 36 degrees (10 dots)
+            angle = fmod(angle + 3602.0, 360.0);
+            glRotatef( angle - fmod(angle, 36.0), 0.0, 0.0, 1.0);
+            glCallList(ViewRenderWidget::fading + 2);
+        }
+        else {
+            // the fading overlay is in a single call list with given color
+            glColor4ub(COLOR_FADING, 148);
+            glCallList(ViewRenderWidget::fading);
+        }
+    }
+    // if not suspended, means the area is active
     else
     {
         //
@@ -794,6 +805,8 @@ void ViewRenderWidget::paintGL()
             }
         }
     }
+
+
     //
     // 4. The extra information
     //
@@ -902,7 +915,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     makeCurrent();
     event->accept();
 
-    if (busy || faded)
+    if (suspended)
         return;
 
     // inform mouse was pressed
@@ -946,6 +959,9 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
     makeCurrent();
     event->accept();
+
+    if (suspended)
+        return;
 
 #ifdef GLM_SNAPSHOT
     if (_snapshotView->mouseMoveEvent(event))
@@ -1000,6 +1016,9 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
     makeCurrent();
     event->accept();
 
+    if (suspended)
+        return;
+
     if (cursorEnabled) {
         // inform cursor of release event
         _currentCursor->update(event);
@@ -1032,6 +1051,9 @@ void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
 {
     makeCurrent();
     event->accept();
+
+    if (suspended)
+        return;
 
 #ifdef GLM_SNAPSHOT
     if (_snapshotView->mouseDoubleClickEvent(event))

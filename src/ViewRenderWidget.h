@@ -194,7 +194,8 @@ public slots:
     void setCatalogSizeMedium();
     void setCatalogSizeLarge();
     void setFaded(bool on) { faded = on; }
-    void setBusy(bool on = true) { busy = on; }
+    void setSuspended(bool on) { suspended = on; }
+    void setBusy(bool on = true) { suspended = busy = on; }
     void setCursorEnabled(bool on);
     void triggerFlash();
 #ifdef GLM_SNAPSHOT
@@ -255,7 +256,7 @@ private:
 #ifdef GLM_SNAPSHOT
     class SnapshotView *_snapshotView;
 #endif
-    bool faded, busy;
+    bool faded, suspended, busy;
     int flashIntensity;
 
     // C u r s o r s

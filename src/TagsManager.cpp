@@ -49,26 +49,26 @@ TagsManager::~TagsManager()
 
 void TagsManager::ctxMenu(const QPoint &pos)
 {
-    static QMenu *contextmenu = NULL;
-    if (contextmenu == NULL) {
-        contextmenu = new QMenu(this);
-        connect(contextmenu, SIGNAL(aboutToHide()), this, SLOT(deselectItem()));
+    static QMenu *contextmenu_background = NULL;
+    if (contextmenu_background == NULL) {
+        contextmenu_background = new QMenu(this);
+        connect(contextmenu_background, SIGNAL(aboutToHide()), this, SLOT(deselectItem()));
         // clear selection
         QAction *clearselection = new QAction(QIcon(":/glmixer/icons/selectclear.png"), tr("Clear selection"), this);
         connect(clearselection, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(clearSelection()));
         connect(clearselection, SIGNAL(triggered()), this, SLOT(deselectItem()));
-        contextmenu->addAction(clearselection);
+        contextmenu_background->addAction(clearselection);
         // clear all tags
         QAction *clearall = new QAction(QIcon(":/glmixer/icons/cleanbig.png"), tr("Cancel tags of all Sources"), this);
         connect(clearall, SIGNAL(triggered()), this, SLOT(clearAllTags()));
         connect(clearall, SIGNAL(triggered()), this, SLOT(deselectItem()));
-        contextmenu->addAction(clearall);
+        contextmenu_background->addAction(clearall);
     }
 
     // offer context menu only in background
     QListWidgetItem *item = ui->tagsListWidget->itemAt(pos);
     if (!item)
-        contextmenu->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
+        contextmenu_background->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
 
     // do not keep item selected
     deselectItem();

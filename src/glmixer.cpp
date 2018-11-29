@@ -2491,7 +2491,7 @@ void GLMixer::openSessionFile()
 
     // suspend display
     RenderingManager::getInstance()->pause(true);
-    RenderingManager::getRenderingWidget()->setFaded(true);
+    RenderingManager::getRenderingWidget()->setSuspended(true);
     QCoreApplication::processEvents();
 
     // clear sources
@@ -2586,7 +2586,7 @@ void GLMixer::openSessionFile()
 #endif
 
     // unsuspend display
-    RenderingManager::getRenderingWidget()->setFaded(false);
+    RenderingManager::getRenderingWidget()->setSuspended(false);
     RenderingManager::getInstance()->pause(false);
     QCoreApplication::processEvents();
 
