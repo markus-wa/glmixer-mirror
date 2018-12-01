@@ -206,6 +206,26 @@ void ProtoSource::_setGammaColor(double v, double r, double g, double b){
         gammaBlue = CLAMP(b, 0.01, 50.0);
 }
 
+// non-liniear conversion of control values from 0.0 to 1.0
+// into the range 0.03 to 23.0 (the usable values in the GUI)
+// so that input value of 0.5 leads to gamma value of 1.0
+
+void ProtoSource::_setGammaValue(double v){
+    gamma = CLAMP( exp(v * v * 3.2) - 0.96, 0.03, 23.0);
+}
+
+void ProtoSource::_setGammaRed(double v){
+    gammaRed = CLAMP( exp(v * v * 3.2) - 0.96, 0.03, 23.0);
+}
+
+void ProtoSource::_setGammaGreen(double v){
+    gammaGreen = CLAMP( exp(v * v* 3.2) - 0.96, 0.03, 23.0);
+}
+
+void ProtoSource::_setGammaBlue(double v){
+    gammaBlue = CLAMP( exp(v * v* 3.2) - 0.96, 0.03, 23.0);
+}
+
 void ProtoSource::_setGammaLevels(double minI, double maxI, double minO, double maxO){
 
     if (minI < std::numeric_limits<double>::max())
@@ -230,6 +250,22 @@ void ProtoSource::_setBlending(uint sfactor, uint dfactor, uint eq) {
 
 void ProtoSource::_setInvertMode(invertModeType i) {
     invertMode = i;
+}
+
+void ProtoSource::_setInvertColor(bool i) {
+    invertMode = i ? INVERT_COLOR : INVERT_NONE;
+}
+
+void ProtoSource::_setInvertColor(double i) {
+    invertMode = i > 0.5 ? INVERT_COLOR : INVERT_NONE;
+}
+
+void ProtoSource::_setInvertLuminance(bool i){
+    invertMode = i ? INVERT_LUMINANCE : INVERT_NONE;
+}
+
+void ProtoSource::_setInvertLuminance(double i){
+    invertMode = i > 0.5 ? INVERT_LUMINANCE : INVERT_NONE;
 }
 
 void ProtoSource::_setFilter(filterType c) {

@@ -294,6 +294,14 @@ public:
     Q_INVOKABLE void _setSaturation(double s);
     Q_INVOKABLE void _setHueShift(double h);
     Q_INVOKABLE void _setThreshold(double t);
+    Q_INVOKABLE void _setInvertColor(bool i);
+    Q_INVOKABLE void _setInvertLuminance(bool i);
+    Q_INVOKABLE void _setInvertColor(double i);
+    Q_INVOKABLE void _setInvertLuminance(double i);
+    Q_INVOKABLE void _setGammaValue(double value);
+    Q_INVOKABLE void _setGammaRed(double value);
+    Q_INVOKABLE void _setGammaGreen(double value);
+    Q_INVOKABLE void _setGammaBlue(double value);
 
 protected:
 

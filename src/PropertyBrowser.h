@@ -69,6 +69,7 @@ public slots:
     void setPropertyEnabled(QString propertyName, bool enabled);
 
 signals:
+    void propertyChanged(QString);
     void propertyChanged(QString, bool);
     void propertyChanged(QString, int);
     void propertyChanged(QString, double);

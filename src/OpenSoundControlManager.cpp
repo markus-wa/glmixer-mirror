@@ -331,6 +331,8 @@ QStringList OpenSoundControlManager::executeMessage(osc::ReceivedMessage message
             if (_verbose)
                 emit log(tr("\tExecuted."));
 
+            // cleanup errors on success
+            errors.clear();
         }
         catch( osc::Exception& e ){
             errors << pat + " " + e.what();

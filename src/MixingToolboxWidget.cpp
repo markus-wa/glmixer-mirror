@@ -417,6 +417,12 @@ void MixingToolboxWidget::setAntialiasing(bool antialiased)
 }
 
 
+void MixingToolboxWidget::propertyChanged(QString propertyname)
+{
+    if (propertyname.contains("Gamma"))
+        gammaAdjust->updateSource();
+}
+
 void MixingToolboxWidget::propertyChanged(QString propertyname, bool value)
 {
     if (propertyname == "Pixelated")

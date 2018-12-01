@@ -40,15 +40,24 @@ void GammaLevelsWidget::setAntialiasing(bool antialiased)
 
 void GammaLevelsWidget::connectSource(SourceSet::iterator csi){
 
-    if ( RenderingManager::getInstance()->isValid(csi) ) {
-        setEnabled(true);
+    if ( RenderingManager::getInstance()->isValid(csi) )
         source = *csi;
+    else
+        source = 0;
+
+    updateSource();
+}
+
+
+void GammaLevelsWidget::updateSource()
+{
+    if ( source) {
+        setEnabled(true);
         setGammaColor(source->getGamma(), source->getGammaRed(), source->getGammaGreen(), source->getGammaBlue());
         setGammaLevels(source->getGammaMinInput(), source->getGammaMaxInput(), source->getGammaMinOuput(), source->getGammaMaxOutput());
 
     } else {
         setEnabled(false);
-        source = 0;
         setGammaColor(1.0, 1.0, 1.0, 1.0);
         setGammaLevels(0.0, 1.0, 0.0, 1.0);
     }

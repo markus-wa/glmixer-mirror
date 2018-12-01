@@ -363,6 +363,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
+    QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString)), mixingToolBox, SLOT(propertyChanged(QString)) );
 
     // setup the layout toolbox
     layoutToolBox = new LayoutToolboxWidget(this);

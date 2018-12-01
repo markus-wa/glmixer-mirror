@@ -814,6 +814,8 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
             infoManager->setValue(idToProperty["Plugins"], "none");
     }
 #endif
+    else
+        emit propertyChanged(name);
 
 }
 

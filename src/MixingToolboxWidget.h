@@ -32,6 +32,7 @@ public slots:
 
     // get informed when a property is changed
     void connectSource(SourceSet::iterator);
+    void propertyChanged(QString propertyname);
     void propertyChanged(QString propertyname, bool);
     void propertyChanged(QString propertyname, int);
     void propertyChanged(QString propertyname, const QColor &);

@@ -39,6 +39,7 @@ public:
 public slots:
 
     void connectSource(SourceSet::iterator);
+    void updateSource();
     void updateColor();
     void updateLevels();
 
