@@ -455,8 +455,6 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
     if (!useHardwareAcceleration())
         return 0;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-
 #ifdef Q_OS_WIN
     enum AVHWDeviceType type = AV_HWDEVICE_TYPE_DXVA2;
 #else
@@ -477,13 +475,12 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
             }
         }
     }
-#endif
 
     return 0;
 }
 
 
-AVBufferRef * CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
+AVBufferRef *CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecContext, const AVCodecHWConfig *config)
 {
 
     AVBufferRef *hw_device_ctx = NULL;
@@ -535,6 +532,8 @@ AVBufferRef * CodecManager::applyCodecHardwareAcceleration(AVCodecContext *Codec
 bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
 {
     bool frameFilled = false;
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     AVFormatContext *pFormatCtx;
     pFormatCtx = avformat_alloc_context();
 
@@ -589,6 +588,7 @@ bool CodecManager::supportsHardwareAcceleratedCodec(QString filename)
         }
         avformat_close_input(&pFormatCtx);
     }
+#endif
 
     return frameFilled;
 }
