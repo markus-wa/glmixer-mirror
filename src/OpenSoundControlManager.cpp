@@ -25,7 +25,7 @@ public:
 
 class BundleNotSupportedException : public Exception{
 public:
-    BundleNotSupportedException( const char *w="Bundle not supported" )
+    BundleNotSupportedException( const char *w="Bundle of bundle not supported" )
         : Exception( w ) {}
 };
 
@@ -224,7 +224,7 @@ void OpenSoundControlManager::readPendingDatagrams()
             }
             else if (p.IsBundle()) {
 
-
+                // read bundle
                 osc::ReceivedBundle bundle(p);
 
                 if (_verbose)
@@ -234,11 +234,11 @@ void OpenSoundControlManager::readPendingDatagrams()
                 for( ;m != bundle.ElementsEnd(); m++) {
 
                     if ( (m)->IsMessage() ) {
-
                         osc::ReceivedMessage message(*m);
                         errors << executeMessage(message);
-
                     }
+                    else
+                        throw osc::BundleNotSupportedException();
 
                 }
 
@@ -256,7 +256,7 @@ void OpenSoundControlManager::readPendingDatagrams()
         if (errors.size() > 0) {
             // append error messages to logs
             logstring += "Failed (" + errors.join(", ") + ")";
-            // display log message
+            // display log  message
             emit error(logstring + " (from " + sender.toString() + ")");
         }
 

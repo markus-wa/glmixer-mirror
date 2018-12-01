@@ -263,8 +263,6 @@ public:
     Q_INVOKABLE void _setFixedAspectRatio(bool on);
     Q_INVOKABLE void _setTextureCoordinates(QRectF textureCoords);
     Q_INVOKABLE void _setAlphaCoordinates(double ax, double ay);
-    Q_INVOKABLE void _setAlphaCoordinateX(double ax);
-    Q_INVOKABLE void _setAlphaCoordinateY(double ay);
     Q_INVOKABLE void _setAlpha(double a);
     Q_INVOKABLE void _setMask(int maskType);
     Q_INVOKABLE void _setColor(QColor c);
@@ -289,6 +287,13 @@ public:
     Q_INVOKABLE void _setFilter(int c);
     Q_INVOKABLE void _setColor(int r, int g, int b);
     Q_INVOKABLE void _setChromaKeyColor(int r, int g, int b);
+    Q_INVOKABLE void _setAlphaCoordinateX(double ax);
+    Q_INVOKABLE void _setAlphaCoordinateY(double ay);
+    Q_INVOKABLE void _setBrightness(double b);
+    Q_INVOKABLE void _setContrast(double c);
+    Q_INVOKABLE void _setSaturation(double s);
+    Q_INVOKABLE void _setHueShift(double h);
+    Q_INVOKABLE void _setThreshold(double t);
 
 protected:
 

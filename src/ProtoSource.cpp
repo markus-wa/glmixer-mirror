@@ -138,21 +138,40 @@ void ProtoSource::_setBrightness(int b) {
     brightness  = double(b) / 100.0;
 }
 
+void ProtoSource::_setBrightness(double b) {
+    brightness  = CLAMP((b *2.0) - 1.0, -1.0, 1.0);;
+}
+
 void ProtoSource::_setContrast(int c) {
     contrast  = double(c + 100) / 100.0;
+}
+
+void ProtoSource::_setContrast(double c) {
+    contrast  = CLAMP(c * 2.0, 0.0, 2.0);
 }
 
 void ProtoSource::_setSaturation(int s){
     saturation  = double(s + 100) / 100.0;
 }
 
+void ProtoSource::_setSaturation(double s){
+    saturation  = CLAMP(s * 2.0, 0.0, 2.0);
+}
+
 void ProtoSource::_setHueShift(int h){
     hueShift = CLAMP(double(h) / 360.0, 0.0, 1.0);
 }
 
+void ProtoSource::_setHueShift(double h){
+    hueShift = CLAMP(h, 0.0, 1.0);
+}
+
 void ProtoSource::_setThreshold(int l){
     luminanceThreshold = CLAMP(l, 0, 100);
+}
 
+void ProtoSource::_setThreshold(double l){
+    luminanceThreshold = CLAMP( (int) (l * 100.0), 0, 100);
 }
 
 void ProtoSource::_setPosterized(int n){
