@@ -61,6 +61,9 @@ QString stringFromAspectRatio(standardAspectRatio ar){
 
 bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
 {
+    if (!model)
+        return false;
+
     // read content of the file
     QString filename = fileinfo.absoluteFilePath();
     QFile file(filename);
@@ -151,7 +154,7 @@ void FolderModelFiller::fillFolder(QFileInfo folder, int depth)
         // recursive for subfolders
         QFileInfoList dirList = dir.entryInfoList(QDir::Dirs | QDir::Readable | QDir::NoDotAndDotDot);
         for (int d = 0; d < dirList.size(); ++d) {
-            fillFolder( dirList.at(d), depth +1);
+            fillFolder( dirList.at(d), depth + 1);
         }
 
         // fill list of glms
@@ -470,6 +473,9 @@ void SessionSwitcherWidget::renameSession()
 
 void SessionSwitcherWidget::sessionNameChanged( QStandardItem * item )
 {
+    if (!item)
+        return;
+
     // discard edit signal
     disconnect(folderModel, SIGNAL(itemChanged(QStandardItem *)), this, SLOT(sessionNameChanged(QStandardItem *)));
 
@@ -824,16 +830,17 @@ void SessionSwitcherWidget::saveSettings()
 
 void SessionSwitcherWidget::restoreSettings()
 {
-    // recursive
-    bool rec = appSettings->value("recentFolderRecursive", "false").toBool();
-    dirRecursiveButton->setChecked(rec);;
 
     // list of folders
     QStringList folders(QDir::currentPath());
+    int lastFolderIndex = -1;
     if ( appSettings->contains("recentFolderList") )
         folders = appSettings->value("recentFolderList").toStringList();
+    if ( appSettings->contains("recentFolderLast") )
+        lastFolderIndex = folders.indexOf(appSettings->value("recentFolderLast").toString());
     disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     folderHistory->addItems( folders );
+    folderHistory->setCurrentIndex(lastFolderIndex);
     connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
 
     // order of transition
@@ -861,11 +868,12 @@ void SessionSwitcherWidget::restoreSettings()
     if ( appSettings->contains("transitionHeader") )
         proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
 
-    // all ok, read last openned folder
-    if ( appSettings->contains("recentFolderLast") )
-        folderChanged(appSettings->value("recentFolderLast").toString());
-    else
-        folderChanged(folderHistory->currentText());
+    // recursive
+    bool recursive = appSettings->value("recentFolderRecursive", "false").toBool();
+    dirRecursiveButton->setChecked(!recursive);
+    dirRecursiveButton->setChecked(recursive);
+
+    // this last call also sends signal to trigger setRecursiveFolder, which will populate the list
 }
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()

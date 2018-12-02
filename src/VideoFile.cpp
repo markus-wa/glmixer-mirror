@@ -616,12 +616,12 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
 
         // tells everybody we are set !
         qDebug() << filename << QChar(124).toLatin1()
-                 <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(CodecManager::getPixelFormatName(targetFormat));
+                 <<  tr("Media %1 opened (%2 frames, buffer of %3 MB for %4 %5 frames).").arg(codecname).arg(nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(CodecManager::getPixelFormatName(targetFormat));
 
     }
     else {
         qDebug() << filename << QChar(124).toLatin1()
-                 <<  tr("Media opened (1 %1 frame).").arg(CodecManager::getPixelFormatName(targetFormat));
+                 <<  tr("Media %1 opened (1 %2 frame).").arg(codecname).arg(CodecManager::getPixelFormatName(targetFormat));
     }
 
     // display a firstPicture frame ; this shows that the video is open
