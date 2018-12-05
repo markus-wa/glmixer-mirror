@@ -169,6 +169,7 @@ public slots:
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
+    void startSessionTestingBot();  // "Shift+Ctrl+T,B"
 
 #ifdef GLM_FFGL
     void editShaderToyPlugin(FFGLPluginSource *);

@@ -331,6 +331,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     addAction(setGLSLFragmentShader);
     QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
 
+    QAction *startSessionTestingBot = new QAction("startSessionTestingBot", this);
+    startSessionTestingBot->setShortcut(QKeySequence("Shift+Ctrl+T,B"));
+    addAction(startSessionTestingBot);
+    QObject::connect(startSessionTestingBot, SIGNAL(triggered()), this, SLOT(startSessionTestingBot()) );
+
     // recent files history
     QMenu *recentFiles = new QMenu(this);
     Q_CHECK_PTR(recentFiles);
@@ -950,8 +955,6 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     case QtWarningMsg:
         // write message
         GLMixer::logStream << "Warning | " << txt << "\n";
-        // ensure its written to disk
-        GLMixer::logStream.flush();
         break;
 
     default:
@@ -959,6 +962,8 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         GLMixer::logStream << "Info    | " << txt << "\n";
         break;
     }
+    // ensure its written to disk
+    GLMixer::logFile->flush();
 
     // forward message to logger
     if (GLMixer::logsWidget) {
@@ -2435,6 +2440,8 @@ QString GLMixer::getRestorelastSessionFilename()
 
 void GLMixer::openSessionFile()
 {
+    static long int counter = 0;
+
     // unpause if it was
     actionPause->setChecked ( false );
 
@@ -2605,7 +2612,7 @@ void GLMixer::openSessionFile()
 
     // message
     emit status( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
-    qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
+    qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded." << counter++;
 
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
@@ -3829,6 +3836,14 @@ void GLMixer::selectGLSLFragmentShader()
     }
 }
 
+void GLMixer::startSessionTestingBot()
+{
+    QTimer *timer = new QTimer(this);
+    QObject::connect(timer, SIGNAL(timeout()), switcherSession, SLOT(openSession()));
+    timer->start(4000);
+
+    qDebug() << "GLMixer" << QChar(124).toLatin1() << "Testing Bot started.";
+}
 
 QString GLMixer::getFileName(QString title, QString filter, QString saveExtention, QString suggestion)
 {

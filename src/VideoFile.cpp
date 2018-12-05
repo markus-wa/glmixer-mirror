@@ -246,17 +246,16 @@ void VideoFile::close()
     if (video_dec)
         avcodec_free_context(&video_dec);
 
+    // close & free format context
+    if (pFormatCtx) {
+        // close file & free context and all its contents and set it to NULL.
+        avformat_close_input(&pFormatCtx);
+    }
+
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     if (pHardwareCodec)
         av_buffer_unref(&pHardwareCodec);
 #endif
-
-    // close & free format context
-    if (pFormatCtx) {
-        avformat_flush(pFormatCtx);
-        // close file & free context and all its contents and set it to NULL.
-        avformat_close_input(&pFormatCtx);
-    }
 
     // free pictures
     if (firstPicture)
@@ -282,13 +281,14 @@ void VideoFile::close()
 
 VideoFile::~VideoFile()
 {
-    // end silently
+    // stop silently
     QObject::disconnect(this, 0, 0, 0);
     // just to make sure stop() will not fill first frame
     restart_where_stopped = true;
 
     // make sure all is closed
     close();
+
     clear_picture_queue();
 
     // delete threads

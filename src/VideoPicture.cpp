@@ -278,6 +278,7 @@ VideoPicture::~VideoPicture()
 #endif
 
     if (frame) {
+        av_frame_unref(frame);
         av_frame_free(&frame);
     }
 
