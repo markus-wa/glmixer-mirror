@@ -2400,6 +2400,9 @@ void GLMixer::renameSessionFile(QString oldfilename, QString newfilename)
 
 void GLMixer::switchToSessionFile(QString filename){
 
+    // de-select current source
+    RenderingManager::getInstance()->unsetCurrentSource();
+
     if (filename.isEmpty() || !QFileInfo(filename).isFile())
         newSession();
     else

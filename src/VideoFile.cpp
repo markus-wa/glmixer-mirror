@@ -281,8 +281,12 @@ void VideoFile::close()
 
 VideoFile::~VideoFile()
 {
+    // ensure no signal comes to interrupt
+    pclock->disconnect();
+    smooth_pause_animation->disconnect();
+
     // stop silently
-    QObject::disconnect(this, 0, 0, 0);
+    disconnect();
     // just to make sure stop() will not fill first frame
     restart_where_stopped = true;
 
