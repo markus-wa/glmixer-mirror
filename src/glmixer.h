@@ -48,6 +48,8 @@ public:
     static void msgHandler(QtMsgType type, const char *msg);
     // exit handler
     static void exitHandler();
+    static bool hasCrashLogs();
+    static void deleteCrashLogs();
 #endif
 
     // catch keyboard events

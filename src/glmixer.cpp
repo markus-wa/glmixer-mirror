@@ -458,12 +458,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QAction *prevSession = new QAction("Previous Session", this);
     prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
     addAction(prevSession);
-//    QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
-    QObject::connect(nextSession, SIGNAL(triggered()), SLOT(openNextSession()));
-    QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
 
-    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
-    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
+    QObject::connect(nextSession, SIGNAL(triggered()), SLOT(openNextSession()));
+    QObject::connect(prevSession, SIGNAL(triggered()), SLOT(openPreviousSession()));
+    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), SLOT(openNextSession()));
+    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), SLOT(openPreviousSession()));
 
 #else
     delete switcherDockWidget;
@@ -836,6 +835,22 @@ void GLMixer::saveLogsToFile() {
     }
 }
 
+void GLMixer::deleteCrashLogs() {
+
+    QDir tmpdir = QDir(QDir::tempPath());
+    QFileInfoList logfiles = tmpdir.entryInfoList(QStringList("glmixer_log_*.txt"), QDir::Files);
+
+    while( !logfiles.empty() ) {
+        tmpdir.remove(logfiles.takeFirst().fileName());
+    }
+}
+
+bool GLMixer::hasCrashLogs() {
+
+    QFileInfoList logfiles = QDir(QDir::tempPath()).entryInfoList(QStringList("glmixer_log_*.txt"), QDir::Files);
+    return !logfiles.empty();
+}
+
 void GLMixer::exitHandler() {
 
     // cleanup logs on exit (if log file valid)
@@ -887,6 +902,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     {
         // write message
         GLMixer::logStream << "Critical| " << txt << "\n";
+        GLMixer::logStream.flush();
 
         static bool ignore = false;
         if (!ignore) {
@@ -932,6 +948,8 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     {
         // write message
         GLMixer::logStream << "Error   | " << txt << "\n";
+        GLMixer::logStream.flush();
+
         // close logs
         GLMixer::exitHandler();
 
@@ -955,15 +973,15 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     case QtWarningMsg:
         // write message
         GLMixer::logStream << "Warning | " << txt << "\n";
+        GLMixer::logStream.flush();
         break;
 
     default:
         // write message
         GLMixer::logStream << "Info    | " << txt << "\n";
+        GLMixer::logStream.flush();
         break;
     }
-    // ensure its written to disk
-    GLMixer::logFile->flush();
 
     // forward message to logger
     if (GLMixer::logsWidget) {

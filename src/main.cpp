@@ -102,6 +102,7 @@ void testRegExp(QString pattern, Qt::CaseSensitivity cs, QRegExp::PatternSyntax 
 
 int main(int argc, char **argv)
 {
+    bool crashrecover = false;
     int returnvalue = -1;
 
     //
@@ -160,6 +161,23 @@ int main(int argc, char **argv)
     a.processEvents();
 
 #ifdef GLM_LOGS
+    crashrecover = GLMixer::hasCrashLogs();
+    if (crashrecover){
+        int ret = QMessageBox::Ignore;
+        QMessageBox msgBox;
+        msgBox.setText(("Crash logs have been found."));
+        msgBox.setInformativeText(("Do you want to open the logs?"));
+        msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+        msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore);
+        msgBox.setDefaultButton(QMessageBox::Ignore);
+        ret = msgBox.exec();
+
+        if ( ret != QMessageBox::Ignore)
+            QDesktopServices::openUrl( QUrl::fromLocalFile( QDir::tempPath()) );
+        else
+            GLMixer::deleteCrashLogs();
+    }
+
     // Redirect qDebug, qWarning and qFatal to GUI and logger
     qInstallMsgHandler(GLMixer::msgHandler);
     // this cleans up after the application ends
@@ -202,15 +220,19 @@ int main(int argc, char **argv)
     OutputRenderWindow::getInstance()->show();
     a.processEvents();
 
-    // Show the GUI in front and end the splash screen
+    // Show the GUI in front
     GLMixer::getInstance()->show();
+    a.processEvents();
+
+    // all done
     splash.finish(GLMixer::getInstance());
     a.processEvents();
 
     //
     // 4. load eventual session file provided in argument or restore last session
     //
-    a.setFilenameToOpen( GLMixer::getInstance()->getRestorelastSessionFilename() );
+    if (!crashrecover)
+        a.setFilenameToOpen( GLMixer::getInstance()->getRestorelastSessionFilename() );
     a.requestOpenFile();
 
     // start application loop
