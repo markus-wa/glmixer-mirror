@@ -1905,7 +1905,13 @@ void GLMixer::replaceCurrentSource()
                 }
             }
         }
-
+        // if we replace a web source, help user by showing the previous web url
+        else if ( t == Source::WEB_SOURCE ) {
+            WebSource *ws = dynamic_cast<WebSource *>(*cs);
+            if (ws) {
+                settings.setValue("recentWebUrl", ws->getUrl().toString());
+            }
+        }
 #ifdef GLM_FFGL
         // if we replace a shadertoy, copy its code to clipboard
         else if ( t == Source::FFGL_SOURCE ) {

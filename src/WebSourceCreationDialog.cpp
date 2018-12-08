@@ -13,6 +13,8 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
     s(NULL), appSettings(settings)
 {
     ui->setupUi(this);
+    QRegExp validURLRegex("^(http|https)://[a-z0-9]+([-.]{1}[a-z0-9]+)*.[a-z]{2,5}(([0-9]{1,5})?/?.*)$");
+    urlValidator.setRegExp(validURLRegex);
 
     ui->htmlPageList->addItem("");
     if (appSettings) {
@@ -23,10 +25,9 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
                 ui->htmlPageList->addItem(htmlfile.fileName(), htmlfile.absoluteFilePath());
             }
         }
-    }
 
-    QRegExp validURLRegex("^(http|https)://[a-z0-9]+([-.]{1}[a-z0-9]+)*.[a-z]{2,5}(([0-9]{1,5})?/?.*)$");
-    urlValidator.setRegExp(validURLRegex);
+        ui->webUrlEdit->setText( appSettings->value("recentWebUrl", "https://sourceforge.net/projects/glmixer").toString() );
+    }
 
 }
 
@@ -61,6 +62,8 @@ void WebSourceCreationDialog::done(int r){
         for ( int i = 1; i < ui->htmlPageList->count(); ++i )
             l.append(ui->htmlPageList->itemData(i).toString());
         appSettings->setValue("recentHtmlPageList", l);
+
+        appSettings->setValue("recentWebUrl", ui->webUrlEdit->text());
     }
 
 
