@@ -228,6 +228,9 @@ void WebRenderer::reload()
 
 QImage WebRenderer::image() const {
 
+    if (_image.isNull())
+        return QImage(QString(":/glmixer/textures/timeout.png"));
+
     return _image;
 }
 
@@ -293,16 +296,9 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
 
     // configure web page to minimum
     _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled, true);
-
-#ifdef Q_OS_WIN
     _page.settings()->setAttribute( QWebSettings::PluginsEnabled, false);
     _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, false);
     _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, false);
-#else
-    _page.settings()->setAttribute( QWebSettings::PluginsEnabled, true);
-    _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, true);
-    _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, true);
-#endif
 
     _page.setPreferredContentsSize(QSize(w,h));
 
