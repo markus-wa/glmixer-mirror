@@ -165,15 +165,21 @@ int main(int argc, char **argv)
     if (crashrecover){
         int ret = QMessageBox::Ignore;
         QMessageBox msgBox;
-        msgBox.setText(("Crash logs have been found."));
-        msgBox.setInformativeText(("Do you want to open the logs?"));
+        msgBox.setText(("It looks like GLMixer crashed !"));
+        msgBox.setInformativeText(("Do you want to open the log files ?"));
         msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
-        msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore);
+        msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::Ignore);
         ret = msgBox.exec();
 
-        if ( ret != QMessageBox::Ignore)
-            QDesktopServices::openUrl( QUrl::fromLocalFile( QDir::tempPath()) );
+        if (ret == QMessageBox::Open) {
+            QDir tmpdir = QDir(QDir::tempPath());
+            QFileInfoList logfiles = tmpdir.entryInfoList(QStringList("glmixer_log_*.txt"), QDir::Files);
+            while( !logfiles.empty() )
+                QDesktopServices::openUrl( QUrl::fromLocalFile(logfiles.takeFirst().absoluteFilePath()) );
+        }
+        else if (ret == QMessageBox::Cancel)
+            return -1;
         else
             GLMixer::deleteCrashLogs();
     }
