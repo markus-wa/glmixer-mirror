@@ -35,6 +35,10 @@
 #endif
 
 #include <GL/glew.h>
+// This is a workaround for mesa drivers that now use __gl_glext_h_ instead of
+// __glext_h_ in header file which is not defined in current glew version
+// TODO : validate if needed with new versions of glew
+#define __gl_glext_h_
 
 #ifdef Q_OS_MAC
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
