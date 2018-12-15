@@ -85,10 +85,9 @@ void OutputRenderWidget::resizeGL(int w, int h)
             if (aspectRatio < renderingAspectRatio) {
                 int nh = (int)( float(w) / renderingAspectRatio);
                 rx = 0;
-                ry = (h - nh) / 2;
+                ry = (h - nh) ;
                 rw = w;
-                rh = (h + nh) / 2;
-
+                rh = h ;
             } else {
                 int nw = (int)( float(h) * renderingAspectRatio );
                 rx = (w - nw) / 2;
@@ -104,9 +103,9 @@ void OutputRenderWidget::resizeGL(int w, int h)
             if ( aspectRatio < windowAspectRatio) {
                 int nh = (int)( float(w) / windowAspectRatio);
                 rx = 0;
-                ry = (h - nh) / 2;
+                ry = (h - nh);
                 rw = w;
-                rh = (h + nh) / 2;
+                rh = h;
 
             } else {
                 int nw = (int)( float(h) * windowAspectRatio );
