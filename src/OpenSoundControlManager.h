@@ -41,6 +41,7 @@
 #define OSC_RENDER_UNPAUSE "unpause"
 #define OSC_RENDER_NEXT "next"
 #define OSC_RENDER_PREVIOUS "previous"
+#define OSC_RENDER_TOGGLE "toggle"
 #define OSC_SOURCE_PRESET "preset"
 #define OSC_SOURCE_CURRENT "current"
 #define OSC_SOURCE_PLAY "play"

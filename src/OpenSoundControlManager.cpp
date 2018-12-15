@@ -642,6 +642,10 @@ void OpenSoundControlManager::executeRender(QString property, QVariantList args)
             val = ! args[0].toBool();
         RenderingManager::getInstance()->pause( val );
     }
+    else if ( property.compare(OSC_RENDER_TOGGLE, Qt::CaseInsensitive) == 0 ) {
+        
+        GLMixer::getInstance()->toggleRender();
+    }
 #ifdef GLM_SESSION
     else if ( property.compare(OSC_RENDER_NEXT, Qt::CaseInsensitive) == 0 ) {
         // if argument is given, react only to TRUE value
