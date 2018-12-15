@@ -1865,9 +1865,9 @@ void GLMixer::on_actionEditSource_triggered()
         if (sed.exec() == QDialog::Rejected) {
             // requet to re-create source
             replaceCurrentSource();
-            // update the property browser of the source
-            connectSource(RenderingManager::getInstance()->getCurrentSource());
         }
+        // update the property browser of the source
+        connectSource(RenderingManager::getInstance()->getCurrentSource());
 
     }
 }
@@ -2132,9 +2132,10 @@ void GLMixer::on_actionNew_Session_triggered()
 
 }
 
-void GLMixer::toggleRender() 
+void GLMixer::toggleRender()
 {
-    actionToggleRenderingVisible->trigger();
+    bool on = RenderingManager::getInstance()->getSessionSwitcher()->alpha() > 0;
+    RenderingManager::getInstance()->getSessionSwitcher()->smoothAlphaTransition(on);
 }
 
 #ifdef GLM_SESSION
@@ -3542,22 +3543,22 @@ void GLMixer::updateStatusControlActions() {
     // get current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs)) {
-        // enable copy current source
-        clipboardEnabled = true;
         // test if the current source is playable ; if yes, enable action start/stop
         if ( (*cs)->isPlayable() ) {
             playEnabled = true;
             // test if the current source is Media source ; the selectedSourceVideoFile has been set in currentChanged method
-            if (currentVideoFile)
+            if ( (*cs)->rtti() == Source::VIDEO_SOURCE )
                 // if yes, enable actions for media control (and return)
                 controlsEnabled = true;
         }
+        // enable copy current source
+        clipboardEnabled = true;
     }
 
-    // test the presence of playable source to enable action Start/Stop
+     // test the presence of playable source to enable action Start/Stop
     // test the presence of Media source to enable actions for media control
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
-
+        //  enable action start/stop
         if ( (*its)->isPlayable() ) {
             playEnabled = true;
             if ( (*its)->rtti() == Source::VIDEO_SOURCE )
@@ -3569,7 +3570,7 @@ void GLMixer::updateStatusControlActions() {
     }
 
     sourceControlMenu->setEnabled( playEnabled );
-    actionSourcePlay->setEnabled( controlsEnabled );
+    actionSourcePlay->setEnabled( playEnabled );
     actionSourcePause->setEnabled( controlsEnabled );
     selectionPause->setEnabled( controlsEnabled );
     actionSourceRestart->setEnabled( controlsEnabled );

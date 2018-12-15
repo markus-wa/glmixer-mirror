@@ -321,6 +321,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
     folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     folderHistory->setDuplicatesEnabled(false);
+    folderHistory->setLayoutDirection(Qt::RightToLeft);
 
     proxyView = new QTreeView(this);
     proxyView->setModel(proxyFolderModel);
