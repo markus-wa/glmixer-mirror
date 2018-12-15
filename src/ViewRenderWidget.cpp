@@ -1338,7 +1338,7 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
     config.setAttribute("workspace", WorkspaceManager::getInstance()->current());
     config.setAttribute("workspaceCount", WorkspaceManager::getInstance()->count());
-    config.setAttribute("workspaceExclusive", WorkspaceManager::getInstance()->isExclusiveDisplay());
+    config.setAttribute("workspaceExclusive", WorkspaceManager::getInstance()->isMasterView());
 
     QDomElement mix = _mixingView->getConfiguration(doc);
     mix.setAttribute("name", "Mixing");

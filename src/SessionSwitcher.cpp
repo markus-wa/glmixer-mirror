@@ -221,7 +221,7 @@ void SessionSwitcher::setAlpha(int a)
 void SessionSwitcher::smoothAlphaTransition(bool visible){
 
     if (alphaAnimation->state() == QAbstractAnimation::Running )
-        alphaAnimation->stop();
+        return;
 
     alphaAnimation->setStartValue( currentAlpha );
     alphaAnimation->setEndValue( visible ? 0.0 : 1.1 );

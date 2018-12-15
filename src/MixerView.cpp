@@ -207,7 +207,7 @@ void MixerView::paint()
 
 
         // Normal draw in current workspace
-        if (WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
+        if ( WorkspaceManager::getInstance()->isMasterView() || WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
 
             if (!s->isStandby())  {
                 //   draw stippled version of the source
@@ -232,7 +232,7 @@ void MixerView::paint()
 
         }
         // Shadow draw in other workspace
-        else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
+        else {
 
             // set shadow color and alpha
             ViewRenderWidget::setBaseColor(s->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
@@ -292,7 +292,7 @@ void MixerView::paint()
         // check if the sources are in the current view
         int w = selectionMap.begin()->second->getWorkspace();
         float a = 0.8f;
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != w)
                 continue;
         }
@@ -1072,7 +1072,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glMatrixMode(GL_MODELVIEW);
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        if (WorkspaceManager::getInstance()->current() == (*its)->getWorkspace()) {
+        if (WorkspaceManager::getInstance()->isMasterView() || WorkspaceManager::getInstance()->current() == (*its)->getWorkspace()) {
             glPushMatrix();
             glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
             double renderingAspectRatio = (*its)->getAspectRatio();
@@ -1602,7 +1602,7 @@ void MixerView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPai
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }
@@ -1622,7 +1622,7 @@ bool MixerView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }

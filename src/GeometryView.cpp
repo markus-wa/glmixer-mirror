@@ -132,7 +132,7 @@ void GeometryView::paint()
         // test workspace
         if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
             // Draw source in canvas if not exclusive display
-            if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if ( !WorkspaceManager::getInstance()->isMasterView() ) {
                 // draw shadow version of the source
                 ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
                 s->draw();
@@ -151,7 +151,7 @@ void GeometryView::paint()
     // With correct rendering on top of the different workspaces
     ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
     // in exclusive workspace, still show the outcome, but faded
-    if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
+    if ( WorkspaceManager::getInstance()->isMasterView() )
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, WORKSPACE_MAX_ALPHA);
     // draw
     glPushMatrix();
@@ -185,7 +185,7 @@ void GeometryView::paint()
         QColor c = Tag::get(s)->getColor();
         if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
 
-            if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
+            if ( WorkspaceManager::getInstance()->isMasterView() )
                 continue;
 
             border_workspace = 3;
@@ -1973,7 +1973,7 @@ void GeometryView::applyTargetSnapshot(double percent, QMap<Source *, QVector< Q
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }
@@ -2008,7 +2008,7 @@ bool GeometryView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,dou
         if ( it.key()->isStandby())
             continue;
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }

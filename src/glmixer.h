@@ -144,6 +144,7 @@ public slots:
     void setBusy(bool busy = true);
     void resetCurrentCursor();
     void disable() { setDisabled(true); }
+    void toggleRender();
 
     // source config
     void connectSource(SourceSet::iterator csi);

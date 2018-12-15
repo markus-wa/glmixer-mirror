@@ -22,7 +22,7 @@ public:
 
     int current() const;
     int count() const { return _count; }
-    bool isExclusiveDisplay() { return _exclusive; }
+    bool isMasterView() { return _exclusive; }
 
     QList<QAction *> getActions() const { return _actions->actions(); }
     QList<QToolButton *> getButtons() const { return _buttons; }

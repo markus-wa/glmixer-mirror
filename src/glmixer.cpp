@@ -453,10 +453,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(switcherSession, SIGNAL(sessionRenamed(QString, QString)), this, SLOT(renameSessionFile(QString, QString)) );
 
     QAction *nextSession = new QAction("Next Session", this);
-    nextSession->setShortcut(QKeySequence("Ctrl+PgDown"));
+    nextSession->setShortcut(QKeySequence("Ctrl+Right"));
     addAction(nextSession);
     QAction *prevSession = new QAction("Previous Session", this);
-    prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
+    prevSession->setShortcut(QKeySequence("Ctrl+Left"));
     addAction(prevSession);
 
     QObject::connect(nextSession, SIGNAL(triggered()), SLOT(openNextSession()));
@@ -2130,6 +2130,11 @@ void GLMixer::on_actionNew_Session_triggered()
     // close session
     on_actionClose_Session_triggered();
 
+}
+
+void GLMixer::toggleRender() 
+{
+    actionToggleRenderingVisible->trigger();
 }
 
 #ifdef GLM_SESSION
@@ -3980,7 +3985,7 @@ void GLMixer::updateWorkspaceActions()
     actionWorkspaceIncrement->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
     actionWorkspaceDecrement->setEnabled(WorkspaceManager::getInstance()->count()>WORKSPACE_MIN);
     actionNewWorkspace->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
-    actionWorkspaceExclusive->setChecked(WorkspaceManager::getInstance()->isExclusiveDisplay());
+    actionWorkspaceExclusive->setChecked(WorkspaceManager::getInstance()->isMasterView());
 }
 
 void GLMixer::on_actionOSCTranslator_triggered()

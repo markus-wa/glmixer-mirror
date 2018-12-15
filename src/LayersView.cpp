@@ -221,7 +221,7 @@ void LayersView::paint()
         s->blend();
 
         // Normal draw in current workspace
-        if (WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
+        if ( WorkspaceManager::getInstance()->isMasterView() || WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
 
             //   draw stippled version of the source
             ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
@@ -244,7 +244,7 @@ void LayersView::paint()
 
         }
         // Shadow draw in other workspace
-        else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
+        else {
 
             // set shadow color and alpha
             ViewRenderWidget::setBaseColor(s->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
@@ -1098,7 +1098,7 @@ void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPa
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }
@@ -1120,7 +1120,7 @@ bool LayersView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,doubl
         if ( it.key()->isStandby())
             continue;
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
             if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
                 continue;
         }
