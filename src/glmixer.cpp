@@ -3986,7 +3986,7 @@ void GLMixer::updateWorkspaceActions()
     actionWorkspaceIncrement->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
     actionWorkspaceDecrement->setEnabled(WorkspaceManager::getInstance()->count()>WORKSPACE_MIN);
     actionNewWorkspace->setEnabled(WorkspaceManager::getInstance()->count()<WORKSPACE_MAX);
-    actionWorkspaceExclusive->setChecked(WorkspaceManager::getInstance()->isMasterView());
+    actionWorkspaceExclusive->setChecked(WorkspaceManager::getInstance()->isExclusiveDisplay());
 }
 
 void GLMixer::on_actionOSCTranslator_triggered()

@@ -57,7 +57,7 @@ void SelectionManager::select(Source *s) {
         return;
 
     // do not select source from other workspace
-    if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() )
+    if ( !WorkspaceManager::getInstance()->isInCurrent(s) )
         return;
 
     if ( _selectedSources.count(s) > 0)
@@ -132,7 +132,7 @@ void SelectionManager::updateSelectionSource()
 {
     // do not add sources which are not in current workspace
     for ( SourceSet::const_iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); ) {
-        if ( WorkspaceManager::getInstance()->current() != (*sit)->getWorkspace() )
+        if ( !WorkspaceManager::getInstance()->isInCurrent(*sit) )
             _selectedSources.erase(sit++);
         else
             ++sit;

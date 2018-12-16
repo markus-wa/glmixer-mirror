@@ -101,6 +101,13 @@ int WorkspaceManager::current() const
     return _actions->checkedAction()->data().toInt();
 }
 
+
+bool WorkspaceManager::isInCurrent(const Source *s) const
+{
+    return current() == s->getWorkspace();
+}
+
+
 void WorkspaceManager::setExclusiveDisplay(bool on)
 {
     bool previous = _exclusive;

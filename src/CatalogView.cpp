@@ -513,7 +513,7 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 
             // if the mouse is over a source in the current workspace
             Source *s = *clickedSources.begin();
-            if ( WorkspaceManager::getInstance()->current() == s->getWorkspace() )
+            if ( WorkspaceManager::getInstance()->isInCurrent(s) )
                 // set cursor to indicate
                 cursor = ViewRenderWidget::MOUSE_HAND_INDEX;
         }

@@ -221,7 +221,7 @@ void LayersView::paint()
         s->blend();
 
         // Normal draw in current workspace
-        if ( WorkspaceManager::getInstance()->isMasterView() || WorkspaceManager::getInstance()->current() == s->getWorkspace()) {
+        if ( WorkspaceManager::getInstance()->isInCurrent(s)) {
 
             //   draw stippled version of the source
             ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
@@ -244,7 +244,7 @@ void LayersView::paint()
 
         }
         // Shadow draw in other workspace
-        else {
+        else if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ){
 
             // set shadow color and alpha
             ViewRenderWidget::setBaseColor(s->getColor().darker(WORKSPACE_COLOR_SHIFT), WORKSPACE_MAX_ALPHA);
@@ -737,7 +737,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby() || WorkspaceManager::getInstance()->current() != (*its)->getWorkspace())
+        if ((*its)->isStandby() || !WorkspaceManager::getInstance()->isInCurrent(*its) )
             continue;
 
         glPushMatrix();
@@ -1098,8 +1098,8 @@ void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPa
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
-            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if ( !WorkspaceManager::getInstance()->isInCurrent(it.key()) )
                 continue;
         }
         // interpolate change for this source
@@ -1120,8 +1120,8 @@ bool LayersView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,doubl
         if ( it.key()->isStandby())
             continue;
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( !WorkspaceManager::getInstance()->isMasterView() ) {
-            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if ( !WorkspaceManager::getInstance()->isInCurrent(it.key()) )
                 continue;
         }
         // return true whenever a source can be modified

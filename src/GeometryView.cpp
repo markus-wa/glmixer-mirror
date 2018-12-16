@@ -130,9 +130,9 @@ void GeometryView::paint()
         s->blend();
 
         // test workspace
-        if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
+        if ( !WorkspaceManager::getInstance()->isInCurrent(s) ) {
             // Draw source in canvas if not exclusive display
-            if ( !WorkspaceManager::getInstance()->isMasterView() ) {
+            if ( !WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
                 // draw shadow version of the source
                 ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
                 s->draw();
@@ -151,7 +151,7 @@ void GeometryView::paint()
     // With correct rendering on top of the different workspaces
     ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
     // in exclusive workspace, still show the outcome, but faded
-    if ( WorkspaceManager::getInstance()->isMasterView() )
+    if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, WORKSPACE_MAX_ALPHA);
     // draw
     glPushMatrix();
@@ -183,9 +183,9 @@ void GeometryView::paint()
         GLuint border_workspace = 0;
         int alpha = 200;
         QColor c = Tag::get(s)->getColor();
-        if ( WorkspaceManager::getInstance()->current() != s->getWorkspace() ) {
+        if ( !WorkspaceManager::getInstance()->isInCurrent(s) ) {
 
-            if ( WorkspaceManager::getInstance()->isMasterView() )
+            if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
                 continue;
 
             border_workspace = 3;
@@ -949,7 +949,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     }
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        if ((*its)->isStandby() ||  WorkspaceManager::getInstance()->current() != (*its)->getWorkspace())
+        if ((*its)->isStandby() || !WorkspaceManager::getInstance()->isInCurrent(*its) )
             continue;
         glPushMatrix();
         // place and scale
@@ -1973,8 +1973,8 @@ void GeometryView::applyTargetSnapshot(double percent, QMap<Source *, QVector< Q
     while (it.hasNext()) {
         it.next();
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isMasterView() ) {
-            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if ( !WorkspaceManager::getInstance()->isInCurrent(it.key()) )
                 continue;
         }
         // interpolate change for this source
@@ -2008,8 +2008,8 @@ bool GeometryView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,dou
         if ( it.key()->isStandby())
             continue;
         // if in exclusive workspace mode, do not apply changes to sources in other workspaces
-        if ( WorkspaceManager::getInstance()->isMasterView() ) {
-            if (WorkspaceManager::getInstance()->current() != it.key()->getWorkspace())
+        if ( WorkspaceManager::getInstance()->isExclusiveDisplay() ) {
+            if ( !WorkspaceManager::getInstance()->isInCurrent(it.key()) )
                 continue;
         }
         // return true whenever a source can be modified
