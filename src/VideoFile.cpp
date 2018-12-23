@@ -232,7 +232,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 void VideoFile::close()
 {
 #ifdef VIDEOFILE_DEBUG
-    fprintf(stderr, "\n%s - Closing Media...", qPrintable(filename));
+    fprintf(stderr, "\n%s - Closing...", qPrintable(filename));
 #endif
 
     // Stop playing
@@ -241,6 +241,13 @@ void VideoFile::close()
     // free filter
     if (graph)
         avfilter_graph_free(&graph);
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
+    if (pHardwareCodec) {
+        av_buffer_unref(&pHardwareCodec);
+//        video_dec->hw_device_ctx = NULL;
+    }
+#endif
 
     // free decoder
     if (video_dec)
@@ -251,11 +258,6 @@ void VideoFile::close()
         // close file & free context and all its contents and set it to NULL.
         avformat_close_input(&pFormatCtx);
     }
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
-    if (pHardwareCodec)
-        av_buffer_unref(&pHardwareCodec);
-#endif
 
     // free pictures
     if (firstPicture)
@@ -275,7 +277,7 @@ void VideoFile::close()
 
     qDebug() << filename << QChar(124).toLatin1() << tr("Media closed.");
 #ifdef VIDEOFILE_DEBUG
-    fprintf(stderr, "\n%s - Media closed.", qPrintable(filename));
+    fprintf(stderr, "\n%s - Closed.", qPrintable(filename));
 #endif
 }
 
@@ -287,13 +289,9 @@ VideoFile::~VideoFile()
 
     // stop silently
     disconnect();
-    // just to make sure stop() will not fill first frame
-    restart_where_stopped = true;
 
     // make sure all is closed
     close();
-
-    clear_picture_queue();
 
     // delete threads
     delete decod_tid;
@@ -306,7 +304,7 @@ VideoFile::~VideoFile()
     delete smooth_pause_animation;
 
 #ifdef VIDEOFILE_DEBUG
-    fprintf(stderr, "\n%s - Media deleted.", qPrintable(filename));
+    fprintf(stderr, "\n%s - Deleted.", qPrintable(filename));
 #endif
 }
 
@@ -322,6 +320,10 @@ void VideoFile::reset()
     // if reset after openning, reset clock and indicate time base
     if (video_st && frame_rate > 0)
         pclock->reset(0.0, 1.0 / frame_rate);
+
+#ifdef VIDEOFILE_DEBUG
+        fprintf(stderr, "\n%s - Reset.", qPrintable(filename));
+#endif
 }
 
 void VideoFile::stop()
@@ -329,7 +331,7 @@ void VideoFile::stop()
     if (!quit)
     {
 #ifdef VIDEOFILE_DEBUG
-        fprintf(stderr, "\n%s - Stopping video...", qPrintable(filename));
+        fprintf(stderr, "\n%s - Stopping...", qPrintable(filename));
 #endif
 
         // request quit
@@ -345,8 +347,6 @@ void VideoFile::stop()
 
         if (!restart_where_stopped)
         {
-            // we'll not use the queue
-            clear_picture_queue();
             // recreate first picture in case begin has changed
             current_frame_pts = fill_first_frame(true);
             emit timeChanged( current_frame_pts );
@@ -362,6 +362,9 @@ void VideoFile::stop()
         fprintf(stderr, "\n%s - Stopped.", qPrintable(filename));
 #endif
     }
+
+    // free the queue
+    clear_picture_queue();
 
     /* say if we are running or not */
     emit running(!quit);
@@ -432,6 +435,10 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     quit = true;
 
     filename = file;
+
+#ifdef VIDEOFILE_DEBUG
+        fprintf(stderr, "\n%s - Openning...", qPrintable(filename));
+#endif
 
     // allocate context
     pFormatCtx = avformat_alloc_context();
@@ -633,6 +640,10 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
 
     // say we are not running
     emit running(false);
+
+#ifdef VIDEOFILE_DEBUG
+        fprintf(stderr, "\n%s - Openned.", qPrintable(filename));
+#endif
 
     // all ok
     return true;
