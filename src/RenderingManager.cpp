@@ -2179,6 +2179,13 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
                                    << tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
                     }
 
+                    // restore fading
+                    QDomElement fading = t.firstChildElement("Fading");
+                    if ( !fading.isNull()) {
+                        newSourceVideoFile->setFadeIn( fading.attribute("In").toDouble() );
+                        newSourceVideoFile->setFadeOut( fading.attribute("Out").toDouble() );
+                    }
+
                     // create the source as it is a valid video file (this also set it to be the current source)
                     newsource = RenderingManager::_instance->newMediaSource(newSourceVideoFile, depth);
                     if (newsource){

@@ -115,6 +115,19 @@ public:
     inline double getAspectRatio() const {
         return (double)width / (double)height;
     }
+
+    /**
+     * Set Fading value [0.0 1.0]
+     *
+     */
+    inline void setFading(double f) { fade = f; }
+
+    /**
+     * Get fading value
+     *
+     * @return fading
+     */
+    inline double getFading() { return fade; }
     /**
      * Creates and saves a .ppm image file with the current buffer (if full).
      */
@@ -165,6 +178,7 @@ private:
     int width, height, rowlength;
     Action action;
     AVFrame *frame;
+    double fade;
 
     class PictureMap
     {

@@ -17,7 +17,7 @@ TimelineSlider::TimelineSlider(QWidget *parent) :
     HEIGHT_TIME_BAR = 20;
     DISTANCE_MARK_TEXT = 10;
     LINE_MARK_LENGHT = 5;
-    RANGE_MARK_HEIGHT = 25;
+    RANGE_MARK_HEIGHT = 29;
     draw_area = QRect(margin_pixel, 0, size().width() - margin_pixel * 2, size().height());
 
     overlayFont = font();
@@ -105,8 +105,10 @@ void TimelineSlider::reset() {
     step_value = 0.2;
     range_value.first = 0.0;
     range_value.second = 1.0;
-    range_cursor.first = 0.0;
-    range_cursor.second = 1.0;
+    cursor_value.first = 0.0;
+    cursor_value.second = 1.0;
+    range_fade.first = 0.0;
+    range_fade.second = 1.0;
     mark_value = 1.0;
     step_value_increment = -1.0;
     user_value = -1.0;
@@ -138,6 +140,8 @@ void TimelineSlider::setEndToCurrent()
 
 void TimelineSlider::setRange(QPair<double, double> r) {
 
+    QPair<double, double> fade = range_fade;
+
     // ensure the range is correct
     if (r.first > r.second)
         r.first = r.second;
@@ -149,6 +153,7 @@ void TimelineSlider::setRange(QPair<double, double> r) {
     qint64 intval_after = (int) qRound64(r.first / step_value);
     // update value if different (module value step)
     if ( intval_before != intval_after ) {
+        fade.first += (r.first - range_value.first);
         range_value.first = (double) intval_after * step_value;
         emit beginChanged(range_value.first);
     }
@@ -158,12 +163,16 @@ void TimelineSlider::setRange(QPair<double, double> r) {
     intval_after = (int) qRound64(r.second / step_value);
     // update value if different (module value step)
     if ( intval_before != intval_after ) {
+        fade.second += (r.second - range_value.second);
         range_value.second = (double) intval_after * step_value;
         emit endChanged(range_value.second);
     }
 
+    // set fading area
+    setFading(fade);
+
     // set cursors
-    range_cursor = r;
+    cursor_value = r;
     repaint();
 }
 
@@ -173,6 +182,46 @@ void TimelineSlider::setBegin(double v) {
 
 void TimelineSlider::setEnd(double v) {
     setRange(qMakePair( qMin(v, range_value.first), v ));
+}
+
+
+void TimelineSlider::setFading(QPair<double, double> r) {
+
+    // ensure the range is correct
+    if (r.first > r.second)
+        r.second = r.first;
+    r.first = qBound(begin(), r.first, end());
+    r.second = qBound(begin(), r.second, end());
+
+    // round the value by the value step
+    qint64 intval_before = (int) qRound64(range_fade.first / step_value);
+    qint64 intval_after = (int) qRound64(r.first / step_value);
+    // update value if different (module value step)
+    if ( intval_before != intval_after ) {
+        range_fade.first = (double) intval_after * step_value;
+        emit fadeinChanged(range_fade.first);
+    }
+
+    // round the value by the value step
+    intval_before = (int) qRound64(range_fade.second / step_value);
+    intval_after = (int) qRound64(r.second / step_value);
+    // update value if different (module value step)
+    if ( intval_before != intval_after ) {
+        range_fade.second = (double) intval_after * step_value;
+        emit fadeoutChanged(range_fade.second);
+    }
+
+    // set cursor
+    cursor_fade = range_fade;
+    repaint();
+}
+
+void TimelineSlider::setFadein(double v) {
+    setFading(qMakePair( v, qMax(v, range_fade.second) ));
+}
+
+void TimelineSlider::setFadeout(double v) {
+    setFading(qMakePair( qMin(v, range_fade.first), v ));
 }
 
 
@@ -207,11 +256,21 @@ TimelineSlider::cursor TimelineSlider::mouseOver(QMouseEvent * e)
     if ( e->pos().y() < height()/2 && qAbs( getPosFromVal(cur_value) - e->pos().x()) < GRAB_THRESHOLD ) {
         return CURSOR_CURRENT;
     }
-    else if ( qAbs( getPosFromVal(range_cursor.first) - e->pos().x()) < GRAB_THRESHOLD ) {
+    else if ( qAbs( getPosFromVal(cursor_fade.first) - e->pos().x()) < GRAB_THRESHOLD
+              && qAbs( e->pos().y() - height()/2 ) < GRAB_THRESHOLD) {
+
+        return CURSOR_FADING_MIN;
+    }
+    else if ( qAbs( getPosFromVal(cursor_fade.second) - e->pos().x()) < GRAB_THRESHOLD
+              && qAbs( e->pos().y() - height()/2 ) < GRAB_THRESHOLD) {
+
+        return CURSOR_FADING_MAX;
+    }
+    else if ( qAbs( getPosFromVal(cursor_value.first) - e->pos().x()) < GRAB_THRESHOLD ) {
 
         return CURSOR_RANGE_MIN;
     }
-    else if ( qAbs( getPosFromVal(range_cursor.second) - e->pos().x()) < GRAB_THRESHOLD ) {
+    else if ( qAbs( getPosFromVal(cursor_value.second) - e->pos().x()) < GRAB_THRESHOLD ) {
 
         return CURSOR_RANGE_MAX;
     }
@@ -233,11 +292,19 @@ void TimelineSlider::mouseMoveEvent ( QMouseEvent * event )
         break;
     case CURSOR_RANGE_MIN:
         // slider for min position
-        range_cursor.first = qBound(min_value, getValFromPos(event->pos().x()), max_value) ;
+        cursor_value.first = qBound(min_value, getValFromPos(event->pos().x()), end()) ;
         break;
     case CURSOR_RANGE_MAX:
         // slider for max position
-        range_cursor.second = qBound(min_value, getValFromPos(event->pos().x()), max_value) ;
+        cursor_value.second = qBound(begin(), getValFromPos(event->pos().x()), max_value) ;
+        break;
+    case CURSOR_FADING_MIN:
+        // slider for min position
+        cursor_fade.first = qBound(begin(), getValFromPos(event->pos().x()), fadeout()) ;
+        break;
+    case CURSOR_FADING_MAX:
+        // slider for max position
+        cursor_fade.second = qBound(fadein(), getValFromPos(event->pos().x()), end()) ;
         break;
     default:
     {
@@ -247,14 +314,16 @@ void TimelineSlider::mouseMoveEvent ( QMouseEvent * event )
             setCursor(Qt::SplitHCursor);
             break;
         case CURSOR_RANGE_MIN:
-            setCursor(Qt::SizeHorCursor);
-            break;
         case CURSOR_RANGE_MAX:
             setCursor(Qt::SizeHorCursor);
             break;
+        case CURSOR_FADING_MIN:
+        case CURSOR_FADING_MAX:
+            setCursor(Qt::UpArrowCursor);
+            break;
         case CURSOR_OVER:
             cursor_state = CURSOR_OVER;
-            repaint();
+//            repaint();
         default:
         {
             unsetCursor();
@@ -293,19 +362,25 @@ void TimelineSlider::mouseReleaseEvent ( QMouseEvent *event )
     case CURSOR_RANGE_MIN:
         // min position
         // (will repaint)
-        range_cursor.first = qBound(min_value, getValFromPos(event->pos().x()), max_value) ;
-        setBegin( range_cursor.first );
+        cursor_value.first = qBound(min_value, getValFromPos(event->pos().x()), end()) ;
+        setBegin( cursor_value.first );
         break;
     case CURSOR_RANGE_MAX:
         // max position
         // (will repaint)
-        range_cursor.second = qBound(min_value, getValFromPos(event->pos().x()), max_value) ;
-        setEnd( range_cursor.second );
+        cursor_value.second = qBound(begin(), getValFromPos(event->pos().x()), max_value) ;
+        setEnd( cursor_value.second );
+        break;
+    case CURSOR_FADING_MIN:
+        cursor_fade.first = qBound(begin(), getValFromPos(event->pos().x()), fadeout()) ;
+        setFadein( cursor_fade.first );
+        break;
+    case CURSOR_FADING_MAX:
+        cursor_fade.second = qBound(fadein(), getValFromPos(event->pos().x()), end()) ;
+        setFadeout( cursor_fade.second );
         break;
     default:
-    {
-
-    }
+    { }
     }
 
     if (cursor_state != CURSOR_OVER)
@@ -381,11 +456,14 @@ void TimelineSlider::drawWidget(QPainter &qp)
     int userPosition = getPosFromVal(user_value);
     int rangeBegin = getPosFromVal( range_value.first );
     int rangeEnd = getPosFromVal( range_value.second );
-    int rangeCursorBegin = getPosFromVal( range_cursor.first );
-    int rangeCursorEnd = getPosFromVal( range_cursor.second );
+    int rangeCursorBegin = getPosFromVal( cursor_value.first );
+    int rangeCursorEnd = getPosFromVal( cursor_value.second );
+    int fadeBegin = getPosFromVal( cursor_fade.first );
+    int fadeEnd = getPosFromVal( cursor_fade.second );
 
     // compute useful coordinates
-    int range_mark_y = draw_area.height() / 2 + RANGE_MARK_HEIGHT;
+    int range_mark_bottom = draw_area.height() / 2 + RANGE_MARK_HEIGHT;
+    int range_mark_top = draw_area.height() / 2;
 
     // draw marks and text
     qp.setPen(palette().color(QPalette::WindowText));
@@ -424,7 +502,7 @@ void TimelineSlider::drawWidget(QPainter &qp)
             qp.drawLine(pos, HEIGHT_TIME_BAR + 2, pos, HEIGHT_TIME_BAR - LINE_MARK_LENGHT / 2);
 
         // draw intermediate steps if enough space
-        if ( step_value_increment >0 ) 
+        if ( step_value_increment >0 )
         {
             qp.setPen( palette().color(QPalette::WindowText));
             // increment by the step increment
@@ -456,17 +534,17 @@ void TimelineSlider::drawWidget(QPainter &qp)
     // draw position cursor
     qp.setPen(PEN_MARK);
     if ( cursor_state == CURSOR_CURRENT )
-        qp.drawLine(userPosition, HEIGHT_TIME_BAR, userPosition, range_mark_y);
+        qp.drawLine(userPosition, HEIGHT_TIME_BAR, userPosition, range_mark_bottom);
     else
-        qp.drawLine(currentPosition, HEIGHT_TIME_BAR, currentPosition, range_mark_y);
+        qp.drawLine(currentPosition, HEIGHT_TIME_BAR, currentPosition, range_mark_bottom);
 
-    QPainterPath myPath;
-    QPolygonF polygon;
-    polygon << QPointF(currentPosition, HEIGHT_TIME_BAR + 1) << QPointF(currentPosition - 5, HEIGHT_TIME_BAR -4) << QPointF(currentPosition + 5, HEIGHT_TIME_BAR -4) << QPointF(currentPosition, HEIGHT_TIME_BAR + 1) ;
-    myPath.addPolygon(polygon);
+    QPainterPath arrow;
+    QPolygonF triangle;
+    triangle << QPointF(currentPosition, HEIGHT_TIME_BAR + 1) << QPointF(currentPosition - 5, HEIGHT_TIME_BAR -4) << QPointF(currentPosition + 5, HEIGHT_TIME_BAR -4) << QPointF(currentPosition, HEIGHT_TIME_BAR + 1) ;
+    arrow.addPolygon(triangle);
     qp.setPen(COLOR_MARK);
     qp.setBrush(COLOR_MARK);
-    qp.drawPath(myPath);
+    qp.drawPath(arrow);
 
     // draw area for cursor text
     qp.fillRect(pos_text - 2, 0, labelFontMetrics.width(label) + 4, HEIGHT_TIME_BAR - 4, COLOR_MARK);
@@ -478,29 +556,43 @@ void TimelineSlider::drawWidget(QPainter &qp)
 
 
     // Draw range
-    qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(150));
+    // qp.fillRect(rangeBegin, range_mark_y, rangeEnd - rangeBegin, -RANGE_MARK_HEIGHT, COLOR_RANGE.darker(150));
+    QPainterPath rangearea;
+    QPolygonF parallelogram;
+    parallelogram << QPointF(rangeBegin, range_mark_bottom)  << QPointF(rangeEnd, range_mark_bottom)  << QPointF(fadeEnd, range_mark_top)  << QPointF(fadeBegin, range_mark_top) ;
+    rangearea.addPolygon(parallelogram);
+    qp.setPen(COLOR_RANGE.darker(150));
+    qp.setBrush(COLOR_RANGE.darker(150));
+    qp.drawPath(rangearea);
+
+    // Draw extremities
     qp.setPen(COLOR_RANGE.darker(170));
-    qp.drawLine(rangeBegin, HEIGHT_TIME_BAR, rangeBegin, range_mark_y);
-    qp.drawLine(rangeEnd, HEIGHT_TIME_BAR, rangeEnd, range_mark_y);
+    qp.drawLine(rangeBegin, HEIGHT_TIME_BAR, rangeBegin, range_mark_bottom);
+    qp.drawLine(rangeEnd, HEIGHT_TIME_BAR, rangeEnd, range_mark_bottom);
 
     // draw cursor of begin and end
     qp.setPen(COLOR_RANGE.darker(200));
-    qp.drawLine(rangeCursorBegin, HEIGHT_TIME_BAR, rangeCursorBegin, range_mark_y);
-    qp.drawLine(rangeCursorEnd, HEIGHT_TIME_BAR, rangeCursorEnd, range_mark_y);
-    qp.setPen(PEN_MARK);
-    qp.drawPoint(rangeCursorBegin +2, range_mark_y -1);
-    qp.drawPoint(rangeCursorEnd -2, range_mark_y -1);
+    qp.drawLine(rangeCursorBegin, HEIGHT_TIME_BAR, rangeCursorBegin, range_mark_bottom);
+    qp.drawLine(rangeCursorEnd, HEIGHT_TIME_BAR, rangeCursorEnd, range_mark_bottom);
+
+    // draw points for fading
+    QPen dots( palette().color(QPalette::WindowText), 5);
+    qp.setPen(dots);
+    qp.drawPoint(rangeBegin +2, range_mark_bottom -1);
+    qp.drawPoint(rangeEnd -2, range_mark_bottom -1);
+    qp.drawPoint(fadeBegin +2, range_mark_top +1);
+    qp.drawPoint(fadeEnd -2, range_mark_top +1);
 
     // compute position begin value
 //    QString label_b = TimelineSlider::getStringFromTime( begin() );
-    QString label_b = TimelineSlider::getStringFromTime( range_cursor.first );
+    QString label_b = TimelineSlider::getStringFromTime( cursor_value.first );
     int pos_text_b = rangeCursorBegin - labelFontMetrics.width(label_b) -1;
     if (pos_text_b < 1)
         pos_text_b = rangeCursorBegin + 5;
 
     // compute position end value
 //    QString label_e = TimelineSlider::getStringFromTime( end() );
-    QString label_e = TimelineSlider::getStringFromTime( range_cursor.second );
+    QString label_e = TimelineSlider::getStringFromTime( cursor_value.second );
     int pos_text_e = rangeCursorEnd;
     if (pos_text_e + labelFontMetrics.width(label) > width())
         pos_text_e = rangeCursorEnd - labelFontMetrics.width(label_e) - 5;
@@ -508,25 +600,25 @@ void TimelineSlider::drawWidget(QPainter &qp)
     qp.setPen(palette().color(QPalette::WindowText));
     // draw both labels if enough space between them
     if ( qAbs(pos_text_b - pos_text_e) > labelFontMetrics.width(label_e)  ) {
-        qp.drawText(pos_text_e, range_mark_y - 2, label_e);
-        qp.drawText(pos_text_b, range_mark_y - 2, label_b);
+        qp.drawText(pos_text_e, range_mark_bottom - 2, label_e);
+        qp.drawText(pos_text_b, range_mark_bottom - 2, label_b);
     }
     // otherwise draw the most central one
     else if ( pos_text_b == rangeBegin + 5) {
-        qp.drawText(pos_text_e, range_mark_y - 2, label_e);
+        qp.drawText(pos_text_e, range_mark_bottom - 2, label_e);
     }
     else
-        qp.drawText(pos_text_b, range_mark_y - 2, label_b);
+        qp.drawText(pos_text_b, range_mark_bottom - 2, label_b);
 
     // draw duration information
-    QString label_d = TimelineSlider::getStringFromTime( (range_cursor.second - range_cursor.first) / speed );
+    QString label_d = TimelineSlider::getStringFromTime( (cursor_value.second - cursor_value.first) / speed );
 
     QFontMetrics overlayFontMetrics(overlayFont);
     if ( rangeEnd - rangeBegin > overlayFontMetrics.width(label_d)) {
         int pos_text_d = rangeBegin + (rangeEnd - rangeBegin) / 2 - overlayFontMetrics.width(label_d)/2;
         qp.setFont(overlayFont);
         qp.setPen(Qt::white);
-        qp.drawText(pos_text_d, range_mark_y - (RANGE_MARK_HEIGHT/2) + overlayFontMetrics.height()/2, label_d);
+        qp.drawText(pos_text_d, range_mark_bottom - (RANGE_MARK_HEIGHT/2) + overlayFontMetrics.height()/2, label_d);
     }
 
     // draw mouse over cursor value
@@ -594,11 +686,11 @@ void TimelineSlider::updateMarks()
     else if ( s > 4 ) {          // between 5 and 9 sec
         mark_value = step_value * 10.0;
         step_value_increment = step_value * 2.0;
-    } 
+    }
     else if ( s > 2 ) {          // between 3 and 5 sec
         mark_value = step_value * 5.0;
         step_value_increment = step_value;
-    } 
+    }
     else                        // less than 3 sec
         mark_value = step_value;
 

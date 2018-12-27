@@ -51,7 +51,7 @@ bool Source::playable = false;
 Source::Source(GLuint texture, double depth): ProtoSource(),
     standby(NOT_STANDBY), culled(false),
     clones(NULL), textureIndex(texture),
-    customMaskTextureIndex(0), workspace(0)
+    customMaskTextureIndex(0), workspace(0), fade(1.0)
 {
     // give it a unique identifier
     id = Source::lastid++;
@@ -713,6 +713,8 @@ void Source::draw(GLenum mode) const {
 void Source::setShaderAttributes() const {
 
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseColor, texcolor);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_fading, (GLfloat) fade);
+//    fprintf(stderr,"%f\n",fade);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) texalpha);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, 0.f);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_gamma, (GLfloat) gammaRed, (GLfloat) gammaGreen, (GLfloat) gammaBlue, (GLfloat) gamma);

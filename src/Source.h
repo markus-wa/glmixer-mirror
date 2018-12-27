@@ -293,7 +293,7 @@ signals:
 
 protected:
     /*
-     * Depth should only be modified only by Rendering Manager
+     * Depth should only be modified by Rendering Manager
      */
     void setDepth(double v);
     void testGeometryCulling();
@@ -329,6 +329,13 @@ protected:
     // freeframe plugin
     FFGLPluginSourceStack _ffgl_plugins;
 #endif
+
+    /*
+     * Fade should only be modified internally
+     */
+    double fade;
+    inline void setFading(double f) { fade = f; }
+    inline double fading() { return fade; }
 
 private:
     // identity counter

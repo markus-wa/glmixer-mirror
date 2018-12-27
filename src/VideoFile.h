@@ -311,25 +311,25 @@ public:
     /**
      * Get the time of the first picture in VideoFile.
      *
-     * @return Time stamp of the first frame of the stream, in stream time base (usually frame number).
+     * @return Time stamp of the first frame of the stream, in second .
      */
     double  getBegin() const;
     /**
      * Get the time of the last picture in VideoFile.
      *
-     * @return Time stamp of the last frame, in stream time base (usually frame number).
+     * @return Time stamp of the last frame, in second .
      */
     double  getEnd() const;
     /**
      * Get the time of the current frame.
      *
-     * @return frame Time stamp of the current frame, in stream time base (usually frame number).
+     * @return frame Time stamp of the current frame, in second .
      */
     double  getCurrentFrameTime() const;
     /**
      * Get the time when the IN mark was set
      *
-     * @return Mark IN time, in stream time base (usually frame number).
+     * @return Mark IN time, in second .
      */
     inline double  getMarkIn() const {
         return mark_in;
@@ -337,10 +337,26 @@ public:
     /**
      * Get the time when the OUT mark was set
      *
-     * @return Mark OUT time, in stream time base (usually frame number).
+     * @return Mark OUT time, in second .
      */
     inline double  getMarkOut() const {
         return mark_out;
+    }
+    /**
+     * Get the time when the fading in time was set
+     *
+     * @return Fade IN time, in second .
+     */
+    inline double  getFadeIn() const {
+        return fade_in;
+    }
+    /**
+     * Get the time when the fading out time was set
+     *
+     * @return Fade OUT time, in second .
+     */
+    inline double  getFadeOut() const {
+        return fade_out;
     }
     /**
      * Requests a seek (jump) into the video by a given amount of seconds.
@@ -397,10 +413,15 @@ signals:
      */
     void paused(bool p);
     /**
-     * Signal emited when a mark (IN or OUT) has been moved.
+     * Signal emited when a mark (IN or OUT) has changed.
      */
     void markInChanged(double);
     void markOutChanged(double);
+    /**
+     * Signal emited when fading time (IN or OUT) has changed.
+     */
+    void fadeInChanged(double);
+    void fadeOutChanged(double);
     /**
      * Signal emited when playing speed changed.
      */
@@ -486,9 +507,9 @@ public slots:
     /**
      * Set the IN mark time ; this is the time in the video where the playback will restart or loop.
      *
-     * @param t Mark IN time, in stream time base (usually frame number).
+     * @param t Mark IN time, in second .
      */
-    void setMarkIn(double  t);
+    void setMarkIn(double t);
     /**
      * Set the IN mark to the current frame.
      */
@@ -498,15 +519,39 @@ public slots:
     /**
      * Set the OUT mark time ; this is the time in the video at which the playback will end (pause) or loop.
      *
-     * @param t Mark OUT time, in stream time base (usually frame number).
+     * @param t Mark OUT time, in second .
      */
-    void setMarkOut(double  t);
+    void setMarkOut(double t);
     /**
      * Set the OUT mark to the current frame.
      */
     inline void setMarkOut() {
         setMarkOut(getCurrentFrameTime());
     }
+    /**
+     *  disable the fading at mark in.
+     */
+    inline void resetFadeIn() {
+        setFadeIn(getMarkIn());
+    }
+    /**
+     * disable the fading at mark out.
+     */
+    inline void resetFadeOut() {
+        setFadeOut(getMarkOut());
+    }
+    /**
+     * Set the fade-in time ; this is the time in the video when the fade-in effect ends.
+     *
+     * @param t Mark IN time, in second .
+     */
+    void setFadeIn(double t);
+    /**
+     * Set the fade-out time ; this is the time in the video when the fade-out effect srarts.
+     *
+     * @param t Mark OUT time, in second .
+     */
+    void setFadeOut(double t);
     /**
      * Sets the reading to loop at the end or not.
      * When loop mode is active, the playback will restart
@@ -536,7 +581,7 @@ public slots:
     int getPlaySpeedFactor();
     /**
      * Sets the playing speed
-     *      *
+     *
      * @param playspeed playing speed [0.1 .. 10.0]
      */
     void setPlaySpeed(double playspeed);
@@ -553,10 +598,9 @@ public slots:
     inline void resetPlaySpeed() { setPlaySpeedFactor(100);}
     /**
      * Requests a seek (jump) into the video to the time t.
-     *
      * Does nothing if the process is not running (started) or already seeking.
      *
-     * @param t Time where to jump to, in stream time base (usually frame number). t shall be > 0 and < getEnd().
+     * @param t Time where to jump to, in second . t shall be > 0 and < getEnd().
      */
     void seekToPosition(double  t);
     /**
@@ -574,7 +618,7 @@ public slots:
         seekBySeconds(SEEK_STEP * getDuration());
     }
     /**
-     *  Seek backward to the movie first frame.
+     * Seek backward to the movie first frame.
      * Does nothing if the process is not running (started).
      */
     inline void seekBegin() {
@@ -584,7 +628,6 @@ public slots:
      * Seek forward of one frame exactly.
      */
     void seekForwardOneFrame();
-
     /**
      * Sets the "restart to Mark IN" option.
      *
@@ -612,7 +655,6 @@ public slots:
      * @param black true to activate the option.
      */
     void setOptionRevertToBlackWhenStop(bool on);
-
     /**
      * Gets the "revert to black" option.
      *
@@ -621,7 +663,6 @@ public slots:
     inline bool getOptionRevertToBlackWhenStop() {
         return stop_to_black;
     }
-
 
     /**
      *
@@ -697,6 +738,8 @@ protected:
     double  seek_pos;
     double  mark_in;
     double  mark_out;
+    double  fade_in;
+    double  fade_out;
     double  mark_stop;
     bool fast_forward, first_picture_changed;
 

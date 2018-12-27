@@ -180,6 +180,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     nb_frames = 0;
     mark_in = 0.0;
     mark_out = 0.0;
+    fade_in = 0.0;
+    fade_out = 0.0;
     mark_stop = 0.0;
     play_speed = 1.0;
     targetFormat = AV_PIX_FMT_RGB24;
@@ -205,12 +207,12 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     // initialize behavior
     filename = QString::null;
     codecname = QString::null;
-    first_picture_changed = true; // no mark_in set
-    loop_video = true; // loop by default
-    restart_where_stopped = true; // by default restart where stopped
-    stop_to_black = false;
-    ignoreAlpha = false; // by default do not ignore alpha channel
-    hasHwCodec = false;  // by default do not use hardware codec
+    first_picture_changed = true;   // no mark_in set
+    loop_video = true;              // loop by default
+    restart_where_stopped = true;   // by default restart where stopped
+    stop_to_black = false;          // by default do not stop to black
+    ignoreAlpha = false;            // by default do not ignore alpha channel
+    hasHwCodec = false;             // by default do not use hardware codec
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     pHardwareCodec = NULL;
@@ -574,6 +576,10 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
         mark_out = qBound(mark_in, markOut, getEnd());
         emit markOutChanged(mark_out);
     }
+
+    // default fading disabled
+    fade_in = mark_in;
+    fade_out = mark_out;
 
     // set picture size : no argument means use picture size from video stream
     if (targetWidth == 0)
@@ -1280,6 +1286,24 @@ void VideoFile::setMarkOut(double time)
     recompute_max_count_picture_queue();
 }
 
+void VideoFile::setFadeIn(double time)
+{
+    // set the end of fade in effect
+    fade_in = qBound(getMarkIn(), time, fade_out);
+
+    // inform about change
+    emit fadeInChanged(fade_in);
+}
+
+void VideoFile::setFadeOut(double time)
+{
+    // set the beginning of fade out effect
+    fade_out = qBound(fade_in, time, getMarkOut());
+
+    // inform about change
+    emit fadeOutChanged(fade_out);
+}
+
 bool VideoFile::time_in_picture_queue(double time)
 {
     // obvious answer
@@ -1431,6 +1455,19 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
         }
         else
             vp = new VideoPicture(targetWidth, targetHeight, pts);
+
+        // compute fading
+        double fade = 1.0;
+        if (pts < fade_in) {
+            double t = qMax(mark_in, getBegin() + getFrameDuration());
+            fade = (pts - t) / (fade_in - t);
+        }
+        else if (pts > fade_out) {
+            double t = qMin(mark_out, getEnd() - getFrameDuration());
+            fade = (t - pts) / (t - fade_out);
+        }
+        vp->setFading( qBound(0.0, fade, 1.0) );
+//        fprintf(stderr,"%f %f %f %f\n", vp->getFading(), pts, x, mark_out);
 
         // set the actions of this frame
         vp->resetAction();

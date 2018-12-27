@@ -224,14 +224,16 @@ void BasketSource::update() {
 
     if (!_pause) {
 
+        qint64 t = _timer.elapsed();
         // if time passed the period for update
-        if (_timer.elapsed() - _elapsed > period)
+        if (t - _elapsed > period)
         {
             // draw
             drawimage();
 
             // increment elapsed time
-            _elapsed += period;
+//            _elapsed += period;
+            _elapsed = t;
         }
 
     }

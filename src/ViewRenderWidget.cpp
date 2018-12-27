@@ -157,6 +157,7 @@ int ViewRenderWidget::_chromadelta = -1;
 int ViewRenderWidget::_filter_type = -1;
 int ViewRenderWidget::_filter_step = -1;
 int ViewRenderWidget::_filter_kernel = -1;
+int ViewRenderWidget::_fading = -1;
 
 
 const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
@@ -1413,6 +1414,7 @@ void ViewRenderWidget::resetShaderAttributes()
     program->setUniformValue(_baseColor, QColor(Qt::white));
     program->setUniformValue(_baseAlpha, 1.f);
     program->setUniformValue(_stippling, 0.f);
+    program->setUniformValue(_fading, 1.f);
     // gamma
     program->setUniformValue(_gamma, 1.f, 1.f, 1.f, 1.f);
     program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);
@@ -1500,11 +1502,13 @@ void ViewRenderWidget::setupFilteringShaderProgram(QString fshfile)
     _threshold  = program->uniformLocation("threshold");
     _chromakey  = program->uniformLocation("chromakey");
     _chromadelta  = program->uniformLocation("chromadelta");
+    _fading  = program->uniformLocation("fade");
 
     // set the default values for the uniform variables
     program->setUniformValue("sourceTexture", 0);
     program->setUniformValue("maskTexture", 1);
     program->setUniformValue("sourceDrawing", false);
+    program->setUniformValue(_fading, 1.f);
 
     if (!ViewRenderWidget::disableFiltering) {
         _filter_type  = program->uniformLocation("filter_type");

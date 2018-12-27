@@ -15,7 +15,8 @@ class TimelineSlider : public QFrame
     Q_PROPERTY(double begin READ begin WRITE setBegin)
     Q_PROPERTY(double end READ end WRITE setEnd)
     Q_PROPERTY(double step READ step WRITE setStep)
-    Q_PROPERTY(double margin READ margin WRITE setMargin)
+    Q_PROPERTY(double fadein READ fadein WRITE setFadein)
+    Q_PROPERTY(double fadeout READ fadeout WRITE setFadeout)
 
 public:
     explicit TimelineSlider(QWidget *parent = 0);
@@ -25,22 +26,27 @@ public:
     double value() const { return cur_value; }
     double minimum() const { return min_value; }
     double maximum() const { return max_value; }
+    double step() const { return step_value; }
+
+    QPair<double,double> range() const { return range_value; }
+    void setRange(QPair<double,double> r);
     double begin() const { return range_value.first; }
     double end() const { return range_value.second; }
-    double step() const { return step_value; }
-    int margin() const { return margin_pixel; }
+
+    QPair<double,double> fading() const { return range_fade; }
+    void setFading(QPair<double,double> r);
+    double fadein() const { return range_fade.first; }
+    double fadeout() const { return range_fade.second; }
 
     // utility
     static QString getStringFromTime(double time);
-    QPair<double,double> range() const { return range_value; }
-    void setRange(QPair<double,double> r);
-
     void setLabelFont(const QString &fontFamily, int pointSize);
+    int margin() const { return margin_pixel; }
+    void setMargin(int pixels);
 
     // TODO : context menu with
     // - reset
-    // - go to time :
-//    static double getTimeFromString(QString line);
+    // - go to time
 
 public slots:
     // Properties
@@ -51,7 +57,8 @@ public slots:
     void setStep(double v);
     void setBegin(double v);
     void setEnd(double v);
-    void setMargin(int pixels);
+    void setFadein(double v);
+    void setFadeout(double v);
 
     // utilities
     void reset();
@@ -66,6 +73,8 @@ signals:
     void valueChanged(double);
     void beginChanged(double);
     void endChanged(double);
+    void fadeinChanged(double);
+    void fadeoutChanged(double);
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -86,7 +95,9 @@ private:
         CURSOR_OVER,
         CURSOR_CURRENT,
         CURSOR_RANGE_MIN,
-        CURSOR_RANGE_MAX
+        CURSOR_RANGE_MAX,
+        CURSOR_FADING_MIN,
+        CURSOR_FADING_MAX
     } cursor;
     cursor cursor_state;
     cursor mouseOver(QMouseEvent * e);
@@ -100,7 +111,9 @@ private:
     double step_value;
     double user_value;
     QPair<double,double> range_value;
-    QPair<double,double> range_cursor;
+    QPair<double,double> cursor_value;
+    QPair<double,double> range_fade;
+    QPair<double,double> cursor_fade;
     double mark_value;
     double step_value_increment;
     int margin_pixel;
@@ -109,7 +122,7 @@ private:
     int DISTANCE_MARK_TEXT;
     int LINE_MARK_LENGHT;
     int RANGE_MARK_HEIGHT;
-    QRect  draw_area;
+    QRect draw_area;
     QFont labelFont;
     QFont overlayFont;
     double speed;

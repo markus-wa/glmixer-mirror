@@ -166,6 +166,7 @@ VideoPicture::VideoPicture() :
     rowlength(0),
     action(0),
     frame(NULL),
+    fade(1.0),
     _pictureMap(NULL)
 {
 #ifdef VIDEOPICTURE_DEBUG
@@ -182,6 +183,7 @@ VideoPicture::VideoPicture(int w, int h, double Pts) :
     rowlength(w),
     action(0),
     frame(NULL),
+    fade(1.0),
     _pictureMap(NULL)
 {
     if (width==0 && height==0)
@@ -209,6 +211,7 @@ VideoPicture::VideoPicture(AVFilterContext *sink, double Pts):
     pts(Pts),
     data(NULL),
     action(0),
+    fade(1.0),
     _pictureMap(NULL)
 {
     frame = av_frame_alloc();
@@ -236,6 +239,7 @@ VideoPicture::VideoPicture(AVFrame *f, double Pts):
     pts(Pts),
     rowlength(0),
     action(0),
+    fade(1.0),
     frame(NULL),
     _pictureMap(NULL)
 {

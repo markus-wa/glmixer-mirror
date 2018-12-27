@@ -154,6 +154,11 @@ QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
         m.setAttribute("Out",QString::number(is->getMarkOut(),'f',PROPERTY_DECIMALS));
         specific.appendChild(m);
 
+        QDomElement g = doc.createElement("Fading");
+        g.setAttribute("In", QString::number(is->getFadeIn(),'f',PROPERTY_DECIMALS) );
+        g.setAttribute("Out",QString::number(is->getFadeOut(),'f',PROPERTY_DECIMALS));
+        specific.appendChild(g);
+
         QDomElement p = doc.createElement("Play");
         p.setAttribute("Speed", QString::number(is->getPlaySpeed(),'f',PROPERTY_DECIMALS));
         p.setAttribute("Loop", is->isLoop());
@@ -243,6 +248,8 @@ void VideoSource::update()
                             vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
 
         }
+
+        setFading( vp->getFading() );
 
         // done! Cancel (free) updated frame
         updateFrame(NULL);

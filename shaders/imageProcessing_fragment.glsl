@@ -38,6 +38,7 @@ uniform float chromadelta;
 uniform float threshold;
 uniform int nbColors;
 uniform int invertMode;
+uniform float fade;
 
 uniform vec2 filter_step;
 uniform int filter_type;
@@ -266,7 +267,7 @@ void main(void)
     alpha += 2.0 * ma * mod( floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling), 2.0);
 
     // apply base color and alpha for final fragment color
-    gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );
+    gl_FragColor = vec4(transformedRGB * baseColor.rgb * fade, clamp(alpha, 0.0, 1.0) );
 
 }
 

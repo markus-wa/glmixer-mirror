@@ -1201,9 +1201,13 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(currentVideoFile, SIGNAL(playSpeedChanged(double)), timeline, SLOT(setSpeed(double)));
         QObject::disconnect(currentVideoFile, SIGNAL(markInChanged(double)), timeline, SLOT(setBegin(double)));
         QObject::disconnect(currentVideoFile, SIGNAL(markOutChanged(double)), timeline, SLOT(setEnd(double)));
+        QObject::disconnect(currentVideoFile, SIGNAL(fadeInChanged(double)), timeline, SLOT(setFadein(double)));
+        QObject::disconnect(currentVideoFile, SIGNAL(fadeOutChanged(double)), timeline, SLOT(setFadeout(double)));
         QObject::disconnect(currentVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
         QObject::disconnect(timeline, SIGNAL(beginChanged(double)), currentVideoFile, SLOT(setMarkIn(double)) );
         QObject::disconnect(timeline, SIGNAL(endChanged(double)), currentVideoFile, SLOT(setMarkOut(double)) );
+        QObject::disconnect(timeline, SIGNAL(fadeinChanged(double)), currentVideoFile, SLOT(setFadeIn(double)) );
+        QObject::disconnect(timeline, SIGNAL(fadeoutChanged(double)), currentVideoFile, SLOT(setFadeOut(double)) );
         QObject::disconnect(timeline, SIGNAL(valueRequested(double)), currentVideoFile, SLOT(seekToPosition(double)) );
         timeline->reset();
 
@@ -1322,6 +1326,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     timeline->setMaximum(currentVideoFile->getEnd());
                     timeline->setStep(currentVideoFile->getFrameDuration());
                     timeline->setRange(qMakePair(currentVideoFile->getMarkIn(), currentVideoFile->getMarkOut()));
+                    timeline->setFading(qMakePair(currentVideoFile->getFadeIn(), currentVideoFile->getFadeOut()));
                     timeline->setValue(currentVideoFile->getCurrentFrameTime());
                     timeline->setSpeed(currentVideoFile->getPlaySpeed());
 
@@ -1330,9 +1335,13 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                     QObject::connect(currentVideoFile, SIGNAL(playSpeedChanged(double)), timeline, SLOT(setSpeed(double)));
                     QObject::connect(currentVideoFile, SIGNAL(markInChanged(double)), timeline, SLOT(setBegin(double)));
                     QObject::connect(currentVideoFile, SIGNAL(markOutChanged(double)), timeline, SLOT(setEnd(double)));
+                    QObject::connect(currentVideoFile, SIGNAL(fadeInChanged(double)), timeline, SLOT(setFadein(double)));
+                    QObject::connect(currentVideoFile, SIGNAL(fadeOutChanged(double)), timeline, SLOT(setFadeout(double)));
                     QObject::connect(currentVideoFile, SIGNAL(timeChanged(double)), this, SLOT(refreshTiming()));
                     QObject::connect(timeline, SIGNAL(beginChanged(double)), currentVideoFile, SLOT(setMarkIn(double)) );
                     QObject::connect(timeline, SIGNAL(endChanged(double)), currentVideoFile, SLOT(setMarkOut(double)) );
+                    QObject::connect(timeline, SIGNAL(fadeinChanged(double)), currentVideoFile, SLOT(setFadeIn(double)) );
+                    QObject::connect(timeline, SIGNAL(fadeoutChanged(double)), currentVideoFile, SLOT(setFadeOut(double)) );
                     QObject::connect(timeline, SIGNAL(valueRequested(double)), currentVideoFile, SLOT(seekToPosition(double)) );
 
                     // CONTROL signals from GUI to VideoFile
