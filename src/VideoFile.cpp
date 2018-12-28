@@ -56,6 +56,10 @@ extern "C"
 #include <QDate>
 
 /**
+ * uncomment to monitor execution with debug information
+ */
+//#define VIDEOFILE_DEBUG
+/**
  * During parsing, the thread sleep for a little
  * in case there is an error or nothing to do (ms).
  */
@@ -68,14 +72,21 @@ extern "C"
  * Waiting timout when trying to acquire lock
  */
 #define LOCKING_TIMEOUT 500
-
-// memory policy
+/**
+ * memory management policy
+ */
 #define MIN_VIDEO_PICTURE_QUEUE_COUNT 3
 #define MAX_VIDEO_PICTURE_QUEUE_COUNT 100
 int VideoFile::memory_usage_policy = DEFAULT_MEMORY_USAGE_POLICY;
 int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
 
-
+/**
+ * sigmoid function of type x / sqrt( 1 + x^2)
+ * To use between 0.0 and 1.0
+ * (used for fading)
+ */
+#define SIGMOID(X) 0.5 + (0.6 * (X-0.5) * 3) / sqrt( 1.0 + ((X-0.5) * 3) * ((X-0.5) * 3) )
+//#define SIGMOID(X) 0.5 + (0.52 * (X-0.5) * 7) / sqrt( 1.0 + ((X-0.5) * 7) * ((X-0.5) * 7) )
 
 void VideoFile::play(bool startorstop)
 {
@@ -247,7 +258,7 @@ void VideoFile::close()
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     if (pHardwareCodec) {
         av_buffer_unref(&pHardwareCodec);
-//        video_dec->hw_device_ctx = NULL;
+        video_dec->hw_device_ctx = NULL;
     }
 #endif
 
@@ -1456,18 +1467,13 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
         else
             vp = new VideoPicture(targetWidth, targetHeight, pts);
 
-        // compute fading
+        // compute fading with sigmoid transfer function
         double fade = 1.0;
-        if (pts < fade_in) {
-            double t = qMax(mark_in, getBegin() + getFrameDuration());
-            fade = (pts - t) / (fade_in - t);
-        }
-        else if (pts > fade_out) {
-            double t = qMin(mark_out, getEnd() - getFrameDuration());
-            fade = (t - pts) / (t - fade_out);
-        }
+        if (pts < fade_in)
+            fade = SIGMOID( (pts - mark_in) / (fade_in - mark_in) );
+        else if (pts > fade_out)
+            fade = SIGMOID( (mark_out - pts) / (mark_out - fade_out) );
         vp->setFading( qBound(0.0, fade, 1.0) );
-//        fprintf(stderr,"%f %f %f %f\n", vp->getFading(), pts, x, mark_out);
 
         // set the actions of this frame
         vp->resetAction();

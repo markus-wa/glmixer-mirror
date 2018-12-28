@@ -45,12 +45,7 @@ extern "C" {
 #include "VideoClock.h"
 #include "VideoPicture.h"
 
-/**
- * uncomment to monitor execution with debug information
- */
-//#ifndef NDEBUG
-//#define VIDEOFILE_DEBUG
-//#endif
+
 /**
  * Default memory usage policy (in percent)
  */
