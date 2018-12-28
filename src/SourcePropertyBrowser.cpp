@@ -1000,7 +1000,7 @@ public:
             addProperty(property);
 
             // stop options
-            property = boolManager->addProperty("Rewind stop");
+            property = boolManager->addProperty("Rewind");
             property->setToolTip("Restart video at first frame when stopped.");
             idToProperty[property->propertyName()] = property;
             boolManager->setValue(property, vf->getOptionRestartToMarkIn());
@@ -1046,8 +1046,8 @@ public slots:
                 boolManager->setValue(idToProperty["Ignore alpha"], false);
             else if ( it->property() == idToProperty["GPU"])
                 boolManager->setValue(idToProperty["GPU"], false);
-            else if ( it->property() == idToProperty["Rewind stop"])
-                boolManager->setValue(idToProperty["Rewind stop"], false);
+            else if ( it->property() == idToProperty["Rewind"])
+                boolManager->setValue(idToProperty["Rewind"], false);
             else if ( it->property() == idToProperty["Black stop"])
                 boolManager->setValue(idToProperty["Black stop"], false);
         }
@@ -1069,7 +1069,7 @@ public slots:
                 infoManager->setValue(idToProperty["Format"], vf->getPixelFormatName() );
             }
             // apply options
-            else if ( property == idToProperty["Rewind stop"] ) {
+            else if ( property == idToProperty["Rewind"] ) {
                 vf->setOptionRestartToMarkIn( value );
             }
             else if ( property == idToProperty["Black stop"] ) {

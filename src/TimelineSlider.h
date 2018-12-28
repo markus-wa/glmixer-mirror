@@ -62,8 +62,8 @@ public slots:
 
     // utilities
     void reset();
-    void setBeginToMinimum();
-    void setEndToMaximum();
+    void resetBegin();
+    void resetEnd();
     void setBeginToCurrent();
     void setEndToCurrent();
     void setSpeed(double s) { speed = s; }

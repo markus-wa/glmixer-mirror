@@ -354,6 +354,12 @@ public:
         return fade_out;
     }
     /**
+     * Calculate fading value at a given time
+     *
+     * @return fading parameter for a frame, [0.0 1.0]
+     */
+    double getFadingAtTime(double time) const;
+    /**
      * Requests a seek (jump) into the video by a given amount of seconds.
      *
      * Does nothing if the process is not running (started) or already seeking.

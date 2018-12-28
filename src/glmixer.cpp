@@ -650,8 +650,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     timeline->setLabelFont(getMonospaceFont(), 7);
     QObject::connect(markInButton, SIGNAL(clicked()), timeline, SLOT(setBeginToCurrent()));
     QObject::connect(markOutButton, SIGNAL(clicked()), timeline, SLOT(setEndToCurrent()));
-    QObject::connect(resetMarkInButton, SIGNAL(clicked()), timeline, SLOT(setBeginToMinimum()));
-    QObject::connect(resetMarkOutButton, SIGNAL(clicked()), timeline, SLOT(setEndToMaximum()));
+    QObject::connect(resetMarkInButton, SIGNAL(clicked()), timeline, SLOT(resetBegin()));
+    QObject::connect(resetMarkOutButton, SIGNAL(clicked()), timeline, SLOT(resetEnd()));
     frameForwardButton->setHidden(true);
 
     // start with new file
@@ -2551,25 +2551,6 @@ void GLMixer::openSessionFile()
 #endif
     QCoreApplication::processEvents();
 
-    // read the source list and its configuration
-    QDomElement renderConfig = root.firstChildElement("SourceList");
-    if (renderConfig.isNull())
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load!");
-    else {
-        // apply rendering aspect ratio
-        selectAspectRatio( renderConfig.attribute("aspectRatio", "0").toInt() );
-
-        // read the list of sources
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
-
-        // if we got up to here, it should be fine
-        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
-        if ( errors > 0)
-            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
-
-        QCoreApplication::processEvents();
-    }
-
     // read and apply the views configuration
     qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: applying configuration.");
     RenderingManager::getRenderingWidget()->clearViews();
@@ -2614,6 +2595,70 @@ void GLMixer::openSessionFile()
 
         QCoreApplication::processEvents();
     }
+
+    // read the source list and its configuration
+    QDomElement renderConfig = root.firstChildElement("SourceList");
+    if (renderConfig.isNull())
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load!");
+    else {
+        // apply rendering aspect ratio
+        selectAspectRatio( renderConfig.attribute("aspectRatio", "0").toInt() );
+
+        // read the list of sources
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
+
+        // if we got up to here, it should be fine
+        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
+        if ( errors > 0)
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
+
+        QCoreApplication::processEvents();
+    }
+
+//    // read and apply the views configuration
+//    qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: applying configuration.");
+//    RenderingManager::getRenderingWidget()->clearViews();
+//    QDomElement vconfig = root.firstChildElement("Views");
+//    if (vconfig.isNull())
+//        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified!");
+//    else  {
+
+//        // apply the view config (after sources are loaded to greate groups)
+//        RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
+
+//        // activate the view specified as 'current' in the xml config
+//        switch (vconfig.attribute("current").toInt()){
+//        case (View::NULLVIEW):
+//        case (View::MIXING):
+//            actionMixingView->trigger();
+//            break;
+//        case (View::GEOMETRY):
+//            actionGeometryView->trigger();
+//            break;
+//        case (View::LAYER):
+//            actionLayersView->trigger();
+//            break;
+//        case (View::RENDERING):
+//            actionRenderingView->trigger();
+//            break;
+//        }
+//        // show the catalog as specified in xlm config
+//        QDomElement cat = vconfig.firstChildElement("Catalog");
+//        actionShow_Catalog->setChecked(cat.attribute("visible").toInt());
+//        switch( (CatalogView::catalogSize) (cat.firstChildElement("Parameters").attribute("catalogSize").toInt()) ){
+//        case (CatalogView::SMALL):
+//            actionCatalogSmall->trigger();
+//            break;
+//        case (CatalogView::MEDIUM):
+//            actionCatalogMedium->trigger();
+//            break;
+//        case (CatalogView::LARGE):
+//            actionCatalogLarge->trigger();
+//            break;
+//        }
+
+//        QCoreApplication::processEvents();
+//    }
 
     // read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");

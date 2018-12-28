@@ -117,14 +117,16 @@ void TimelineSlider::reset() {
 }
 
 
-void TimelineSlider::setBeginToMinimum()
+void TimelineSlider::resetBegin()
 {
     setBegin(minimum());
+    setFadein(minimum());
 }
 
-void TimelineSlider::setEndToMaximum()
+void TimelineSlider::resetEnd()
 {
     setEnd(maximum());
+    setFadeout(maximum());
 }
 
 void TimelineSlider::setBeginToCurrent()
@@ -257,12 +259,12 @@ TimelineSlider::cursor TimelineSlider::mouseOver(QMouseEvent * e)
         return CURSOR_CURRENT;
     }
     else if ( qAbs( getPosFromVal(cursor_fade.first) - e->pos().x()) < GRAB_THRESHOLD
-              && qAbs( e->pos().y() - height()/2 ) < GRAB_THRESHOLD) {
+              &&  e->pos().y() < height()/2 ) {
 
         return CURSOR_FADING_MIN;
     }
     else if ( qAbs( getPosFromVal(cursor_fade.second) - e->pos().x()) < GRAB_THRESHOLD
-              && qAbs( e->pos().y() - height()/2 ) < GRAB_THRESHOLD) {
+              &&  e->pos().y() < height()/2 ) {
 
         return CURSOR_FADING_MAX;
     }
@@ -569,6 +571,8 @@ void TimelineSlider::drawWidget(QPainter &qp)
     qp.setPen(COLOR_RANGE.darker(170));
     qp.drawLine(rangeBegin, HEIGHT_TIME_BAR, rangeBegin, range_mark_bottom);
     qp.drawLine(rangeEnd, HEIGHT_TIME_BAR, rangeEnd, range_mark_bottom);
+    qp.drawLine(fadeBegin, HEIGHT_TIME_BAR, fadeBegin, range_mark_top);
+    qp.drawLine(fadeEnd, HEIGHT_TIME_BAR, fadeEnd, range_mark_top);
 
     // draw cursor of begin and end
     qp.setPen(COLOR_RANGE.darker(200));

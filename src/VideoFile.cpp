@@ -257,8 +257,8 @@ void VideoFile::close()
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     if (pHardwareCodec) {
-        av_buffer_unref(&pHardwareCodec);
-        video_dec->hw_device_ctx = NULL;
+//        av_buffer_unref(&pHardwareCodec);
+//        video_dec->hw_device_ctx = NULL;
     }
 #endif
 
@@ -362,8 +362,10 @@ void VideoFile::stop()
         {
             // recreate first picture in case begin has changed
             current_frame_pts = fill_first_frame(true);
-            emit timeChanged( current_frame_pts );
+            // apply fading
+            firstPicture->setFading( getFadingAtTime(current_frame_pts) );
             // update frame with first picture
+            emit timeChanged( current_frame_pts );
             emit frameReady( firstPicture );
         }
 
@@ -812,7 +814,7 @@ double VideoFile::fill_first_frame(bool seek)
         // seek back to begining
         av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
         // flush decoder
-        avcodec_flush_buffers(video_dec);
+//        avcodec_flush_buffers(video_dec);
     }
 
     // loop while we didn't finish the frame, or looped for too long
@@ -1315,6 +1317,19 @@ void VideoFile::setFadeOut(double time)
     emit fadeOutChanged(fade_out);
 }
 
+
+double VideoFile::getFadingAtTime(double time) const
+{
+    // compute fading with sigmoid transfer function
+    double fade = 1.0;
+    if ( (fade_in - mark_in) > EPSILON && time < fade_in)
+        fade = SIGMOID( (time - mark_in) / (fade_in - mark_in) );
+    else if ((mark_out - fade_out) > EPSILON && time > fade_out)
+        fade = SIGMOID( (mark_out - time) / (mark_out - fade_out) );
+
+    return qBound(0.0, fade, 1.0);
+}
+
 bool VideoFile::time_in_picture_queue(double time)
 {
     // obvious answer
@@ -1467,13 +1482,8 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
         else
             vp = new VideoPicture(targetWidth, targetHeight, pts);
 
-        // compute fading with sigmoid transfer function
-        double fade = 1.0;
-        if (pts < fade_in)
-            fade = SIGMOID( (pts - mark_in) / (fade_in - mark_in) );
-        else if (pts > fade_out)
-            fade = SIGMOID( (mark_out - pts) / (mark_out - fade_out) );
-        vp->setFading( qBound(0.0, fade, 1.0) );
+        // apply fading to this frame
+        vp->setFading( getFadingAtTime(pts) );
 
         // set the actions of this frame
         vp->resetAction();

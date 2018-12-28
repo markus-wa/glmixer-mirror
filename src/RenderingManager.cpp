@@ -2237,7 +2237,7 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
                                  << tr("Media source created with ")
                                  << QFileInfo(fileNameToOpen).fileName()
                                  << " ("<<newSourceVideoFile->getFrameWidth()
-                                 <<"x"<<newSourceVideoFile->getFrameHeight()<<").";
+                                 << "x"<<newSourceVideoFile->getFrameHeight()<<").";
                     }
                     else {
                         qWarning() << child.attribute("name") << QChar(124).toLatin1()
