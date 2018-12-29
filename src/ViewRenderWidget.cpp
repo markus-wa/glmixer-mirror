@@ -1399,6 +1399,7 @@ void ViewRenderWidget::setBaseColor(QColor c, float alpha)
     if (_baseColor<0) return;
 
     program->setUniformValue(_baseColor, c);
+    program->setUniformValue(_fading, 1.f);
 
     if (alpha > -1.0)
         program->setUniformValue(_baseAlpha, alpha);

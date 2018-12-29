@@ -234,6 +234,9 @@ void VideoSource::update()
         if (internalFormat != vp->getFormat())
             setVideoFormat(vp);
 
+        // apply fading
+        setFading( isStandby() ? 1.0 : vp->getFading() );
+
         if ( pboIds[nextIndex] ) {
 
             // fill the texture using Pixel Buffer Object mechanism
@@ -248,8 +251,6 @@ void VideoSource::update()
                             vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
 
         }
-
-        setFading( vp->getFading() );
 
         // done! Cancel (free) updated frame
         updateFrame(NULL);

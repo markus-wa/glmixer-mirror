@@ -552,7 +552,8 @@ void TimelineSlider::drawWidget(QPainter &qp)
     qp.fillRect(pos_text - 2, 0, labelFontMetrics.width(label) + 4, HEIGHT_TIME_BAR - 4, COLOR_MARK);
 
     // draw text on top
-    qp.setPen(palette().color(QPalette::HighlightedText));
+//    qp.setPen(palette().color(QPalette::HighlightedText));
+    qp.setPen( QColor( 255 - COLOR_MARK.red(), 255 - COLOR_MARK.green(), 255 - COLOR_MARK.blue()) );
     //      pos_text = qBound(0, pos_text, width() - metrics.width(label));
     qp.drawText(pos_text, DISTANCE_MARK_TEXT, label);
 

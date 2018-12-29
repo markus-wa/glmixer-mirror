@@ -364,8 +364,9 @@ void VideoFile::stop()
             current_frame_pts = fill_first_frame(true);
             // apply fading
             firstPicture->setFading( getFadingAtTime(current_frame_pts) );
-            // update frame with first picture
+            // inform of time change before updating frame
             emit timeChanged( current_frame_pts );
+            // update frame with first picture
             emit frameReady( firstPicture );
         }
 
