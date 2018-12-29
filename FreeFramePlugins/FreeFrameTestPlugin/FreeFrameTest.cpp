@@ -1,12 +1,42 @@
+#include <GL/glew.h>
 #include "FreeFrameTest.h"
 
 #include <cmath>
+
+#define DEBUG
+
+#ifdef DEBUG
+#include <cstdio>
+void printLog(GLuint obj)
+{
+    int infologLength = 0;
+    char infoLog[1024];
+
+    if (glIsShader(obj))
+        glGetShaderInfoLog(obj, 1024, &infologLength, infoLog);
+    else
+        glGetProgramInfoLog(obj, 1024, &infologLength, infoLog);
+
+    if (infologLength > 0)
+        fprintf(stderr, "GLSL :: %s\n", infoLog);
+}
+#endif
+
+const GLchar *fragmentShaderCode =
+        "#version 330 core \n"
+        "uniform sampler2D texture;\n"
+        "uniform vec3      iResolution;\n"
+        "out vec4 FragmentColor;\n"
+        "void main(void)"
+        "{"
+        "   FragmentColor = texture2D(texture, gl_FragCoord.xy / iResolution.xy);"
+        "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
     FreeFrameTest::CreateInstance,	// Create method
     "GLTE",             // Plugin unique ID
     "FreeFrameTest",    // Plugin name
@@ -27,6 +57,10 @@ static CFFGLPluginInfo PluginInfo (
 FreeFrameTest::FreeFrameTest()
 : CFreeFrameGLPlugin()
 {
+    fbo = 0;
+    shaderProgram = 0;
+    fragmentShader = 0;
+
     // Input properties
     SetMinInputs(1);
     SetMaxInputs(1);
@@ -45,6 +79,37 @@ FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
 
+    glewInit();
+    if (!GLEW_VERSION_2_0)
+    {
+#ifdef DEBUG
+        fprintf(stderr, "OpenGL 2.0 not supported. Exiting freeframe plugin.\n");
+#endif
+        return FF_FAIL;
+    }
+
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
+    glCompileShader(fragmentShader);
+#ifdef DEBUG
+    printLog(fragmentShader);
+#endif
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+#ifdef DEBUG
+    printLog(shaderProgram);
+#endif
+
+    uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
+
+    glUseProgram(shaderProgram);
+    glUniform3f(uniform_viewportsize, vp->width, vp->height, 0.0);
+    glUseProgram(0);
+
+    glEnable(GL_TEXTURE);
+    glActiveTexture(GL_TEXTURE0);
+
     return FF_SUCCESS;
 }
 
@@ -57,8 +122,10 @@ DWORD   FreeFrameTest::DeInitGL()
 FFResult FreeFrameTest::DeInitGL()
 #endif
 {
+    if (fragmentShader) glDeleteShader(fragmentShader);
+    if (shaderProgram)  glDeleteProgram(shaderProgram);
 
-  return FF_SUCCESS;
+    return FF_SUCCESS;
 }
 
 #ifdef FF_FAIL
@@ -86,11 +153,14 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
   if (pGL->inputTextures[0]==NULL)
     return FF_FAIL;
-  
+
   FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
-  //bind the texture handle to its target
-  glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  // use the blurring shader program
+  glUseProgram(shaderProgram);
 
   //enable texturemapping
   glEnable(GL_TEXTURE_2D);
@@ -100,7 +170,10 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   glColor4f(1.f, 1.f, 1.f, 1.f);
   //(default texturemapping behavior of OpenGL is to
   //multiply texture colors by the current gl color)
-  
+
+  //bind the texture handle to its target
+  glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+
   glBegin(GL_QUADS);
 
   //lower left
@@ -119,6 +192,9 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   glTexCoord2d(1.0, 0.0);
   glVertex2f(1,-1);
   glEnd();
+
+  // disable shader program
+  glUseProgram(0);
 
   //unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);

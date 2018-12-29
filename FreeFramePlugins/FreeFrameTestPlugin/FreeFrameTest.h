@@ -9,9 +9,9 @@ public:
     FreeFrameTest();
     virtual ~FreeFrameTest() {}
 
-	///////////////////////////////////////////////////
-	// FreeFrame plugin methods
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // FreeFrame plugin methods
+    ///////////////////////////////////////////////////
 #ifdef FF_FAIL
     // FFGL 1.5
     DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
@@ -25,16 +25,16 @@ public:
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
 #endif
-	///////////////////////////////////////////////////
-	// Factory method
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Factory method
+    ///////////////////////////////////////////////////
 
 #ifdef FF_FAIL
     // FFGL 1.5
     static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #else
     // FFGL 1.6
-	static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
         *ppOutInstance = new FreeFrameTest();
@@ -46,6 +46,10 @@ public:
 protected:
     // Time
     double m_curTime;
+    GLuint fbo;
+    GLuint shaderProgram;
+    GLuint fragmentShader;
+    GLuint uniform_viewportsize;
 };
 
 
