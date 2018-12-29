@@ -601,9 +601,6 @@ void Source::setStandby(bool on) {
         _ffgl_plugins.play( standby == NOT_STANDBY );
 #endif
 
-    update();
-    update();
-
     emit standingby(standby);
 }
 
@@ -714,7 +711,6 @@ void Source::setShaderAttributes() const {
 
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseColor, texcolor);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_fading, (GLfloat) fade);
-//    fprintf(stderr,"%f\n",fade);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, (GLfloat) texalpha);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_stippling, 0.f);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_gamma, (GLfloat) gammaRed, (GLfloat) gammaGreen, (GLfloat) gammaBlue, (GLfloat) gamma);
