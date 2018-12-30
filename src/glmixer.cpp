@@ -2552,13 +2552,14 @@ void GLMixer::openSessionFile()
     QCoreApplication::processEvents();
 
     // read and apply the views configuration
+    // (before reading sources to avoid issue with sources in stanby)
     qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: applying configuration.");
+
     RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
     if (vconfig.isNull())
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified!");
     else  {
-
         // apply the view config (after sources are loaded to greate groups)
         RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
 
@@ -2614,51 +2615,6 @@ void GLMixer::openSessionFile()
 
         QCoreApplication::processEvents();
     }
-
-//    // read and apply the views configuration
-//    qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: applying configuration.");
-//    RenderingManager::getRenderingWidget()->clearViews();
-//    QDomElement vconfig = root.firstChildElement("Views");
-//    if (vconfig.isNull())
-//        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified!");
-//    else  {
-
-//        // apply the view config (after sources are loaded to greate groups)
-//        RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
-
-//        // activate the view specified as 'current' in the xml config
-//        switch (vconfig.attribute("current").toInt()){
-//        case (View::NULLVIEW):
-//        case (View::MIXING):
-//            actionMixingView->trigger();
-//            break;
-//        case (View::GEOMETRY):
-//            actionGeometryView->trigger();
-//            break;
-//        case (View::LAYER):
-//            actionLayersView->trigger();
-//            break;
-//        case (View::RENDERING):
-//            actionRenderingView->trigger();
-//            break;
-//        }
-//        // show the catalog as specified in xlm config
-//        QDomElement cat = vconfig.firstChildElement("Catalog");
-//        actionShow_Catalog->setChecked(cat.attribute("visible").toInt());
-//        switch( (CatalogView::catalogSize) (cat.firstChildElement("Parameters").attribute("catalogSize").toInt()) ){
-//        case (CatalogView::SMALL):
-//            actionCatalogSmall->trigger();
-//            break;
-//        case (CatalogView::MEDIUM):
-//            actionCatalogMedium->trigger();
-//            break;
-//        case (CatalogView::LARGE):
-//            actionCatalogLarge->trigger();
-//            break;
-//        }
-
-//        QCoreApplication::processEvents();
-//    }
 
     // read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");

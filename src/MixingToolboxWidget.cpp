@@ -519,18 +519,12 @@ void MixingToolboxWidget::on_blendingPixelatedButton_toggled(bool value){
 void MixingToolboxWidget::on_blendingColorButton_pressed() {
 
     QColor color(Qt::white);
-    if (source) {
+    if (source)
         color = source->getColor();
-    }
 
-    if (GLMixer::getInstance()->useSystemDialogs())
-        color = QColorDialog::getColor(color, this);
-    else
-        color = QColorDialog::getColor(color, this, "Select Color", QColorDialog::DontUseNativeDialog);
-
+    color = QColorDialog::getColor(color, this);
     if (color.isValid())
         emit( valueChanged("Color", color));
-
 }
 
 void MixingToolboxWidget::on_EffectsInvertBox_currentIndexChanged(int value)
@@ -551,11 +545,7 @@ void MixingToolboxWidget::on_chromakeyEnable_toggled(bool value)
 void MixingToolboxWidget::on_chromakeyColor_pressed()
 {
     if (source) {
-        QColor color;
-        if (GLMixer::getInstance()->useSystemDialogs())
-            color = QColorDialog::getColor(source->getChromaKeyColor(), this);
-        else
-            color = QColorDialog::getColor(source->getChromaKeyColor(), this, "Select Color", QColorDialog::DontUseNativeDialog);
+        QColor color = QColorDialog::getColor(source->getChromaKeyColor(), this);
 
         if (color.isValid())
             emit( valueChanged("ChromaKeyColor", color));
@@ -950,9 +940,14 @@ void MixingToolboxWidget::on_resetColor_pressed()
     contrastReset->click();
     hueReset->click();
     thresholdReset->click();
+    lumakeyReset->click();
     posterizeReset->click();
     invertReset->click();
-    chromakeyEnable->setChecked(false);
+
+    // reset chromakey
+    emit( valueChanged("ChromaKey", false));
+    emit( valueChanged("ChromaKeyTolerance", 10));
+    emit( valueChanged("ChromaKeyColor", QColor(Qt::green)));
 }
 
 void MixingToolboxWidget::on_resetFilter_pressed()

@@ -2984,5 +2984,37 @@ border:0px
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>lumakeySlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>lumakeyBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>55</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>35</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lumakeyBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>lumakeySlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>35</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>55</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
