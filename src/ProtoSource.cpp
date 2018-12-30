@@ -33,7 +33,7 @@ ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
     brightness(0.f), contrast(1.f),	saturation(1.f),
     gamma(1.0), gammaRed(1.0), gammaGreen(1.0), gammaBlue(1.0),
     gammaMinIn(0.0), gammaMaxIn(1.0), gammaMinOut(0.0), gammaMaxOut(1.0),
-    hueShift(0.0), chromaKeyTolerance(0.1), luminanceThreshold(0), numberOfColors (0),
+    hueShift(0.0), chromaKeyTolerance(0.1), luminanceThreshold(0), lumakeyThreshold(0), numberOfColors (0),
     useChromaKey(false)
 {
     // default name
@@ -174,6 +174,14 @@ void ProtoSource::_setThreshold(double l){
     luminanceThreshold = CLAMP( (int) (l * 100.0), 0, 100);
 }
 
+void ProtoSource::_setLumakey(int l){
+    lumakeyThreshold = CLAMP(l, 0, 100);
+}
+
+void ProtoSource::_setLumakey(double l){
+    lumakeyThreshold = CLAMP( (int) (l * 100.0), 0, 100);
+}
+
 void ProtoSource::_setPosterized(int n){
     numberOfColors = CLAMP(n, 0, 256);
 }
@@ -304,6 +312,7 @@ void ProtoSource::importProperties(const ProtoSource *source, bool withGeometry)
     gammaMinOut = source->gammaMinOut;
     gammaMaxOut = source->gammaMaxOut;
     luminanceThreshold = source->luminanceThreshold;
+    lumakeyThreshold = source->lumakeyThreshold;
     numberOfColors = source->numberOfColors;
     chromaKeyColor = source->chromaKeyColor;
     useChromaKey = source->useChromaKey;
@@ -392,6 +401,7 @@ QDomElement ProtoSource::getConfiguration(QDomDocument &doc)
     Coloring.setAttribute("Saturation", getSaturation());
     Coloring.setAttribute("Hueshift", getHueShift());
     Coloring.setAttribute("luminanceThreshold", getThreshold());
+    Coloring.setAttribute("Lumakey", getLumakey());
     Coloring.setAttribute("numberOfColors", getPosterized());
     sourceElem.appendChild(Coloring);
 
@@ -483,6 +493,7 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
         _setSaturation( tmp.attribute("Saturation", "0").toInt() );
         _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
         _setThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+        _setLumakey( tmp.attribute("Lumakey", "0").toInt() );
         _setPosterized( tmp.attribute("numberOfColors", "0").toInt() );
     }
 
@@ -555,7 +566,8 @@ QDataStream &operator<<(QDataStream &stream, const ProtoSource *source){
             << source->getChromaKeyTolerance()
             << true /*source->isModifiable()*/
             << source->isFixedAspectRatio()
-            << source->getName();
+            << source->getName()
+            << source->getLumakey();
 
     return stream;
 }
@@ -606,6 +618,7 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     stream >> boolValue;	/*source->_setModifiable(boolValue);*/
     stream >> boolValue;	source->_setFixedAspectRatio(boolValue);
     stream >> stringValue;  source->_setName(stringValue);
+    stream >> intValue;		source->_setLumakey(intValue);
 
     return stream;
 }

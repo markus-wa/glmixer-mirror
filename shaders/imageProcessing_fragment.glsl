@@ -39,6 +39,7 @@ uniform float threshold;
 uniform int nbColors;
 uniform int invertMode;
 uniform float fade;
+uniform float lumakey;
 
 uniform vec2 filter_step;
 uniform int filter_type;
@@ -271,6 +272,7 @@ void main(void)
     // Convert to HSL
     vec3 transformedHSL = RGB2HSV( transformedRGB );
 
+
     // Luminance invert
     transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
 
@@ -282,6 +284,9 @@ void main(void)
 
     // perform reduction of colors
     transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
+
+    // luma key
+    alpha -= mix( 0.0, step( transformedHSL.z, lumakey ), float(lumakey > EPSILON));
 
     // level threshold
     transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > EPSILON));

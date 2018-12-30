@@ -158,6 +158,7 @@ int ViewRenderWidget::_filter_type = -1;
 int ViewRenderWidget::_filter_step = -1;
 int ViewRenderWidget::_filter_kernel = -1;
 int ViewRenderWidget::_fading = -1;
+int ViewRenderWidget::_lumakey = -1;
 
 
 const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
@@ -1426,6 +1427,7 @@ void ViewRenderWidget::resetShaderAttributes()
     program->setUniformValue(_hueshift, 0.f);
     program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
     program->setUniformValue(_threshold, -1.f);
+    program->setUniformValue(_lumakey, -1.f);
     program->setUniformValue(_nbColors, (GLint) -1);
     program->setUniformValue(_invertMode, (GLint) 0);
 
@@ -1504,6 +1506,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QString fshfile)
     _chromakey  = program->uniformLocation("chromakey");
     _chromadelta  = program->uniformLocation("chromadelta");
     _fading  = program->uniformLocation("fade");
+    _lumakey  = program->uniformLocation("lumakey");
 
     // set the default values for the uniform variables
     program->setUniformValue("sourceTexture", 0);

@@ -68,6 +68,7 @@
         <file>images/curve_pause_expo.png</file>
         <file>images/curve_pause_linear.png</file>
         <file>images/curve_pause_quart.png</file>
+        <file>images/filter_lumakey.png</file>
     </qresource>
     <qresource prefix="/">
         <file>images/nico_512.png</file>

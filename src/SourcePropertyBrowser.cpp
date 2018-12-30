@@ -316,6 +316,13 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     intManager->setRange(property, 0, 100);
     intManager->setSingleStep(property, 10);
     root->addSubProperty(property);
+    // lumakey
+    property = intManager->addProperty( QLatin1String("Lumakey") );
+    property->setToolTip("Lumakey threshold (make transparent low luminance)");
+    idToProperty[property->propertyName()] = property;
+    intManager->setRange(property, 0, 100);
+    intManager->setSingleStep(property, 10);
+    root->addSubProperty(property);
     // nb colors
     property = intManager->addProperty( QLatin1String("Posterized") );
     property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
@@ -615,6 +622,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
     else if ( property == idToProperty["Threshold"] ) {
         currentItem->setThreshold(value);
     }
+    else if ( property == idToProperty["Lumakey"] ) {
+        currentItem->setLumakey(value);
+    }
     else if ( property == idToProperty["Posterized"] ) {
         currentItem->setPosterized(value);
     }
@@ -785,6 +795,8 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         intManager->setValue(idToProperty["HueShift"], s->getHueShift());
     else if ( name.compare("Threshold") == 0)
         intManager->setValue(idToProperty["Threshold"], s->getThreshold() );
+    else if ( name.compare("Lumakey") == 0)
+        intManager->setValue(idToProperty["Lumakey"], s->getLumakey() );
     else if ( name.compare("Posterized") == 0)
         intManager->setValue(idToProperty["Posterized"], s->getPosterized() );
     else if ( name.compare("ChromaKeyColor") == 0)

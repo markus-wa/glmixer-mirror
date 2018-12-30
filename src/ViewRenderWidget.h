@@ -215,7 +215,7 @@ public:
     static QString glslShaderFile;
     static GLfloat filter_kernel[10][3][3];
     static bool disableFiltering;
-    static int _baseColor, _baseAlpha, _stippling, _gamma, _levels, _contrast, _brightness, _saturation, _hueshift, _invertMode, _nbColors, _threshold, _chromakey, _chromadelta, _filter_type, _filter_step, _filter_kernel, _fading;
+    static int _baseColor, _baseAlpha, _stippling, _gamma, _levels, _contrast, _brightness, _saturation, _hueshift, _invertMode, _nbColors, _threshold, _chromakey, _chromadelta, _filter_type, _filter_step, _filter_kernel, _fading, _lumakey;
 
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static const GLuint getMaskTexture(int);

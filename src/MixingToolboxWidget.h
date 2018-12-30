@@ -74,12 +74,14 @@ public slots:
     void on_contrastSlider_valueChanged(int);
     void on_hueSlider_valueChanged(int);
     void on_thresholdSlider_valueChanged(int);
+    void on_lumakeySlider_valueChanged(int);
     void on_posterizeSlider_valueChanged(int);
     void on_saturationReset_pressed();
     void on_brightnessReset_pressed();
     void on_contrastReset_pressed();
     void on_hueReset_pressed();
     void on_thresholdReset_pressed();
+    void on_lumakeyReset_pressed();
     void on_posterizeReset_pressed();
     void on_invertReset_pressed();
     void on_EffectsInvertBox_currentIndexChanged(int);

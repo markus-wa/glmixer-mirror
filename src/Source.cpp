@@ -260,6 +260,12 @@ void Source::setThreshold(int l){
     ProtoSource::_setThreshold(l);
 }
 
+void Source::setLumakey(int l){
+    emit methodCalled("_setLumakey(int)", S_ARG(lumakeyThreshold, l));
+
+    ProtoSource::_setLumakey(l);
+}
+
 void Source::setPosterized(int n){
     emit methodCalled("_setPosterized(int)", S_ARG(numberOfColors, n));
 
@@ -721,6 +727,7 @@ void Source::setShaderAttributes() const {
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_hueshift, (GLfloat) hueShift);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_invertMode, (GLint) invertMode);
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_nbColors, (GLint) numberOfColors);
+    ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_lumakey, (GLfloat) lumakeyThreshold / 100.f);
 
     if (luminanceThreshold > 0 )
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_threshold, (GLfloat) luminanceThreshold / 100.f);

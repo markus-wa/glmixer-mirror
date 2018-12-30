@@ -260,6 +260,8 @@ public:
     void setHueShift(int h);
     // Adjust Luminance Threshold
     void setThreshold(int l);
+    // Adjust Luma key Threshold
+    void setLumakey(int l);
     // Adjust number of colors
     void setPosterized(int n);
     // chroma keying activation

@@ -159,6 +159,9 @@ public:
     inline int getThreshold() const {
         return luminanceThreshold;
     }
+    inline int getLumakey() const {
+        return lumakeyThreshold;
+    }
     inline int getPosterized() const {
         return numberOfColors;
     }
@@ -271,6 +274,7 @@ public:
     Q_INVOKABLE void _setSaturation(int s = 0);
     Q_INVOKABLE void _setHueShift(int h = 0);
     Q_INVOKABLE void _setThreshold(int l = 0);
+    Q_INVOKABLE void _setLumakey(int l = 0);
     Q_INVOKABLE void _setPosterized(int n = 255);
     Q_INVOKABLE void _setChromaKey(bool on = false);
     Q_INVOKABLE void _setChromaKeyColor(QColor c);
@@ -294,6 +298,7 @@ public:
     Q_INVOKABLE void _setSaturation(double s);
     Q_INVOKABLE void _setHueShift(double h);
     Q_INVOKABLE void _setThreshold(double t);
+    Q_INVOKABLE void _setLumakey(double t);
     Q_INVOKABLE void _setInvertColor(bool i);
     Q_INVOKABLE void _setInvertLuminance(bool i);
     Q_INVOKABLE void _setInvertColor(double i);
@@ -330,7 +335,7 @@ protected:
     double gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut;
     // color manipulation
     double hueShift, chromaKeyTolerance;
-    int luminanceThreshold, numberOfColors;
+    int luminanceThreshold, lumakeyThreshold, numberOfColors;
     QColor chromaKeyColor;
     bool useChromaKey;
 };

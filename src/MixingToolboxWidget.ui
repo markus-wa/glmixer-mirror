@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>254</width>
+    <width>289</width>
     <height>364</height>
    </rect>
   </property>
@@ -173,7 +173,7 @@
      min-height: 16px;
 }
 QSpinBox {
-	Background-color: transparent;
+        Background-color: transparent;
      border-color: transparent;
 }</string>
      </property>
@@ -477,7 +477,7 @@ QSpinBox {
           </size>
          </property>
          <property name="toolTip">
-          <string>Layer mask 
+          <string>Layer mask
 (smooth blending following an alpha mask)</string>
          </property>
          <property name="verticalScrollBarPolicy">
@@ -722,13 +722,13 @@ QSpinBox {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	border-image: url(:/glmixer/textures/saturation.svg);
+        border-image: url(:/glmixer/textures/saturation.svg);
      background-attachment: fixed;
  }
 
 QSlider::groove:horizontal:disabled {
-	border-image: none;
-	background: palette(midlight);
+        border-image: none;
+        background: palette(midlight);
  }
 
  QSlider::handle:horizontal {
@@ -736,7 +736,7 @@ QSlider::groove:horizontal:disabled {
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }</string>
                </property>
@@ -839,11 +839,11 @@ QSlider::groove:horizontal:disabled {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));
+        background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));
  }
 
 QSlider::groove:horizontal:disabled {
-	background: palette(midlight);
+        background: palette(midlight);
  }
 
  QSlider::handle:horizontal {
@@ -851,7 +851,7 @@ QSlider::groove:horizontal:disabled {
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }</string>
                </property>
@@ -951,13 +951,13 @@ QSlider::groove:horizontal:disabled {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	border-image: url(:/glmixer/textures/contrast.svg);
+        border-image: url(:/glmixer/textures/contrast.svg);
     background-attachment: fixed;
  }
 
 QSlider::groove:horizontal:disabled {
-	border-image: none;
-	background: palette(midlight);
+        border-image: none;
+        background: palette(midlight);
  }
 
  QSlider::handle:horizontal {
@@ -965,7 +965,7 @@ QSlider::groove:horizontal:disabled {
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }</string>
                </property>
@@ -1065,11 +1065,11 @@ QSlider::groove:horizontal:disabled {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(255, 0, 0, 255), stop:0.166 rgba(255, 255, 0, 255), stop:0.333 rgba(0, 255, 0, 255), stop:0.5 rgba(0, 255, 255, 255), stop:0.666 rgba(0, 0, 255, 255), stop:0.833 rgba(255, 0, 255, 255), stop:1 rgba(255, 0, 0, 255));
- } 
+        background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(255, 0, 0, 255), stop:0.166 rgba(255, 255, 0, 255), stop:0.333 rgba(0, 255, 0, 255), stop:0.5 rgba(0, 255, 255, 255), stop:0.666 rgba(0, 0, 255, 255), stop:0.833 rgba(255, 0, 255, 255), stop:1 rgba(255, 0, 0, 255));
+ }
 
 QSlider::groove:horizontal:disabled {
-	background: palette(midlight);
+        background: palette(midlight);
  }
 
  QSlider::handle:horizontal {
@@ -1077,7 +1077,7 @@ QSlider::groove:horizontal:disabled {
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }</string>
                </property>
@@ -1174,14 +1174,14 @@ QSlider::groove:horizontal:disabled {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	background: grey;
+        background: grey;
  }
  QSlider::handle:horizontal {
      background: palette(base);
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }
  QSlider::add-page:horizontal {
@@ -1191,7 +1191,7 @@ QSlider::groove:horizontal:disabled {
  QSlider::sub-page:horizontal {
     border: 1px solid palette(dark);
      background: white;
- } 
+ }
  QSlider::add-page:horizontal:disabled {
     border: 1px solid palette(mid);
      background: palette(midlight);
@@ -1294,14 +1294,14 @@ QSlider::groove:horizontal:disabled {
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	background: grey;
- } 
+        background: grey;
+ }
  QSlider::handle:horizontal {
      background: palette(base);
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }
  QSlider::sub-page:horizontal {
@@ -1311,7 +1311,7 @@ QSlider::groove:horizontal:disabled {
  QSlider::add-page:horizontal {
     border: 1px solid palette(dark);
      background: palette(highlight);
- } 
+ }
  QSlider::sub-page:horizontal:disabled {
     border: 1px solid palette(mid);
      background: palette(window);
@@ -1378,6 +1378,121 @@ QSlider::groove:horizontal:disabled {
                </property>
                <property name="value">
                 <number>255</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pageLumakey">
+            <layout class="QHBoxLayout" name="horizontalLayoutLumakey">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QToolButton" name="lumakeyReset">
+               <property name="toolTip">
+                <string>Reset Lumakey</string>
+               </property>
+               <property name="text">
+                <string>Reset</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="lumakeySlider">
+               <property name="toolTip">
+                <string>Adjust lumakey level</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"> QSlider::groove:horizontal {
+    border: 1px solid palette(dark);
+    height: 8px;
+        background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));
+ }
+ QSlider::handle:horizontal {
+     background: palette(base);
+     border: 1px solid palette(dark);
+     width: 11px;
+     height: 11px;
+     margin: -2px 2px;
+     border-radius: 6px;
+ }
+ QSlider::sub-page:horizontal {
+    border: 1px solid palette(dark);
+     background: palette(highlight);
+ }
+ QSlider::sub-page:horizontal:disabled {
+    border: 1px solid palette(mid);
+     background: palette(midlight);
+ } </string>
+               </property>
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="lumakeyBox">
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Enter value</string>
+               </property>
+               <property name="frame">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="buttonSymbols">
+                <enum>QAbstractSpinBox::NoButtons</enum>
+               </property>
+               <property name="correctionMode">
+                <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+               </property>
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
+               <property name="suffix">
+                <string>%</string>
+               </property>
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
                </property>
               </widget>
              </item>
@@ -1453,14 +1568,14 @@ border:0px
                 <string notr="true"> QSlider::groove:horizontal {
     border: 1px solid palette(dark);
     height: 8px;
-	background: grey;
- } 
+        background: grey;
+ }
  QSlider::handle:horizontal {
      background: palette(base);
      border: 1px solid palette(dark);
      width: 11px;
      height: 11px;
-     margin: -2px 2px; 
+     margin: -2px 2px;
      border-radius: 6px;
  }
  QSlider::add-page:horizontal {
@@ -1470,7 +1585,7 @@ border:0px
  QSlider::sub-page:horizontal {
     border: 1px solid palette(dark);
      background: palette(highlight);
- } 
+ }
  QSlider::add-page:horizontal:disabled {
     border: 1px solid palette(mid);
      background: palette(window);
@@ -1696,7 +1811,7 @@ border:0px
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>0</number>
+          <number>-1</number>
          </property>
          <item>
           <property name="text">
@@ -1792,6 +1907,15 @@ border:0px
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Lumakey</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_lumakey.png</normaloff>:/glmixer/images/filter_lumakey.png</iconset>
           </property>
          </item>
          <item>
