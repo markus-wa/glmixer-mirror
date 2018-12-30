@@ -270,6 +270,9 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
 
@@ -349,6 +352,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
 
     //render the original texture on a quad in fbo
+    glClear(GL_COLOR_BUFFER_BIT);
     drawQuad( viewport, Texture);
 
     // disable shader program
