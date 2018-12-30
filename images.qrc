@@ -69,4 +69,7 @@
         <file>images/curve_pause_linear.png</file>
         <file>images/curve_pause_quart.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>images/nico_512.png</file>
+    </qresource>
 </RCC>

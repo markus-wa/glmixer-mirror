@@ -10,7 +10,6 @@
         <file>shaders/effect/DawnBringer 4bit.glsl</file>
         <file>shaders/effect/chromatic aberation.glsl</file>
         <file>shaders/effect/fisheye.glsl</file>
-        <file>shaders/effect/bloompaint.glsl</file>
         <file>shaders/effect/noise distortion.glsl</file>
         <file>shaders/effect/anaglyphic.glsl</file>
         <file>shaders/effect/bloom.glsl</file>
@@ -29,7 +28,6 @@
         <file>shaders/effect/DawnBringer 4bit.glsl.png</file>
         <file>shaders/effect/chromatic aberation.glsl.png</file>
         <file>shaders/effect/fisheye.glsl.png</file>
-        <file>shaders/effect/bloompaint.glsl.png</file>
         <file>shaders/effect/noise distortion.glsl.png</file>
         <file>shaders/effect/anaglyphic.glsl.png</file>
         <file>shaders/effect/bloom.glsl.png</file>
@@ -79,5 +77,7 @@
         <file>shaders/source/sponges.glsl.png</file>
         <file>shaders/source/volumetric particle.glsl.png</file>
         <file>shaders/source/warping paint.glsl.png</file>
+        <file>shaders/effect/greenscreen.glsl.png</file>
+        <file>shaders/effect/greenscreen.glsl</file>
     </qresource>
 </RCC>
