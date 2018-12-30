@@ -44,6 +44,11 @@ uniform vec2 filter_step;
 uniform int filter_type;
 uniform mat3 filter_kernel;
 
+// conversion between rgb and YUV
+mat4 RGBtoYUV = mat4(0.257,  0.439, -0.148, 0.0,
+                     0.504, -0.368, -0.291, 0.0,
+                     0.098, -0.071,  0.439, 0.0,
+                     0.0625, 0.500,  0.500, 1.0 );
 
 vec3 erosion(int N)
 {
@@ -225,15 +230,39 @@ vec3 RGB2HSV( vec3 color )
     return hsl;
 }
 
+float alphachromakey(vec3 color, vec3 colorKey, float delta)
+{
+   // magic values
+   vec2 tol = vec2(0.5, 0.4*delta);
+
+   //convert from RGB to YCvCr/YUV
+   vec4 keyYuv = RGBtoYUV * vec4(colorKey, 1.0);
+   vec4 yuv = RGBtoYUV * vec4(color, 1.0);
+
+   // color distance in the UV (CbCr, PbPr) plane
+   vec2 dif = yuv.yz - keyYuv.yz;
+   float d = sqrt(dot(dif, dif));
+
+   // tolerance clamping
+   return max( (1.0 - step(d, tol.y)), step(tol.x, d) * (d - tol.x) / (tol.y - tol.x));
+}
+
 
 void main(void)
 {
     // deal with alpha separately
     float ma = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a;
-    float alpha = ma * baseAlpha;
+    float alpha = clamp(ma * baseAlpha, 0.0, 1.0);
     vec3 transformedRGB;
 
-    transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
+    // read color & apply basic filter
+    transformedRGB = apply_filter();
+
+    // chromakey
+    alpha -= mix( 0.0, 1.0 - alphachromakey( transformedRGB, chromakey.rgb, chromadelta), float(chromakey.w > 0.0) );
+
+    // color transformation
+    transformedRGB = mix(vec3(0.62), transformedRGB, contrast) + brightness;
     transformedRGB = LevelsControl(transformedRGB, levels.x, gamma.rgb * gamma.a, levels.y, levels.z, levels.w);
 
     // RGB invert
@@ -259,9 +288,6 @@ void main(void)
 
     // after operations on HSL, convert back to RGB
     transformedRGB = HSV2RGB(transformedHSL);
-
-    // chromakey
-    alpha -= mix( 0.0, step( length( normalize(chromakey.xyz) - normalize(transformedRGB) ), chromadelta ), float(chromakey.w > 0.0) );
 
     // stippling
     alpha += 2.0 * ma * mod( floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling), 2.0);

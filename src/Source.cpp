@@ -730,8 +730,10 @@ void Source::setShaderAttributes() const {
     if (useChromaKey) {
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromakey, (GLfloat) chromaKeyColor.redF(), (GLfloat) chromaKeyColor.greenF(), (GLfloat) chromaKeyColor.blueF(), 1.f );
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromadelta, (GLfloat) chromaKeyTolerance );
-    } else
+    } else {
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromakey, 0.f, 0.f, 0.f, 0.f );
+        ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_chromadelta, 0.f );
+    }
 
     // done if no filtering
     if (ViewRenderWidget::disableFiltering)
