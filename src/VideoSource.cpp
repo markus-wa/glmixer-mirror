@@ -235,7 +235,7 @@ void VideoSource::update()
             setVideoFormat(vp);
 
         // apply fading
-        setFading( isStandby() ? 1.0 : vp->getFading() );
+        setFading( vp->getFading() );
 
         if ( pboIds[nextIndex] ) {
 

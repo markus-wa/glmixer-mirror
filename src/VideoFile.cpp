@@ -188,6 +188,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     pictq_max_count = 0;
     duration = 0.0;
     frame_rate = 0.0;
+    frame_period = 0.0;
     nb_frames = 0;
     mark_in = 0.0;
     mark_out = 0.0;
@@ -410,7 +411,7 @@ void VideoFile::start()
         seek_pos = mark_in;
 
         // except restart where we where (if valid mark)
-        if (restart_where_stopped && mark_stop < (mark_out - getFrameDuration()) && mark_stop > mark_in)
+        if (restart_where_stopped && mark_stop < (mark_out - frame_period) && mark_stop > mark_in)
             seek_pos =  mark_stop;
 
         current_frame_pts = seek_pos;
@@ -543,6 +544,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
 
     // get the duration and frame rate of the video stream
     frame_rate = CodecManager::getFrameRateStream(pFormatCtx, videoStream);
+    frame_period = frame_rate > 0.0 ? 1.0 / frame_rate : 0.0;
     duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
 
     // make sure the numbers match !
@@ -571,7 +573,7 @@ bool VideoFile::open(QString file, bool tryHardwareCodec, bool ignoreAlphaChanne
     // special case of GIF : they do not indicate duration
     if (video_dec->codec_id == AV_CODEC_ID_GIF) {
         nb_frames = CodecManager::countFrames(pFormatCtx, videoStream, video_dec);
-        duration = nb_frames / frame_rate;
+        duration = nb_frames * frame_period;
     }
 
     // check the parameters for mark in and out and setup marking accordingly
@@ -1081,9 +1083,7 @@ double VideoFile::getCurrentFrameTime() const
 
 double VideoFile::getFrameDuration() const
 {
-    if (frame_rate > 0.0)
-        return 1.0 / frame_rate;
-    return 0.0;
+    return frame_period;
 }
 
 void VideoFile::setOptionRevertToBlackWhenStop(bool on)
@@ -1250,7 +1250,7 @@ void VideoFile::setMarkIn(double time)
 {
     // set the mark in
     // reserve at least 1 frame interval with mark out
-    mark_in = qBound(getBegin(), time, mark_out - getFrameDuration());
+    mark_in = qBound(getBegin(), time, mark_out - frame_period);
 
     // if requested mark_in is after current time
     if ( !(mark_in < current_frame_pts) )
@@ -1277,10 +1277,10 @@ void VideoFile::setMarkOut(double time)
 {
     // set the mark_out
     // reserve at least 1 frame interval with mark in
-    mark_out = qBound(mark_in + getFrameDuration(), time, getEnd());
+    mark_out = qBound(mark_in + frame_period, time, getEnd());
 
     // if requested mark_out is before current time
-    if ( !(current_frame_pts + getFrameDuration() < mark_out) ) {
+    if ( !(current_frame_pts + frame_period < mark_out) ) {
        // react according to loop mode
        if (loop_video)
            // seek to mark in
@@ -1407,6 +1407,7 @@ void VideoFile::requestSeek(double time, bool lock)
 
         seek_mutex->lock();
         seek_pos = time;
+        video_pts = 0.0;
 
         parsing_mode = VideoFile::SEEKING_PARSING;
         if (lock)
@@ -1503,37 +1504,29 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 
 }
 
-/**
- * compute the exact PTS for the picture if it is omitted in the stream
- * @param pts1 the dts of the pkt / pts of the frame
- */
+// improved synch of pts to avoids backward jumps
 double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
 {
-    double pts = dts;
-    double frame_delay = av_q2d(video_dec->time_base);
-
-    if (pts < 0)
-        /* if we aren't given a pts, set it to the clock */
-        // this happens rarely (I noticed it on last frame, or in GIF files)
-        pts = video_pts;
-    else
-        /* if we have dts, set video clock to it */
-        video_pts = pts;
-
-    /* for MPEG2, the frame can be repeated, so we update the clock accordingly */
+    // theoretical frame increment
+    double frame_delay = frame_period;
+    // for MPEG2, the frame can be repeated, so we update the clock accordingly
     frame_delay +=  (double) src_frame->repeat_pict * (frame_delay * 0.5);
 
-    /* update the video clock */
-    video_pts += frame_delay;
+    double pts = dts;
+    if (pts < video_pts)
+        // if pts is before previous frame, then increment time
+        pts = video_pts + frame_delay;
+
+    // remember the given value
+    video_pts = dts;
 
     return pts;
 }
 
+
 /**
  * DecodingThread
  */
-
-
 void DecodingThread::run()
 {
     AVPacket pkt1, *pkt   = &pkt1;

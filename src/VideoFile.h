@@ -710,7 +710,7 @@ protected:
     VideoPicture *firstPicture, *blackPicture;
     double duration;
     int64_t nb_frames;
-    double frame_rate;
+    double frame_rate, frame_period;
 
     // LIBAV Video stream
     AVFormatContext *pFormatCtx;
