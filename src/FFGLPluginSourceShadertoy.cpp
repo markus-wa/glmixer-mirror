@@ -216,6 +216,7 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 {
     QDomDocument root;
     QDomElement p = root.createElement("FreeFramePlugin");
+    p.setAttribute( "enabled", isEnabled() );
     // parameter zero is the speed
     p.setAttribute("Speed", QString::number(_plugin->GetFloatParameter(0),'f',PROPERTY_DECIMALS) );
 
@@ -248,6 +249,9 @@ void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
 {
     // make sure its initialized
     if (initialize()) {
+
+        // enable or not
+        enable( xml.attribute("enabled", "1").toInt() );
 
         // parameter zero is the speed
         setParameter( 0, QVariant(xml.attribute("Speed", "1.0").toDouble()) );

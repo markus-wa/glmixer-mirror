@@ -37,7 +37,7 @@ FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUG
 
 
 FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
-    : QObject(), _plugin(0), _filename("Freeframe"), _initialized(false), 
+    : QObject(), _plugin(0), _filename("Freeframe"), _initialized(false),
     _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
 {
     // descriptor for the source texture, used also to store size
@@ -76,7 +76,7 @@ void FFGLPluginSource::load(QString filename)
     //  the plugin might be accompanied by other DLLs
     // and we should add the path for the system to find them
     addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
-    
+
 #ifdef Q_OS_MAC
     // a bundle might contain frameworks necessary for execution
     addPathToSystemPath( QString("%1/../Frameworks").arg(pluginfile.absolutePath()).toUtf8() );
@@ -439,6 +439,7 @@ QDomElement FFGLPluginSource::getConfiguration( QDir current )
 {
     QDomDocument root;
     QDomElement p = root.createElement("FreeFramePlugin");
+    p.setAttribute( "enabled", isEnabled() );
 
     // save filename of the plugin
     QDomElement f = root.createElement("Filename");
@@ -473,6 +474,10 @@ void FFGLPluginSource::setConfiguration(QDomElement xml)
 {
     // make sure its initialized
     if (initialize()) {
+
+        // enable or not
+        enable( xml.attribute("enabled", "1").toInt() );
+
         // start loop of parameters to read
         QDomElement p = xml.firstChildElement("Parameter");
         while (!p.isNull()) {
