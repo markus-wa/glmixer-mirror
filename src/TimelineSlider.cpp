@@ -109,6 +109,8 @@ void TimelineSlider::reset() {
     cursor_value.second = 1.0;
     range_fade.first = 0.0;
     range_fade.second = 1.0;
+    cursor_fade.first = 0.0;
+    cursor_fade.second = 1.0;
     mark_value = 1.0;
     step_value_increment = -1.0;
     user_value = -1.0;
