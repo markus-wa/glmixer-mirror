@@ -67,8 +67,8 @@ public:
     QDomElement getConfiguration(QDomDocument &doc);
     void setConfiguration(QDomElement xmlconfig);
 
-    double getLimboSize();
     void setLimboSize(double s);
+    inline double getLimboSize() const {return limboSize;}
     bool isInLimbo(Source *s);
 
     static QRectF getBoundingBox(const SourceList &l);

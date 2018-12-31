@@ -135,6 +135,7 @@ public:
      */
     QDomElement getConfiguration(QDomDocument &doc);
     void setConfiguration(QDomElement xmlconfig);
+    void setLimboConfiguration(QDomElement xmlconfig);
 
     static inline unsigned int getStipplingMode() { return stipplingMode; }
     static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 10, 100); }

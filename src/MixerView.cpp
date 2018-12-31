@@ -1370,13 +1370,10 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
 
 }
 
-void MixerView::setLimboSize(double s) {
+void MixerView::setLimboSize(double s)
+{
     limboSize = CLAMP(s, MIN_LIMBO_SIZE, MAX_LIMBO_SIZE);
     modified = true;
-}
-
-double MixerView::getLimboSize() {
-    return ( limboSize );
 }
 
 bool MixerView::isInLimbo(Source *s)

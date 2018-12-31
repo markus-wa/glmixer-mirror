@@ -1394,6 +1394,17 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
     // NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
+void ViewRenderWidget::setLimboConfiguration(QDomElement xmlconfig)
+{
+    QDomElement child = xmlconfig.firstChildElement("View");
+    while (!child.isNull()) {
+        if (child.attribute("name") == "Mixing") {
+            _mixingView->setLimboSize(child.firstChildElement("Limbo").attribute("value", "2.5").toFloat());
+            break;
+        }
+        child = child.nextSiblingElement();
+    }
+}
 
 void ViewRenderWidget::setBaseColor(QColor c, float alpha)
 {
