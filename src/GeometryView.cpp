@@ -150,8 +150,8 @@ void GeometryView::paint()
     // Re-Draw frame buffer in the render window
     // With correct rendering on top of the different workspaces
     ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
-    // in exclusive workspace, still show the outcome, but faded
-    if ( WorkspaceManager::getInstance()->isExclusiveDisplay() )
+    // in exclusive workspace or if rendering is paused, still show the outcome, but faded
+    if ( WorkspaceManager::getInstance()->isExclusiveDisplay() || RenderingManager::getInstance()->isPaused())
         ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, WORKSPACE_MAX_ALPHA);
     // draw
     glPushMatrix();

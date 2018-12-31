@@ -218,6 +218,17 @@ void SessionSwitcher::setAlpha(int a)
     currentAlpha = float(a) / 100.0;
 }
 
+
+void SessionSwitcher::setSmoothAlphaDuration(int ms)
+{
+    alphaAnimation->setDuration(ms);
+}
+
+int SessionSwitcher::smoothAlphaDuration()
+{
+    return alphaAnimation->duration();
+}
+
 void SessionSwitcher::smoothAlphaTransition(bool visible){
 
     if (alphaAnimation->state() == QAbstractAnimation::Running )

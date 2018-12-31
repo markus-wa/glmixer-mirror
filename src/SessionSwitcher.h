@@ -61,6 +61,10 @@ public:
     void setTransitionMedia(QString filename);
     QString transitionMedia() const ;
 
+    // duration of automatic fading
+    void setSmoothAlphaDuration(int ms);
+    int smoothAlphaDuration();
+
     typedef enum {
         TRANSITION_NONE = 0,
         TRANSITION_BACKGROUND = 1,
@@ -84,6 +88,7 @@ public slots:
     void setTransparency(int alpha);
     // alpha mask
     void setAlpha(int a);
+    // trigger automatic fading
     void smoothAlphaTransition(bool visible);
 
 signals:

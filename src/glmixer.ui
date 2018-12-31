@@ -426,10 +426,10 @@ border-bottom-left-radius: 5px;
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">
-          <string>Output active</string>
+          <string>Rendering active</string>
          </property>
          <property name="statusTip">
-          <string>Toggle enable / disable (black) of rendering output</string>
+          <string>Toggle enable / disable rendering</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -791,8 +791,8 @@ border-bottom-left-radius: 5px;
            </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>34</height>
+             <width>52</width>
+             <height>36</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1664,7 +1664,7 @@ QToolButton:hover {
      <x>0</x>
      <y>0</y>
      <width>1627</width>
-     <height>22</height>
+     <height>28</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -3391,8 +3391,8 @@ QToolButton:hover {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>277</width>
-          <height>76</height>
+          <width>279</width>
+          <height>73</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">

@@ -3401,6 +3401,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> hwcodec;
     CodecManager::setHardwareAcceleration(hwcodec);
 
+    // ac. Output fading duration
+    int duration = 500;
+    stream >> duration;
+    RenderingManager::getInstance()->getSessionSwitcher()->setSmoothAlphaDuration(duration);
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3517,6 +3522,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // ab. Hardware Codec
     stream << CodecManager::useHardwareAcceleration();
+
+    // ac. Output fading duration
+    stream << RenderingManager::getInstance()->getSessionSwitcher()->smoothAlphaDuration();
 
     return data;
 }

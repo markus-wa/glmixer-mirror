@@ -170,6 +170,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         recordingFolderLine->clear();
         sharedMemoryColorDepth->setCurrentIndex(0);
         recordingBufferSize->setValue(10);
+        outputFadingDuration->setValue(500);
     }
 
     if (stackedPreferences->currentWidget() == PageSources) {
@@ -393,6 +394,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> hwcodec;
     disableHWCodec->setChecked(!hwcodec);
 
+    // ac. Output fading duration
+    int duration = 500;
+    stream >> duration;
+    outputFadingDuration->setValue(duration);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -493,6 +498,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // ab. Hardware Codec
     stream << !disableHWCodec->isChecked();
+
+    // ac. Output fading duration
+    stream << outputFadingDuration->value();
 
     return data;
 }
