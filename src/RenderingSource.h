@@ -59,7 +59,7 @@ protected:
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 private:
-    bool _recursive;
+    bool _recursive, _textureindexchanged;
     QGLFramebufferObject *_sfbo;
 
 };

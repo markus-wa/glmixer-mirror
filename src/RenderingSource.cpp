@@ -1,6 +1,10 @@
 #include "RenderingSource.h"
 #include "ViewRenderWidget.h"
 
+#ifdef GLM_FFGL
+#include "FFGLPluginSource.h"
+#include <FFGL.h>
+#endif
 
 void RenderingSource::setRecursive(bool on) {
     _recursive = on;
@@ -15,10 +19,11 @@ void RenderingSource::setRecursive(bool on) {
     else
         RenderingManager::getInstance()->_rendering_sources.erase(this);
 
+    _textureindexchanged = true;
 }
 
 RenderingSource::RenderingSource(bool recursive, double d): Source(0, d),
-    _recursive(true), _sfbo(NULL)
+    _recursive(true), _textureindexchanged(true), _sfbo(NULL)
 {
     setRecursive(recursive);
 }
@@ -83,9 +88,9 @@ void RenderingSource::bind()
             delete _sfbo;
             _sfbo = NULL;
         }
-        if (!_sfbo) {
+        if (!_sfbo)
             _sfbo = new QGLFramebufferObject(fbo->size());
-        }
+
         // use the accelerated GL_EXT_framebuffer_blit if available
         if (RenderingManager::blit_fbo_extension)
         {
@@ -143,6 +148,20 @@ void RenderingSource::bind()
             ViewRenderWidget::setSourceDrawingMode(true);
         }
     }
+
+#ifdef GLM_FFGL
+    if (_textureindexchanged && !_ffgl_plugins.isEmpty()) {
+        // re-connect texture to freeframe gl plugin
+        FFGLTextureStruct it;
+        it.Handle = (GLuint) getTextureIndex();
+        it.Width = getFrameWidth();
+        it.Height = getFrameHeight();
+        it.HardwareWidth = getFrameWidth();
+        it.HardwareHeight = getFrameHeight();
+        _ffgl_plugins.first()->setInputTextureStruct(it);
+    }
+#endif
+
     Source::bind();
 }
 
