@@ -22,15 +22,19 @@
 
 #include <QApplication>
 #include <QEvent>
-#include <QString>
+#include <QStringList>
+#include <QFileInfo>
+#include <QDir>
+
+#define GLMIXER_LOGFILE "glmixer_log_"
 
 // Create a subclass of QApplication so that we can customize what we
 // do when the operating system sends us an event (such as opening a file)
-class GLMixerApp : public QApplication 
+class GLMixerApp : public QApplication
 {
-  
+
   Q_OBJECT
-  
+
 public:
 
     GLMixerApp(int& argc, char** argv);
@@ -38,12 +42,24 @@ public:
     void setFilenameToOpen(QString filename);
     void requestOpenFile();
 
+    void killOtherInstances();
+
+#ifdef GLM_LOGS
+    static QString getLogFileName(QString pid = QString::null);
+    bool hasCrashLogs();
+    void openCrashLogs();
+    void deleteCrashLogs();
+#endif
+
 signals:
     void filenameToOpen(QString);
 
 protected:
     bool event (QEvent *event);
+    QStringList otherInstances();
 
 private:
     QString _filename;
+    QStringList _otherinstances;
+    QFileInfoList _crashedlogfiles;
 };

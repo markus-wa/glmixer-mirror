@@ -30,7 +30,6 @@
 #include "ui_glmixer.h"
 
 #define MAX_RECENT_FILES 7
-#define GLMIXER_LOGFILE "glmixer_log.txt"
 
 /**
 
@@ -42,14 +41,13 @@ Q_OBJECT
 public:
     static GLMixer *getInstance();
     static void deleteInstance();
+    static bool isSingleInstanceMode();
 
 #ifdef GLM_LOGS
     // message handler
     static void msgHandler(QtMsgType type, const char *msg);
     // exit handler
     static void exitHandler();
-    static bool hasCrashLogs();
-    static void deleteCrashLogs();
 #endif
 
     // catch keyboard events
@@ -202,6 +200,7 @@ private:
     GLMixer(QWidget *parent = 0);
     ~GLMixer();
     static GLMixer *_instance;
+    static bool  _singleInstanceMode;
 
     QString currentSessionFileName;
     QLabel *infobar;
@@ -220,7 +219,6 @@ private:
     bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
     bool  _displayTimerEnabled;
-    bool  _singleInstanceEnabled;
 
     QSettings settings;
     QAction *recentFileActs[MAX_RECENT_FILES];

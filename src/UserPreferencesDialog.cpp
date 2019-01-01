@@ -383,7 +383,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> showtimer;
     displayTimer->setChecked(showtimer);
 
-    // aa. Single Instance
+    // aa. Single Instance & custom timer
     bool oneinstance = true, customtimer = false;
     stream >> oneinstance >> customtimer;
     allowOneInstance->setChecked(oneinstance);
@@ -492,7 +492,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // z. Timers display preferences
     stream << displayTimer->isChecked();
 
-    // aa. Single Instance
+    // aa. Single Instance & custom timer
     stream << allowOneInstance->isChecked();
     stream << useCustomTimer->isChecked();
 

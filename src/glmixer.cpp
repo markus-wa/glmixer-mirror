@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-#include <QApplication>
+#include <main.h>
 #include <QDomDocument>
 #include <QtGui>
 
@@ -119,6 +119,7 @@
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
+bool GLMixer::_singleInstanceMode = false;
 
 #ifdef GLM_LOGS
 QFile *GLMixer::logFile = 0;
@@ -153,12 +154,15 @@ void GLMixer::deleteInstance() {
     _instance = 0;
 }
 
+bool GLMixer::isSingleInstanceMode(){
+    return _singleInstanceMode;
+}
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), previousSource(NULL), currentVideoFile(NULL),
     _displayTimeAsFrame(false), _restoreLastSession(true),
     _saveExitSession(true), _disableOutputWhenRecord(false),
-    _displayTimerEnabled(false), _singleInstanceEnabled(true)
+    _displayTimerEnabled(false)
 {
     setupUi ( this );
 
@@ -819,36 +823,11 @@ void GLMixer::saveLogsToFile() {
             // close the logfile and copy it to the new name
             GLMixer::logFile->close();
             GLMixer::logFile->copy(newfile.absoluteFilePath());
-            // re-open the log file (this removes its content)
-            GLMixer::logFile->open(QIODevice::WriteOnly | QIODevice::Text);
-            // re-copy the content of the logs
-            QFile file( newfile.absoluteFilePath());
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                // copy all lines of the log back to the log stream
-                QTextStream in(&file);
-                while (!in.atEnd()) {
-                    GLMixer::logStream << in.readLine() << "\n";
-                }
-                file.close();
-            }
+            // re-open the log file (without removing its content)
+            GLMixer::logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append);
+
         }
     }
-}
-
-void GLMixer::deleteCrashLogs() {
-
-    QDir tmpdir = QDir(QDir::tempPath());
-    QFileInfoList logfiles = tmpdir.entryInfoList(QStringList("glmixer_log_*.txt"), QDir::Files);
-
-    while( !logfiles.empty() ) {
-        tmpdir.remove(logfiles.takeFirst().fileName());
-    }
-}
-
-bool GLMixer::hasCrashLogs() {
-
-    QFileInfoList logfiles = QDir(QDir::tempPath()).entryInfoList(QStringList("glmixer_log_*.txt"), QDir::Files);
-    return !logfiles.empty();
 }
 
 void GLMixer::exitHandler() {
@@ -860,15 +839,9 @@ void GLMixer::exitHandler() {
 
         // close properly
         GLMixer::logStream.setDevice(0);
-        GLMixer::logFile->close();
 
-        // rename log file to default name (avoid overpopulating temp dir with too many log files)
-        QFileInfo defaultlogfile(QDir::temp(), GLMIXER_LOGFILE);
-        // delete previous default log file if exists
-        if (defaultlogfile.exists())
-            defaultlogfile.dir().remove(defaultlogfile.fileName());
-        // rename log file to default name
-        GLMixer::logFile->rename(defaultlogfile.absoluteFilePath());
+        // remove log file (avoid overpopulating temp dir with too many log files)
+        GLMixer::logFile->remove();
 
         // done with log file
         delete GLMixer::logFile;
@@ -883,11 +856,14 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     // static log stream : open file if the stream is not open for writing
     if ( GLMixer::logFile == 0 ) {
 
-        // open file and put text into it
-        GLMixer::logFile = new QFile(QDir::tempPath() + QString("/glmixer_log_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")));
+        // create unique file name
+        GLMixer::logFile = new QFile( GLMixerApp::getLogFileName() );
+        // open the log file (create it if didnt exist, removing its content otherwise)
         GLMixer::logFile->open(QIODevice::WriteOnly | QIODevice::Text);
+        // attach stream
         GLMixer::logStream.setDevice(GLMixer::logFile);
 
+        // write log info header
 #ifdef GLMIXER_REVISION
         GLMixer::logStream << QApplication::applicationName() << " v" << QApplication::applicationVersion() << " r"<< GLMIXER_REVISION << " , " << QDate::currentDate().toString() << "  " << QTime::currentTime().toString() << "\n";
 #else
@@ -961,9 +937,9 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();
 
-        // show logs if required
-        if ( msgBox.clickedButton() == logButton )
-            QDesktopServices::openUrl( QUrl::fromLocalFile(QFileInfo( QDir::tempPath(), GLMIXER_LOGFILE).absoluteFilePath()) );
+//        // show logs if required
+//        if ( msgBox.clickedButton() == logButton )
+//            GLMixer::openCrashLogs();
 
         // exit properly (it is not a crash)
         exit(0);
@@ -2024,16 +2000,6 @@ void GLMixer::refreshTiming(){
 
 void GLMixer::enableSeek (bool on){
 
-//    if (on){
-//        seekForwardButton->unsetCursor();
-//        seekBackwardButton->unsetCursor();
-////        QApplication::restoreOverrideCursor();
-//    } else {
-//        seekForwardButton->setCursor(Qt::WaitCursor);
-//        seekBackwardButton->setCursor(Qt::WaitCursor);
-////        QApplication::setOverrideCursor(Qt::WaitCursor);
-//    }
-
     seekBackwardButton->setEnabled(on);
     seekForwardButton->setEnabled(on);
 }
@@ -2922,25 +2888,6 @@ void GLMixer::readSettings( QString pathtobin )
     else
         restorePreferences(QByteArray());
 
-    // aa. Single Instance
-    if (_singleInstanceEnabled)
-    {
-        qint64 pid = QApplication::applicationPid();
-        // Generate platform specific command to Kill all other glmixer processes
-#ifdef Q_OS_WIN
-        // Kill all glmixer processes with a different PID
-        QProcess::execute(QString("taskkill /F /FI \"PID ne %1\" /im glmixer.exe").arg(pid));
-#else
-        // unix bash: find all glmixer processes with a different PID and kill them
-#ifdef Q_OS_MAC
-        QString cmd = QString("pgrep -x glmixer | grep -vE %1 | xargs kill").arg(pid);
-#else
-        QString cmd = QString("pgrep -x glmixer | grep -vE %1 | xargs -r kill").arg(pid);
-#endif
-        QProcess::execute("bash", QStringList() << "-c" << cmd);
-#endif
-    }
-
     // windows config
     if (settings.contains("geometry"))
         restoreGeometry(settings.value("geometry").toByteArray());
@@ -3390,8 +3337,8 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> showtimer;
     setDisplayTimeEnabled(showtimer);
 
-    // aa. Single Instance
-    stream >> _singleInstanceEnabled;
+    // aa. Single Instance & custom timer
+    stream >> GLMixer::_singleInstanceMode;
     bool activetiming = false;
     stream >> activetiming;
     glRenderTimer::getInstance()->setActiveTimingMode(activetiming);
@@ -3517,7 +3464,7 @@ QByteArray GLMixer::getPreferences() const {
     stream << _displayTimerEnabled;
 
     // aa. Single Instance
-    stream << _singleInstanceEnabled;
+    stream << GLMixer::_singleInstanceMode;
     stream << glRenderTimer::getInstance()->isActiveTimingMode();
 
     // ab. Hardware Codec
