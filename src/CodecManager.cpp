@@ -25,10 +25,10 @@ static enum AVPixelFormat get_hw_format_directxva2(AVCodecContext *ctx,
 {
     const enum AVPixelFormat *p;
     for (p = pix_fmts; *p != -1; p++) {
-        if (*p == AV_PIX_FMT_DXVA2_VLD)
+        if (*p == AV_PIX_FMT_D3D11)
             return *p;
     }
-    fprintf(stderr, "Failed to get AV_PIX_FMT_DXVA2_VLD surface format.\n");
+    fprintf(stderr, "Failed to get AV_PIX_FMT_D3D11 surface format.\n");
     return AV_PIX_FMT_NONE;
 }
 
@@ -456,7 +456,7 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
         return 0;
 
 #ifdef Q_OS_WIN
-    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_DXVA2;
+    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_D3D11VA;
 #else
 #ifdef Q_OS_MAC
     enum AVHWDeviceType type = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
@@ -467,7 +467,7 @@ const AVCodecHWConfig *CodecManager::getCodecHardwareAcceleration(AVCodec *codec
 #endif
 
     // look for hardware config matching the appropriate type
-    for (int i = 0; i < 2 ; ++i) {
+    for (int i = 0; i < 5 ; ++i) {
         const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
         if (config && config->device_type == type) {
             if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) {
@@ -499,7 +499,7 @@ AVBufferRef *CodecManager::applyCodecHardwareAcceleration(AVCodecContext *CodecC
             case AV_PIX_FMT_VIDEOTOOLBOX:
                 CodecContext->get_format  = get_hw_format_videotoolbox;
                 break;
-            case AV_PIX_FMT_DXVA2_VLD:
+            case AV_PIX_FMT_D3D11:
                 CodecContext->get_format  = get_hw_format_directxva2;
                 break;
             case AV_PIX_FMT_VAAPI_VLD:

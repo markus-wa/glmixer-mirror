@@ -145,17 +145,25 @@ QStringList GLMixerApp::otherInstances() {
 
     // platform dependent function for reading list of glmixer processes
 #ifdef Q_OS_WIN
-    pgrep.start("tasklist /fi glmixer");
+    // windows DOS
+    pgrep.start("TASKLIST /FO CSV /NH /FI \"IMAGENAME eq glmixer.exe\"");
+    // let process finish
+    pgrep.waitForFinished();
+    // read all lines in CSV formats
+    QStringList listlines = QString(pgrep.readAll()).split("\n", QString::SkipEmptyParts);
+    // keep only 1st column of each line: this is where the PID is
+    foreach(QString line, listlines) {
+        QString spid = line.section( ",", 1, 1);
+        listpid << spid.remove("\"");
+    }
 #else
     // unix bash
     pgrep.start("pgrep", QStringList() << "glmixer");
-#endif
-
     // let process finish
     pgrep.waitForFinished();
-
     // fill the list of pid
     listpid = QString(pgrep.readAll()).split("\n", QString::SkipEmptyParts);
+#endif
 
     // remove my own PID
     listpid.removeAll(QString::number(applicationPid()));
