@@ -1070,6 +1070,9 @@ public slots:
         bool play = vs->isPlaying();
         VideoFile *vf = vs->getVideoFile();
         if ( vf ) {
+            // remember fading
+            double fi = vf->getFadeIn();
+            double fo = vf->getFadeOut();
 
             // re-open file with different openning parameter
             if ( property == idToProperty["Ignore alpha"] ) {
@@ -1088,6 +1091,9 @@ public slots:
                 vf->setOptionRevertToBlackWhenStop( value );
             }
 
+            // restore fading
+            vf->setFadeIn(fi);
+            vf->setFadeOut(fo);
         }
         // restore play
         vs->play(play);
