@@ -70,6 +70,7 @@ void SessionSwitcher::render() {
     if (currentAlpha > 0.0) {
 
         glColor4f(0.0, 0.0, 0.0, currentAlpha);
+        glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::black_texture);
         glCallList(ViewRenderWidget::quad_texured);
     }
 
