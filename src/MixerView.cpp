@@ -224,7 +224,8 @@ void MixerView::paint()
             ViewRenderWidget::resetShaderAttributes();
 
             // draw border (larger if active)
-            ViewRenderWidget::setBaseColor(s->isStandby() ? Tag::get(s)->getColor().darker() : Tag::get(s)->getColor());
+            QColor darker = s->isPlayable() ? Tag::get(s)->getColor().darker() :Tag::get(s)->getColor().darker(150);
+            ViewRenderWidget::setBaseColor( s->isStandby() ? darker : Tag::get(s)->getColor());
             if (RenderingManager::getInstance()->isCurrentSource(s))
                 glCallList(ViewRenderWidget::border_large_shadow);
             else
