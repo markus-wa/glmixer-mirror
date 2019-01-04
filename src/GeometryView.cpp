@@ -216,11 +216,17 @@ void GeometryView::paint()
                 if (currentTool == GeometryView::ROTATE) {
                     glScaled(1.0 / s->getScaleX(), 1.0 / s->getScaleY(), 1.0);
                     glCallList(ViewRenderWidget::border_tooloverlay);
-                } else if (currentTool == GeometryView::CROP) {
+                }
+                else if (currentTool == GeometryView::CROP) {
                     glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleY() ), 1.0);
                     glCallList(ViewRenderWidget::border_tooloverlay + 2);
                 }
             }
+            else if ( currentAction == View::GRAB  && currentTool == GeometryView::CROP) {
+                glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleY() ), 1.0);
+                glCallList(ViewRenderWidget::border_tooloverlay + 2);
+            }
+
         } else
             glCallList(ViewRenderWidget::border_thin + border_workspace);
 
@@ -501,8 +507,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
                 setTool(currentTool);
             }
         }
-        else
-            grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+        else {
+            if (currentTool == View::CROP)
+                cropSources(cs, event->x(), viewport[3] - event->y(), dx, dy, true);
+            else
+                grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+        }
         // the current source has been modified
         return true;
     }
@@ -1295,6 +1305,7 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     double y = s->getY();
     double cosa = cos(-s->getRotationAngle() / 180.0 * M_PI);
     double sina = sin(-s->getRotationAngle() / 180.0 * M_PI);
+    QRectF tex = s->getTextureCoordinates();
 
     // convert to vectors ( source center -> clic position)
     ax -= x; ay -= y;
@@ -1309,60 +1320,73 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     by = by  * cosa + bx * sina;
     bx = dum;
 
-    // Scaling, according to the quadrant in which we clicked
-    double sx = 1.0, sy = 1.0;
+    // option mode is used for only shifting texture coordinates
+    if (option) {
 
-    if ( quadrant == 1 || quadrant == 4)   // LEFT
-        w = -w;
-    if ( quadrant > 2 )					  // BOTTOM
-        h = -h;
+        // shift texture coordinates
+        double ds = - tex.width() * ( ax  - bx ) / (2.0 * s->getScaleX());
+        double dt = - tex.height() * ( by  - ay ) / (2.0 * s->getScaleY());
+        tex.adjust(ds, dt, ds, dt);
 
-    // compute x scaling factor
-    sx = (ax + w) / (bx + w);
-    // proportional scaling if option is ON or source has fixed aspect ratio,
-    // compute y scaling factor otherwise
-    if (option || s->isFixedAspectRatio()) {
-        sy = sx;
-        ay = sy * (by + h) - h;
-    } else
-        sy = (ay + h) / (by + h);
-
-    // translate
-    double tx = w * (sx - 1.0);
-    double ty = h * (sy - 1.0);
-
-    // Crop texture coordinates
-    QRectF tex = s->getTextureCoordinates();
-    double ds = tex.width() * ( ax + tx - bx * sx) / (2.0 * s->getScaleX());
-    double dt = tex.height() * ( by * sy - ay - ty) / (2.0 * s->getScaleY());
-
-    // depending on the quadrant,
-    // it is not the same corner of texture coordinates to change
-    if ( quadrant == 1 ) {
-        tex.setLeft( tex.left() +  ds );
-        tex.setTop( tex.top() +  dt );
-    } else if ( quadrant == 2 ) {
-        tex.setRight( tex.right() +  ds );
-        tex.setTop( tex.top() +  dt );
-    } else if ( quadrant == 3 ) {
-        tex.setRight( tex.right() + ds );
-        tex.setBottom( tex.bottom() + dt );
-    } else {
-        tex.setLeft( tex.left() + ds );
-        tex.setBottom( tex.bottom() + dt );
     }
+    // default mode crops and rescales
+    else {
 
-    // reverse rotation to apply translation shift in the world reference
-    cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
-    sina = sin(s->getRotationAngle() / 180.0 * M_PI);
+        // Scaling, according to the quadrant in which we clicked
+        double sx = 1.0, sy = 1.0;
 
-    dum = tx * cosa - ty * sina;
-    ty = ty  * cosa + tx * sina;
-    tx = dum;
+        if ( quadrant == 1 || quadrant == 4)   // LEFT
+            w = -w;
+        if ( quadrant > 2 )					  // BOTTOM
+            h = -h;
 
-    // Apply changes in scale and translation
-    s->scaleBy(sx, sy);
-    s->setPosition(x + tx, y + ty);
+        // compute x scaling factor
+        sx = (ax + w) / (bx + w);
+        // proportional scaling if option is ON or source has fixed aspect ratio,
+        // compute y scaling factor otherwise
+        if (s->isFixedAspectRatio()) {
+            sy = sx;
+            ay = sy * (by + h) - h;
+        } else
+            sy = (ay + h) / (by + h);
+
+        // translate
+        double tx = w * (sx - 1.0);
+        double ty = h * (sy - 1.0);
+
+        // Crop texture coordinates
+        double ds = tex.width() * ( ax + tx - bx * sx) / (2.0 * s->getScaleX());
+        double dt = tex.height() * ( by * sy - ay - ty) / (2.0 * s->getScaleY());
+
+        // depending on the quadrant,
+        // it is not the same corner of texture coordinates to change
+        if ( quadrant == 1 ) {
+            tex.setLeft( tex.left() +  ds );
+            tex.setTop( tex.top() +  dt );
+        } else if ( quadrant == 2 ) {
+            tex.setRight( tex.right() +  ds );
+            tex.setTop( tex.top() +  dt );
+        } else if ( quadrant == 3 ) {
+            tex.setRight( tex.right() + ds );
+            tex.setBottom( tex.bottom() + dt );
+        } else {
+            tex.setLeft( tex.left() + ds );
+            tex.setBottom( tex.bottom() + dt );
+        }
+
+        // reverse rotation to apply translation shift in the world reference
+        cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
+        sina = sin(s->getRotationAngle() / 180.0 * M_PI);
+
+        dum = tx * cosa - ty * sina;
+        ty = ty  * cosa + tx * sina;
+        tx = dum;
+
+        // Apply changes in scale and translation
+        s->scaleBy(sx, sy);
+        s->setPosition(x + tx, y + ty);
+
+    }
 
     // Apply the change of texture coordinates
     s->setTextureCoordinates(tex);
