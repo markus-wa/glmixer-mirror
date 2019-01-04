@@ -336,8 +336,65 @@ void RenderingView::setAction(ActionType a){
 
 bool RenderingView::usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config)
 {
-    return true;
+    QMapIterator<Source *,  QVector< QPair<double,double> > > it(config);
+    while (it.hasNext()) {
+        it.next();
+        // return true whenever a source can be modified
+        if ( qAbs(it.value()[0].second) > EPSILON ||
+             qAbs(it.value()[1].second) > EPSILON ||
+             qAbs(it.value()[2].second) > EPSILON ||
+             qAbs(it.value()[3].second) > EPSILON ||
+             qAbs(it.value()[4].second) > EPSILON ||
+             qAbs(it.value()[5].second) > EPSILON ||
+             qAbs(it.value()[6].second) > EPSILON ||
+             qAbs(it.value()[7].second) > EPSILON ||
+             qAbs(it.value()[8].second) > EPSILON ||
+             qAbs(it.value()[9].second) > EPSILON ||
+             qAbs(it.value()[10].second) > EPSILON ||
+             qAbs(it.value()[11].second) > EPSILON )
+            return true;
+    }
+    return false;
 }
 
+
+void RenderingView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config)
+{
+    // linear interpolation to dest by percent of delta
+    double a = 1.0 - qBound(0.0, percent, 1.0);
+    a = a < EPSILON ? 0.0 : a;
+
+    // loop over all source alpha coordinates
+    QMapIterator<Source *, QVector< QPair<double,double> > > it(config);
+    while (it.hasNext()) {
+        it.next();
+
+        // interpolate change for this source
+        double ax = it.value()[0].first - a * it.value()[0].second;
+        double ay = it.value()[1].first - a * it.value()[1].second;
+        it.key()->_setAlphaCoordinates(ax, ay);
+        double x = it.value()[2].first - a * it.value()[2].second;
+        double y = it.value()[3].first - a * it.value()[3].second;
+        double sx = it.value()[4].first - a * it.value()[4].second;
+        double sy = it.value()[5].first - a * it.value()[5].second;
+        double an = it.value()[6].first - a * it.value()[6].second;
+        it.key()->_setGeometry(x, y, sx, sy, 0.0, 0.0, an);
+
+        QRectF tc;
+        tc.setX( it.value()[7].first - a * it.value()[7].second );
+        tc.setY( it.value()[8].first - a * it.value()[8].second );
+        tc.setWidth( it.value()[9].first - a * it.value()[9].second );
+        tc.setHeight( it.value()[10].first - a * it.value()[10].second );
+        it.key()->_setTextureCoordinates(tc);
+
+        double d = it.value()[11].first - a * it.value()[11].second;
+        SourceSet::iterator sit = RenderingManager::getInstance()->getById( it.key()->getId() );
+        RenderingManager::getInstance()->setDepth( sit, d);
+    }
+
+    // selection might have changed
+    SelectionManager::getInstance()->updateSelectionSource();
+
+}
 
 #endif

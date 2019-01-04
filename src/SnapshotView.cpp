@@ -86,6 +86,9 @@ bool SnapshotView::activate(View *activeview, QString id, bool interpolate)
     _interpolate = true;
     _destinationId = QString();
 
+    if (!interpolate)
+        SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
+
     // test if everything is fine
     if (setTargetSnapshot(id) && activeview && activeview->usableTargetSnapshot(_snapshots)) {
 

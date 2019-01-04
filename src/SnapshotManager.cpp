@@ -307,7 +307,7 @@ void SnapshotManager::restoreSnapshot(QString id)
 
                     // apply change of depth
                     double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
-                    RenderingManager::getInstance()->changeDepth(sit, depth);
+                    RenderingManager::getInstance()->setDepth(sit, depth);
 
                 }
                 else

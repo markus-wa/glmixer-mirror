@@ -148,6 +148,7 @@ public:
     QString getAvailableNameFrom(QString name) const;
     double getAvailableDepthFrom(double depth = -1) const;
     SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
+    void setDepth(SourceSet::iterator itsource,double newdepth);
 
     inline bool empty() const { return _front_sources.empty(); }
     inline int count() const { return _front_sources.size(); }
@@ -248,7 +249,7 @@ public:
 
     static inline bool usePboExtension() { return pbo_extension; }
     static void setUsePboExtension(bool on);
-    
+
     static inline bool useGetTextureExtension() { return get_texture_extension; }
 
     int getAvailableSourceCount() { return maxSourceCount - _front_sources.size(); }

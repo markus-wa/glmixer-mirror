@@ -145,7 +145,7 @@ void UndoManager::restore(long int i)
 
                     // apply change of depth
                     double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
-                    RenderingManager::getInstance()->changeDepth(sit, depth);
+                    RenderingManager::getInstance()->setDepth(sit, depth);
 
                     // we are done with this source
                     sourcesBeforeRestore.erase(*sit);

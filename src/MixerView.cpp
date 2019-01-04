@@ -216,6 +216,7 @@ void MixerView::paint()
             else {
                 // draw flat version of the source
                 ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, 1.f);
+                ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_fading, 1.f);
             }
 
             s->draw();

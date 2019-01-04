@@ -1076,7 +1076,7 @@ void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 
         // set new depth of source
         SourceSet::iterator currentSource = RenderingManager::getInstance()->getById((*its)->getId());
-        RenderingManager::getInstance()->changeDepth(currentSource, position);
+        RenderingManager::getInstance()->setDepth(currentSource, position);
 
         // go to next position
         position += step;
@@ -1103,9 +1103,9 @@ void LayersView::applyTargetSnapshot(double percent, QMap<Source *, QVector< QPa
                 continue;
         }
         // interpolate change for this source
-        SourceSet::iterator sit = RenderingManager::getInstance()->getById( it.key()->getId() );
         double d = it.value()[11].first - a * it.value()[11].second;
-        RenderingManager::getInstance()->changeDepth( sit, d);
+        SourceSet::iterator sit = RenderingManager::getInstance()->getById( it.key()->getId() );
+        RenderingManager::getInstance()->setDepth( sit, d);
     }
 
 }

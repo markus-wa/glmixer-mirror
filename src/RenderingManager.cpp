@@ -1437,7 +1437,7 @@ void RenderingManager::dropSourceWithDepth(double depth){
     dropSource();
     if (isValid(_currentSource))
         // apply the modifications
-        changeDepth(_currentSource, depth);
+        setDepth(_currentSource, depth);
 }
 
 void RenderingManager::dropSource(){
@@ -1578,7 +1578,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
         removeSource(it_oldsource);
 
         // restore former depth
-        changeDepth(it_newsource, depth_oldsource);
+        setDepth(it_newsource, depth_oldsource);
 
         // log
         qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg((*it_newsource)->getName());
@@ -1872,45 +1872,36 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
     return foundDepth;
 }
 
-
-SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
-                                                  double newdepth) {
-
+void RenderingManager::setDepth(SourceSet::iterator itsource, double newdepth)
+{
     // ignore invalid iterator
     if (itsource != _front_sources.end()) {
 
-        // clamp values
+        double currentdepth = (*itsource)->getDepth();
+
+        // clamp values & ignore if no change required
         newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+        if ( ABS(newdepth - currentdepth) < EPSILON)
+            return;
 
-        // ignore if no change required
-        if ( ABS(newdepth - (*itsource)->getDepth()) < EPSILON)
-            return itsource;
-
-        // inform undo
-        emit methodCalled(QString("_changeDepth(%1,double)").arg((*itsource)->getId()));
-
-        // verify that the depth value is not already taken, or too close to, and adjust in case.
+        // verify that the depth value is not already taken or too close
         SourceSet::iterator sb, se;
-        double depthinc = 0.0;
-        if (newdepth < (*itsource)->getDepth()) {
+        if (newdepth < currentdepth) {
             sb = _front_sources.begin();
             se = itsource;
-            depthinc = -DEPTH_EPSILON * 2.0;
-        } else {
+        }
+        else {
             sb = itsource;
             sb++;
             se = _front_sources.end();
-            depthinc = DEPTH_EPSILON * 2.0;
-        }
-        while (std::find_if(sb, se, isCloseTo(newdepth)) != se) {
-            newdepth += depthinc;
         }
 
-        // if the action requires to push the source to ZERO
-        if (newdepth < 0) {
-            // ignore and return it
-            return itsource;
-        }
+        // stick to previous position if there is a chance to hit another source at that depth
+         if (std::find_if(sb, se, isCloseTo(newdepth)) != se)
+             return;
+
+        // inform undo
+        emit methodCalled(QString("_setDepth(%1,double)").arg((*itsource)->getId()));
 
         // General case
         // Lookup for the source just before and source just after
@@ -1944,10 +1935,98 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
         // We need to reorder the set by depth when changing the depth of the source
         // this is done by removing the element and adding it again after changing its depth
         if (needreordering) {
-
             // make sure we do not keep the _current_cource iterator to an invalid value.
             unsetCurrentSource();
+            // remember pointer to the source
+            Source *tmp = (*itsource);
+            // remove the element
+            _front_sources.erase(itsource);
+            // change the source internal depth value
+            tmp->setDepth(newdepth);
+            // re-insert the source into the sorted list ; it will be placed according to its new depth
+            std::pair<SourceSet::iterator, bool> ret;
+            ret = _front_sources.insert(tmp);
+            // success
+            return;
+        }
 
+        // no reordering necessary, just change the source internal depth value
+        (*itsource)->setDepth(newdepth);
+    }
+
+}
+
+SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, double newdepth)
+{
+    // ignore invalid iterator
+    if (itsource != _front_sources.end()) {
+
+        double currentdepth = (*itsource)->getDepth();
+
+        // clamp values & ignore if no change required
+        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+        if ( ABS(newdepth - currentdepth) < EPSILON)
+            return itsource;
+
+        // verify that the depth value is not already taken, or too close to, and adjust in case.
+        SourceSet::iterator sb, se;
+        double depthinc = 0.0;
+        if (newdepth < currentdepth) {
+            sb = _front_sources.begin();
+            se = itsource;
+            depthinc = -DEPTH_EPSILON * 2.0;
+        } else {
+            sb = itsource;
+            sb++;
+            se = _front_sources.end();
+            depthinc = DEPTH_EPSILON * 2.0;
+        }
+        // jump over the source with same depth, by 2 times the epsilon
+        while (std::find_if(sb, se, isCloseTo(newdepth)) != se)
+            newdepth += depthinc;
+
+        // AGAIN clamp values & ignore if no change required
+        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+        if ( ABS(newdepth - currentdepth) < EPSILON)
+            return itsource;
+
+        // inform undo
+        emit methodCalled(QString("_changeDepth(%1,double)").arg((*itsource)->getId()));
+
+        // General case
+        // Lookup for the source just before and source just after
+        SourceSet::iterator before = _front_sources.begin();
+        SourceSet::iterator after = _front_sources.begin();
+        SourceSet::iterator i = _front_sources.begin();
+        while (i != _front_sources.end()) {
+            if ( i == itsource ) {
+                after++;
+                break;
+            }
+            if (i != _front_sources.begin())
+                before++;
+            after++;
+            i++;
+        }
+
+        // Test if the order with the source before and after would change with the new depth
+        bool needreordering = false;
+        // if there is a source before, and the new depth would be lower
+        if (before != _front_sources.end() && before != itsource && newdepth < (*before)->getDepth()) {
+            // have to swap the source order
+            needreordering = true;
+        }
+        // if there is a source after, and the new depth would be higher
+        if(after != _front_sources.end() && newdepth > (*after)->getDepth()) {
+            // have to swap the source order
+            needreordering = true;
+        }
+
+        // We need to reorder the set by depth when changing the depth of the source
+        // this is done by removing the element and adding it again after changing its depth
+        if (needreordering) {
+            // make sure we do not keep the _current_cource iterator to an invalid value.
+            unsetCurrentSource();
             // remember pointer to the source
             Source *tmp = (*itsource);
             // remove the element
@@ -1966,6 +2045,7 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 
         // no reordering necessary, just change the source internal depth value
         (*itsource)->setDepth(newdepth);
+
         // and return it
         return itsource;
     }

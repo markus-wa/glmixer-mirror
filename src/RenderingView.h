@@ -47,6 +47,7 @@ public:
     void setAction(ActionType a);
 
 #ifdef GLM_SNAPSHOT
+    void applyTargetSnapshot(double percent, QMap<Source *, QVector< QPair<double,double> > > config);
     bool usableTargetSnapshot(QMap<Source *, QVector< QPair<double,double> > > config);
 #endif
 

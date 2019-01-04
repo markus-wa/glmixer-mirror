@@ -586,13 +586,13 @@ void ViewRenderWidget::activateSnapshot(QString id)
         // make invisible
         _snapshotView->deactivate();
     else {
-        // special case for rendering View
-        if (_currentView == _renderingView) {
-            SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
-            _snapshotView->activate(_currentView, id, false);
-        }
-        // general case (mixing, geometry and layer view)
-        else if ( !_snapshotView->activate(_currentView, id) )
+//        // special case for rendering View
+//        if (_currentView == _renderingView) {
+//            _snapshotView->activate(_currentView, id, false);
+//        }
+//        // general case (mixing, geometry and layer view)
+//        else
+            if ( !_snapshotView->activate(_currentView, id) )
             showMessage( tr("No change to apply in this view."), 3000 );
     }
 }
@@ -812,9 +812,6 @@ void ViewRenderWidget::paintGL()
     //
     // 4. The extra information
     //
-    // Catalog : show if visible
-    if (_catalogView->visible())
-        _catalogView->paint();
 
 #ifdef GLM_SNAPSHOT
     // Snapshot : show if visible
@@ -822,7 +819,11 @@ void ViewRenderWidget::paintGL()
         _snapshotView->paint();
         return;
     }
+    else
 #endif
+    // Catalog : show if visible
+    if (_catalogView->visible())
+        _catalogView->paint();
 
     // FPS computation every 5 frames
     if (++fpsCounter_ == 5)
