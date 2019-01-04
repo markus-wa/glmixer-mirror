@@ -926,9 +926,6 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         GLMixer::logStream << "Error   | " << txt << "\n";
         GLMixer::logStream.flush();
 
-        // close logs
-        GLMixer::exitHandler();
-
         QMessageBox msgBox(QMessageBox::Warning, tr("Error"), tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
         // add button to show logs
         QPushButton *logButton = msgBox.addButton(tr("Open log file"), QMessageBox::ActionRole);
@@ -937,9 +934,9 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();
 
-//        // show logs if required
-//        if ( msgBox.clickedButton() == logButton )
-//            GLMixer::openCrashLogs();
+        // show logs if required
+        if ( msgBox.clickedButton() == logButton )
+            QDesktopServices::openUrl( QUrl::fromLocalFile( GLMixerApp::getLogFileName() ) );
 
         // exit properly (it is not a crash)
         exit(0);
@@ -1746,11 +1743,6 @@ void GLMixer::on_actionCloneSource_triggered(){
         Source *s = RenderingManager::getInstance()->newCloneSource(original);
         if ( s ) {
             QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
-
-//#ifdef GLM_FFGL
-//            // copy the Freeframe plugin stack
-//            s->reproduceFreeframeGLPluginStack( (*original) );
-//#endif
 
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
