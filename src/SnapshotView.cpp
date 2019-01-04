@@ -71,7 +71,7 @@ void SnapshotView::deactivate()
     _active = false;
 }
 
-bool SnapshotView::activate(View *activeview, QString id, bool interpolate)
+bool SnapshotView::activate(View *activeview, QString id)
 {
     bool ret = false;
 
@@ -86,8 +86,8 @@ bool SnapshotView::activate(View *activeview, QString id, bool interpolate)
     _interpolate = true;
     _destinationId = QString();
 
-    if (!interpolate)
-        SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
+    // store status
+    SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
 
     // test if everything is fine
     if (setTargetSnapshot(id) && activeview && activeview->usableTargetSnapshot(_snapshots)) {
@@ -98,7 +98,6 @@ bool SnapshotView::activate(View *activeview, QString id, bool interpolate)
 #endif
 
         // activate config
-        _interpolate = interpolate;
         _destinationId = id;
         // set view to manipulate
         _view = activeview;
@@ -368,12 +367,41 @@ void SnapshotView::activateTarget(bool positive)
     }
     // no interpolation: restore the entire snapshot
     else {
-        if (positive)
+        if (positive) {
             SnapshotManager::getInstance()->restoreSnapshot(_destinationId);
-        else
+            _factor = 1.0;
+        } else {
             SnapshotManager::getInstance()->restoreSnapshot();
-        _factor = positive ? 1.0 : 0.0;
+            _factor = 0.0;
+        }
     }
+}
+
+bool SnapshotView::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+    if (!_active || !event)
+        return false;
+
+    if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+        Source *clicsource =  *clickedSources.begin();
+
+        // clic on the destination
+        if (clicsource == _destinationSource) {
+            // no interpolation: restore the entire snapshot
+            SnapshotManager::getInstance()->restoreSnapshot(_destinationId);
+            _factor = 1.0;
+        }
+        // clic on the departure
+        else if (clicsource == _departureSource){
+            SnapshotManager::getInstance()->restoreSnapshot();
+            _factor = 0.0;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 bool SnapshotView::mousePressEvent(QMouseEvent *event)
@@ -491,24 +519,23 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
     // set action from mouse cursor
     setCursorAction(event->pos());
 
-    // control interpolation with mouse wheel
-    if (_interpolate) {
 
-        // Tool action : control the speed of animation by scroll wheel
-        if (currentAction == View::TOOL) {
+    // Tool action : control the speed of animation by scroll wheel
+    if (currentAction == View::TOOL) {
 
-            double dir = SIGN(_animationSpeed);
-            _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002, MAX_ANIMATION_SPEED);
-
-        }
-        // background : control directly factor with scroll wheel
-        else /*if (currentAction == View::NONE)*/ {
-            // increment factor
-            _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
-            _view->applyTargetSnapshot(_factor, _snapshots);
-        }
+        double dir = SIGN(_animationSpeed);
+        double speed = ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002;
+        _interpolate = speed < MAX_ANIMATION_SPEED;
+        _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, speed, MAX_ANIMATION_SPEED);
 
     }
+    // background : control directly factor with scroll wheel
+    else if (_interpolate) {
+        // increment factor
+        _factor = qBound(0.0, _factor + (double) event->delta() * 0.0005, 1.0);
+        _view->applyTargetSnapshot(_factor, _snapshots);
+    }
+
 
     return true;
 }
@@ -646,12 +673,14 @@ void SnapshotView::setAction(ActionType a){
     switch(a) {
     case View::OVER:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+//        RenderingManager::getRenderingWidget()->showMessage("Grab to interpolate.", 1000);
         break;
     case View::GRAB:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
         break;
     case View::TOOL:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+//        RenderingManager::getRenderingWidget()->showMessage("Clic to animate, scroll to control speed.", 1000);
         break;
     default:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);

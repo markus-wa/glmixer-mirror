@@ -8,7 +8,7 @@
 #include <QVector>
 
 #define SNAPSHOT_ICON_SIZE 128
-#define TEMP_SNAPSHOT_NAME "temp"
+#define TEMP_SNAPSHOT_NAME "_temp_"
 
 class Source;
 

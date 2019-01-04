@@ -26,13 +26,14 @@ public:
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent(QMouseEvent * event );
+    bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent(QWheelEvent * event );
     bool keyPressEvent(QKeyEvent * event );
     void setAction(ActionType a);
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
 
     // specific functions for snapshot view
-    bool activate(View *activeview, QString id, bool interpolate = true);
+    bool activate(View *activeview, QString id);
     void deactivate();
     bool isActive() { return _active;}
     void activateTarget(bool positive);

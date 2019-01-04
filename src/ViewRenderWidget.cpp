@@ -586,13 +586,8 @@ void ViewRenderWidget::activateSnapshot(QString id)
         // make invisible
         _snapshotView->deactivate();
     else {
-//        // special case for rendering View
-//        if (_currentView == _renderingView) {
-//            _snapshotView->activate(_currentView, id, false);
-//        }
-//        // general case (mixing, geometry and layer view)
-//        else
-            if ( !_snapshotView->activate(_currentView, id) )
+        // activate snapshot control view
+        if ( !_snapshotView->activate(_currentView, id) )
             showMessage( tr("No change to apply in this view."), 3000 );
     }
 }
@@ -819,8 +814,8 @@ void ViewRenderWidget::paintGL()
         _snapshotView->paint();
         return;
     }
-    else
 #endif
+
     // Catalog : show if visible
     if (_catalogView->visible())
         _catalogView->paint();
