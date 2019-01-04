@@ -1985,8 +1985,11 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, 
         while (std::find_if(sb, se, isCloseTo(newdepth)) != se)
             newdepth += depthinc;
 
-        // AGAIN clamp values & ignore if no change required
-        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+        // in case we jump too far
+        if ( newdepth < MIN_DEPTH_LAYER || newdepth > MAX_DEPTH_LAYER)
+            return itsource;
+
+        // AGAIN ignore if no change required
         if ( ABS(newdepth - currentdepth) < EPSILON)
             return itsource;
 
