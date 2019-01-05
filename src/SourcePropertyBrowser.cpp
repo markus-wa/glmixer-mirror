@@ -1012,16 +1012,18 @@ public:
             addProperty(property);
 
             // stop options
-            property = boolManager->addProperty("Rewind");
-            property->setToolTip("Restart video at first frame when stopped.");
-            idToProperty[property->propertyName()] = property;
-            boolManager->setValue(property, vf->getOptionRestartToMarkIn());
-            addProperty(property);
-            property = boolManager->addProperty("Black stop");
-            property->setToolTip("Show black frame when stopped.");
-            idToProperty[property->propertyName()] = property;
-            boolManager->setValue(property, vf->getOptionRevertToBlackWhenStop());
-            addProperty(property);
+            if (vf->getNumFrames() > 1) {
+                property = boolManager->addProperty("Rewind");
+                property->setToolTip("Restart video at first frame when stopped.");
+                idToProperty[property->propertyName()] = property;
+                boolManager->setValue(property, vf->getOptionRestartToMarkIn());
+                addProperty(property);
+                property = boolManager->addProperty("Black stop");
+                property->setToolTip("Show black frame when stopped.");
+                idToProperty[property->propertyName()] = property;
+                boolManager->setValue(property, vf->getOptionRevertToBlackWhenStop());
+                addProperty(property);
+            }
 
             // alpha format
             if (vf->hasAlphaChannel()) {
