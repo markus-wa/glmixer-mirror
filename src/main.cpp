@@ -273,10 +273,37 @@ int main(int argc, char **argv)
             qDebug("%s : invalid arguments (not a file name).", qPrintable(cmdline_args.at(1)));
     }
 
+    // if there are remaining logs, it is because of a crash
+#ifdef GLM_LOGS
+    crashrecover = a.hasCrashLogs();
+    if (crashrecover){
+        int ret = QMessageBox::Ignore;
+        QMessageBox msgBox;
+        msgBox.setText("It looks like GLMixer crashed !");
+        msgBox.setInformativeText("Do you want to open the log files ?");
+        msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+        msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Ignore);
+        ret = msgBox.exec();
+
+        if (ret == QMessageBox::Open)
+            a.openCrashLogs();
+        else if (ret == QMessageBox::Ignore)
+            a.deleteCrashLogs();
+        else
+            return -1;
+    }
+
+    // Redirect qDebug, qWarning and qFatal to GUI and logger
+    qInstallMsgHandler(GLMixer::msgHandler);
+    // this cleans up after the application ends
+    qAddPostRoutine(GLMixer::exitHandler);
+#endif
 
     //
     // 1. Start of the GUI interface section.
     //
+
     // Show a splash screen to wait
     QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
     QSplashScreen splash(pixmap);
@@ -286,14 +313,7 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
-#ifdef GLM_LOGS
-    // Redirect qDebug, qWarning and qFatal to GUI and logger
-    qInstallMsgHandler(GLMixer::msgHandler);
-    // this cleans up after the application ends
-    qAddPostRoutine(GLMixer::exitHandler);
-#endif
-
-//    QTranslator translator;
+//    QTranslator translator;// TODO
 //    translator.load(QString("trans_") + QLocale::system().name());
 //    a.installTranslator(&translator);
 //    a.processEvents();
@@ -320,30 +340,6 @@ int main(int argc, char **argv)
     // terminate other instance in single instance mode
     if (GLMixer::isSingleInstanceMode())
         a.killOtherInstances();
-    a.processEvents();
-
-    // if there are remaining logs, it is because of a crash
-#ifdef GLM_LOGS
-    crashrecover = a.hasCrashLogs();
-    if (crashrecover){
-        int ret = QMessageBox::Ignore;
-        QMessageBox msgBox;
-        msgBox.setText(("It looks like GLMixer crashed !"));
-        msgBox.setInformativeText(("Do you want to open the log files ?"));
-        msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
-        msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::Ignore);
-        ret = msgBox.exec();
-
-        if (ret == QMessageBox::Open)
-            a.openCrashLogs();
-        else if (ret == QMessageBox::Ignore)
-            a.deleteCrashLogs();
-        else
-            return -1;
-    }
-#endif
-
 
 #ifdef GLM_SHM
     if(!SharedMemoryManager::getInstance())
