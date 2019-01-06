@@ -350,6 +350,8 @@ public:
     static double zoomSpeed();
     static void setZoomCentered(bool on);
     static bool zoomCentered();
+    static void setToolSnap(bool on);
+    static bool toolSnap();
 
 
 protected:
@@ -373,6 +375,7 @@ private:
 
     static double zoomspeed;
     static bool zoomcentered;
+    static bool toolsnap;
 
     static QMap<View::UserInput,Qt::MouseButtons> _buttonmap;
     static QMap<View::UserInput,Qt::KeyboardModifiers> _modifiermap;

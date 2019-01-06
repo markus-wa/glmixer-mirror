@@ -17,6 +17,7 @@ QMap<View::UserInput,Qt::MouseButtons> View::_buttonmap = View::defaultMouseButt
 QMap<View::UserInput,Qt::KeyboardModifiers> View::_modifiermap = View::defaultModifiersMap();
 bool View::zoomcentered = false;
 double View::zoomspeed = 120.0;
+bool View::toolsnap = false;
 
 
 #if QT_VERSION > 0x040602
@@ -259,6 +260,12 @@ void View::setZoomCentered(bool on){
 }
 bool View::zoomCentered(){
     return zoomcentered;
+}
+void View::setToolSnap(bool on){
+    toolsnap = on;
+}
+bool View::toolSnap(){
+    return toolsnap;
 }
 
 void SelectionArea::draw() {

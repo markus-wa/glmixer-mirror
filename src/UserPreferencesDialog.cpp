@@ -206,7 +206,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         saveExitSession->setChecked(false);
         iconSizeSlider->setValue(50);
         maximumUndoLevels->setValue(100);
-        displayTimer->setChecked(false);
+        snapTool->setChecked(false);
         allowOneInstance->setChecked(true);
         useCustomTimer->setChecked(false);
     }
@@ -378,10 +378,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     recordingQualitySelection->setCurrentIndex(recquality);
     recordingQualitySelection->setEnabled(recformat < 5);
 
-    // z. Timers display preferences
-    bool showtimer = true;
-    stream >> showtimer;
-    displayTimer->setChecked(showtimer);
+    // z. snap tools
+    bool snap = true;
+    stream >> snap;
+    snapTool->setChecked(snap);
 
     // aa. Single Instance & custom timer
     bool oneinstance = true, customtimer = false;
@@ -489,8 +489,8 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // y. recording quality
     stream << (uint) recordingQualitySelection->currentIndex();
 
-    // z. Timers display preferences
-    stream << displayTimer->isChecked();
+    // z. snap tools
+    stream << snapTool->isChecked();
 
     // aa. Single Instance & custom timer
     stream << allowOneInstance->isChecked();
