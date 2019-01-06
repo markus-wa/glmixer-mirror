@@ -196,7 +196,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
         logsWidget = new LoggingWidget();
     connect(logsWidget, SIGNAL(saveLogs()), SLOT(saveLogsToFile()));
 
-    QAction *showlog = new QAction(QIcon(":/icons/history.png"), tr("Show Logs"), this);
+    QAction *showlog = new QAction(QIcon(":/icons/history.png"), tr("Logs"), this);
     showlog->setShortcut(QKeySequence("Ctrl+L"));
     showlog->setStatusTip(tr("Show the application logs"));
     showlog->setCheckable(true);
@@ -483,6 +483,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     upd = new UserPreferencesDialog(this);
     Q_CHECK_PTR(upd);
+
+    // Actions for custom display tools and modes
+    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), switcherSession, SLOT(setViewSimplified(bool)));
+    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), actionPreferences, SLOT(setDisabled(bool)));
+    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), cursorOptionWidget, SLOT(setHidden(bool)));
+
+    QObject::connect(actionShowTimers, SIGNAL(triggered(bool)), SLOT(setDisplayTimeEnabled(bool)));
 
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
@@ -2973,8 +2980,13 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("lastToolGeometry"))
         RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolGeometry").toInt() ,View::GEOMETRY);
 
-    // Open Sound Control
+    // timer config
+    bool timeron = (bool) settings.value("displayTimer", "0").toInt();
+    setDisplayTimeEnabled(timeron);
+    actionShowTimers->setChecked( timeron );
+
 #ifdef GLM_OSC
+    // Open Sound Control
     bool useOSC = settings.value("OSCEnabled", "0").toBool();
     int portOSC = settings.value("OSCPort", "7000").toInt();
     int portOSCBroadcast = settings.value("OSCBroadcast", "3000").toInt();
@@ -3041,8 +3053,11 @@ void GLMixer::saveSettings()
     settings.setValue("lastToolMixing", (int) RenderingManager::getRenderingWidget()->getToolMode(View::MIXING));
     settings.setValue("lastToolGeometry", (int) RenderingManager::getRenderingWidget()->getToolMode(View::GEOMETRY));
 
-    // Open Sound Control
+    // timer config
+    settings.setValue("displayTimer", (int) _displayTimerEnabled);
+
 #ifdef GLM_OSC
+    // Open Sound Control
     settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
     settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPortReceive());
     settings.setValue("OSCBroadcast", OpenSoundControlManager::getInstance()->getPortBroadcast());
@@ -3324,10 +3339,10 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> recquality;
     RenderingManager::getRecorder()->setEncodingQuality((encodingquality) recquality);
 
-    // z. Timers display preferences
-    bool showtimer = true;
-    stream >> showtimer;
-    setDisplayTimeEnabled(showtimer);
+    // z. snap tool preferences
+    bool snap = true;
+    stream >> snap;
+    View::setToolSnap(snap);
 
     // aa. Single Instance & custom timer
     stream >> GLMixer::_singleInstanceMode;
@@ -3453,7 +3468,7 @@ QByteArray GLMixer::getPreferences() const {
     stream << (uint) RenderingManager::getRecorder()->encodingQuality();
 
     // z. Timers display preferences
-    stream << _displayTimerEnabled;
+    stream << View::toolSnap();
 
     // aa. Single Instance
     stream << GLMixer::_singleInstanceMode;
@@ -4018,7 +4033,8 @@ QString GLMixer::getNotes() const
 
 void GLMixer::timerEvent ( QTimerEvent * event )
 {
-    output_elapsed_label->setText( getStringFromTime( (int) RenderingManager::getInstance()->getElapsedTime()) );
+    session_elapsed_label->setText( getStringFromTime( (int) RenderingManager::getInstance()->getElapsedTime()) );
+    output_elapsed_label->setText( getStringFromTime( (int) (_displayTimer.elapsed() / 1000.0) ) );
 }
 
 void GLMixer::setDisplayTimeEnabled(bool on)
@@ -4031,14 +4047,16 @@ void GLMixer::setDisplayTimeEnabled(bool on)
         timerId = 0;
     }
 
-    // labels visibility
+    // remember status
     _displayTimerEnabled = on;
-    output_elapsed_widget->setVisible(on);
-    output_recording_label->setText("");
-    output_recording_widget->setVisible(false);
 
     // activate display update
     if (on) {
+        // reset
+        _displayTimer.restart();
+        output_elapsed_label->setText( getStringFromTime( 0 ) );
+
+        // start update
         timerId = startTimer(1000);
 
         QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_recording_widget, SLOT(setVisible(bool)));
@@ -4048,6 +4066,13 @@ void GLMixer::setDisplayTimeEnabled(bool on)
         QObject::disconnect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_recording_widget, SLOT(setVisible(bool)));
         QObject::disconnect(RenderingManager::getRecorder(), SIGNAL(timing(QString)), output_recording_label, SLOT(setText(QString)));
     }
+
+    // labels visibility
+    output_elapsed_widget->setVisible(on);
+
+    // the recording timer
+    output_recording_label->setText("");
+    output_recording_widget->setVisible(false);
 }
 
 

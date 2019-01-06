@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1627</width>
+    <width>1676</width>
     <height>1006</height>
    </rect>
   </property>
@@ -375,16 +375,13 @@ border-bottom-left-radius: 5px;
   <widget class="QDockWidget" name="previewDockWidget">
    <property name="minimumSize">
     <size>
-     <width>281</width>
+     <width>297</width>
      <height>213</height>
     </size>
    </property>
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
-   </property>
-   <property name="toolTip">
-    <string>Preview of the rendering output (as it is displayed in the output window).</string>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -545,22 +542,6 @@ border-bottom-left-radius: 5px;
          <number>0</number>
         </property>
         <item>
-         <widget class="QLabel" name="output_elapsed_label">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">font: bold 22pt; color: rgb(90, 90, 90);</string>
-          </property>
-          <property name="text">
-           <string> 0:00:00</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QToolButton" name="output_pause">
           <property name="toolTip">
            <string>Pause rendering</string>
@@ -586,6 +567,41 @@ border-bottom-left-radius: 5px;
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="session_elapsed_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Time since session loaded</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel{font: bold 22pt; color: rgb(90, 90, 90);}</string>
+          </property>
+          <property name="text">
+           <string> 0:00:00</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="output_elapsed_label">
+          <property name="toolTip">
+           <string>Time since timer on</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel{font: bold 22pt; color: rgb(120, 120,120);}</string>
+          </property>
+          <property name="text">
+           <string> 0:00:00</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -602,6 +618,9 @@ border-bottom-left-radius: 5px;
          <width>0</width>
          <height>48</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>Preview of the rendering output (as it is displayed in the output window).</string>
        </property>
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
         <property name="margin">
@@ -632,6 +651,9 @@ border-bottom-left-radius: 5px;
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Duration of recording</string>
           </property>
           <property name="styleSheet">
            <string notr="true">font: bold 22pt; color: rgb(200, 10, 10);</string>
@@ -1614,7 +1636,7 @@ QToolButton:hover {
    </property>
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
+     <normaloff>:/glmixer/icons/gear.png</normaloff>:/glmixer/icons/gear.png</iconset>
    </property>
    <property name="toolTip">
     <string>Configuration of current source</string>
@@ -1663,7 +1685,7 @@ QToolButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1627</width>
+     <width>1676</width>
      <height>28</height>
     </rect>
    </property>
@@ -1704,14 +1726,12 @@ QToolButton:hover {
     </widget>
     <widget class="QMenu" name="catalogMenu">
      <property name="title">
-      <string>&amp;Catalog</string>
+      <string>&amp;Catalog size</string>
      </property>
      <property name="icon">
       <iconset resource="../icons.qrc">
        <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
      </property>
-     <addaction name="actionShow_Catalog"/>
-     <addaction name="separator"/>
      <addaction name="actionCatalogSmall"/>
      <addaction name="actionCatalogMedium"/>
      <addaction name="actionCatalogLarge"/>
@@ -1735,6 +1755,9 @@ QToolButton:hover {
      <property name="toolTip">
       <string/>
      </property>
+     <property name="statusTip">
+      <string>Only the sources in a workspace are shown in a view</string>
+     </property>
      <property name="title">
       <string>W&amp;orkspace</string>
      </property>
@@ -1752,10 +1775,14 @@ QToolButton:hover {
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
     <addaction name="actionRenderingView"/>
-    <addaction name="catalogMenu"/>
     <addaction name="menuWorkspace"/>
     <addaction name="zoomMenu"/>
     <addaction name="separator"/>
+    <addaction name="actionShow_Catalog"/>
+    <addaction name="catalogMenu"/>
+    <addaction name="separator"/>
+    <addaction name="actionShowTimers"/>
+    <addaction name="actionPerformanceMode"/>
     <addaction name="toolBarsMenu"/>
    </widget>
    <widget class="QMenu" name="helpMenu">
@@ -1889,9 +1916,9 @@ QToolButton:hover {
     </widget>
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
+    <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
     <addaction name="aspectRatioMenu"/>
-    <addaction name="actionFullscreen"/>
     <addaction name="actionWhite_background"/>
    </widget>
    <widget class="QMenu" name="menuExport">
@@ -2064,7 +2091,7 @@ QToolButton:hover {
   <widget class="QDockWidget" name="cursorDockWidget">
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
+     <normaloff>:/glmixer/icons/normal-cursor.png</normaloff>:/glmixer/icons/normal-cursor.png</iconset>
    </property>
    <property name="windowTitle">
     <string>Cursor</string>
@@ -3286,18 +3313,6 @@ QToolButton:hover {
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
    </property>
-   <property name="toolTip">
-    <string>Switch smoothly between .glm sessions.</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QToolButton {
-     min-height:16 px;
-     min-width: 16 px;
-     max-height:20 px;
-     max-width: 20 px;
-}
-</string>
-   </property>
    <property name="windowTitle">
     <string>Session switcher</string>
    </property>
@@ -3962,6 +3977,10 @@ QToolButton:hover {
    </widget>
   </widget>
   <widget class="QDockWidget" name="snapshotsDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/snapshot_new.png</normaloff>:/glmixer/icons/snapshot_new.png</iconset>
+   </property>
    <property name="windowTitle">
     <string>Snapshots</string>
    </property>
@@ -4089,7 +4108,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/mixer.png</normaloff>:/glmixer/icons/mixer.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Mixing view</string>
+    <string>Mixing</string>
    </property>
    <property name="toolTip">
     <string>Switch to mixing view</string>
@@ -4110,7 +4129,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/manipulation.png</normaloff>:/glmixer/icons/manipulation.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Geometry view</string>
+    <string>Geometry</string>
    </property>
    <property name="toolTip">
     <string>Switch to geometry view</string>
@@ -4131,7 +4150,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/depth.png</normaloff>:/glmixer/icons/depth.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Layers view</string>
+    <string>Layers</string>
    </property>
    <property name="toolTip">
     <string>Switch to layers view</string>
@@ -4635,7 +4654,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Visible</string>
+    <string>Catalog</string>
    </property>
    <property name="toolTip">
     <string>Show catalog </string>
@@ -4964,9 +4983,6 @@ QToolButton:hover {
    <property name="statusTip">
     <string>Take a screenshot of the rendering and save the image.</string>
    </property>
-   <property name="shortcut">
-    <string>F7</string>
-   </property>
   </action>
   <action name="actionCursorLine">
    <property name="checkable">
@@ -5245,7 +5261,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/displayview.png</normaloff>:/glmixer/icons/displayview.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Rendering view</string>
+    <string>Rendering</string>
    </property>
    <property name="toolTip">
     <string>Switch to Rendering view</string>
@@ -5841,6 +5857,34 @@ QToolButton:hover {
   <action name="actionExtendedToolbars">
    <property name="text">
     <string>&amp;Extended</string>
+   </property>
+  </action>
+  <action name="actionPerformanceMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Live mode</string>
+   </property>
+   <property name="statusTip">
+    <string>Avoid mistakes during live show with a simplified interface</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+  </action>
+  <action name="actionShowTimers">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Timers</string>
+   </property>
+   <property name="statusTip">
+    <string>Display timers in the preview</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
    </property>
   </action>
  </widget>

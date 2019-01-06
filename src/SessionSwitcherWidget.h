@@ -48,6 +48,7 @@ public slots:
     void reloadFolder();
     void browseFolder();
     void setRecursiveFolder(bool);
+    void setViewSimplified(bool);
 
     void fileChanged(const QString &filename);
     void sessionNameChanged(QStandardItem *item);
@@ -82,6 +83,10 @@ signals:
     void sessionTriggered(QString);
     void sessionRenamed(QString before, QString after);
 
+protected:
+
+    void showEvent(QShowEvent *);
+
 private:
 
     // folder and list of sessions
@@ -90,17 +95,19 @@ private:
     QTreeView *proxyView;
     QMutex folderModelAccesslock;
 
-    // folder toolbox
-    QListWidget *createCurveIcons();
+    // GUI
     QComboBox *folderHistory, *transitionSelection;
     QTabWidget *transitionTab;
     QSlider *transitionSlider;
     QToolButton *customButton;
     QListWidget *easingCurvePicker;
     QSpinBox *transitionDuration;
+    QWidget *transitionBox;
+    QWidget *folderBox;
+    QWidget *controlBox;
+
     QSize m_iconSize;
-    standardAspectRatio allowedAspectRatio;
-    QMenu menuFolderModel;
+    QListWidget *createCurveIcons();
 
     QLabel *overlayLabel;
     QLabel *currentSessionLabel, *nextSessionLabel;
@@ -109,6 +116,7 @@ private:
     bool nextSessionSelected, suspended, recursive;
 
     // sorting stuff
+    standardAspectRatio allowedAspectRatio;
     Qt::SortOrder sortingOrder;
     int sortingColumn;
 

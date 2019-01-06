@@ -218,7 +218,8 @@ private:
 
     bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
-    bool  _displayTimerEnabled;
+    bool _displayTimerEnabled;
+    QElapsedTimer _displayTimer;
 
     QSettings settings;
     QAction *recentFileActs[MAX_RECENT_FILES];
