@@ -13,7 +13,16 @@ TagsManager::TagsManager(QWidget *parent) :
     QWidget(parent), ui(new Ui::TagsManager), currentSource(NULL)
 {
     ui->setupUi(this);
-    ui->tagsMessage->setCurrentIndex(1 );
+
+    tagmenu = new QMenu(parent);
+
+    // special icon for select all
+
+    QPixmap pix(":/glmixer/icons/selectall.png");
+    QIcon icon;
+    icon.addPixmap(pix.scaled(42,42), QIcon::Normal, QIcon::Off);
+    itemAll = new QListWidgetItem(icon, tr("All"));
+    ui->tagsListWidget->addItem(itemAll);
 
     // fill the list of items with all possible tags
     for (int i=0; i < Tag::getNumTags(); ++i) {
@@ -32,48 +41,24 @@ TagsManager::TagsManager(QWidget *parent) :
         // add to the lists
         ui->tagsListWidget->addItem(item);
         tagsMap[t] = item;
+
+        QAction *tagaction = new QAction(parent);
+        tagaction->setData(t->getIndex());
+        tagaction->setText(t->getLabel());
+        tagaction->setIcon(icon);
+        connect(tagaction, SIGNAL(triggered()), this, SLOT(applyTagtoCurrentSource()));
+        tagmenu->addAction(tagaction);
     }
 
     // do not keep item selected
     deselectItem();
-
-    // context menu
-    ui->tagsListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->tagsListWidget, SIGNAL(customContextMenuRequested(const QPoint &)),  SLOT(ctxMenu(const QPoint &)));
 }
 
 TagsManager::~TagsManager()
 {
     delete ui;
+    delete tagmenu;
 }
-
-void TagsManager::ctxMenu(const QPoint &pos)
-{
-    static QMenu *contextmenu_background = NULL;
-    if (contextmenu_background == NULL) {
-        contextmenu_background = new QMenu(this);
-        connect(contextmenu_background, SIGNAL(aboutToHide()), this, SLOT(deselectItem()));
-        // clear selection
-        QAction *clearselection = new QAction(QIcon(":/glmixer/icons/selectclear.png"), tr("Clear selection"), this);
-        connect(clearselection, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(clearSelection()));
-        connect(clearselection, SIGNAL(triggered()), this, SLOT(deselectItem()));
-        contextmenu_background->addAction(clearselection);
-        // clear all tags
-        QAction *clearall = new QAction(QIcon(":/glmixer/icons/cleanbig.png"), tr("Cancel tags of all Sources"), this);
-        connect(clearall, SIGNAL(triggered()), this, SLOT(clearAllTags()));
-        connect(clearall, SIGNAL(triggered()), this, SLOT(deselectItem()));
-        contextmenu_background->addAction(clearall);
-    }
-
-    // offer context menu only in background
-    QListWidgetItem *item = ui->tagsListWidget->itemAt(pos);
-    if (!item)
-        contextmenu_background->popup(ui->tagsListWidget->viewport()->mapToGlobal(pos));
-
-    // do not keep item selected
-    deselectItem();
-}
-
 
 void TagsManager::deselectItem()
 {
@@ -88,28 +73,20 @@ void TagsManager::clearAllTags()
     deselectItem();
 }
 
-QListWidgetItem *TagsManager::getTagItem(Tag *t)
-{
-    QListWidgetItem *item = NULL;
-
-    // try to find the item for this tag
-    QHash<Tag *, QListWidgetItem *>::Iterator it = tagsMap.find(t);
-
-    if (it != tagsMap.end())
-        // found item; return it
-        item = it.value();
-
-    return item;
-}
-
-
 void TagsManager::selectTag(Tag *t)
 {
     if (t) {
-        // select all sources of this tag
-        SelectionManager::getInstance()->setSelection( t->getSources() );
-    }
+        // toggle select all sources of this tag
+        SourceList sl = t->getSources();
+        for(SourceList::iterator  its = sl.begin(); its != sl.end(); its++) {
 
+            if ( SelectionManager::getInstance()->isInSelection(*its) ) {
+                SelectionManager::getInstance()->deselect(sl);
+                break;
+            }
+            SelectionManager::getInstance()->select(*its);
+        }
+    }
 }
 
 
@@ -117,13 +94,21 @@ void TagsManager::on_tagsListWidget_itemClicked(QListWidgetItem *i)
 {
     if (i)
     {
-        // get the key for the given item in the map
-        QList<Tag *> tags = tagsMap.keys(i);
-        if (!tags.empty()) {
-            // try to apply this tag
-            if ( !useTag( tags.first() ) )
+        if (i == itemAll) {
+
+            if (SelectionManager::getInstance()->hasSelection())
+                SelectionManager::getInstance()->clearSelection();
+            else
+                SelectionManager::getInstance()->selectAll();
+
+        }
+        else {
+            // get the key for the given item in the map
+            QList<Tag *> tags = tagsMap.keys(i);
+            if (!tags.empty()) {
                 // select all sources of this tag
                 selectTag( tags.first() );
+            }
         }
     }
 
@@ -131,7 +116,15 @@ void TagsManager::on_tagsListWidget_itemClicked(QListWidgetItem *i)
     deselectItem();
 }
 
-bool TagsManager::useTag(Tag *t)
+void TagsManager::applyTagtoCurrentSource()
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action) {
+        applyTag( Tag::get(action->data().toInt()) );
+    }
+}
+
+bool TagsManager::applyTag(Tag *t)
 {
     bool changed = false;
 
@@ -162,23 +155,10 @@ void TagsManager::connectSource(SourceSet::iterator csi)
     if (RenderingManager::getInstance()->isValid(csi)) {
         // remember current source pointer
         currentSource = *csi;
-
-        ui->tagsMessage->setCurrentIndex(0);
     }
     else {
         // disable current source
         currentSource = NULL;
-        ui->tagsMessage->setCurrentIndex(1);
     }
-
-}
-
-
-void TagsManager::connectSelection(bool selection)
-{
-    if (currentSource)
-        return;
-
-    ui->tagsMessage->setCurrentIndex( selection ? 0 : 1);
 
 }

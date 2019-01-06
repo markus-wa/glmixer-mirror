@@ -2,6 +2,7 @@
 #define TAGSMANAGER_H
 
 #include <QWidget>
+#include <QMenu>
 #include <QHash>
 
 #include "Tag.h"
@@ -21,32 +22,30 @@ public:
     explicit TagsManager(QWidget *parent = 0);
     ~TagsManager();
 
-    QListWidgetItem *getTagItem(Tag *t);
-    bool useTag(Tag *t);
+    QMenu *getTagsMenu() const {return tagmenu;}
+
+    bool applyTag(Tag *t);
     void selectTag(Tag *t);
 
 public slots:
-
     // connected to List of tags
     void on_tagsListWidget_itemClicked(QListWidgetItem *i);
 
-    // contex menu
-    void ctxMenu(const QPoint &pos);
-    void clearAllTags();
-
     // Source to operate
     void connectSource(SourceSet::iterator);
-    // Selection to operate
-    void connectSelection(bool);
+    void applyTagtoCurrentSource();
 
 protected slots:
     void deselectItem();
+    void clearAllTags();
 
 private:
     Ui::TagsManager *ui;
 
+    QMenu *tagmenu;
     Source *currentSource;
     QHash<Tag *, QListWidgetItem *> tagsMap;
+    QListWidgetItem *itemAll, *itemNone;
 };
 
 #endif // TAGSMANAGER_H

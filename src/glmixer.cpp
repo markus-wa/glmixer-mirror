@@ -420,9 +420,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef GLM_TAG
     // setup the tags manager
     tagsManager = new TagsManager(this);
-    tagsDockWidgetContentLayout->insertWidget(1, tagsManager);
+    tagsDockWidgetContentLayout->insertWidget(0, tagsManager);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
-    QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), tagsManager, SLOT(connectSelection(bool)));
+
+    // tag menu for source context menu
+    QAction *tagsmenu = currentSourceMenu->insertMenu(menuSendToWorkspace->menuAction(), tagsManager->getTagsMenu());
+    tagsmenu->setText(tr("Apply color"));
 
 #endif
 
@@ -635,12 +638,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     connect(resetMagnet, SIGNAL(clicked()), SLOT(resetCurrentCursor()));
 
     // connect actions with selectionManager
-    buttonSelectAll->setDefaultAction(actionSelectAll);
-    buttonSelectInvert->setDefaultAction(actionSelectInvert);
-    buttonSelectClear->setDefaultAction(actionSelectNone);
     buttonSelectionPlay->setDefaultAction(actionSourcePlay);
     buttonSelectionPause->setDefaultAction(actionSourcePause);
-    smoothSelectionPauseTiming->setVisible(false);
     buttonSelectionRestart->setDefaultAction(actionSourceRestart);
     buttonSelectionSeekBackward->setDefaultAction(actionSourceSeekBackward);
     buttonSelectionSeekForward->setDefaultAction(actionSourceSeekForward);
@@ -654,7 +653,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), this, SLOT(updateStatusControlActions()));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
-
 
     // Setup the timeline
     timeLineEdit->setFont( QFont(getMonospaceFont(), 9) );
@@ -3008,10 +3006,6 @@ void GLMixer::readSettings( QString pathtobin )
     switcherSession->restoreSettings();
 #endif
 
-    // selection control
-    smoothSelectionPauseDuration->setValue( settings.value("SmoothPause", "1000").toInt() );
-    smoothSelectionPauseMode->setCurrentIndex( settings.value("SmoothMode", "0").toInt() );
-
     qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings restored.");
 }
 
@@ -3080,10 +3074,6 @@ void GLMixer::saveSettings()
     // save settings of session switcher
     switcherSession->saveSettings();
 #endif
-
-    // selection control
-    settings.setValue("SmoothPause", smoothSelectionPauseDuration->value());
-    settings.setValue("SmoothMode", smoothSelectionPauseMode->currentIndex());
 
     // make sure system saves settings NOW
     settings.sync();
@@ -3624,30 +3614,19 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
 }
 
 
-void GLMixer::on_smoothSelectionPauseMode_currentIndexChanged(int)
-{
-    VideoFile::PauseMode smooth = (VideoFile::PauseMode) smoothSelectionPauseMode->currentIndex();
-    smoothSelectionPauseTiming->setVisible(smooth != VideoFile::PAUSE_INSTANTANEOUS);
-
-}
-
 void GLMixer::on_actionSourcePause_triggered(){
-
-    // read value of smooth pause
-    VideoFile::PauseMode smooth = (VideoFile::PauseMode) smoothSelectionPauseMode->currentIndex();
-    int duration = smoothSelectionPauseDuration->value();
 
     // toggle pause/resume of current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if (RenderingManager::getInstance()->isValid(cs) && currentVideoFile )
-        currentVideoFile->pause(!currentVideoFile->isPaused(), smooth, duration);
+        currentVideoFile->pause(!currentVideoFile->isPaused());
 
     // loop over the selection and toggle pause/resume of each source
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
         if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
             VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
             if ( vf )
-                vf->pause(!vf->isPaused(), smooth, duration);
+                vf->pause(!vf->isPaused());
         }
 }
 

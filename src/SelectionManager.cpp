@@ -184,9 +184,7 @@ void SelectionManager::selectCurrentSource()
 {
     SourceSet::iterator sit = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(sit)) {
-        if (isInSelection(*sit))
-            deselect(*sit);
-        else
-            select(*sit);
+
+        select(*sit);
     }
 }
