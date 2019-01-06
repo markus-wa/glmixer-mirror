@@ -52,6 +52,7 @@ public slots:
 
     void fileChanged(const QString &filename);
     void sessionNameChanged(QStandardItem *item);
+    void sortingChanged(int, Qt::SortOrder);
     void openSession();
     void deleteSession();
     void renameSession();
@@ -91,7 +92,7 @@ private:
 
     // folder and list of sessions
     QStandardItemModel *folderModel;
-    QSortFilterProxyModel *proxyFolderModel;
+//    QSortFilterProxyModel *proxyFolderModel;
     QTreeView *proxyView;
     QMutex folderModelAccesslock;
 

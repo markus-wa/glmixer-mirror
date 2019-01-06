@@ -63,6 +63,11 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     if (!model)
         return false;
 
+    QModelIndex i;
+    i = model->index(row, 0);
+    if (!i.isValid())
+        return false;
+
     // read content of the file
     QString filename = fileinfo.absoluteFilePath();
     QFile file(filename);
@@ -97,38 +102,30 @@ bool fillItemData(QStandardItemModel *model, int row, QFileInfo fileinfo)
     file.close();
 
     // fill the line
-    QModelIndex i;
-
     i = model->index(row, 0);
-    if (i.isValid()) {
-        model->setData(i, fileinfo.completeBaseName());
-        model->setData(i, filename, Qt::UserRole);
-        model->setData(i, (int) ar, Qt::UserRole+1);
-        model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
-        model->itemFromIndex (i)->setToolTip(tooltip);
-    }
+    model->setData(i, fileinfo.completeBaseName());
+    model->setData(i, filename, Qt::UserRole);
+    model->setData(i, (int) ar, Qt::UserRole+1);
+    model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable );
+    model->itemFromIndex (i)->setToolTip(tooltip);
+
     i = model->index(row, 1);
-    if (i.isValid()) {
-        model->setData(i, nbElem);
-        model->setData(i, filename, Qt::UserRole);
-        model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        model->itemFromIndex (i)->setToolTip(tooltip);
-    }
+    model->setData(i, nbElem);
+    model->setData(i, filename, Qt::UserRole);
+    model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (i)->setToolTip(tooltip);
 
     i = model->index(row, 2);
-    if (i.isValid()) {
-        model->setData(i, aspectRatio);
-        model->setData(i, filename, Qt::UserRole);
-        model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        model->itemFromIndex (i)->setToolTip(tooltip);
-    }
+    model->setData(i, aspectRatio);
+    model->setData(i, filename, Qt::UserRole);
+    model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (i)->setToolTip(tooltip);
+
     i = model->index(row, 3);
-    if (i.isValid()) {
-        model->setData(i, fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
-        model->setData(i, filename, Qt::UserRole);
-        model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        model->itemFromIndex (i)->setToolTip(tooltip);
-    }
+    model->setData(i, fileinfo.lastModified().toString("yy.MM.dd hh:mm"));
+    model->setData(i, filename, Qt::UserRole);
+    model->itemFromIndex (i)->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    model->itemFromIndex (i)->setToolTip(tooltip);
 
     // all good
     return true;
@@ -309,12 +306,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     sortingColumn = 3;
     sortingOrder = Qt::AscendingOrder;
-    folderModel->sort(sortingColumn, sortingOrder);
-
-    proxyFolderModel = new QSortFilterProxyModel;
-    proxyFolderModel->setDynamicSortFilter(true);
-    proxyFolderModel->setFilterKeyColumn(0);
-    proxyFolderModel->setSourceModel(folderModel);
 
     QToolButton *dirButton = new QToolButton(this);
     dirButton->setToolTip(tr("Add a folder to the list"));
@@ -358,9 +349,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      * Proxy View: list sessions
      */
     proxyView = new QTreeView(this);
-    proxyView->setModel(proxyFolderModel);
-//    proxyView->sortByColumn(sortingColumn, sortingOrder);
-    proxyView->setSortingEnabled(false);
+    proxyView->setModel(folderModel);
+    proxyView->setSortingEnabled(true);
     proxyView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     proxyView->setSelectionMode(QAbstractItemView::SingleSelection);
     proxyView->setRootIsDecorated(false);
@@ -438,12 +428,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(transitionTab, SIGNAL(currentChanged(int)), SLOT(setTransitionMode(int)));
     connect(nextButton, SIGNAL(clicked()), SLOT(startTransitionToNextSession()));
     connect(prevButton, SIGNAL(clicked()), SLOT(startTransitionToPreviousSession()));
+    connect(proxyView->header(), SIGNAL(sortIndicatorChanged(int, Qt::SortOrder)), SLOT(sortingChanged(int, Qt::SortOrder)));
 
 }
 
 SessionSwitcherWidget::~SessionSwitcherWidget()
 {
-    delete proxyFolderModel;
+//    delete proxyFolderModel;
 }
 
 void SessionSwitcherWidget::reloadFolder()
@@ -458,9 +449,13 @@ void SessionSwitcherWidget::reloadFolder()
 void SessionSwitcherWidget::browseFolder()
 {
     QFileInfo sessionFolder( folderHistory->currentText() );
-    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
-    if (sessionFile.isFile())
-        sessionFolder = QFileInfo( sessionFile.absolutePath() );
+
+    // in case of recursive, browse folder should open the item folder
+    if (proxyView->currentIndex().isValid()) {
+        QFileInfo sessionFile( folderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+        if (sessionFile.isFile())
+            sessionFolder = QFileInfo( sessionFile.absolutePath() );
+    }
 
     if ( sessionFolder.exists() ) {
 
@@ -503,7 +498,7 @@ void SessionSwitcherWidget::deleteSession()
     if (!proxyView->currentIndex().isValid())
         return;
 
-    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+    QFileInfo sessionFile( folderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
     if ( sessionFile.isFile() ) {
 
         // request confirmation if session is open
@@ -528,7 +523,7 @@ void SessionSwitcherWidget::renameSession()
     if (!proxyView->currentIndex().isValid())
         return;
 
-    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+    QFileInfo sessionFile( folderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
 
     if ( sessionFile.isFile() ) {
 
@@ -587,6 +582,8 @@ void SessionSwitcherWidget::sessionNameChanged( QStandardItem * item )
         }
 
     }
+
+    proxyView->sortByColumn(sortingColumn, sortingOrder);
 }
 
 void SessionSwitcherWidget::fileChanged(const QString & filename )
@@ -616,10 +613,10 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
                 QStandardItem *item = NULL;
                 while( !items.isEmpty()){
                     item = items.takeFirst();
-                    index = proxyFolderModel->mapFromSource(item->index());
+                    index = item->index();
 
                     // if we found an item with the same filename and path
-                    if ( index.isValid() && fileinfo.absoluteFilePath() == proxyFolderModel->data(index, Qt::UserRole).toString() ) {
+                    if ( index.isValid() && fileinfo.absoluteFilePath() == folderModel->data(index, Qt::UserRole).toString() ) {
 
                         // update the item data
                         if ( !fillItemData(folderModel, item->row(), fileinfo) )
@@ -656,9 +653,6 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
     if ( folderModelAccesslock.tryLock(100) ) {
 
-        // do not interfere with auto sorting while reordering
-        proxyView->setSortingEnabled(false);
-
         // Threaded version of fillFolderModel(folderModel, text);
         FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername, recursive ? 0 : MAX_RECURSE_FOLDERS);
         if (!workerThread) {
@@ -666,7 +660,10 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
             return;
         }
 
+        // do not interfere with auto sorting while loading
         setEnabled(false);
+
+        // todo when done
         connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
         connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
 
@@ -680,13 +677,11 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 void SessionSwitcherWidget::restoreFolderView()
 {
     // restore sorting
-    folderModel->sort(sortingColumn, sortingOrder);
-    proxyView->setSortingEnabled(true);
     proxyView->sortByColumn(sortingColumn, sortingOrder);
+    setEnabled(true);
 
     // restore availability
     folderModelAccesslock.unlock();
-    setEnabled(true);
 
     // inform user
     qDebug() << folderHistory->currentText() << QChar(124).toLatin1() << tr("Session switcher ready with %1 session files.").arg(folderModel->rowCount());
@@ -749,10 +744,10 @@ void SessionSwitcherWidget::discardFolder()
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
     // allow activation of session only if item is enabled
-    if ( index.isValid() && proxyFolderModel->flags(index) & Qt::ItemIsEnabled )
+    if ( index.isValid() && folderModel->flags(index) & Qt::ItemIsEnabled )
     {
         // transfer info to glmixer
-        emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
+        emit sessionTriggered(folderModel->data(index, Qt::UserRole).toString());
 
         // make sure no other events are accepted until the end of the transition
         disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
@@ -768,7 +763,7 @@ void SessionSwitcherWidget::startTransitionToNextSession()
     if (index.isValid())
         index = proxyView->indexBelow(index);
     else
-        index = proxyFolderModel->mapFromSource(folderModel->item(0)->index());
+        index = folderModel->item(0)->index();
 
     if (index.isValid()) {
         startTransitionToSession(index);
@@ -782,7 +777,7 @@ void SessionSwitcherWidget::startTransitionToPreviousSession()
     if (index.isValid())
         index = proxyView->indexAbove(index);
     else
-        index = proxyFolderModel->mapFromSource(folderModel->item(0)->index());
+        index = folderModel->item(0)->index();
 
     if (index.isValid()) {
         startTransitionToSession(index);
@@ -796,7 +791,7 @@ void SessionSwitcherWidget::setTransitionDestinationSession(const QModelIndex & 
         return;
 
     // read file name
-    nextSession = proxyFolderModel->data(index, Qt::UserRole).toString();
+    nextSession = folderModel->data(index, Qt::UserRole).toString();
     transitionSlider->setEnabled(true);
     currentSessionLabel->setEnabled(true);
     nextSessionLabel->setEnabled(true);
@@ -897,11 +892,8 @@ void SessionSwitcherWidget::saveSettings()
         appSettings->setValue("transitionMedia", RenderingManager::getSessionSwitcher()->transitionMedia());
     }
 
-    if (proxyFolderModel) {
-        appSettings->setValue("transitionSortingColumn", proxyFolderModel->sortColumn());
-        appSettings->setValue("transitionSortingOrder", (int) proxyFolderModel->sortOrder());
-    }
-
+    appSettings->setValue("transitionSortingColumn", sortingColumn);
+    appSettings->setValue("transitionSortingOrder", sortingOrder);
     appSettings->setValue("transitionHeader", proxyView->header()->saveState());
 
     appSettings->setValue("recentFolderRecursive", recursive);
@@ -917,11 +909,9 @@ void SessionSwitcherWidget::restoreSettings()
         folders = appSettings->value("recentFolderList").toStringList();
     if ( appSettings->contains("recentFolderLast") )
         lastFolderIndex = folders.indexOf(appSettings->value("recentFolderLast").toString());
-//    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     folderHistory->addItems( folders );
     folderHistory->setCurrentIndex(lastFolderIndex);
-//    connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
-    // recursive
+    // recursive ?
     recursive = appSettings->value("recentFolderRecursive", "false").toBool();
     dirRecursiveButton->setChecked(recursive);
 
@@ -936,7 +926,10 @@ void SessionSwitcherWidget::restoreSettings()
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
 
     // list of sessions
-    // default settings first:
+    // saved settings
+    if ( appSettings->contains("transitionHeader") )
+        proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
+    // enforce correct settings
     proxyView->header()->setDragEnabled(false);
     proxyView->header()->setMinimumSectionSize (40);
     proxyView->header()->setStretchLastSection(false);
@@ -946,9 +939,6 @@ void SessionSwitcherWidget::restoreSettings()
     proxyView->header()->setResizeMode(2, QHeaderView::Fixed);
     proxyView->header()->resizeSection(2, 55);
     proxyView->header()->setResizeMode(3, QHeaderView::ResizeToContents);
-    // saved settings
-    if ( appSettings->contains("transitionHeader") )
-        proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
     setViewSimplified(false);
 
     // order of transition
@@ -1192,4 +1182,14 @@ void SessionSwitcherWidget::showEvent(QShowEvent *e){
     reloadFolder();
 
     QWidget::showEvent(e);
+}
+
+
+void SessionSwitcherWidget::sortingChanged(int c, Qt::SortOrder o) {
+
+    sortingColumn = c;
+    sortingOrder = o;
+
+    appSettings->setValue("transitionSortingColumn", sortingColumn);
+    appSettings->setValue("transitionSortingOrder", sortingOrder);
 }
