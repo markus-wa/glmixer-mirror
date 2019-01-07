@@ -100,7 +100,8 @@ CameraDialog::CameraDialog(QWidget *parent, QSettings *settings) :
 
     // restore settings
     if (appSettings) {
-
+        if (appSettings->contains("dialogCameraGeometry"))
+            restoreGeometry(appSettings->value("dialogCameraGeometry").toByteArray());
     }
 }
 
@@ -124,6 +125,7 @@ void CameraDialog::done(int r)
     if (appSettings) {
         appSettings->setValue("ScreenCaptureSize", QRect(ui->screen_x->value(), ui->screen_y->value(), ui->screen_w_selection->currentIndex(), ui->screen_h->value()));
         appSettings->setValue("ScreenCaptureMode", ui->screenCaptureSelection->currentIndex());
+        appSettings->setValue("dialogCameraGeometry", saveGeometry());
     }
 
     QDialog::done(r);
@@ -374,7 +376,7 @@ QString CameraDialog::getUrl() const
     else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         // read index of the first screen
         url = ui->screenCaptureSelection->itemData( ui->screenCaptureSelection->currentIndex()).toString();
-    // decklink 
+    // decklink
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
         // read data which gives the input stream description string
         url = ui->decklinkDevice->itemData( ui->decklinkDevice->currentIndex() ).toString();
@@ -467,10 +469,10 @@ QString CameraDialog::getUrl() const
         // read data which gives the device id
         url = ui->webcamDevice->itemData( ui->webcamDevice->currentIndex() ).toString();
     // screen capture
-    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen ) 
+    else if (ui->deviceSelection->currentWidget() == ui->deviceScreen )
         // read desktop
         url = "desktop";
-    // decklink 
+    // decklink
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
         // read data which gives the input stream description string
         url = ui->decklinkDevice->itemData( ui->decklinkDevice->currentIndex() ).toString();
@@ -489,7 +491,7 @@ QString CameraDialog::getFormat() const
         format = "gdigrab";
     // decklink
     else if (ui->deviceSelection->currentWidget() == ui->deviceDecklink )
-        format = "decklink";        
+        format = "decklink";
 
     return format;
 }

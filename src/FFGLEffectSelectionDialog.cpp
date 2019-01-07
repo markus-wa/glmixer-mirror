@@ -72,6 +72,8 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
                 ui->freeframeFileList->addItem(pluginfile.fileName(), pluginfile.absoluteFilePath());
             }
         }
+        if (appSettings->contains("dialogFFGLEffectGeometry"))
+            restoreGeometry(appSettings->value("dialogFFGLEffectGeometry").toByteArray());
     }
 }
 
@@ -105,6 +107,7 @@ void FFGLEffectSelectionDialog::done(int r){
         for ( int i = 1; i < ui->freeframeFileList->count(); ++i )
             l.append(ui->freeframeFileList->itemData(i).toString());
         appSettings->setValue("recentFFGLEffectList", l);
+        appSettings->setValue("dialogFFGLEffectGeometry", saveGeometry());
     }
 
     if (r == QDialog::Rejected )

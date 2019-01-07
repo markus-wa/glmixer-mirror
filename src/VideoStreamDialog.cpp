@@ -24,6 +24,8 @@ VideoStreamDialog::VideoStreamDialog(QWidget *parent, QSettings *settings) :
     if (appSettings) {
         if (appSettings->contains("VideoStreamURL"))
             ui->URL->setText(appSettings->value("VideoStreamURL").toString());
+        if (appSettings->contains("dialogStreamGeometry"))
+            restoreGeometry(appSettings->value("dialogStreamGeometry").toByteArray());
     }
 }
 
@@ -57,10 +59,10 @@ QString VideoStreamDialog::getFormat() {
     QString format = "";
 
     // Selected UDP
-    if (ui->UDPStream->isChecked()) 
+    if (ui->UDPStream->isChecked())
         format = "mpegts";
     // Selected RTP
-    else if (ui->RTPStream->isChecked()) 
+    else if (ui->RTPStream->isChecked())
         format = "rtp_mpegts";
 
     return format;
@@ -81,6 +83,7 @@ void VideoStreamDialog::done(int r){
     // save settings
     if (appSettings) {
         appSettings->setValue("VideoStreamURL", getUrl());
+        appSettings->setValue("dialogStreamGeometry", saveGeometry());
     }
 
     QDialog::done(r);

@@ -27,6 +27,8 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
         }
 
         ui->webUrlEdit->setText( appSettings->value("recentWebUrl", "https://sourceforge.net/projects/glmixer").toString() );
+        if (appSettings->contains("dialogWebGeometry"))
+            restoreGeometry(appSettings->value("dialogWebGeometry").toByteArray());
     }
 
 }
@@ -64,6 +66,7 @@ void WebSourceCreationDialog::done(int r){
         appSettings->setValue("recentHtmlPageList", l);
 
         appSettings->setValue("recentWebUrl", ui->webUrlEdit->text());
+        appSettings->setValue("dialogWebGeometry", saveGeometry());
     }
 
 

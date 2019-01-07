@@ -1699,8 +1699,12 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
     // popup a question dialog to select the type of algorithm
     static AlgorithmSelectionDialog *asd = 0;
-    if (!asd)
+    if (!asd) {
         asd = new AlgorithmSelectionDialog(this);
+        // restore status
+        if (settings.contains("dialogAlgorithmGeometry"))
+            asd->restoreGeometry(settings.value("dialogAlgorithmGeometry").toByteArray());
+    }
 
     if (asd->exec() == QDialog::Accepted) {
         Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
@@ -1716,6 +1720,9 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
         } else
             qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) <<  QChar(124).toLatin1() << tr("Could not create algorithm source.");
     }
+
+    // remember status
+    settings.setValue("dialogAlgorithmGeometry", asd->saveGeometry());
 }
 
 
@@ -1723,21 +1730,26 @@ void GLMixer::on_actionRenderingSource_triggered(){
 
     // popup a question dialog to select the type of rendering source
     static RenderingSourceDialog *rsd = 0;
-    if (!rsd)
+    if (!rsd) {
         rsd = new RenderingSourceDialog(this);
-
+        // restore status
+        if (settings.contains("dialogRenderingGeometry"))
+            rsd->restoreGeometry(settings.value("dialogRenderingGeometry").toByteArray());
+    }
 
     if (rsd->exec() == QDialog::Accepted) {
 
-        Source *s = RenderingManager::getInstance()->newRenderingSource( rsd->getRecursive());
+        Source *s = RenderingManager::getInstance()->newRenderingSource(rsd->getRecursive());
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
             emit status( tr("Source created with the rendering output loopback."), 3000 );
         } else
             qCritical() << tr("Could not create rendering loopback source.");
-
     }
+
+    // remember status
+    settings.setValue("dialogRenderingGeometry", rsd->saveGeometry());
 
 }
 
@@ -1844,14 +1856,20 @@ void GLMixer::on_actionEditSource_triggered()
 
         // edit mean show the dialog to change source
         SourceFileEditDialog sed(this, *cs, tr("%1 - Source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
+        // restore status
+        if (settings.contains("dialogEditSourceGeometry"))
+            sed.restoreGeometry(settings.value("dialogEditSourceGeometry").toByteArray());
 
+        // open
         if (sed.exec() == QDialog::Rejected) {
             // requet to re-create source
             replaceCurrentSource();
         }
+        // remember status
+        settings.setValue("dialogEditSourceGeometry", sed.saveGeometry());
+
         // update the property browser of the source
         connectSource(RenderingManager::getInstance()->getCurrentSource());
-
     }
 }
 

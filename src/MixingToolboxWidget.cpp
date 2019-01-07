@@ -503,12 +503,21 @@ void MixingToolboxWidget::on_blendingBox_currentIndexChanged(int value)
 
 void MixingToolboxWidget::on_blendingCustomButton_pressed(){
 
+    // new widget everytime, because its a new source each time
     CustomBlendingWidget cbw(this, source);
+
+    // restore status
+    if (appSettings && appSettings->contains("dialogBlendingCustomGeometry"))
+        cbw.restoreGeometry(appSettings->value("dialogBlendingCustomGeometry").toByteArray());
 
     if (cbw.exec() == QDialog::Accepted) {
         emit(enumChanged("Equation", cbw.equationBox->currentIndex()));
         emit(enumChanged("Destination", cbw.functionBox->currentIndex()));
     }
+
+    // remember status
+    if (appSettings)
+        appSettings->setValue("dialogBlendingCustomGeometry", cbw.saveGeometry());
 }
 
 void MixingToolboxWidget::on_blendingPixelatedButton_toggled(bool value){

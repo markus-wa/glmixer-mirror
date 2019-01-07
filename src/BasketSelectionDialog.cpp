@@ -384,6 +384,11 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
 
     // error handling
     connect(basket, SIGNAL(unsupportedFilesDropped(QStringList)), SLOT(errorLoadingFiles(QStringList)));
+
+    if (appSettings) {
+        if (appSettings->contains("dialogBasketGeometry"))
+            restoreGeometry(appSettings->value("dialogBasketGeometry").toByteArray());
+    }
 }
 
 BasketSelectionDialog::~BasketSelectionDialog()
@@ -456,6 +461,11 @@ void BasketSelectionDialog::done(int r){
         // delete the source:
         delete s;
         s = NULL;
+    }
+
+    // save settings
+    if (appSettings) {
+        appSettings->setValue("dialogBasketGeometry", saveGeometry());
     }
 
     QDialog::done(r);

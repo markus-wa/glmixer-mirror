@@ -75,6 +75,8 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
                 ui->shadertoyFileList->addItem(codefile.fileName(), codefile.absoluteFilePath());
             }
         }
+        if (appSettings->contains("dialogFFGLSourceGeometry"))
+            restoreGeometry(appSettings->value("dialogFFGLSourceGeometry").toByteArray());
     }
 
 }
@@ -121,6 +123,7 @@ void FFGLSourceCreationDialog::done(int r){
             l.append(ui->shadertoyFileList->itemData(i).toString());
         appSettings->setValue("recentShadertoyCodeList", l);
         appSettings->setValue("recentFFGLPluginSelection", getUserSelection());
+        appSettings->setValue("dialogFFGLSourceGeometry", saveGeometry());
     }
 
     QDialog::done(r);
