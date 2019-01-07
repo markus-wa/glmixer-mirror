@@ -593,6 +593,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
     }
     else if ( property == idToProperty["FixedAspectRatio"] ) {
         currentItem->setFixedAspectRatio(value);
+        RenderingManager::getInstance()->updateCurrentSource();
     }
     else if ( property == idToProperty["ChromaKey"] ) {
         currentItem->setChromaKey(value);

@@ -425,7 +425,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // tag menu for source context menu
     QAction *tagsmenu = currentSourceMenu->insertMenu(menuSendToWorkspace->menuAction(), tagsManager->getTagsMenu());
-    tagsmenu->setText(tr("Apply color"));
+    tagsmenu->setText(tr("Color"));
 
 #endif
 
@@ -1002,6 +1002,7 @@ void GLMixer::setView(QAction *a){
     toolsToolBar->setEnabled(a != actionRenderingView);
     actionToolScale->setEnabled( a != actionLayersView);
     actionToolRotate->setEnabled( a != actionLayersView);
+    menuAspect_Ratio->menuAction()->setVisible(a == actionGeometryView);
 
     // get back the proper tool from former usage
     switch ( RenderingManager::getRenderingWidget()->getToolMode() ){

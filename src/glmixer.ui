@@ -1829,7 +1829,7 @@ QToolButton:hover {
        <bool>true</bool>
       </property>
       <property name="title">
-       <string>To &amp;Workspace..</string>
+       <string>&amp;Workspace</string>
       </property>
       <property name="icon">
        <iconset resource="../icons.qrc">
@@ -1839,12 +1839,12 @@ QToolButton:hover {
      </widget>
      <addaction name="actionEditSource"/>
      <addaction name="actionCloneSource"/>
-     <addaction name="actionZoomCurrentSource"/>
-     <addaction name="actionSelectCurrent"/>
-     <addaction name="menuSendToWorkspace"/>
-     <addaction name="menuAspect_Ratio"/>
      <addaction name="actionResetSource"/>
      <addaction name="actionDeleteSource"/>
+     <addaction name="menuAspect_Ratio"/>
+     <addaction name="separator"/>
+     <addaction name="actionZoomCurrentSource"/>
+     <addaction name="menuSendToWorkspace"/>
     </widget>
     <addaction name="actionNewSource"/>
     <addaction name="actionMediaSource"/>
@@ -4193,7 +4193,7 @@ QToolButton:hover {
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -5296,7 +5296,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/current.png</normaloff>:/glmixer/icons/current.png</iconset>
    </property>
    <property name="text">
-    <string>Get &amp;Info</string>
+    <string>Get info</string>
    </property>
    <property name="toolTip">
     <string>Informations on current source</string>
@@ -5757,6 +5757,7 @@ QToolButton:hover {
  <resources>
   <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../../../.designer/icons.qrc"/>
  </resources>
  <connections>
   <connection>
