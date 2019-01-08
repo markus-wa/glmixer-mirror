@@ -104,7 +104,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
                 int nh = (int)( float(w) / windowAspectRatio);
                 rx = 0;
                 ry = (h - nh);
-                rw = w;
+                rw = w; 
                 rh = h;
 
             } else {

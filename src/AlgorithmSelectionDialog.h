@@ -27,6 +27,8 @@
 #define ALGORITHMSELECTIONDIALOG_H_
 
 #include <QDialog>
+#include <QSettings>
+
 #include "ui_AlgorithmSelectionDialog.h"
 
 class AlgorithmSource;
@@ -37,7 +39,7 @@ class AlgorithmSelectionDialog  : public QDialog, Ui::AlgorithmSelectionDialog
     Q_OBJECT
 
 public:
-    AlgorithmSelectionDialog(QWidget *parent = 0);
+    AlgorithmSelectionDialog(QWidget *parent = 0, QSettings *settings = 0);
     virtual ~AlgorithmSelectionDialog();
 
     int getSelectedAlgorithmIndex();
@@ -66,7 +68,7 @@ protected:
 
 private:
     AlgorithmSource *s;
-
+    QSettings *appSettings;
 
 };
 

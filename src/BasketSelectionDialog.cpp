@@ -369,6 +369,13 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     ui->basket->setSizePolicy(sizePolicy);
     ui->leftLayout->insertWidget(1, ui->basket);
 
+    if (appSettings) {
+        if (appSettings->contains("dialogBasketGeometry"))
+            restoreGeometry(appSettings->value("dialogBasketGeometry").toByteArray());
+        // size selection : default to 1024x768
+        ui->sizeselection->setPreset(appSettings->value("dialogBasketSizePreset", "14").toInt());
+    }
+
     // refresh of preview source
     connect(basket, SIGNAL(changed(int)), SLOT(updateSourcePreview()));
     connect(ui->sizeselection, SIGNAL(sizeChanged()), SLOT(updateSourcePreview()));
@@ -385,10 +392,6 @@ BasketSelectionDialog::BasketSelectionDialog(QWidget *parent, QSettings *setting
     // error handling
     connect(basket, SIGNAL(unsupportedFilesDropped(QStringList)), SLOT(errorLoadingFiles(QStringList)));
 
-    if (appSettings) {
-        if (appSettings->contains("dialogBasketGeometry"))
-            restoreGeometry(appSettings->value("dialogBasketGeometry").toByteArray());
-    }
 }
 
 BasketSelectionDialog::~BasketSelectionDialog()
@@ -466,6 +469,7 @@ void BasketSelectionDialog::done(int r){
     // save settings
     if (appSettings) {
         appSettings->setValue("dialogBasketGeometry", saveGeometry());
+        appSettings->setValue("dialogBasketSizePreset", ui->sizeselection->getPreset());
     }
 
     QDialog::done(r);

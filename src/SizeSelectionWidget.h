@@ -15,9 +15,11 @@ public:
     explicit SizeSelectionWidget(QWidget *parent = 0);
     ~SizeSelectionWidget();
 
-    int getWidth();
-    int getHeight();
+    int getWidth() const;
+    int getHeight() const;
+    
     void setPreset(int preset);
+    int getPreset() const;
 
 signals:
     void widthChanged(int);

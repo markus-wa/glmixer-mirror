@@ -1699,15 +1699,16 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
     // popup a question dialog to select the type of algorithm
     static AlgorithmSelectionDialog *asd = 0;
-    if (!asd) {
-        asd = new AlgorithmSelectionDialog(this);
-        // restore status
-        if (settings.contains("dialogAlgorithmGeometry"))
-            asd->restoreGeometry(settings.value("dialogAlgorithmGeometry").toByteArray());
-    }
+    if (!asd) 
+        asd = new AlgorithmSelectionDialog(this, &settings);
 
     if (asd->exec() == QDialog::Accepted) {
-        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
+        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), 
+                                                                        asd->getSelectedWidth(), 
+                                                                        asd->getSelectedHeight(), 
+                                                                        asd->getSelectedVariability(), 
+                                                                        asd->getUpdatePeriod(), 
+                                                                        asd->getIngoreAlpha());
         if ( s ){
             // add and set default properties
             RenderingManager::getInstance()->addSourceToBasket(s);
@@ -1721,8 +1722,6 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
             qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) <<  QChar(124).toLatin1() << tr("Could not create algorithm source.");
     }
 
-    // remember status
-    settings.setValue("dialogAlgorithmGeometry", asd->saveGeometry());
 }
 
 

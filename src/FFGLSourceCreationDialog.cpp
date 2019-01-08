@@ -77,18 +77,18 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
         }
         if (appSettings->contains("dialogFFGLSourceGeometry"))
             restoreGeometry(appSettings->value("dialogFFGLSourceGeometry").toByteArray());
+        
+        // size selection : default to 1024x768
+        ui->sizeselection->setPreset(appSettings->value("dialogFFGLSourceSizePreset", "14").toInt());
     }
 
 }
-
 
 FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 {
     if (s) delete s;
     delete ui;
-
 }
-
 
 void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
@@ -124,6 +124,7 @@ void FFGLSourceCreationDialog::done(int r){
         appSettings->setValue("recentShadertoyCodeList", l);
         appSettings->setValue("recentFFGLPluginSelection", getUserSelection());
         appSettings->setValue("dialogFFGLSourceGeometry", saveGeometry());
+        appSettings->setValue("dialogFFGLSourceSizePreset", ui->sizeselection->getPreset());
     }
 
     QDialog::done(r);

@@ -37,18 +37,22 @@ SizeSelectionWidget::~SizeSelectionWidget()
     delete ui;
 }
 
-int SizeSelectionWidget::getWidth()
+int SizeSelectionWidget::getWidth() const
 {
     return ui->widthSpinBox->value();
 }
 
-int SizeSelectionWidget::getHeight()
+int SizeSelectionWidget::getHeight() const
 {
     return ui->heightSpinBox->value();
 }
 
 void SizeSelectionWidget::setPreset(int preset){
     ui->presetsSizeComboBox->setCurrentIndex(preset);
+}
+
+int SizeSelectionWidget::getPreset() const {
+    return ui->presetsSizeComboBox->currentIndex();
 }
 
 void SizeSelectionWidget::setSizePreset(int preset){

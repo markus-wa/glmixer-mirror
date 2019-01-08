@@ -29,6 +29,8 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
         ui->webUrlEdit->setText( appSettings->value("recentWebUrl", "https://sourceforge.net/projects/glmixer").toString() );
         if (appSettings->contains("dialogWebGeometry"))
             restoreGeometry(appSettings->value("dialogWebGeometry").toByteArray());
+        // size selection : default to 1024x768
+        ui->sizeselection->setPreset(appSettings->value("dialogWebSizePreset", "14").toInt());
     }
 
 }
@@ -67,8 +69,8 @@ void WebSourceCreationDialog::done(int r){
 
         appSettings->setValue("recentWebUrl", ui->webUrlEdit->text());
         appSettings->setValue("dialogWebGeometry", saveGeometry());
+        appSettings->setValue("dialogWebSizePreset", ui->sizeselection->getPreset());
     }
-
 
     QDialog::done(r);
 }

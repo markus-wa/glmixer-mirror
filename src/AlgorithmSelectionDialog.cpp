@@ -30,7 +30,9 @@
 #include "SizeSelectionWidget.h"
 
 
-AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0)
+AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent, QSettings *settings) : 
+    QDialog(parent), 
+    s(NULL), appSettings(settings)
 {
     setupUi(this);
 
@@ -39,9 +41,16 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     for (int i = 0; i < AlgorithmSource::NONE; ++i)
         AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
 
-    // default to 64x64
-    sizeselection->setPreset(3);
-
+    // restore settings
+    if (appSettings) {
+        if (appSettings->contains("dialogAlgorithmGeometry"))
+            restoreGeometry(appSettings->value("dialogAlgorithmGeometry").toByteArray());
+        // size selection : default to 16x16
+        sizeselection->setPreset(appSettings->value("dialogAlgorithmSizePreset", "3").toInt());
+   } 
+   else
+        sizeselection->setPreset(3);
+   
     // update on size change
     QObject::connect(sizeselection, SIGNAL(sizeChanged()), this, SLOT(updateSourcePreview()));
 
@@ -67,6 +76,13 @@ void AlgorithmSelectionDialog::done(int r){
         delete s;
         s = 0;
     }
+
+    // save settings
+    if (appSettings) {
+        appSettings->setValue("dialogAlgorithmGeometry", saveGeometry());
+        appSettings->setValue("dialogAlgorithmSizePreset", sizeselection->getPreset());
+    }
+
     QDialog::done(r);
 }
 
