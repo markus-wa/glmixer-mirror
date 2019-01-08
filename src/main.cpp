@@ -311,6 +311,7 @@ int main(int argc, char **argv)
     splash.showMessage(QString("r%1 (%2)").arg(GLMIXER_REVISION).arg(COMPILE_YEAR));
 #endif
     splash.show();
+    splash.raise();
     a.processEvents();
 
 //    QTranslator translator;// TODO
@@ -355,6 +356,8 @@ int main(int argc, char **argv)
     OutputRenderWindow::getInstance()->show();
     a.processEvents();
 
+    // Show the GUI in front
+    GLMixer::getInstance()->show();
 
     //
     // 4. load eventual session file provided in argument or restore last session
@@ -363,11 +366,9 @@ int main(int argc, char **argv)
         a.setFilenameToOpen( GLMixer::getInstance()->getRestorelastSessionFilename() );
     a.requestOpenFile();
 
-    // Show the GUI in front
-    GLMixer::getInstance()->show();
-
     // all done
     splash.finish(GLMixer::getInstance());
+    GLMixer::getInstance()->raise();
 
     // start application loop
     returnvalue = a.exec();
