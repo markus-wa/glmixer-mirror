@@ -518,12 +518,12 @@ void RenderingEncoder::addFrame(uint8_t *data){
         return;
     }
 
-    if (data) 
+    if (data)
         // read the pixels from the given buffer and store into the temporary buffer queue
         memmove( buf->data, data, qMin( buf->size, encoder->getFrameWidth() * encoder->getFrameHeight() * 3) );
     else {
         // read the pixels from the texture
-        if (RenderingManager::useGetTextureExtension()) 
+        if (RenderingManager::useGetTextureExtension())
             glGetTextureSubImage( RenderingManager::getInstance()->getFrameBufferTexture(), 0, 0, 0, 0, encoder->getFrameWidth(), encoder->getFrameHeight(), 1, GL_RGB, GL_UNSIGNED_BYTE, buf->size, buf->data);
         else {
             glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
@@ -576,7 +576,7 @@ void RenderingEncoder::close(bool success){
 
     // inform we are off
     started = false;
-    emit selectAspectRatio(ASPECT_RATIO_FREE);
+    emit selectAspectRatio(ASPECT_RATIO_ANY);
     emit activated(false);
     emit timing( "" );
 

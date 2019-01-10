@@ -50,7 +50,7 @@ public slots:
     void setRecursiveFolder(bool);
     void setViewSimplified(bool);
 
-    void fileChanged(const QString &filename);
+    void updateAndSelectFile(const QString &filename);
     void sessionNameChanged(QStandardItem *item);
     void sortingChanged(int, Qt::SortOrder);
     void openSession();
@@ -73,7 +73,7 @@ public slots:
     void saveSettings();
     void restoreSettings();
 
-    void setAllowedAspectRatio(const standardAspectRatio ar);
+    void enableOnlyRenderingAspectRatio(bool);
     void restoreTransition();
     void restoreFolderView();
 
@@ -87,12 +87,12 @@ signals:
 protected:
 
     void showEvent(QShowEvent *);
+    QStandardItem *selectFile(const QString &filename);
 
 private:
 
     // folder and list of sessions
     QStandardItemModel *folderModel;
-//    QSortFilterProxyModel *proxyFolderModel;
     QTreeView *proxyView;
     QMutex folderModelAccesslock;
 

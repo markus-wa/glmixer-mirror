@@ -37,7 +37,7 @@ QString stringFromAspectRatio(standardAspectRatio ar){
     QString aspectRatio;
 
     switch(ar) {
-    case ASPECT_RATIO_FREE:
+    case ASPECT_RATIO_ANY:
         aspectRatio = "free";
         break;
     case ASPECT_RATIO_16_10:
@@ -190,7 +190,8 @@ FolderModelFiller::FolderModelFiller(QObject *parent, QStandardItemModel *m, QSt
 
 
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
-    appSettings(settings), m_iconSize(48,48), nextSessionSelected(false), suspended(false), recursive(false)
+    appSettings(settings), m_iconSize(48,48), nextSessionSelected(false), suspended(false), recursive(false),
+    allowedAspectRatio(ASPECT_RATIO_ANY)
 {
     QGridLayout *g;
 
@@ -393,12 +394,17 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     prevButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
     prevButton->setToolTip(tr("Open previous session in list."));
     prevButton->setIconSize(QSize(24, 24));
+    QPushButton *closeButton = new QPushButton(QIcon(":/glmixer/icons/fileclose.png"), "", this);
+    closeButton->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
+    closeButton->setToolTip(tr("Close session."));
+    closeButton->setIconSize(QSize(24, 24));
 
     controlBox = new QWidget(this);
     g = new QGridLayout(this);
     g->setContentsMargins(0, 0, 0, 0);
     g->addWidget(prevButton, 0, 0);
     g->addWidget(nextButton, 0, 1);
+    g->addWidget(closeButton, 0, 3);
     controlBox->setLayout(g);
     controlBox->setVisible(false);
 
@@ -406,7 +412,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      * global layout
      */
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setContentsMargins(6, 6, 6, 6);
     mainLayout->addWidget(controlBox);
     mainLayout->addWidget(transitionBox);
     mainLayout->addWidget(proxyView);
@@ -428,6 +434,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(transitionTab, SIGNAL(currentChanged(int)), SLOT(setTransitionMode(int)));
     connect(nextButton, SIGNAL(clicked()), SLOT(startTransitionToNextSession()));
     connect(prevButton, SIGNAL(clicked()), SLOT(startTransitionToPreviousSession()));
+    connect(closeButton, SIGNAL(clicked()), parent, SLOT(on_actionClose_Session_triggered()));
     connect(proxyView->header(), SIGNAL(sortIndicatorChanged(int, Qt::SortOrder)), SLOT(sortingChanged(int, Qt::SortOrder)));
 
 }
@@ -475,14 +482,18 @@ void SessionSwitcherWidget::setRecursiveFolder(bool on)
 
 void SessionSwitcherWidget::setViewSimplified(bool on)
 {
+    // only 2 columns
     proxyView->setHeaderHidden(on);
     proxyView->header()->setSectionHidden(1, on );
-    proxyView->header()->setSectionHidden(2, on );
     proxyView->header()->setSectionHidden(3, on );
 
+    // no extra widgets, not possible to change folder
     controlBox->setVisible(on);
     transitionBox->setHidden(on);
     folderBox->setHidden(on);
+
+    // in performance mode, we do not want glitches in rendering
+    RenderingManager::getInstance()->lockAspectRatio(on);
 }
 
 void SessionSwitcherWidget::openSession()
@@ -586,54 +597,70 @@ void SessionSwitcherWidget::sessionNameChanged( QStandardItem * item )
     proxyView->sortByColumn(sortingColumn, sortingOrder);
 }
 
-void SessionSwitcherWidget::fileChanged(const QString & filename )
+
+QStandardItem *SessionSwitcherWidget::selectFile(const QString &filename )
+{
+    QFileInfo fileinfo(filename);
+
+    // look for item in the list with this name
+    QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
+
+    // loop over the list of items with the given name
+    QModelIndex index;
+    QStandardItem *item = NULL;
+    while( !items.isEmpty() ){
+        item = items.takeFirst();
+        index = item->index();
+
+        // stop if we found an item with the same complete filename
+        if ( index.isValid() && fileinfo.absoluteFilePath() == folderModel->data(index, Qt::UserRole).toString() )
+            break;
+    }
+
+    // restore selection in tree view
+    if (index.isValid())
+        proxyView->setCurrentIndex( index );
+    else
+        item = NULL;
+
+    return item;
+}
+
+void SessionSwitcherWidget::updateAndSelectFile(const QString &filename )
 {
     QFileInfo fileinfo(filename);
 
     if ( fileinfo.exists() && fileinfo.isFile() ) {
 
-        // the folder is already the good one, change only the file item
-        if (folderModelAccesslock.tryLock(100)) {
+        // look for item in the list
+        QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
 
-            // look for item in the list
-            QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
+        // if couldn't find file in the list,
+        if (items.isEmpty()) {
+            // done with folder Model
+            folderModelAccesslock.unlock();
+            // try loading the folder
+            openFolder(fileinfo.absolutePath());
+        }
+        // else, select amd update fields for file
+        else {
 
-            // if couldn't find file in the list,
-            if (items.isEmpty()) {
-                // done with folder Model
-                folderModelAccesslock.unlock();
-                // try loading the folder
-                openFolder(fileinfo.absolutePath());
-            }
-            // else, update modified fields for all files found
-            else {
+            // select and get the item with the same complete file name
+            QStandardItem *item = selectFile(fileinfo.absoluteFilePath());
 
-                // loop over the list of items with the given name
-                QModelIndex index;
-                QStandardItem *item = NULL;
-                while( !items.isEmpty()){
-                    item = items.takeFirst();
-                    index = item->index();
+            if (item && folderModelAccesslock.tryLock(100)) {
 
-                    // if we found an item with the same filename and path
-                    if ( index.isValid() && fileinfo.absoluteFilePath() == folderModel->data(index, Qt::UserRole).toString() ) {
+                // update the item data
+                if ( !fillItemData(folderModel, item->row(), fileinfo) )
+                    qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1()
+                               << tr("Ignoring invalid glm file.");
 
-                        // update the item data
-                        if ( !fillItemData(folderModel, item->row(), fileinfo) )
-                            qWarning() << fileinfo.absoluteFilePath() << QChar(124).toLatin1()
-                                       << tr("Ignoring invalid glm file.");
-
-                        break;
-                    }
-                }
-
-                // done with folder Model
                 folderModelAccesslock.unlock();
 
-                // restore selection in tree view
-                if (index.isValid())
-                    proxyView->setCurrentIndex( index );
+                // order might have changed
+                proxyView->sortByColumn(sortingColumn, sortingOrder);
             }
+
         }
     }
     else
@@ -682,6 +709,9 @@ void SessionSwitcherWidget::restoreFolderView()
 
     // restore availability
     folderModelAccesslock.unlock();
+
+    // reselect file
+    selectFile( GLMixer::getInstance()->getCurrentSessionFilename() );
 
     // inform user
     qDebug() << folderHistory->currentText() << QChar(124).toLatin1() << tr("Session switcher ready with %1 session files.").arg(folderModel->rowCount());
@@ -760,11 +790,19 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 void SessionSwitcherWidget::startTransitionToNextSession()
 {
     QModelIndex index = proxyView->currentIndex();
+
+    // go to next
     if (index.isValid())
         index = proxyView->indexBelow(index);
+    // no item selected : start from first
     else
         index = folderModel->item(0)->index();
 
+    // go to the next enabled session
+    while ( index.isValid() && !(folderModel->flags(index) & Qt::ItemIsEnabled) )
+        index = proxyView->indexBelow(index);
+
+    // trigger transition
     if (index.isValid()) {
         startTransitionToSession(index);
         proxyView->setCurrentIndex(index);
@@ -774,11 +812,19 @@ void SessionSwitcherWidget::startTransitionToNextSession()
 void SessionSwitcherWidget::startTransitionToPreviousSession()
 {
     QModelIndex index = proxyView->currentIndex();
+
+    // go to previous
     if (index.isValid())
         index = proxyView->indexAbove(index);
+    // no item selected : start from last
     else
-        index = folderModel->item(0)->index();
+        index = folderModel->item(folderModel->rowCount()-1)->index() ;
 
+    // go to the previous enabled session
+    while ( index.isValid() && !(folderModel->flags(index) & Qt::ItemIsEnabled) )
+        index = proxyView->indexAbove(index);
+
+    // trigger transition
     if (index.isValid()) {
         startTransitionToSession(index);
         proxyView->setCurrentIndex(index);
@@ -1012,30 +1058,37 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
 
 
 
-void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
+void SessionSwitcherWidget::enableOnlyRenderingAspectRatio(bool on)
 {
+    standardAspectRatio ar = RenderingManager::getInstance()->getLockedAspectRatio();
+
+    if (allowedAspectRatio == ar)
+        return;
+
+    allowedAspectRatio = ar;
+
+    // limit list of sessions available
     if (folderModelAccesslock.tryLock(100)) {
 
         // quick redisplay of folder list
         for (int r = 0; r < folderModel->rowCount(); ++r )
         {
-            // items are always selectable
-            Qt::ItemFlags flags = Qt::ItemIsSelectable;
             // read aspect ratio of item
             standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
             // disable items which are not in the given aspect ratio
-            if (ar == ASPECT_RATIO_FREE || sar == ar)
-                flags |= Qt::ItemIsEnabled;
+            bool enableditem = (ar == ASPECT_RATIO_ANY) || (sar == ar);
             // apply flag
-            folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);
-            folderModel->itemFromIndex(folderModel->index(r, 1))->setFlags (flags);
-            folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);
-            folderModel->itemFromIndex(folderModel->index(r, 3))->setFlags (flags);
+            folderModel->item(r, 0)->setEnabled(enableditem);
+            folderModel->item(r, 1)->setEnabled(enableditem);
+            folderModel->item(r, 2)->setEnabled(enableditem);
+            folderModel->item(r, 3)->setEnabled(enableditem);
         }
 
         folderModelAccesslock.unlock();
     }
 
+    // limit possibilities for changing folder
+    folderBox->setDisabled( on );
 }
 
 
@@ -1179,7 +1232,12 @@ void SessionSwitcherWidget::ctxMenu(const QPoint &pos)
 
 void SessionSwitcherWidget::showEvent(QShowEvent *e){
 
-    reloadFolder();
+    static bool initialized = false;
+
+    if (!initialized) {
+        reloadFolder();
+        initialized = true;
+    }
 
     QWidget::showEvent(e);
 }

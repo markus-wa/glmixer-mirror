@@ -88,7 +88,7 @@ bool RenderingManager::pbo_extension = true;
 bool RenderingManager::get_texture_extension = true;
 
 // see https://en.wikipedia.org/wiki/Graphics_display_resolution
-QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = {
+QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_ANY][QUALITY_UNSUPPORTED] = {
     { QSize(1024,768), QSize(1280,960), QSize(1600,1200), QSize(2048,1536), QSize(2560,1920), QSize(3200,2400) },
     { QSize(960,640), QSize(1280,864), QSize(1920,1280), QSize(2160,1440), QSize(2880,1920), QSize(3240,2160) },
     { QSize(1024,640), QSize(1280,800), QSize(1920,1200), QSize(2048,1280), QSize(2560,1600), QSize(3840,2400) },
@@ -270,8 +270,11 @@ void RenderingManager::resetFrameBuffer()
     _fbo = NULL;
 }
 
-void RenderingManager::setRenderingQuality(frameBufferQuality q)
+bool RenderingManager::setRenderingQuality(frameBufferQuality q)
 {
+    if (_lockAspectRatio)
+        return false;
+
     // by default, revert to lower resolution
     if ( q == QUALITY_UNSUPPORTED )
         q = QUALITY_HD;
@@ -282,12 +285,18 @@ void RenderingManager::setRenderingQuality(frameBufferQuality q)
 
     // quality changed
     renderingQuality = q;
+
+    // success
+    return true;
 }
 
-void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
+bool RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 {
+    if (_lockAspectRatio)
+        return false;
+
     // by default, free windows are rendered with a 4:3 aspect ratio frame bufer
-    if (ar == ASPECT_RATIO_FREE)
+    if (ar == ASPECT_RATIO_ANY)
         ar = ASPECT_RATIO_4_3;
 
     // request update of frame buffer only if changed
@@ -296,7 +305,26 @@ void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 
     // aspect ratio changed
     renderingAspectRatio = ar;
+
+    // success
+    return true;
 }
+
+void RenderingManager::lockAspectRatio(bool on)
+{
+    _lockAspectRatio = on;
+    emit aspectRatioLocked(on);
+}
+
+standardAspectRatio RenderingManager::getLockedAspectRatio() const
+{
+    // for loading sessions, we shall test that the aspect ratio matches in case it is locked
+    if (_lockAspectRatio)
+        return renderingAspectRatio;
+    else
+        return ASPECT_RATIO_ANY;
+}
+
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
 
@@ -2762,7 +2790,7 @@ standardAspectRatio doubleToAspectRatio(double ar)
     else if ( ABS(ar - (16.0 / 10.0) ) < EPSILON )
         return ASPECT_RATIO_16_10;
     else
-        return ASPECT_RATIO_FREE;
+        return ASPECT_RATIO_ANY;
 }
 
 void RenderingManager::pause(bool on)

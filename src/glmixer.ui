@@ -1740,15 +1740,7 @@ QToolButton:hover {
      <property name="title">
       <string>&amp;Widgets &amp;&amp; Toolbars</string>
      </property>
-     <widget class="QMenu" name="menuLayout">
-      <property name="title">
-       <string>&amp;Layout</string>
-      </property>
-      <addaction name="actionResetToolbars"/>
-      <addaction name="actionMinimalToolbars"/>
-      <addaction name="actionExtendedToolbars"/>
-     </widget>
-     <addaction name="menuLayout"/>
+     <addaction name="actionResetToolbars"/>
      <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuWorkspace">
@@ -3324,17 +3316,8 @@ QToolButton:hover {
      <property name="spacing">
       <number>3</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
-      <number>6</number>
+     <property name="margin">
+      <number>0</number>
      </property>
     </layout>
    </widget>
@@ -5757,7 +5740,7 @@ QToolButton:hover {
  <resources>
   <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
-  <include location="../../../.designer/icons.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -53,7 +53,7 @@ typedef enum {
     ASPECT_RATIO_3_2,
     ASPECT_RATIO_16_10,
     ASPECT_RATIO_16_9,
-    ASPECT_RATIO_FREE
+    ASPECT_RATIO_ANY
 } standardAspectRatio;
 
 standardAspectRatio doubleToAspectRatio(double ar);
@@ -177,15 +177,16 @@ public:
     void sourceRenderToFrameBuffer(Source *source);
     void postRenderToFrameBuffer();
 
-    void setRenderingQuality(frameBufferQuality q);
+    bool setRenderingQuality(frameBufferQuality q);
     inline frameBufferQuality getRenderingQuality() const {
         return renderingQuality;
     }
 
-    void setRenderingAspectRatio(standardAspectRatio ar);
+    bool setRenderingAspectRatio(standardAspectRatio ar);
     standardAspectRatio getRenderingAspectRatio() const {
         return renderingAspectRatio;
     }
+    standardAspectRatio getLockedAspectRatio() const;
 
     double getFrameBufferAspectRatio() const;
     inline QSize getFrameBufferResolution() const {
@@ -272,6 +273,7 @@ public slots:
     bool setWorkspaceCurrentSource(int w = WORKSPACE_MAX);
     void setWorkspaceCount(int);
     void setWorkspaceAllSources();
+    void lockAspectRatio(bool);
 
     void dropSource();
     void dropSourceWithAlpha(double alphax, double alphay);
@@ -293,6 +295,7 @@ signals:
     void methodCalled(QString);
     void sourceDropped(Source *);
     void countSourceChanged(int count);
+    void aspectRatioLocked(bool);
 #ifdef GLM_SPOUT
     void spoutSharingEnabled(bool on);
 #endif
@@ -322,6 +325,7 @@ protected:
     bool clearWhite;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
+    bool _lockAspectRatio;
     QTime _displayTime;
     int _elapsedTime;
 
@@ -353,7 +357,7 @@ protected:
 #endif
 
     static bool blit_fbo_extension, pbo_extension, get_texture_extension;
-    static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];
+    static QSize sizeOfFrameBuffer[ASPECT_RATIO_ANY][QUALITY_UNSUPPORTED];
 };
 
 #endif /* RENDERINGMANAGER_H_ */

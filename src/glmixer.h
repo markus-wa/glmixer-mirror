@@ -99,8 +99,6 @@ public slots:
     void on_actionSelect_Next_triggered();
     void on_actionSelect_Previous_triggered();
     void on_actionResetToolbars_triggered();
-    void on_actionMinimalToolbars_triggered();
-    void on_actionExtendedToolbars_triggered();
     void on_controlOptionsButton_clicked();
     void on_actionSave_snapshot_triggered();
     void on_actionCopy_snapshot_triggered();
@@ -165,6 +163,8 @@ public slots:
 
     // timer display
     void setDisplayTimeEnabled(bool on);
+    // performance mode
+    void setPerformanceModeEnabled(bool on);
 
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
@@ -186,13 +186,14 @@ public slots:
 
 signals:
     void sessionLoaded();
+    void filenameChanged(const QString &);
     void keyPressed(int, bool);
     void status(QString, int);
 
 protected:
     void closeEvent(QCloseEvent * event);
     void restorePreferences(const QByteArray & state);
-    void selectAspectRatio(int);
+    bool selectAspectRatio(int);
     QByteArray getPreferences() const;
 
 private:

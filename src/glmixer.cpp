@@ -128,13 +128,10 @@ LoggingWidget *GLMixer::logsWidget = 0;
 #endif
 
 QByteArray static_windowstate =
-QByteArray::fromHex("000000ff00000000fd00000003000000000000011c000002f0fc0200000003fb0000002200700072006500760069006500770044006f0063006b005700690064006700650074010000003e0000011f000000d500fffffffc00000163000001cb000000dc00fffffffa000000000100000002fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000fe00fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff0000004f00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef00000184000000010000010a000002f0fc0200000005fc0000003e000000aa000000aa00fffffffa000000000100000002fb0000001c00740061006700730044006f0063006b0057006900640067006500740100000000ffffffff0000007200fffffffb000000200063007500720073006f00720044006f0063006b0057006900640067006500740100000000ffffffff000000ec00fffffffc000000ee00000240000000a400fffffffa000000000100000003fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff000000d600fffffffb000000260073006e0061007000730068006f007400730044006f0063006b0057006900640067006500740100000000ffffffff0000006a00fffffffb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740000000000ffffffff000000b800fffffffb000000200073006f00750072006300650044006f0063006b005700690064006700650074000000019e0000012c0000001500fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000000000030000057400000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b005700690064006700650074010000000000000574000002be0007ffff00000342000002f000000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c004200610072010000021affffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002d6ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000392ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c004200610072010000042bffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c00420061007200000004f2ffffffff0000000000000000");
+QByteArray::fromHex("000000ff00000000fd00000003000000000000019c000003d8fc0200000004fb0000002200700072006500760069006500770044006f0063006b0057006900640067006500740100000043000000d5000000d500fffffffc0000011e0000026b0000015b00fffffffa000000000100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff0000011d00fffffffb000000260073006e0061007000730068006f007400730044006f0063006b0057006900640067006500740100000000ffffffff0000006a00fffffffb0000002600730065006c0065006300740069006f006e0044006f0063006b005700690064006700650074010000038f0000008c0000008c00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef0000018400000001000001ad000003d8fc0200000006fc00000043000000b60000000000fffffffa000000000100000002fb0000001c00740061006700730044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb000000200063007500720073006f00720044006f0063006b0057006900640067006500740000000000ffffffff000000ec00fffffffb00000020006d006900780069006e00670044006f0063006b005700690064006700650074010000004300000200000000de00fffffffc00000249000001d20000009100fffffffa000000000100000002fb000000200073006f00750072006300650044006f0063006b0057006900640067006500740100000000ffffffff0000003100fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff0000004f00fffffffb000000240062006c006f0063006e006f007400650044006f0063006b005700690064006700650074000000032c0000013b0000008b00fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff000000000000000000000003000006fd00000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b0057006900640067006500740100000000000006fd000002d90007ffff000003a8000003d800000004000000040000000800000008fc0000000100000002000000050000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c004200610072010000021affffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002d6ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000392ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c004200610072010000042bffffffff0000000000000000");
 
-QByteArray static_minimal_windowstate =
-QByteArray::fromHex("000000ff00000000fd00000003000000000000014c000002adfc0200000004fb0000002200700072006500760069006500770044006f0063006b005700690064006700650074010000003e00000102000000d500fffffffc00000146000001a5000000dc00fffffffa000000000100000002fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000fe00fffffffb000000260073006e0061007000730068006f007400730044006f0063006b0057006900640067006500740100000000ffffffff0000006a00fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740000000143000001c80000005e00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef000001840000000100000113000002cdfc0200000006fb0000001c00740061006700730044006f0063006b005700690064006700650074000000003e000000dd0000008c00fffffffb000000200063007500720073006f00720044006f0063006b005700690064006700650074000000003e000000fa000000aa00fffffffc0000003e000002cd0000000000fffffffaffffffff0100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740000000000ffffffff000000d600fffffffb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740000000000ffffffff000000b800fffffffb000000200073006f00750072006300650044006f0063006b005700690064006700650074000000019e0000012c0000001500fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff000000000000000000000003000004e800000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b0057006900640067006500740100000000000004e8000002be0007ffff00000396000002ad00000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c004200610072010000021affffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002d6ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000392ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c004200610072000000042bffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c004200610072000000042bffffffff0000000000000000");
-
-QByteArray static_extended_windowstate =
-QByteArray::fromHex("000000ff00000000fd00000003000000000000013000000348fc0200000004fb0000002200700072006500760069006500770044006f0063006b005700690064006700650074010000003e00000107000000d500fffffffb000000240062006c006f0063006e006f007400650044006f0063006b005700690064006700650074010000014b000000890000008900fffffffc000001da000001ac000000a400fffffffa000000000100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff000000d600fffffffb000000260073006e0061007000730068006f007400730044006f0063006b0057006900640067006500740100000000ffffffff0000006a00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef00000184000000010000015300000348fc0200000005fb0000001c00740061006700730044006f0063006b005700690064006700650074010000003e0000008c0000008c00fffffffc000000d00000018c000000dc00fffffffa000000000100000002fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000fe00fffffffb000000200073006f00750072006300650044006f0063006b0057006900640067006500740100000000ffffffff0000003100fffffffc0000026200000124000000aa00fffffffa000000000100000002fb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff0000004f00fffffffb000000200063007500720073006f00720044006f0063006b00570069006400670065007401000005ed00000133000000ec00fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000000000030000072000000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b005700690064006700650074010000000000000720000002be0007ffff000004910000034800000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c004200610072010000021affffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002d6ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000392ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c004200610072010000042bffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c00420061007201000004f2ffffffff0000000000000000");
+QByteArray static_performance_windowstate =
+QByteArray::fromHex("000000ff00000000fd0000000300000000000001b8000003d8fc0200000007fb0000002200700072006500760069006500770044006f0063006b005700690064006700650074010000004300000155000000d500fffffffb00000024007300770069007400630068006500720044006f0063006b005700690064006700650074010000019e000000e70000009200fffffffc0000028b000000c00000008900fffffffa000000010100000002fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740000000000ffffffff0000012a00fffffffb000000260073006e0061007000730068006f007400730044006f0063006b0057006900640067006500740100000000ffffffff0000006a00fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740000000143000001c80000005e00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef00000184fb000000200063007500720073006f00720044006f0063006b0057006900640067006500740100000351000000380000003800fffffffb0000002600730065006c0065006300740069006f006e0044006f0063006b005700690064006700650074010000038f0000008c0000008c00ffffff000000010000011d00000424fc0200000005fb0000001c00740061006700730044006f0063006b005700690064006700650074000000003e000000dd0000000000000000fb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740000000043000004240000008b00fffffffb000000200073006f00750072006300650044006f0063006b005700690064006700650074000000019e0000012c0000001500fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff000000000000000000000003000006fd00000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b0057006900640067006500740100000000000006fd000002d90007ffff0000053f000003d800000004000000040000000800000008fc0000000100000002000000050000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c004200610072010000021affffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002d6ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000392ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c004200610072000000042bffffffff0000000000000000");
 
 GLMixer *GLMixer::getInstance() {
 
@@ -292,7 +289,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     aspectRatioActions->addAction(action16_9_aspect_ratio);
     action16_9_aspect_ratio->setData(ASPECT_RATIO_16_9);
     aspectRatioActions->addAction(actionFree_aspect_ratio);
-    actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
+    actionFree_aspect_ratio->setData(ASPECT_RATIO_ANY);
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
     // create menu for the Workspace Manager selection actions
@@ -457,6 +454,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
     QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
     QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
+    QObject::connect(this, SIGNAL(filenameChanged(const QString &)), switcherSession, SLOT(updateAndSelectFile(const QString&)));
     QObject::connect(switcherSession, SIGNAL(sessionRenamed(QString, QString)), this, SLOT(renameSessionFile(QString, QString)) );
 
     QAction *nextSession = new QAction("Next Session", this);
@@ -488,10 +486,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     Q_CHECK_PTR(upd);
 
     // Actions for custom display tools and modes
-    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), switcherSession, SLOT(setViewSimplified(bool)));
-    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), actionPreferences, SLOT(setDisabled(bool)));
-    QObject::connect(actionPerformanceMode, SIGNAL(toggled(bool)), cursorOptionWidget, SLOT(setHidden(bool)));
-
+    QObject::connect(actionPerformanceMode, SIGNAL(triggered(bool)), SLOT(setPerformanceModeEnabled(bool)));
     QObject::connect(actionShowTimers, SIGNAL(triggered(bool)), SLOT(setDisplayTimeEnabled(bool)));
 
     // Create output preview widget
@@ -578,14 +573,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecent_session, SLOT(setDisabled(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), aspectRatioMenu, SLOT(setDisabled(bool)));
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_aspectratio, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), RenderingManager::getInstance(), SLOT(lockAspectRatio(bool)));
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(aspectRatioLocked(bool)), aspectRatioMenu, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(aspectRatioLocked(bool)), output_aspectratio, SLOT(setDisabled(bool)));
 
     // do not allow to record without a fixed aspect ratio
     QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 
 #ifdef GLM_SESSION
-    QObject::connect(RenderingManager::getRecorder(), SIGNAL(selectAspectRatio(const standardAspectRatio )), switcherSession, SLOT(setAllowedAspectRatio(const standardAspectRatio)));
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(aspectRatioLocked(bool)), switcherSession, SLOT(enableOnlyRenderingAspectRatio(bool)));
 #endif
 
     // group the menu items of the catalog sizes ;
@@ -1699,15 +1695,15 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
     // popup a question dialog to select the type of algorithm
     static AlgorithmSelectionDialog *asd = 0;
-    if (!asd) 
+    if (!asd)
         asd = new AlgorithmSelectionDialog(this, &settings);
 
     if (asd->exec() == QDialog::Accepted) {
-        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), 
-                                                                        asd->getSelectedWidth(), 
-                                                                        asd->getSelectedHeight(), 
-                                                                        asd->getSelectedVariability(), 
-                                                                        asd->getUpdatePeriod(), 
+        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
+                                                                        asd->getSelectedWidth(),
+                                                                        asd->getSelectedHeight(),
+                                                                        asd->getSelectedVariability(),
+                                                                        asd->getUpdatePeriod(),
                                                                         asd->getIngoreAlpha());
         if ( s ){
             // add and set default properties
@@ -1749,7 +1745,6 @@ void GLMixer::on_actionRenderingSource_triggered(){
 
     // remember status
     settings.setValue("dialogRenderingGeometry", rsd->saveGeometry());
-
 }
 
 
@@ -2047,7 +2042,7 @@ void GLMixer::setAspectRatio(QAction *a)
 
     // apply config; this also refreshes the rendering areas
     // if none of the above, the FREE aspect ratio was requested
-    if (ar == ASPECT_RATIO_FREE) {
+    if (ar == ASPECT_RATIO_ANY) {
         OutputRenderWindow::getInstance()->useFreeAspectRatio(true);
         outputpreview->useFreeAspectRatio(true);
         QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized()), outputpreview, SLOT(refresh()));
@@ -2063,7 +2058,6 @@ void GLMixer::setAspectRatio(QAction *a)
 
     RenderingManager::getRenderingWidget()->refresh();
 }
-
 
 void GLMixer::on_actionAbout_triggered(){
 
@@ -2211,12 +2205,8 @@ void GLMixer::newSession()
 
     // broadcast session file ready
     emit sessionLoaded();
+    emit filenameChanged(currentSessionFileName);
     maybeSave = false;
-
-#ifdef GLM_SESSION
-    // update session switcher
-    switcherSession->fileChanged( currentSessionFileName );
-#endif
 
     qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
 }
@@ -2310,16 +2300,13 @@ void GLMixer::postSaveSession()
     // validate that session is saved
     maybeSave = false;
 
-#ifdef GLM_SESSION
-    // update session switcher
-    switcherSession->fileChanged( currentSessionFileName );
-#endif
     // log
     emit status( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
 
     // broadcast session file ready
     emit sessionLoaded();
+    emit filenameChanged(currentSessionFileName);
     setBusy(false);
 
     // last session file name
@@ -2506,6 +2493,7 @@ void GLMixer::openSessionFile()
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("This is not a GLMixer session file; ");
+        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
         currentSessionFileName = QString();
         RenderingManager::getSessionSwitcher()->setOverlay(0.0);
         return;
@@ -2546,20 +2534,29 @@ void GLMixer::openSessionFile()
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load!");
     else {
         // apply rendering aspect ratio
-        selectAspectRatio( renderConfig.attribute("aspectRatio", "0").toInt() );
+        if ( selectAspectRatio( renderConfig.attribute("aspectRatio", "0").toInt() )  )
+        {
+            // read the list of sources
+            qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
 
-        // read the list of sources
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
+            // if we got up to here, it should be fine
+            int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
 
-        // if we got up to here, it should be fine
-        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
+            // inform of errors
+            if ( errors > 0)
+                qCritical() << currentSessionFileName << QChar(124).toLatin1()
+                            << errors << tr(" error(s) occurred when opening the session.");
 
-        // inform of errors
-        if ( errors > 0)
-            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
-
-        QCoreApplication::processEvents();
+        }
+        else {
+            qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot change rendering aspect ration when recording or live mode.");
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
+            currentSessionFileName = QString();
+            RenderingManager::getSessionSwitcher()->setOverlay(0.0);
+            return;
+        }
     }
+    QCoreApplication::processEvents();
 
     // read and apply the views configuration
     if (vconfig.isNull())
@@ -2599,9 +2596,8 @@ void GLMixer::openSessionFile()
             actionCatalogLarge->trigger();
             break;
         }
-
-        QCoreApplication::processEvents();
     }
+    QCoreApplication::processEvents();
 
     // read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");
@@ -2630,15 +2626,11 @@ void GLMixer::openSessionFile()
 
     // broadcast that the session is loaded
     emit sessionLoaded();
+    emit filenameChanged(currentSessionFileName);
     maybeSave = false;
 
     // start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
-
-#ifdef GLM_SESSION
-    // update session switcher
-    switcherSession->fileChanged( currentSessionFileName );
-#endif
 
     // message
     emit status( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
@@ -2649,12 +2641,18 @@ void GLMixer::openSessionFile()
 }
 
 
-void GLMixer::selectAspectRatio(int aspectratio)
+bool GLMixer::selectAspectRatio(int aspectratio)
 {
-    standardAspectRatio ar = (standardAspectRatio) CLAMP(aspectratio, ASPECT_RATIO_4_3,  ASPECT_RATIO_FREE );
+    standardAspectRatio requestAR = (standardAspectRatio) CLAMP(aspectratio, ASPECT_RATIO_4_3,  ASPECT_RATIO_ANY );
+    standardAspectRatio possibleAR = RenderingManager::getInstance()->getLockedAspectRatio();
 
-    switch(ar) {
-    case ASPECT_RATIO_FREE:
+    // impossible to change aspect ratio if rendering AR is locked
+    if ( possibleAR != requestAR && possibleAR != ASPECT_RATIO_ANY )
+        return false;
+
+    // usualy it is possible: trigger the action that calls setAspectRatio function
+    switch(requestAR) {
+    case ASPECT_RATIO_ANY:
         actionFree_aspect_ratio->trigger();
         break;
     case ASPECT_RATIO_16_10:
@@ -2672,7 +2670,9 @@ void GLMixer::selectAspectRatio(int aspectratio)
         break;
     }
 
-    RenderingManager::getInstance()->resetFrameBuffer();
+//    RenderingManager::getInstance()->resetFrameBuffer();    // why reset again?
+
+    return true;
 }
 
 void GLMixer::on_actionReload_Session_triggered(){
@@ -2913,19 +2913,19 @@ void GLMixer::readSettings( QString pathtobin )
     if (actualGeometry.isValid() && windowState() & Qt::WindowMaximized)
         setGeometry(actualGeometry);
 
+    // set normal status of window, widgets and toolbars, or set it to default
     if (settings.contains("windowState"))
         restoreState(settings.value("windowState").toByteArray());
     else
         restoreState(static_windowstate);
 
+    // restore status of output window, or save current status as default
     if (settings.contains("OutputRenderWindowState"))
         OutputRenderWindow::getInstance()->restoreState( settings.value("OutputRenderWindowState").toByteArray() );
     else
         settings.setValue("defaultOutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs
-    if (settings.contains("vcontrolOptionSplitter"))
-        vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
     if (settings.contains("VideoFileDialog")) {
         mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
         mfd->setDirectory( mfd->history().last() );
@@ -2935,7 +2935,6 @@ void GLMixer::readSettings( QString pathtobin )
         sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
         sfd->setSidebarUrls( getExtendedSidebarUrls( sfd->sidebarUrls()) );
-
     }
 #ifdef GLM_LOGS
     if (settings.contains("logsWidget")) {
@@ -3035,12 +3034,13 @@ void GLMixer::saveSettings()
     // windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("actualGeometry", geometry());
-    settings.setValue("windowState", saveState());
-    // Uncomment to copy window state to default static_windowstate :    qDebug() << "windowState" << saveState().toHex();
+    if (actionPerformanceMode->isChecked())
+        settings.setValue("performanceWindowState", saveState());
+    else
+        settings.setValue("windowState", saveState());
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs
-    settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
 #ifdef GLM_LOGS
@@ -3096,17 +3096,6 @@ void GLMixer::saveSettings()
     // make sure system saves settings NOW
     settings.sync();
     qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings saved.");
-}
-
-
-void GLMixer::on_actionMinimalToolbars_triggered()
-{
-    restoreState(static_minimal_windowstate);
-}
-
-void GLMixer::on_actionExtendedToolbars_triggered()
-{
-    restoreState(static_extended_windowstate);
 }
 
 void GLMixer::on_actionResetToolbars_triggered()
@@ -4072,6 +4061,52 @@ void GLMixer::setDisplayTimeEnabled(bool on)
     output_recording_widget->setVisible(false);
 }
 
+
+void GLMixer::setPerformanceModeEnabled(bool on)
+{
+    // Uncomment to copy window state to default static_windowstate :    qDebug() << "windowState" << saveState().toHex();
+
+    /**
+     * 1. Remember layout and status
+     * */
+    if (on) {
+        // remember normal layout
+        settings.setValue("windowState", saveState());
+//        qDebug() << "windowState" << saveState().toHex();
+    } else {
+        // remember performance layout
+        settings.setValue("performanceWindowState", saveState());
+//        qDebug() << "performanceWindowState" << saveState().toHex();
+    }
+
+
+    /**
+     * 2. Setup Widgets and toolbars
+     * */
+    // simple mode of session switcher
+    switcherSession->setViewSimplified(on);
+    // simple mode of cursor widget
+    cursorOptionWidget->setHidden(on);
+    // disable preference menu
+    actionPreferences->setDisabled(on);
+    actionQuit->setDisabled(on);
+
+    /**
+     * 3. Apply layout
+     * */
+    if (on) {
+        // apply performance layout, or default one
+        if (settings.contains("performanceWindowState"))
+            restoreState(settings.value("performanceWindowState").toByteArray());
+        else
+            restoreState(static_performance_windowstate);
+
+    } else {
+        // apply normal layout
+        restoreState(settings.value("windowState").toByteArray());
+    }
+
+}
 
 ImageSaver::ImageSaver(QImage image, QString filename) : QThread(), _image(image), _filename(filename)
 {
