@@ -61,7 +61,7 @@ public slots:
 protected:
     bool useAspectRatio, useWindowAspectRatio;
     int rx, ry, rw, rh;
-    bool need_resize;
+    bool need_resize, vcentered_resize;
     bool output_active;
     bool rec_label_active, info_label_active;
     QFont labelfont;

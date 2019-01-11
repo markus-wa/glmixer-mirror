@@ -37,7 +37,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true), rec_label_active(false), info_label_active(false), labelpointsize(20), labelheight(20), labelwidthpercent(100) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), vcentered_resize(false), output_active(true), rec_label_active(false), info_label_active(false), labelpointsize(20), labelheight(20), labelwidthpercent(100) {
 
     rx = 0;
     ry = 0;
@@ -85,9 +85,9 @@ void OutputRenderWidget::resizeGL(int w, int h)
             if (aspectRatio < renderingAspectRatio) {
                 int nh = (int)( float(w) / renderingAspectRatio);
                 rx = 0;
-                ry = (h - nh) ;
+                ry = vcentered_resize ? (h - nh) / 2 : (h - nh) ;
                 rw = w;
-                rh = h ;
+                rh = vcentered_resize ? (h + nh) / 2 : h ;
             } else {
                 int nw = (int)( float(h) * renderingAspectRatio );
                 rx = (w - nw) / 2;
@@ -103,9 +103,9 @@ void OutputRenderWidget::resizeGL(int w, int h)
             if ( aspectRatio < windowAspectRatio) {
                 int nh = (int)( float(w) / windowAspectRatio);
                 rx = 0;
-                ry = (h - nh);
+                ry = vcentered_resize ? (h - nh) / 2 : (h - nh) ;
                 rw = w;
-                rh = h;
+                rh = vcentered_resize ? (h + nh) / 2 : h ;
 
             } else {
                 int nw = (int)( float(h) * windowAspectRatio );
@@ -265,11 +265,13 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
 {
     // this is not a widget, but a window
     useWindowAspectRatio = false;
+    vcentered_resize = true;
     setCursor(Qt::BlankCursor);
     setWindowState(Qt::WindowNoState);
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
     setWindowIcon(icon);
+
     // set initial geometry
     setMinimumSize(160,120);
     windowGeometry = QRect(100,100,848,480);
