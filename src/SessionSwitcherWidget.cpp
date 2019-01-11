@@ -972,19 +972,21 @@ void SessionSwitcherWidget::restoreSettings()
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
 
     // list of sessions
+    // enforce correct settings
+    proxyView->header()->setDragEnabled(false);
+    proxyView->header()->setMinimumSectionSize (30);
+    proxyView->header()->setStretchLastSection(false);
+    proxyView->header()->setResizeMode(0, QHeaderView::Stretch);
+    proxyView->header()->setResizeMode(1, QHeaderView::Interactive);
+    proxyView->header()->setResizeMode(2, QHeaderView::Interactive);
+    proxyView->header()->setResizeMode(3, QHeaderView::Interactive);
     // saved settings
     if ( appSettings->contains("transitionHeader") )
         proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
-    // enforce correct settings
-    proxyView->header()->setDragEnabled(false);
-    proxyView->header()->setMinimumSectionSize (40);
-    proxyView->header()->setStretchLastSection(false);
-    proxyView->header()->setResizeMode(0, QHeaderView::Stretch);
-    proxyView->header()->setResizeMode(1, QHeaderView::Fixed);
-    proxyView->header()->resizeSection(1, 40);
-    proxyView->header()->setResizeMode(2, QHeaderView::Fixed);
-    proxyView->header()->resizeSection(2, 55);
-    proxyView->header()->setResizeMode(3, QHeaderView::ResizeToContents);
+    else {
+        proxyView->header()->resizeSection(1, 30);
+        proxyView->header()->resizeSection(2, 55);
+    }
     setViewSimplified(false);
 
     // order of transition
