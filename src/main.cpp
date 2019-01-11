@@ -329,8 +329,12 @@ int main(int argc, char **argv)
     initListOfExtension();
     a.processEvents();
 
+    // The output rendering window
+    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("%1 - Output").arg(a.applicationName()));
+    a.processEvents();
+
     //
-    // 3. Start the application GUI
+    // 3. Start the application
     //
     GLMixer::getInstance()->readSettings( a.applicationDirPath() );
 
@@ -348,17 +352,6 @@ int main(int argc, char **argv)
     a.processEvents();
 #endif
 
-    // The output rendering window ; the rendering manager widget has to be existing
-    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("GLMixer - Output"));
-    QIcon icon;
-    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
-    OutputRenderWindow::getInstance()->setWindowIcon(icon);
-    OutputRenderWindow::getInstance()->show();
-    a.processEvents();
-
-    // Show the GUI in front
-    GLMixer::getInstance()->show();
-
     //
     // 4. load eventual session file provided in argument or restore last session
     //
@@ -368,6 +361,10 @@ int main(int argc, char **argv)
 
     // all done
     splash.finish(GLMixer::getInstance());
+
+    // Show the GUI in front
+    GLMixer::getInstance()->show();
+    OutputRenderWindow::getInstance()->show();
     GLMixer::getInstance()->raise();
 
     // start application loop

@@ -104,7 +104,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
                 int nh = (int)( float(w) / windowAspectRatio);
                 rx = 0;
                 ry = (h - nh);
-                rw = w; 
+                rw = w;
                 rh = h;
 
             } else {
@@ -196,7 +196,7 @@ void OutputRenderWidget::paintGL()
     }
     // or Draw quad with fbo texture in a more basic OpenGL way
     else
-    {        
+    {
         // apply the texture of the frame buffer
         glColor4ub(255, 255, 255, 255);
         glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
@@ -263,12 +263,15 @@ void OutputRenderWidget::mouseDoubleClickEvent(QMouseEvent *) {
 
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint  )
 {
-    // this is not a windet, but a window
+    // this is not a widget, but a window
     useWindowAspectRatio = false;
     setCursor(Qt::BlankCursor);
-    setMinimumSize(160,120);
-    // set initial geometry
     setWindowState(Qt::WindowNoState);
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
+    setWindowIcon(icon);
+    // set initial geometry
+    setMinimumSize(160,120);
     windowGeometry = QRect(100,100,848,480);
     setGeometry( windowGeometry );
     switching = false;

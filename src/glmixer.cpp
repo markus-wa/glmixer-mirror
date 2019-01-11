@@ -399,11 +399,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     QObject::connect(this, SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget() , SLOT(showMessage(const QString &, int)));
 
-    // setup render window
-    QIcon icon;
-    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
-    setWindowIcon(icon);
-    OutputRenderWindow::getInstance()->setWindowIcon(icon);
+    // link to render window
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
 
 
@@ -3307,7 +3303,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
         QObject::disconnect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setHidden(bool)));
     }
     OutputRenderWindow::getInstance()->setActive(true);
-    OutputRenderWindow::getInstance()->setVisible(true);
 
     // u. recording buffer
     int percent;
