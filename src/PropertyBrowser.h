@@ -63,7 +63,9 @@ public slots:
 
     // appearance
     void setDisplayPropertyTree(bool on);
-    bool getDisplayPropertyTree();
+    void connectToPropertyTree(PropertyBrowser *master);
+    QByteArray saveState();
+    bool restoreState(const QByteArray &state);
 
     // enable / disable a property
     void setPropertyEnabled(QString propertyName, bool enabled);

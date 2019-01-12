@@ -1143,9 +1143,8 @@ void GLMixer::on_actionMediaSource_triggered(){
 // and to read the correct information and configuration options
 void GLMixer::connectSource(SourceSet::iterator csi){
 
-    static QByteArray layoutPropertyBrowserState;
     if (specificSourcePropertyBrowser) {
-        layoutPropertyBrowserState = layoutPropertyBrowser->saveState();
+        settings.setValue("layoutPropertyBrowserState", layoutPropertyBrowser->saveState() );
         delete specificSourcePropertyBrowser;
         specificSourcePropertyBrowser = NULL;
     }
@@ -1222,10 +1221,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
         // display property browser
         specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
-        specificSourcePropertyBrowser->setDisplayPropertyTree(RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree());
         specificSourcePropertyBrowser->setHeaderVisible(false);
         layoutPropertyBrowser->insertWidget(1, specificSourcePropertyBrowser);
-        layoutPropertyBrowser->restoreState(layoutPropertyBrowserState);
+        layoutPropertyBrowser->restoreState(settings.value("layoutPropertyBrowserState").toByteArray());
+        specificSourcePropertyBrowser->connectToPropertyTree(RenderingManager::getPropertyBrowserWidget());
 
         // enable properties and actions on the current valid source
         sourceDockWidgetContents->setEnabled(true);
@@ -2920,6 +2919,12 @@ void GLMixer::readSettings( QString pathtobin )
     else
         settings.setValue("defaultOutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
+    // restore status of property browser  or save current status as default
+    if (settings.contains("PropertyBrowserState"))
+        RenderingManager::getPropertyBrowserWidget()->restoreState( settings.value("PropertyBrowserState").toByteArray() );
+    else
+        settings.setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
+
     // dialogs configs
     if (settings.contains("VideoFileDialog")) {
         mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
@@ -3034,6 +3039,7 @@ void GLMixer::saveSettings()
     else
         settings.setValue("windowState", saveState());
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
+    settings.setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
 
     // dialogs configs
     settings.setValue("VideoFileDialog", mfd->saveState());

@@ -380,8 +380,8 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 }
 
 
-void PropertyBrowser::setDisplayPropertyTree(bool on) {
-
+void PropertyBrowser::setDisplayPropertyTree(bool on)
+{
     displayPropertyTree = on;
     if (displayPropertyTree) {
         propertyGroupArea->setVisible(false);
@@ -399,7 +399,37 @@ void PropertyBrowser::setDisplayPropertyTree(bool on) {
     }
 }
 
-bool PropertyBrowser::getDisplayPropertyTree() {
+void PropertyBrowser::connectToPropertyTree(PropertyBrowser *master)
+{
+    // set identical display property tree mode
+    setDisplayPropertyTree(master->displayPropertyTree);
 
-    return displayPropertyTree;
+    // connect splitters
+    propertyTreeEditor->setSplitterPosition(master->propertyTreeEditor->splitterPosition());
+    connect(master->propertyTreeEditor, SIGNAL(splitterPositionChanged(int)), propertyTreeEditor, SLOT(setSplitterPosition(int)));
+
+}
+
+QByteArray PropertyBrowser::saveState()  {
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+
+    // splitter pos
+    stream << propertyTreeEditor->splitterPosition();
+
+    return data;
+}
+
+bool PropertyBrowser::restoreState(const QByteArray &state) {
+
+    QByteArray sd = state;
+    QDataStream stream(&sd, QIODevice::ReadOnly);
+
+    // splitter pos
+    int pos = 100;
+    stream >> pos;
+    propertyTreeEditor->setSplitterPosition(pos);
+
+    return true;
 }

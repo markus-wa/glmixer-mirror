@@ -755,6 +755,7 @@ QtTreePropertyBrowser::QtTreePropertyBrowser(QWidget *parent)
 
     d_ptr->init(this);
     connect(this, SIGNAL(currentItemChanged(QtBrowserItem*)), this, SLOT(slotCurrentBrowserItemChanged(QtBrowserItem*)));
+    connect(d_ptr->m_treeWidget->header(), SIGNAL(sectionResized(int,int,int)), SLOT(onHeaderSplitterChanged(int,int,int)));
 }
 
 /*!
@@ -901,6 +902,12 @@ int QtTreePropertyBrowser::splitterPosition() const
 void QtTreePropertyBrowser::setSplitterPosition(int position)
 {
     d_ptr->m_treeWidget->header()->resizeSection(0, position);
+}
+
+void QtTreePropertyBrowser::onHeaderSplitterChanged(int logicalIndex, int oldSize, int newSize)
+{
+    if (logicalIndex==0)
+        emit splitterPositionChanged(newSize);
 }
 
 /*!
