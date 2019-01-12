@@ -22,6 +22,7 @@ public slots:
     void newSnapshot(QString id);
     void deleteSnapshot(QString id);
     void updateSnapshot(QString id);
+    void setViewSimplified(bool);
 
     void deleteSelectedSnapshot();
     void restoreSelectedSnapshot();

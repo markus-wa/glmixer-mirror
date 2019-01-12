@@ -19,9 +19,10 @@
 #define DEFAULTZOOM 0.9
 #define DEFAULT_PANNING 0.0, 0.0
 
-RenderingView::RenderingView() : View() {
+RenderingView::RenderingView() : View(View::RENDERING)
+{
     icon.load(QString::fromUtf8(":/glmixer/icons/displayview.png"));
-    title = " Rendering view";
+    title = " Rendering";
 
     zoom = DEFAULTZOOM;
     minzoom = MINZOOM;

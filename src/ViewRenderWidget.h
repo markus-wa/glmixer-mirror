@@ -272,6 +272,7 @@ private:
 
     // M e s s a g e s
     QString message;
+    QFont labelfont;
     QLabel *zoomLabel, *fpsLabel;
     QTimer zoomLabelTimer, messageTimer;
     QMenu *viewMenu, *catalogMenu, *sourceMenu;

@@ -84,6 +84,12 @@ void SnapshotManagerWidget::updateSnapshot(QString id)
 
 }
 
+
+void SnapshotManagerWidget::setViewSimplified(bool on)
+{
+    ui->controlBox->setHidden(on);
+}
+
 // connected to signal removeSnapshot
 void SnapshotManagerWidget::deleteSnapshot(QString id)
 {

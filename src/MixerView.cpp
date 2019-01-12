@@ -47,7 +47,7 @@ bool MixerSelectionArea::contains(SourceSet::iterator s)
     return area.contains(QPointF((*s)->getAlphaX(),(*s)->getAlphaY()));
 }
 
-MixerView::MixerView() : View()
+MixerView::MixerView() : View(View::MIXING)
 {
     currentAction = View::NONE;
     zoom = DEFAULTZOOM;
@@ -59,7 +59,7 @@ MixerView::MixerView() : View()
     _specialMode = MODE_NONE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
-    title = " Mixing view";
+    title = " Mixing";
 }
 
 void MixerView::setModelview()

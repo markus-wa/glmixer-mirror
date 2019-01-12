@@ -41,12 +41,17 @@ class View {
 
 public:
     /**
+    * types of view
+    */
+    typedef enum {NULLVIEW = 0, MIXING=1, GEOMETRY=2, LAYER=3, RENDERING=4 } viewMode;
+
+    /**
      * View default constructor ; initialize variables.
      */
-    View() :
+    View(viewMode m = NULLVIEW) :
         zoom(0), minzoom(0), maxzoom(0), deltax(0), deltay(0), panx(0), maxpanx(0),
         pany(0), maxpany(0), panz(0), maxpanz(0), modified(true),
-        currentAction(NONE), previousAction(NONE), currentTool(MOVE){
+        currentAction(NONE), previousAction(NONE), currentTool(MOVE), mode(m){
         viewport[0] = 0;
         viewport[1] = 0;
         viewport[2] = 0;
@@ -55,10 +60,9 @@ public:
 
     virtual ~View() {}
     /**
-    * types of view
-    */
-    typedef enum {NULLVIEW = 0, MIXING=1, GEOMETRY=2, LAYER=3, RENDERING=4 } viewMode;
-
+     *
+     */
+    viewMode getMode() const { return mode; }
     /**
      * Apply the Modelview matrix
      */
@@ -370,6 +374,7 @@ protected:
 
     ActionType currentAction, previousAction;
     toolType currentTool;
+    viewMode mode;
 
 private:
 

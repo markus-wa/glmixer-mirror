@@ -419,7 +419,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // tag menu for source context menu
     QAction *tagsmenu = currentSourceMenu->insertMenu(menuSendToWorkspace->menuAction(), tagsManager->getTagsMenu());
     tagsmenu->setText(tr("Color"));
-
 #endif
 
 #ifdef GLM_HISTORY
@@ -4074,15 +4073,20 @@ void GLMixer::setPerformanceModeEnabled(bool on)
 //        qDebug() << "performanceWindowState" << saveState().toHex();
     }
 
-
     /**
      * 2. Setup Widgets and toolbars
      * */
+#ifdef GLM_SESSION
     // simple mode of session switcher
     switcherSession->setViewSimplified(on);
+#endif
+#ifdef GLM_SNAPSHOT
+    // simple mode of session switcher
+    snapshotManager->setViewSimplified(on);
+#endif
     // simple mode of cursor widget
     cursorOptionWidget->setHidden(on);
-    // disable preference menu
+    // disable actions menu
     actionPreferences->setDisabled(on);
     actionQuit->setDisabled(on);
 

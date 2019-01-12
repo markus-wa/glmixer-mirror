@@ -35,8 +35,9 @@ public:
     // specific functions for snapshot view
     bool activate(View *activeview, QString id);
     void deactivate();
-    bool isActive() { return _active;}
+    inline bool isActive() const { return _active; }
     void activateTarget(bool positive);
+    inline QString getInstructions() const { return _instruction; }
 
 private:
 
@@ -51,6 +52,7 @@ private:
     QImage _departure, _destination;
     QElapsedTimer _animationTimer;
     double _animationSpeed;
+    QString _instruction;
 
     class RenderingSource *_renderSource;
     class CaptureSource *_departureSource, *_destinationSource;

@@ -38,7 +38,7 @@ SnapshotView::SnapshotView(): View(), _active(false), _interpolate(true), _view(
     // init view
     currentAction = View::NONE;
     zoom = 0.1;
-    title = " Snapshot view";
+    title = " Snapshot";
 
     // init cursor
     _begin = -8.0 * SOURCE_UNIT;
@@ -108,6 +108,25 @@ bool SnapshotView::activate(View *activeview, QString id)
         // update source if already created
         if (_departureSource)
             _departureSource->setImage(_departure);
+
+        // update text for instructions
+        switch (activeview->getMode()){
+        case View::NULLVIEW:
+            _instruction = QString("");
+            break;
+        case View::MIXING:
+            _instruction = QString("Interpolate mixing values");
+            break;
+        case View::GEOMETRY:
+            _instruction = QString("Interpolate geometry");
+            break;
+        case View::LAYER:
+            _instruction = QString("Interpolate depth");
+            break;
+        case View::RENDERING:
+            _instruction = QString("Interpolate mixing, geometry and depth");
+            break;
+        }
 
         // success
         ret = true;
@@ -240,6 +259,9 @@ void SnapshotView::paint()
     glMatrixMode(GL_MODELVIEW);
     glMultMatrixd(modelview);
 
+    // bottom margin to leave place for text instructions
+    glTranslated(0.0, 3.0, 0.0);
+
     // 1) draw line
 
     if (_interpolate){
@@ -261,7 +283,10 @@ void SnapshotView::paint()
         glEnd();
 
         glPopMatrix();
+
     }
+    else
+        _instruction = QString("Apply full snapshot");
 
     // 2) draw tools and cursor
 

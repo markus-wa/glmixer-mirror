@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>227</width>
+    <width>249</width>
     <height>276</height>
    </rect>
   </property>
@@ -17,96 +17,92 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <property name="leftMargin">
-    <number>6</number>
-   </property>
-   <property name="topMargin">
-    <number>6</number>
-   </property>
-   <property name="rightMargin">
-    <number>6</number>
-   </property>
-   <property name="bottomMargin">
+   <property name="margin">
     <number>6</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QToolButton" name="addSnapshot">
-       <property name="toolTip">
-        <string>Take a new snapshot</string>
-       </property>
-       <property name="text">
-        <string>Take snapshot</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../icons.qrc">
-         <normaloff>:/glmixer/icons/snapshot_new.png</normaloff>:/glmixer/icons/snapshot_new.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextBesideIcon</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QToolButton" name="deleteSnapshot">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Delete selected snapshot</string>
-       </property>
-       <property name="text">
-        <string>Del</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../icons.qrc">
-         <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Take snapshots to remember the rendering configuration.&lt;/p&gt;&lt;p&gt;Double clic on a snapshot icon (or drag it into the &lt;span style=&quot; font-weight:600;&quot;&gt;Rendering&lt;/span&gt; view) to restore the entire rendering configuration.&lt;/p&gt;&lt;p&gt;Drag a snapshot into a manipulation view (&lt;span style=&quot; font-weight:600;&quot;&gt;Mixing, Geometry, Layer&lt;/span&gt;) to modulate smoothly the parameters controlled in this view (opacity, shape and depth respectively). In this case, all other rendering parameters are left unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QWidget" name="controlBox" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QToolButton" name="addSnapshot">
+        <property name="toolTip">
+         <string>Take a new snapshot</string>
+        </property>
+        <property name="text">
+         <string>Take snapshot</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/glmixer/icons/snapshot_new.png</normaloff>:/glmixer/icons/snapshot_new.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="deleteSnapshot">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Delete selected snapshot</string>
+        </property>
+        <property name="text">
+         <string>Del</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Take snapshots to remember the rendering configuration.&lt;/p&gt;&lt;p&gt;Double clic on a snapshot icon (or drag it into the &lt;span style=&quot; font-weight:600;&quot;&gt;Rendering&lt;/span&gt; view) to restore the entire rendering configuration.&lt;/p&gt;&lt;p&gt;Drag a snapshot into a manipulation view (&lt;span style=&quot; font-weight:600;&quot;&gt;Mixing, Geometry, Layer&lt;/span&gt;) to modulate smoothly the parameters controlled in this view (opacity, shape and depth respectively). In this case, all other rendering parameters are left unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QListWidget" name="snapshotsList">

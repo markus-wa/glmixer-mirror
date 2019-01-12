@@ -679,6 +679,9 @@ void ViewRenderWidget::resizeGL(int w, int h)
 
     // resize the current view itself
     _currentView->resize(w, h);
+
+    // a font to display text overlay at an appropriate size
+    labelfont = QFont(getMonospaceFont(), qBound( 10, qMin(h,w) / 80, 22), QFont::Normal);
 }
 
 void ViewRenderWidget::refresh()
@@ -811,7 +814,13 @@ void ViewRenderWidget::paintGL()
 #ifdef GLM_SNAPSHOT
     // Snapshot : show if visible
     if (_snapshotView->isActive()) {
+        // draw the view
         _snapshotView->paint();
+        // draw text overlay
+        qglColor(Qt::lightGray);
+        int labelwidth = QFontMetrics(labelfont).width(_snapshotView->getInstructions());
+        renderText( (width()-labelwidth) / 2, height() - 20, _snapshotView->getInstructions(), labelfont);
+        // nothing more
         return;
     }
 #endif
@@ -859,7 +868,7 @@ void ViewRenderWidget::paintGL()
 
     if (!message.isNull()) {
         qglColor(Qt::lightGray);
-        renderText(20, height() - 20, message);
+        renderText(20, height() - 20, message, labelfont);
     }
 }
 
@@ -900,12 +909,21 @@ void ViewRenderWidget::setFramerateVisible(bool on)
 
 void ViewRenderWidget::onCurrentSourceModified()
 {
-    if (_currentView == _mixingView)
+    switch (_currentView->getMode()){
+    case View::MIXING:
         emit sourceMixingModified();
-    else if (_currentView == _geometryView)
+        break;
+    case View::GEOMETRY:
         emit sourceGeometryModified();
-    else if (_currentView == _layersView)
+        break;
+    case View::LAYER:
         emit sourceLayerModified();
+        break;
+    default:
+    case View::NULLVIEW:
+    case View::RENDERING:
+        break;
+    }
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
@@ -940,12 +958,21 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
             _currentView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
 
             // depending on the view, ask the rendering manager to drop the source with the user parameters
-            if (_currentView == _mixingView)
+            switch (_currentView->getMode()){
+            case View::MIXING:
                 emit sourceMixingDrop(x, y);
-            else if (_currentView == _geometryView)
+                break;
+            case View::GEOMETRY:
                 emit sourceGeometryDrop(x, y);
-            else if (_currentView == _layersView)
+                break;
+            case View::LAYER:
                 emit sourceLayerDrop(x);
+                break;
+            default:
+            case View::NULLVIEW:
+            case View::RENDERING:
+                break;
+            }
         }
     }
 
@@ -1325,15 +1352,7 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 {
     QDomElement config = doc.createElement("Views");
 
-    if (_currentView == _mixingView)
-        config.setAttribute("current", View::MIXING);
-    else if (_currentView == _geometryView)
-        config.setAttribute("current", View::GEOMETRY);
-    else if (_currentView == _layersView)
-        config.setAttribute("current", View::LAYER);
-    else if (_currentView == _renderingView)
-        config.setAttribute("current", View::RENDERING);
-
+    config.setAttribute("current", (int) _currentView->getMode());
     config.setAttribute("workspace", WorkspaceManager::getInstance()->current());
     config.setAttribute("workspaceCount", WorkspaceManager::getInstance()->count());
     config.setAttribute("workspaceExclusive", WorkspaceManager::getInstance()->isExclusiveDisplay());

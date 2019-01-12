@@ -105,7 +105,7 @@ void LayersSelectionArea::draw() {
 }
 
 
-LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0) {
+LayersView::LayersView(): View(View::LAYER), lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0) {
 
     zoom = DEFAULTZOOM;
     minzoom = MINZOOM;
@@ -117,7 +117,7 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0)
     currentAction = View::NONE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
-    title = " Layers view";
+    title = " Layers";
 
     picking_fbo = NULL;
     picking_fbo_map = NULL;

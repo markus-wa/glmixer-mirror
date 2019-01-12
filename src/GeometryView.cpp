@@ -51,7 +51,7 @@ bool GeometrySelectionArea::contains(SourceSet::iterator s)
 }
 
 
-GeometryView::GeometryView() : View(), quadrant(0), currentSource(0), borderType(0)
+GeometryView::GeometryView() : View(View::GEOMETRY), quadrant(0), currentSource(0), borderType(0)
 {
     zoom = DEFAULTZOOM;
     minzoom = MINZOOM;
@@ -62,7 +62,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentSource(0), borderType
     _modeMoveFrame = false;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
-    title = " Geometry view";
+    title = " Geometry";
 }
 
 
