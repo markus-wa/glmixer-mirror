@@ -491,11 +491,11 @@ void LoggingWidget::on_saveLogsToFile_clicked() {
 
 void LoggingWidget::on_logTexts_doubleClicked() {
 
-    QString origin = logTexts->currentItem()->text(1);
-    QFileInfo file(origin);
-    QFileInfo dir(file.absolutePath());
-    if (dir.exists())
-        QDesktopServices::openUrl( QUrl::fromLocalFile(dir.filePath()) );
+    QFileInfo file(logTexts->currentItem()->text(1));
+    if (file.isDir())
+        QDesktopServices::openUrl( QUrl::fromLocalFile(file.canonicalFilePath()) );
+    else if (file.isFile())
+        QDesktopServices::openUrl( QUrl::fromLocalFile(file.canonicalPath()) );
 }
 
 
