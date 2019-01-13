@@ -341,7 +341,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     MemoryUsagePolicySlider->setValue(mem);
 
     // s. save session on exit
-    bool save = true;
+    bool save = false;
     stream >> save;
     saveExitSession->setChecked(save);
 

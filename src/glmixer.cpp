@@ -158,7 +158,7 @@ bool GLMixer::isSingleInstanceMode(){
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), previousSource(NULL), currentVideoFile(NULL),
     _displayTimeAsFrame(false), _restoreLastSession(true),
-    _saveExitSession(true), _disableOutputWhenRecord(false),
+    _saveExitSession(false), _disableOutputWhenRecord(false),
     _displayTimerEnabled(false)
 {
     setupUi ( this );
@@ -4103,9 +4103,11 @@ void GLMixer::setPerformanceModeEnabled(bool on)
         // apply performance layout, or default one
         if (settings.contains("performanceWindowState"))
             restoreState(settings.value("performanceWindowState").toByteArray());
-        else
+        else {
             restoreState(static_performance_windowstate);
-
+            // first time in live mode: explain
+            QMessageBox::information(this, QCoreApplication::applicationName(), tr("Welcome to GLMixer Live Mode!\n\nPart of the interface is simplified and some critical actions are disabled.\n\nYou can adjust widgets and toolbars in a layout dedicated to your needs during life performance.\n\nDisable the Live Mode to return to standard editing mode."));
+        }
     } else {
         // apply normal layout
         restoreState(settings.value("windowState").toByteArray());
