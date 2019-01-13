@@ -87,7 +87,11 @@ void SnapshotManagerWidget::updateSnapshot(QString id)
 
 void SnapshotManagerWidget::setViewSimplified(bool on)
 {
+    // no control in simplified mode
     ui->controlBox->setHidden(on);
+
+    // disable context menu in simplified
+    ui->snapshotsList->setContextMenuPolicy( on ? Qt::NoContextMenu : Qt::CustomContextMenu);
 }
 
 // connected to signal removeSnapshot

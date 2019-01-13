@@ -492,6 +492,9 @@ void SessionSwitcherWidget::setViewSimplified(bool on)
     transitionBox->setHidden(on);
     folderBox->setHidden(on);
 
+    // disable context menu in simplified
+    proxyView->setContextMenuPolicy( on ? Qt::NoContextMenu : Qt::CustomContextMenu);
+
     // in performance mode, we do not want glitches in rendering
     RenderingManager::getInstance()->lockAspectRatio(on);
 }
@@ -514,7 +517,7 @@ void SessionSwitcherWidget::deleteSession()
 
         // request confirmation if session is open
         if ( GLMixer::getInstance()->getCurrentSessionFilename() == sessionFile.absoluteFilePath() )  {
-            QMessageBox::information(this, tr("%1").arg(QCoreApplication::applicationName()), tr("You cannot remove session %1 when it is openned.").arg(sessionFile.fileName()));
+            QMessageBox::information(this, QCoreApplication::applicationName(), tr("You cannot remove session %1 while openned.").arg(sessionFile.fileName()));
         }
         else {
             QString msg = tr("Do you really want to delete this file?\n\n%1").arg(sessionFile.absoluteFilePath());
