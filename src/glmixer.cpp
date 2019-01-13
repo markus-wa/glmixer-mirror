@@ -231,6 +231,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
     toolBarsMenu->addAction(toolsToolBar->toggleViewAction());
     toolBarsMenu->addAction(renderingToolBar->toggleViewAction());
+    toolBarsMenu->addAction(cursorToolBar->toggleViewAction());
 
     QActionGroup *viewActions = new QActionGroup(this);
     Q_CHECK_PTR(viewActions);
@@ -269,14 +270,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     cursorActions->addAction(actionCursorMagnet);
     actionCursorMagnet->setData(ViewRenderWidget::CURSOR_MAGNET);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
-
-    cursor_normal->setDefaultAction(actionCursorNormal);
-    cursor_spring->setDefaultAction(actionCursorSpring);
-    cursor_delay->setDefaultAction(actionCursorDelay);
-    cursor_axis->setDefaultAction(actionCursorAxis);
-    cursor_line->setDefaultAction(actionCursorLine);
-    cursor_fuzzy->setDefaultAction(actionCursorFuzzy);
-    cursor_magnet->setDefaultAction(actionCursorMagnet);
 
     QActionGroup *aspectRatioActions = new QActionGroup(this);
     Q_CHECK_PTR(aspectRatioActions);
