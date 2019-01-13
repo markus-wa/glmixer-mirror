@@ -2961,6 +2961,8 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
 #ifdef GLM_SNAPSHOT
     // detect internal drop events
     if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist")) {
+
+        if (!suspended && !RenderingManager::getInstance()->isPaused()) {
             event->accept();
 
             QStandardItemModel model;
@@ -2974,6 +2976,11 @@ void ViewRenderWidget::dropEvent(QDropEvent *event)
                 // set focus
                 setFocus(Qt::OtherFocusReason);
             }
+        }
+        else {
+            showMessage(tr("Cannot interpolate between snapshots when paused."), 2000);
+            event->ignore();
+        }
     }
     else
 #endif
