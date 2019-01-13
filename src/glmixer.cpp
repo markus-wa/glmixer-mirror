@@ -294,7 +294,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // create menu for the Workspace Manager selection actions
     menuWorkspace->insertActions(actionWorkspaceIncrement, WorkspaceManager::getInstance()->getActions() );
-
     toolButtonWorkspaceExclusive->setDefaultAction(actionWorkspaceExclusive);
 
     // create tool buttons in main view
@@ -310,6 +309,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Workspace Management
     QObject::connect(WorkspaceManager::getInstance(), SIGNAL(changed()), this, SLOT(updateWorkspaceActions()) );
     QObject::connect(WorkspaceManager::getInstance(), SIGNAL(countChanged(int)), RenderingManager::getInstance(), SLOT(setWorkspaceCount(int)) );
+    QObject::connect(WorkspaceManager::getInstance(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget(), SLOT(showMessage(const QString &, int)));
     QObject::connect(actionWorkspaceIncrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));
     QObject::connect(actionWorkspaceDecrement, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(decrementCount()));
     QObject::connect(actionNewWorkspace, SIGNAL(triggered()), WorkspaceManager::getInstance(), SLOT(incrementCount()));

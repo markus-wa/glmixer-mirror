@@ -113,8 +113,10 @@ void WorkspaceManager::setExclusiveDisplay(bool on)
     bool previous = _exclusive;
     _exclusive = on;
 
-    if (_exclusive != previous)
+    if (_exclusive != previous) {
         emit changed();
+        emit status(tr("Workspace %1 %2").arg(current()+1).arg(_exclusive?tr("(exclusive)"):""), 2000);
+    }
 }
 
 void WorkspaceManager::setCurrent(int n)
@@ -125,6 +127,7 @@ void WorkspaceManager::setCurrent(int n)
         _actions->actions()[n]->setChecked(true);
         // broadcast
         emit currentChanged(n);
+        emit status(tr("Workspace %1 %2").arg(n+1).arg(_exclusive?tr("(exclusive)"):""), 2000);
     }
 }
 
@@ -132,6 +135,7 @@ void  WorkspaceManager::onWorkspaceAction(QAction *a)
 {
     RenderingManager::getInstance()->unsetCurrentSource();
     SelectionManager::getInstance()->clearSelection();
+    emit status(tr("Workspace %1 %2").arg(current()+1).arg(_exclusive?tr("(exclusive)"):""), 2000);
 }
 
 void  WorkspaceManager::onSourceWorkspaceAction(QAction *a)

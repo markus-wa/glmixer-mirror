@@ -33,6 +33,7 @@ signals:
     void currentChanged(int);
     void countChanged(int);
     void changed();
+    void status(QString, int);
 
 public slots:
 
