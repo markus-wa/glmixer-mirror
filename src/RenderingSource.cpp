@@ -6,7 +6,11 @@
 #include <FFGL.h>
 #endif
 
-void RenderingSource::setRecursive(bool on) {
+// list of sources using rendering loopback
+SourceSet RenderingSource::_rendering_sources;
+
+void RenderingSource::setRecursive(bool on)
+{
     _recursive = on;
 
     if (_sfbo) {
@@ -14,10 +18,20 @@ void RenderingSource::setRecursive(bool on) {
         _sfbo = NULL;
     }
 
-    if (_recursive)
-        RenderingManager::getInstance()->_rendering_sources.insert(this);
-    else
-        RenderingManager::getInstance()->_rendering_sources.erase(this);
+    if (_recursive) {
+        // initialize loopback rendering for the first source added
+        if (_rendering_sources.empty())
+            RenderingManager::getInstance()->previous_frame_state = RenderingManager::LOOPBACK_INIT;
+        // keep in list of sources using rendering loopback
+        _rendering_sources.insert(this);
+    }
+    else {
+        // remove from list of sources using rendering loopback
+        _rendering_sources.erase(this);
+        // disable loopback rendering after the last source removed
+        if (_rendering_sources.empty())
+            RenderingManager::getInstance()->previous_frame_state = RenderingManager::LOOPBACK_NONE;
+    }
 
     _textureindexchanged = true;
 }

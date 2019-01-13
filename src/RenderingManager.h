@@ -344,8 +344,9 @@ protected:
     bool _playOnDrop;
     bool paused, needsUpdate;
     int maxSourceCount;
-    // set of sources using previousframe_fbo
-    SourceSet _rendering_sources;
+    // status for using previousframe_fbo
+    typedef enum {LOOPBACK_NONE=0, LOOPBACK_INIT=1, LOOPBACK_RENDER=2 } LoopbackState;
+    LoopbackState previous_frame_state;
 
 #ifdef GLM_SHM
     // The shared memory buffer

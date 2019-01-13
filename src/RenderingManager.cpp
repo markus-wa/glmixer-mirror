@@ -173,7 +173,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), renderingSize(QSize(1,1)), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_HD), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _elapsedTime(0), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0)
+    QObject(), renderingSize(QSize(1,1)), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), output_frame_index(0), output_frame_period(1), previous_frame_index(0), previous_frame_period(1), clearWhite(false), renderingQuality(QUALITY_HD), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _elapsedTime(0), _playOnDrop(true), paused(false), needsUpdate(true), maxSourceCount(0), previous_frame_state(LOOPBACK_NONE)
 {
     // idenfity for event
     setObjectName("RenderingManager");
@@ -471,7 +471,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 
     // Draw recursive loop back (skip if no rendering source)
-    if (_rendering_sources.size() > 0 && !paused)
+    if (previous_frame_state > LOOPBACK_NONE && !paused)
     {
         // frame delay
         previous_frame_index++;
@@ -484,9 +484,18 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
-                glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+                if (previous_frame_state > LOOPBACK_INIT)  {
+                    // blit to the frame buffer object
+                    glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
                                   previousframe_fbo->width(), previousframe_fbo->height(),
                                   GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                }
+                else {
+                    // clear for init
+                    static const float transparent[] = { 0.f, 0.f, 0.f, 0.f };
+                    glClearBufferfv(GL_COLOR, 0, transparent);
+                    previous_frame_state = LOOPBACK_RENDER;
+                }
 
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             }
@@ -494,11 +503,19 @@ void RenderingManager::postRenderToFrameBuffer() {
             else if (previousframe_fbo->bind()) {
                 glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
-                // render to the frame buffer object
-                glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
-                glColor4f(1.f, 1.f, 1.f, 1.f);
-                glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-                glCallList(ViewRenderWidget::quad_texured);
+                if (previous_frame_state > LOOPBACK_INIT) {
+                    // render to the frame buffer object
+                    glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
+                    glColor4f(1.f, 1.f, 1.f, 1.f);
+                    glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+                    glCallList(ViewRenderWidget::quad_texured);
+                }
+                else {
+                    // clear for init
+                    glClearColor(0.f, 0.f, 0.f, 1.f);
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    previous_frame_state = LOOPBACK_RENDER;
+                }
 
                 glPopAttrib();
                 previousframe_fbo->release();

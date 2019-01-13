@@ -62,6 +62,9 @@ private:
     bool _recursive, _textureindexchanged;
     QGLFramebufferObject *_sfbo;
 
+    // set of sources using previousframe_fbo
+    static SourceSet _rendering_sources;
+
 };
 
 #endif /* RENDERINGSOURCE_H_ */
