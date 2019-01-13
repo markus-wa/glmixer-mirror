@@ -236,9 +236,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QActionGroup *viewActions = new QActionGroup(this);
     Q_CHECK_PTR(viewActions);
     viewActions->addAction(actionMixingView);
+    actionMixingView->setData(View::MIXING);
     viewActions->addAction(actionGeometryView);
+    actionGeometryView->setData(View::GEOMETRY);
     viewActions->addAction(actionLayersView);
+    actionLayersView->setData(View::LAYER);
     viewActions->addAction(actionRenderingView);
+    actionRenderingView->setData(View::RENDERING);
     QObject::connect(viewActions, SIGNAL(triggered(QAction *)), this, SLOT(setView(QAction *) ) );
 
     QActionGroup *toolActions = new QActionGroup(this);
@@ -964,29 +968,19 @@ void GLMixer::setView(QAction *a){
 #endif
 
     // setup the rendering Widget to the requested view
-    if (a == actionMixingView) {
-        RenderingManager::getRenderingWidget()->setViewMode(View::MIXING);
-        layoutToolBox->setViewMode(View::MIXING);
-    } else if (a == actionGeometryView) {
-        RenderingManager::getRenderingWidget()->setViewMode(View::GEOMETRY);
-        layoutToolBox->setViewMode(View::GEOMETRY);
-    } else if (a == actionLayersView) {
-        RenderingManager::getRenderingWidget()->setViewMode(View::LAYER);
-        layoutToolBox->setViewMode(View::LAYER);
-    } else if (a == actionRenderingView) {
-        RenderingManager::getRenderingWidget()->setViewMode(View::RENDERING);
-        layoutToolBox->setViewMode(View::RENDERING);
-    }
+    View::viewMode view = (View::viewMode) a->data().toInt();
+    RenderingManager::getRenderingWidget()->setViewMode(view);
+    layoutToolBox->setViewMode(view);
 
     // show appropriate icon
     viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
     viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
 
     // tools available in corresponding views
-    toolsToolBar->setEnabled(a != actionRenderingView);
-    actionToolScale->setEnabled( a != actionLayersView);
-    actionToolRotate->setEnabled( a != actionLayersView);
-    menuAspect_Ratio->menuAction()->setVisible(a == actionGeometryView);
+    toolsToolBar->setEnabled(view != View::RENDERING);
+    actionToolScale->setEnabled( view != View::LAYER);
+    actionToolRotate->setEnabled( view != View::LAYER);
+    menuAspect_Ratio->menuAction()->setVisible(view == View::GEOMETRY);
 
     // get back the proper tool from former usage
     switch ( RenderingManager::getRenderingWidget()->getToolMode() ){
