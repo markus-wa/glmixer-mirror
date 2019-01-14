@@ -352,13 +352,6 @@ int main(int argc, char **argv)
     a.processEvents();
 #endif
 
-    //
-    // 4. load eventual session file provided in argument or restore last session
-    //
-    if (!crashrecover)
-        a.setFilenameToOpen( GLMixer::getInstance()->getRestorelastSessionFilename() );
-    a.requestOpenFile();
-
     // all done
     splash.finish(GLMixer::getInstance());
 
@@ -366,6 +359,13 @@ int main(int argc, char **argv)
     GLMixer::getInstance()->show();
     OutputRenderWindow::getInstance()->show();
     GLMixer::getInstance()->raise();
+
+    //
+    // 4. load eventual session file provided in argument or restore last session
+    //
+    if (!crashrecover)
+        a.setFilenameToOpen( GLMixer::getInstance()->getRestorelastSessionFilename() );
+    a.requestOpenFile();
 
     // start application loop
     returnvalue = a.exec();
