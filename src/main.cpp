@@ -329,22 +329,19 @@ int main(int argc, char **argv)
     initListOfExtension();
     a.processEvents();
 
-    // The output rendering window
-    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("%1 - Output").arg(a.applicationName()));
-    a.processEvents();
 
     //
     // 3. Start the application
     //
     GLMixer::getInstance()->readSettings( a.applicationDirPath() );
 
-    // enable openning of file from system message
-    QObject::connect(&a, SIGNAL(filenameToOpen(QString)), GLMixer::getInstance(), SLOT(switchToSessionFile(QString)));
-    a.processEvents();
-
     // terminate other instance in single instance mode
     if (GLMixer::isSingleInstanceMode())
         a.killOtherInstances();
+
+    // enable openning of file from system message
+    QObject::connect(&a, SIGNAL(filenameToOpen(QString)), GLMixer::getInstance(), SLOT(switchToSessionFile(QString)));
+    a.processEvents();
 
 #ifdef GLM_SHM
     if(!SharedMemoryManager::getInstance())
@@ -352,13 +349,18 @@ int main(int argc, char **argv)
     a.processEvents();
 #endif
 
-    // all done
-    splash.finish(GLMixer::getInstance());
+    // The output rendering window
+    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("%1 - Output").arg(a.applicationName()));
+    a.processEvents();
 
     // Show the GUI in front
-    GLMixer::getInstance()->show();
     OutputRenderWindow::getInstance()->show();
+    OutputRenderWindow::getInstance()->raise();
+    GLMixer::getInstance()->show();
     GLMixer::getInstance()->raise();
+
+    // all done
+    splash.finish(GLMixer::getInstance());
 
     //
     // 4. load eventual session file provided in argument or restore last session

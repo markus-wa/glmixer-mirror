@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1676</width>
-    <height>1006</height>
+    <width>1532</width>
+    <height>906</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -813,8 +813,8 @@ border-bottom-left-radius: 5px;
            </property>
            <property name="minimumSize">
             <size>
-             <width>52</width>
-             <height>36</height>
+             <width>50</width>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1685,8 +1685,8 @@ QToolButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1676</width>
-     <height>28</height>
+     <width>1532</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2096,17 +2096,8 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
+     <property name="margin">
       <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>3</number>
      </property>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
@@ -2121,10 +2112,10 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2196,10 +2187,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorSpringOptions">
         <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2308,8 +2299,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>218</width>
-             <height>39</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -2318,10 +2309,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorDelayOptions">
         <layout class="QVBoxLayout" name="verticalLayout_8">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2454,8 +2445,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -2464,10 +2455,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorAxisOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2539,8 +2530,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>412</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -2549,10 +2540,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorLineOptions">
         <layout class="QVBoxLayout" name="verticalLayout_10">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2700,8 +2691,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>94</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -2710,10 +2701,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorFuzzyOptions">
         <layout class="QVBoxLayout" name="verticalLayout_11">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2864,8 +2855,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -2874,10 +2865,10 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_12">
-         <property name="leftMargin">
-          <number>6</number>
+         <property name="spacing">
+          <number>3</number>
          </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2923,6 +2914,9 @@ QToolButton:hover {
            </item>
            <item>
             <widget class="QToolButton" name="resetMagnet">
+             <property name="toolTip">
+              <string>Reset</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -3007,8 +3001,8 @@ QToolButton:hover {
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>302</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -3109,8 +3103,8 @@ QToolButton:hover {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>279</width>
-          <height>130</height>
+          <width>224</width>
+          <height>110</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -3547,6 +3541,12 @@ QToolButton:hover {
   <widget class="QToolBar" name="cursorToolBar">
    <property name="windowTitle">
     <string>Cursors</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
