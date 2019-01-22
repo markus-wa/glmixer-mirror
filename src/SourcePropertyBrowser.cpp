@@ -667,7 +667,7 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
         if ( !ViewRenderWidget::getMaskTexture( value ) ) {
             QString filename = currentItem->getCustomMaskTexture();
             if (filename.isEmpty())
-                filename = getPNGFile(filename);
+                filename = GLMixer::getInstance()->getMaskFileName(filename);
             if (!filename.isEmpty()) {
                 // apply change to custom mask
                 currentItem->setCustomMaskTexture( filename );

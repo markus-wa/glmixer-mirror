@@ -6,17 +6,18 @@
 
 void setupAboutDialog(QDialog *AboutGLMixer);
 
-QString getPNGFile(QString previous);
 
 class CaptureDialog: public QDialog {
 
     QImage img;
     QComboBox *presetsSizeComboBox;
+    QSettings *appSettings;
 
 public:
 
     int getWidth();
-    CaptureDialog(QWidget *parent, QImage capture, QString caption);
+    CaptureDialog(QWidget *parent, QImage capture, QString caption, QSettings *settings);
+    ~CaptureDialog();
 
     QSize sizeHint() const {
         return QSize(400, 300);
@@ -27,11 +28,37 @@ public:
 class RenderingSourceDialog: public QDialog {
 
     QToolButton *recursiveButton;
+    QSettings *appSettings;
 
 public:
 
     bool getRecursive();
-    RenderingSourceDialog(QWidget *parent);
+    RenderingSourceDialog(QWidget *parent, QSettings *settings);
+    ~RenderingSourceDialog();
+
+    QSize sizeHint() const {
+        return QSize(400, 300);
+    }
+};
+
+
+
+class SettingsCategogyDialog: public QDialog {
+
+    QCheckBox *preferenceBox;
+    QCheckBox *presetBox;
+    QCheckBox *oscBox;
+    QCheckBox *windowstateBox;
+    QSettings *appSettings;
+
+public:
+
+    bool preferenceSelected();
+    bool presetsSelected();
+    bool oscSelected();
+    bool windowstateSelected();
+    SettingsCategogyDialog(QWidget *parent, QSettings *settings);
+    ~SettingsCategogyDialog();
 
     QSize sizeHint() const {
         return QSize(400, 300);
@@ -45,7 +72,7 @@ class SourceFileEditDialog: public QDialog {
 
 public:
 
-    SourceFileEditDialog(QWidget *parent, Source *source, QString caption);
+    SourceFileEditDialog(QWidget *parent, Source *source, QString caption, QSettings *settings);
     ~SourceFileEditDialog();
 
     QSize sizeHint() const {
@@ -64,6 +91,7 @@ private:
 
     Source *s;
     QLineEdit *nameEdit;
+    QSettings *appSettings;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class SourceDisplayWidget *sourcedisplay;
 #ifdef GLM_FFGL
@@ -108,11 +136,9 @@ class LoggingWidget: public QWidget {
 
 public:
 
-    LoggingWidget(QWidget *parent = 0);
-    virtual void closeEvent ( QCloseEvent * event );
-    QByteArray saveState() const;
-    bool restoreState(const QByteArray &state);
+    LoggingWidget(QSettings *settings);
 
+    void closeEvent(QCloseEvent *event);
     QSize sizeHint() const {
         return QSize(800, 300);
     }
@@ -142,6 +168,7 @@ private:
     QToolButton *copyLogsToClipboard;
     QToolButton *toolButtonClearLogs;
     QTreeWidget *logTexts;
+    QSettings *appSettings;
 
 };
 #endif  // GLM_LOGS

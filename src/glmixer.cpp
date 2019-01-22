@@ -163,6 +163,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 {
     setupUi ( this );
 
+    // create settings object with default mode
+    _settings = new QSettings();
+
     QFile file(":/style/default");
     file.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(file.readAll());
@@ -190,7 +193,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef GLM_LOGS
     // The log widget
     if (!logsWidget)
-        logsWidget = new LoggingWidget();
+        logsWidget = new LoggingWidget(_settings);
     connect(logsWidget, SIGNAL(saveLogs()), SLOT(saveLogsToFile()));
 
     QAction *showlog = new QAction(QIcon(":/icons/history.png"), tr("Logs"), this);
@@ -354,7 +357,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     sourceDockWidgetContentsLayout->addWidget(layoutPropertyBrowser);
 
     // setup the mixing toolbox
-    mixingToolBox = new MixingToolboxWidget(this, &settings);
+    mixingToolBox = new MixingToolboxWidget(this, _settings);
     mixingDockWidgetContentLayout->addWidget(mixingToolBox);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
     QObject::connect(mixingToolBox, SIGNAL( sourceChanged(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
@@ -433,7 +436,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SnapshotManager::getInstance(), SIGNAL(snapshotRestored()), SelectionManager::getInstance(), SLOT(clearSelection()) );
     QObject::connect(SnapshotManager::getInstance(), SIGNAL(status(const QString &, int)), RenderingManager::getRenderingWidget(), SLOT(showMessage(const QString &, int)));
     // setup the snapshot toolbox
-    snapshotManager = new SnapshotManagerWidget(this, &settings);
+    snapshotManager = new SnapshotManagerWidget(this, _settings);
     snapshotsDockWidgetContentsLayout->addWidget(snapshotManager);
 #else
     // DISABLE SNAPSHOT MANAGER
@@ -442,7 +445,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifdef GLM_SESSION
     // Setup the session switcher toolbox
-    switcherSession = new SessionSwitcherWidget(this, &settings);
+    switcherSession = new SessionSwitcherWidget(this, _settings);
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
     QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
     QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
@@ -679,6 +682,9 @@ GLMixer::~GLMixer()
 #ifdef GLM_HISTORY
     delete actionHistoryView;
 #endif
+
+    // last the settings
+    delete _settings;
 }
 
 
@@ -1131,7 +1137,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 void GLMixer::connectSource(SourceSet::iterator csi){
 
     if (specificSourcePropertyBrowser) {
-        settings.setValue("layoutPropertyBrowserState", layoutPropertyBrowser->saveState() );
+        _settings->setValue("layoutPropertyBrowserState", layoutPropertyBrowser->saveState() );
         delete specificSourcePropertyBrowser;
         specificSourcePropertyBrowser = NULL;
     }
@@ -1210,7 +1216,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
         specificSourcePropertyBrowser->setHeaderVisible(false);
         layoutPropertyBrowser->insertWidget(1, specificSourcePropertyBrowser);
-        layoutPropertyBrowser->restoreState(settings.value("layoutPropertyBrowserState").toByteArray());
+        layoutPropertyBrowser->restoreState(_settings->value("layoutPropertyBrowserState").toByteArray());
         specificSourcePropertyBrowser->connectToPropertyTree(RenderingManager::getPropertyBrowserWidget());
 
         // enable properties and actions on the current valid source
@@ -1365,7 +1371,7 @@ void GLMixer::on_actionBasketSource_triggered(){
    // popup a dialog to select the stream
    static BasketSelectionDialog *bsd = 0;
    if (!bsd)
-       bsd = new BasketSelectionDialog(this, &settings);
+       bsd = new BasketSelectionDialog(this, _settings);
 
 
    if (bsd->exec() == QDialog::Accepted) {
@@ -1403,7 +1409,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 
     static CameraDialog *cd = 0;
     if (!cd)
-        cd = new CameraDialog(this, &settings);
+        cd = new CameraDialog(this, _settings);
 
     if (cd->exec() == QDialog::Accepted) {
 
@@ -1462,7 +1468,7 @@ void GLMixer::on_actionWebSource_triggered(){
     // popup a question dialog to select the type of algorithm
     static WebSourceCreationDialog *webd = 0;
     if (!webd)
-        webd = new WebSourceCreationDialog(this, &settings);
+        webd = new WebSourceCreationDialog(this, _settings);
 
 
     if (webd->exec() == QDialog::Accepted) {
@@ -1541,7 +1547,7 @@ void GLMixer::on_actionStreamSource_triggered(){
     // popup a dialog to select the stream
     static VideoStreamDialog *vsd = 0;
     if (!vsd)
-        vsd = new VideoStreamDialog(this, &settings);
+        vsd = new VideoStreamDialog(this, _settings);
 
 
     if (vsd->exec() == QDialog::Accepted) {
@@ -1578,7 +1584,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
     // create dialog on first run
     static FFGLSourceCreationDialog *ffgld = 0;
     if (!ffgld)
-        ffgld = new FFGLSourceCreationDialog(this, &settings);
+        ffgld = new FFGLSourceCreationDialog(this, _settings);
 
     // popup a question dialog to select the type of algorithm
     if (ffgld->exec() == QDialog::Accepted) {
@@ -1677,7 +1683,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
     // popup a question dialog to select the type of algorithm
     static AlgorithmSelectionDialog *asd = 0;
     if (!asd)
-        asd = new AlgorithmSelectionDialog(this, &settings);
+        asd = new AlgorithmSelectionDialog(this, _settings);
 
     if (asd->exec() == QDialog::Accepted) {
         Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
@@ -1705,17 +1711,11 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 void GLMixer::on_actionRenderingSource_triggered(){
 
     // popup a question dialog to select the type of rendering source
-    static RenderingSourceDialog *rsd = 0;
-    if (!rsd) {
-        rsd = new RenderingSourceDialog(this);
-        // restore status
-        if (settings.contains("dialogRenderingGeometry"))
-            rsd->restoreGeometry(settings.value("dialogRenderingGeometry").toByteArray());
-    }
+    RenderingSourceDialog rsd(this, _settings);
 
-    if (rsd->exec() == QDialog::Accepted) {
+    if (rsd.exec() == QDialog::Accepted) {
 
-        Source *s = RenderingManager::getInstance()->newRenderingSource(rsd->getRecursive());
+        Source *s = RenderingManager::getInstance()->newRenderingSource(rsd.getRecursive());
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
@@ -1724,8 +1724,6 @@ void GLMixer::on_actionRenderingSource_triggered(){
             qCritical() << tr("Could not create rendering loopback source.");
     }
 
-    // remember status
-    settings.setValue("dialogRenderingGeometry", rsd->saveGeometry());
 }
 
 
@@ -1759,7 +1757,7 @@ void GLMixer::on_actionCaptureSource_triggered(){
         QImage capture = qvariant_cast<QImage>(mimeData->imageData());
 
         // display and request action with this capture
-        CaptureDialog cd(this, capture, tr("Create a Pixmap source with this image ?"));
+        CaptureDialog cd(this, capture, tr("Create a Pixmap source with this image ?"), _settings);
 
         if (cd.exec() == QDialog::Accepted) {
 
@@ -1801,7 +1799,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
     }
     else {
         // display and request action with this capture
-        CaptureDialog cd(this, capture, tr("Save this screenshot ?"));
+        CaptureDialog cd(this, capture, tr("Save this screenshot ?"), _settings);
 
         if (cd.exec() == QDialog::Accepted) {
 
@@ -1830,18 +1828,13 @@ void GLMixer::on_actionEditSource_triggered()
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
         // edit mean show the dialog to change source
-        SourceFileEditDialog sed(this, *cs, tr("%1 - Source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
-        // restore status
-        if (settings.contains("dialogEditSourceGeometry"))
-            sed.restoreGeometry(settings.value("dialogEditSourceGeometry").toByteArray());
+        SourceFileEditDialog sed(this, *cs, tr("%1 - Source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), _settings);
 
         // open
-        if (sed.exec() == QDialog::Rejected) {
+        if (sed.exec() == QDialog::Accepted) {
             // requet to re-create source
             replaceCurrentSource();
         }
-        // remember status
-        settings.setValue("dialogEditSourceGeometry", sed.saveGeometry());
 
         // update the property browser of the source
         connectSource(RenderingManager::getInstance()->getCurrentSource());
@@ -1865,7 +1858,7 @@ void GLMixer::replaceCurrentSource()
                 VideoFile *vf = vs->getVideoFile();
                 if (vf) {
                     // indicate location of file to replace
-                    settings.setValue("recentMediaFile", vf->getFileName());
+                    _settings->setValue("recentMediaFile", vf->getFileName());
                 }
             }
         }
@@ -1885,7 +1878,7 @@ void GLMixer::replaceCurrentSource()
         else if ( t == Source::WEB_SOURCE ) {
             WebSource *ws = dynamic_cast<WebSource *>(*cs);
             if (ws) {
-                settings.setValue("recentWebUrl", ws->getUrl().toString());
+                _settings->setValue("recentWebUrl", ws->getUrl().toString());
             }
         }
 #ifdef GLM_FFGL
@@ -1902,13 +1895,13 @@ void GLMixer::replaceCurrentSource()
                         // copy code of shadertoy to clipboard
                         QApplication::clipboard()->setText( st->getCode() );
                         // indicate in settings that FFGLCreationDialog should open on shadertoy clipboard
-                        settings.setValue("recentFFGLPluginSelection", 3);
+                        _settings->setValue("recentFFGLPluginSelection", 3);
                     }
                 }
                 // case of freeframe plugins
                 else {
                     // indicate in settings that FFGLCreationDialog should open on ffgl source
-                    settings.setValue("recentFFGLPluginSelection", 0);
+                    _settings->setValue("recentFFGLPluginSelection", 0);
                 }
             }
         }
@@ -2053,7 +2046,7 @@ void GLMixer::on_actionAbout_triggered(){
 void GLMixer::confirmSessionFileName(){
 
     // recent files history
-    QStringList files = settings.value("recentFileList").toStringList();
+    QStringList files = _settings->value("recentFileList").toStringList();
 
     if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty()) {
         setWindowTitle(QString("%1 %2 - unsaved").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()));
@@ -2082,7 +2075,7 @@ void GLMixer::confirmSessionFileName(){
     for (int j = files.size(); j < MAX_RECENT_FILES; ++j)
         recentFileActs[j]->setVisible(false);
 
-    settings.setValue("recentFileList", files);
+    _settings->setValue("recentFileList", files);
 
 }
 
@@ -2157,7 +2150,7 @@ void GLMixer::closeSession()
     RenderingManager::getSessionSwitcher()->startTransition(false);
 
     // last session file name
-    settings.setValue("lastSessionFileName", "");
+    _settings->setValue("lastSessionFileName", "");
 }
 
 void GLMixer::newSession()
@@ -2291,7 +2284,7 @@ void GLMixer::postSaveSession()
     setBusy(false);
 
     // last session file name
-    settings.setValue("lastSessionFileName", currentSessionFileName);
+    _settings->setValue("lastSessionFileName", currentSessionFileName);
 }
 
 
@@ -2418,8 +2411,8 @@ QString GLMixer::getCurrentSessionFilename() const
 QString GLMixer::getRestorelastSessionFilename()
 {
     // if the option to restore last session is ON, give the name of the last session file
-    if (_restoreLastSession && settings.contains("lastSessionFileName")) {
-        QString filename = settings.value("lastSessionFileName").toString();
+    if (_restoreLastSession && _settings->contains("lastSessionFileName")) {
+        QString filename = _settings->value("lastSessionFileName").toString();
         if (!filename.isEmpty()) {
             QFileInfo fi(filename);
             sfd->setDirectory(fi.absolutePath());
@@ -2618,7 +2611,7 @@ void GLMixer::openSessionFile()
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded." << counter++;
 
     // last session file name
-    settings.setValue("lastSessionFileName", currentSessionFileName);
+    _settings->setValue("lastSessionFileName", currentSessionFileName);
 }
 
 
@@ -2876,61 +2869,51 @@ QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
 void GLMixer::readSettings( QString pathtobin )
 {
     if ( !pathtobin.isNull() )
-        settings.setValue("ExecutionPath", pathtobin);
-
-    // preferences
-    if (settings.contains("UserPreferences"))
-        restorePreferences(settings.value("UserPreferences").toByteArray());
-    else
-        restorePreferences(QByteArray());
+        _settings->setValue("ExecutionPath", pathtobin);
 
     // windows config
-    if (settings.contains("geometry"))
-        restoreGeometry(settings.value("geometry").toByteArray());
+    if (_settings->contains("geometry"))
+        restoreGeometry(_settings->value("geometry").toByteArray());
     else
-        settings.setValue("defaultGeometry", saveGeometry());
+        _settings->setValue("defaultGeometry", saveGeometry());
 
-    const QRect actualGeometry(settings.value("actualGeometry").toRect());
+    const QRect actualGeometry(_settings->value("actualGeometry").toRect());
     if (actualGeometry.isValid() && windowState() & Qt::WindowMaximized)
         setGeometry(actualGeometry);
 
     // set normal status of window, widgets and toolbars, or set it to default
-    if (settings.contains("windowState"))
-        restoreState(settings.value("windowState").toByteArray());
+    if (_settings->contains("windowState"))
+        restoreState(_settings->value("windowState").toByteArray());
     else
         restoreState(static_windowstate);
 
     // restore status of output window, or save current status as default
-    if (settings.contains("OutputRenderWindowState"))
-        OutputRenderWindow::getInstance()->restoreState( settings.value("OutputRenderWindowState").toByteArray() );
+    if (_settings->contains("OutputRenderWindowState"))
+        OutputRenderWindow::getInstance()->restoreState( _settings->value("OutputRenderWindowState").toByteArray() );
     else
-        settings.setValue("defaultOutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
+        _settings->setValue("defaultOutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // restore status of property browser  or save current status as default
-    if (settings.contains("PropertyBrowserState"))
-        RenderingManager::getPropertyBrowserWidget()->restoreState( settings.value("PropertyBrowserState").toByteArray() );
+    if (_settings->contains("PropertyBrowserState"))
+        RenderingManager::getPropertyBrowserWidget()->restoreState( _settings->value("PropertyBrowserState").toByteArray() );
     else
-        settings.setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
+        _settings->setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
 
     // dialogs configs
-    if (settings.contains("VideoFileDialog")) {
-        mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
+    if (_settings->contains("VideoFileDialog")) {
+        mfd->restoreState(_settings->value("VideoFileDialog").toByteArray());
         mfd->setDirectory( mfd->history().last() );
         mfd->setSidebarUrls( getExtendedSidebarUrls( mfd->sidebarUrls()) );
     }
-    if (settings.contains("SessionFileDialog")) {
-        sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
+    if (_settings->contains("SessionFileDialog")) {
+        sfd->restoreState(_settings->value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
         sfd->setSidebarUrls( getExtendedSidebarUrls( sfd->sidebarUrls()) );
     }
-#ifdef GLM_LOGS
-    if (settings.contains("logsWidget")) {
-        logsWidget->restoreState( settings.value("logsWidget").toByteArray() );
-    }
-#endif
+
     // Cursor status
-    if (settings.contains("CursorMode")) {
-        switch((ViewRenderWidget::cursorMode) settings.value("CursorMode").toInt()) {
+    if (_settings->contains("CursorMode")) {
+        switch((ViewRenderWidget::cursorMode) _settings->value("CursorMode").toInt()) {
         case ViewRenderWidget::CURSOR_DELAY:
             actionCursorDelay->trigger();
             break;
@@ -2957,140 +2940,265 @@ void GLMixer::readSettings( QString pathtobin )
         }
     }
 
-    if (settings.contains("CursorSpringMass"))
-        cursorSpringMass->setValue(settings.value("CursorSpringMass").toInt());
-    if (settings.contains("cursorLineSpeed"))
-        cursorLineSpeed->setValue(settings.value("cursorLineSpeed").toInt());
-    if (settings.contains("cursorLineWaitDuration"))
-        cursorLineWaitDuration->setValue(settings.value("cursorLineWaitDuration").toDouble());
-    if (settings.contains("cursorDelayLatency"))
-        cursorDelayLatency->setValue(settings.value("cursorDelayLatency").toDouble());
-    if (settings.contains("cursorDelayFiltering"))
-        cursorDelayFiltering->setValue(settings.value("cursorDelayFiltering").toInt());
-    if (settings.contains("cursorFuzzyRadius"))
-        cursorFuzzyRadius->setValue(settings.value("cursorFuzzyRadius").toInt());
-    if (settings.contains("cursorFuzzyFiltering"))
-        cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
-    if (settings.contains("cursorMagnetRadius"))
-        cursorMagnetRadius->setValue(settings.value("cursorMagnetRadius").toInt());
-    if (settings.contains("cursorMagnetStrength"))
-        cursorMagnetStrength->setValue(settings.value("cursorMagnetStrength").toDouble());
+    if (_settings->contains("CursorSpringMass"))
+        cursorSpringMass->setValue(_settings->value("CursorSpringMass").toInt());
+    if (_settings->contains("cursorLineSpeed"))
+        cursorLineSpeed->setValue(_settings->value("cursorLineSpeed").toInt());
+    if (_settings->contains("cursorLineWaitDuration"))
+        cursorLineWaitDuration->setValue(_settings->value("cursorLineWaitDuration").toDouble());
+    if (_settings->contains("cursorDelayLatency"))
+        cursorDelayLatency->setValue(_settings->value("cursorDelayLatency").toDouble());
+    if (_settings->contains("cursorDelayFiltering"))
+        cursorDelayFiltering->setValue(_settings->value("cursorDelayFiltering").toInt());
+    if (_settings->contains("cursorFuzzyRadius"))
+        cursorFuzzyRadius->setValue(_settings->value("cursorFuzzyRadius").toInt());
+    if (_settings->contains("cursorFuzzyFiltering"))
+        cursorFuzzyFiltering->setValue(_settings->value("cursorFuzzyFiltering").toInt());
+    if (_settings->contains("cursorMagnetRadius"))
+        cursorMagnetRadius->setValue(_settings->value("cursorMagnetRadius").toInt());
+    if (_settings->contains("cursorMagnetStrength"))
+        cursorMagnetStrength->setValue(_settings->value("cursorMagnetStrength").toDouble());
 
     // last tools used
-    if (settings.contains("lastToolMixing"))
-        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolMixing").toInt() ,View::MIXING);
-    if (settings.contains("lastToolGeometry"))
-        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolGeometry").toInt() ,View::GEOMETRY);
+    if (_settings->contains("lastToolMixing"))
+        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) _settings->value("lastToolMixing").toInt() ,View::MIXING);
+    if (_settings->contains("lastToolGeometry"))
+        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) _settings->value("lastToolGeometry").toInt() ,View::GEOMETRY);
 
     // timer config
-    bool timeron = (bool) settings.value("displayTimer", "0").toInt();
+    bool timeron = (bool) _settings->value("displayTimer", "0").toInt();
     setDisplayTimeEnabled(timeron);
     actionShowTimers->setChecked( timeron );
 
+    // restore user preference
+    if (_settings->contains("UserPreferences"))
+        restorePreferences(_settings->value("UserPreferences").toByteArray());
+    else
+        restorePreferences(QByteArray());
+
+    // user mixing presets
+    if (_settings->contains("MixingUserPresets"))
+        mixingToolBox->restorePresets( _settings->value("MixingUserPresets").toByteArray());
+
 #ifdef GLM_OSC
     // Open Sound Control
-    bool useOSC = settings.value("OSCEnabled", "0").toBool();
-    int portOSC = settings.value("OSCPort", "7000").toInt();
-    int portOSCBroadcast = settings.value("OSCBroadcast", "3000").toInt();
+    bool useOSC = _settings->value("OSCEnabled", "0").toBool();
+    int portOSC = _settings->value("OSCPort", "7000").toInt();
+    int portOSCBroadcast = _settings->value("OSCBroadcast", "3000").toInt();
     OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC, (qint16) portOSCBroadcast);
-    if (settings.contains("OSCVerbose"))
-        OpenSoundControlManager::getInstance()->setVerbose(settings.value("OSCVerbose").toBool());
+    if (_settings->contains("OSCVerbose"))
+        OpenSoundControlManager::getInstance()->setVerbose(_settings->value("OSCVerbose").toBool());
     // restore table translator
-    int size = settings.beginReadArray("OSCTranslations");
+    int size = _settings->beginReadArray("OSCTranslations");
     for (int i = 0; i < size; ++i) {
-        settings.setArrayIndex(i);
-        OpenSoundControlManager::getInstance()->addTranslation(settings.value("before").toString(),
-                       settings.value("after").toString());
+        _settings->setArrayIndex(i);
+        OpenSoundControlManager::getInstance()->addTranslation(_settings->value("before").toString(),
+                                                               _settings->value("after").toString());
     }
-    settings.endArray();
+    _settings->endArray();
 #endif
 
-#ifdef GLM_SESSION
-    // Switcher session
-    switcherSession->restoreSettings();
-#endif
-
-    qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings restored.");
+    // ok
+    qDebug() << _settings->fileName() << QChar(124).toLatin1() << tr("All settings restored.");
 }
+
+
 
 void GLMixer::saveSettings()
 {
-    // preferences
-    settings.setValue("UserPreferences", getPreferences());
-
     // windows config
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("actualGeometry", geometry());
+    _settings->setValue("geometry", saveGeometry());
+    _settings->setValue("actualGeometry", geometry());
     if (actionPerformanceMode->isChecked())
-        settings.setValue("performanceWindowState", saveState());
+        _settings->setValue("performanceWindowState", saveState());
     else
-        settings.setValue("windowState", saveState());
-    settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
-    settings.setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
+        _settings->setValue("windowState", saveState());
+    _settings->setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
+    _settings->setValue("PropertyBrowserState", RenderingManager::getPropertyBrowserWidget()->saveState() );
 
     // dialogs configs
-    settings.setValue("VideoFileDialog", mfd->saveState());
-    settings.setValue("SessionFileDialog", sfd->saveState());
-#ifdef GLM_LOGS
-    settings.setValue("logsWidget", logsWidget->saveState());
-#endif
+    _settings->setValue("VideoFileDialog", mfd->saveState());
+    _settings->setValue("SessionFileDialog", sfd->saveState());
+
     // Cursor status
-    settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
-    settings.setValue("CursorSpringMass", cursorSpringMass->value() );
-    settings.setValue("cursorLineSpeed", cursorLineSpeed->value() );
-    settings.setValue("cursorLineWaitDuration", cursorLineWaitDuration->value() );
-    settings.setValue("cursorDelayLatency", cursorDelayLatency->value() );
-    settings.setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
-    settings.setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
-    settings.setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
-    settings.setValue("cursorMagnetRadius", cursorMagnetRadius->value() );
-    settings.setValue("cursorMagnetStrength", cursorMagnetStrength->value() );
+    _settings->setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
+    _settings->setValue("CursorSpringMass", cursorSpringMass->value() );
+    _settings->setValue("cursorLineSpeed", cursorLineSpeed->value() );
+    _settings->setValue("cursorLineWaitDuration", cursorLineWaitDuration->value() );
+    _settings->setValue("cursorDelayLatency", cursorDelayLatency->value() );
+    _settings->setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
+    _settings->setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
+    _settings->setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
+    _settings->setValue("cursorMagnetRadius", cursorMagnetRadius->value() );
+    _settings->setValue("cursorMagnetStrength", cursorMagnetStrength->value() );
 
     // last session file name
-    settings.setValue("lastSessionFileName", currentSessionFileName);
+    _settings->setValue("lastSessionFileName", currentSessionFileName);
 
     // last tools used
-    settings.setValue("lastToolMixing", (int) RenderingManager::getRenderingWidget()->getToolMode(View::MIXING));
-    settings.setValue("lastToolGeometry", (int) RenderingManager::getRenderingWidget()->getToolMode(View::GEOMETRY));
+    _settings->setValue("lastToolMixing", (int) RenderingManager::getRenderingWidget()->getToolMode(View::MIXING));
+    _settings->setValue("lastToolGeometry", (int) RenderingManager::getRenderingWidget()->getToolMode(View::GEOMETRY));
 
     // timer config
-    settings.setValue("displayTimer", (int) _displayTimerEnabled);
+    _settings->setValue("displayTimer", (int) _displayTimerEnabled);
+
+    // user preferences
+    _settings->setValue("UserPreferences", getPreferences());
+
+    // user mixing presets
+    _settings->setValue("MixingUserPresets", mixingToolBox->getPresets());
 
 #ifdef GLM_OSC
     // Open Sound Control
-    settings.setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
-    settings.setValue("OSCPort", OpenSoundControlManager::getInstance()->getPortReceive());
-    settings.setValue("OSCBroadcast", OpenSoundControlManager::getInstance()->getPortBroadcast());
-    settings.setValue("OSCVerbose", OpenSoundControlManager::getInstance()->isVerbose());
-    settings.remove("OSCTranslations");
-    settings.beginWriteArray("OSCTranslations");
+    _settings->setValue("OSCEnabled", OpenSoundControlManager::getInstance()->isEnabled());
+    _settings->setValue("OSCPort", OpenSoundControlManager::getInstance()->getPortReceive());
+    _settings->setValue("OSCBroadcast", OpenSoundControlManager::getInstance()->getPortBroadcast());
+    _settings->setValue("OSCVerbose", OpenSoundControlManager::getInstance()->isVerbose());
+    _settings->remove("OSCTranslations");
+    _settings->beginWriteArray("OSCTranslations");
     int i = 0;
     QListIterator< QPair<QString, QString> > t(*(OpenSoundControlManager::getInstance()->getTranslationDictionnary()));
     while (t.hasNext()) {
         QPair<QString, QString> p = t.next();
-        settings.setArrayIndex(i);
-        settings.setValue("before", p.first);
-        settings.setValue("after", p.second);
+        _settings->setArrayIndex(i);
+        _settings->setValue("before", p.first);
+        _settings->setValue("after", p.second);
         ++i;
     }
-    settings.endArray();
-#endif
-
-#ifdef GLM_SESSION
-    // save settings of session switcher
-    switcherSession->saveSettings();
+    _settings->endArray();
 #endif
 
     // make sure system saves settings NOW
-    settings.sync();
-    qDebug() << settings.fileName() << QChar(124).toLatin1() << tr("Settings saved.");
+    _settings->sync();
+
+    // ok
+    qDebug() << _settings->fileName() << QChar(124).toLatin1() << tr("Settings saved.");
+}
+
+
+void GLMixer::on_actionExportSettings_triggered()
+{
+    // get the filename of an ini file
+    QString fileName = getFileName(tr("Export GLMixer settings and preference to file"),
+                                   tr("GLMixer ini file") + " (*.ini)",
+                                   QString("ini"),
+                                   QFileInfo( QDir::home(), "glmixer.ini").absoluteFilePath() );
+
+    // if a valid file name is given
+    if (!fileName.isEmpty()) {
+        // delete previous file if exists
+        QFileInfo inifile(fileName);
+        if (inifile.exists())
+            inifile.dir().remove( inifile.fileName() );
+        // create a temporary settings object
+        QSettings exported_preferences(inifile.absoluteFilePath(), QSettings::IniFormat);
+
+        // copy settings to this settings object
+
+        // user preferences
+        exported_preferences.setValue("UserPreferences", _settings->value("UserPreferences"));
+
+        // user mixing presets
+        exported_preferences.setValue("MixingUserPresets", _settings->value("MixingUserPresets"));
+
+#ifdef GLM_OSC
+        // Open Sound Control
+        exported_preferences.setValue("OSCPort", _settings->value("OSCPort"));
+        exported_preferences.setValue("OSCBroadcast", _settings->value("OSCBroadcast"));
+        int size = _settings->beginReadArray("OSCTranslations");
+        exported_preferences.beginWriteArray("OSCTranslations");
+        for (int i = 0; i < size; ++i) {
+            _settings->setArrayIndex(i);
+            exported_preferences.setArrayIndex(i);
+            exported_preferences.setValue("before", _settings->value("before"));
+            exported_preferences.setValue("after", _settings->value("after"));
+        }
+        exported_preferences.endArray();
+        _settings->endArray();
+#endif
+
+        // window state
+        exported_preferences.setValue("windowState", _settings->value("windowState"));
+        exported_preferences.setValue("performanceWindowState", _settings->value("performanceWindowState"));
+
+        // save settings NOW
+        exported_preferences.sync();
+        qDebug() << exported_preferences.fileName() << QChar(124).toLatin1() << tr("Settings exported.");
+    }
+}
+
+void GLMixer::on_actionImportSettings_triggered()
+{
+    // get the filename of an ini file
+    QString fileName = getFileName(tr("Import GLMixer settings and preference from file"),
+                                   tr("GLMixer ini file") + " (*.ini)");
+
+    // check validity of file
+    QFileInfo inifile(fileName);
+    // if a valid file name is given
+    if (inifile.isFile() && inifile.isReadable()) {
+        // try to create a setting object from given file
+        QSettings imported_preferences(inifile.absoluteFilePath(), QSettings::IniFormat);
+        // if there is no error with the settings
+        if (imported_preferences.status() == QSettings::NoError) {
+            // popup a question dialog to select the categories of settings to import
+            SettingsCategogyDialog scd(this, _settings);
+            // if the user continues
+            if (scd.exec() == QDialog::Accepted) {
+                // build a settings category indicator
+                if (scd.preferenceSelected() && imported_preferences.contains("UserPreferences")) {
+                    // user preferences
+                    _settings->setValue("UserPreferences", imported_preferences.value("UserPreferences"));
+                }
+                if (scd.presetsSelected() && imported_preferences.contains("MixingUserPresets")) {
+                    // user mixing presets
+                    _settings->setValue("MixingUserPresets", imported_preferences.value("MixingUserPresets"));
+                }
+                if (scd.oscSelected()) {
+#ifdef GLM_OSC
+                    // Open Sound Control
+                    if (imported_preferences.contains("OSCPort"))
+                        _settings->setValue("OSCPort", imported_preferences.value("OSCPort"));
+                    if (imported_preferences.contains("OSCBroadcast"))
+                        _settings->setValue("OSCBroadcast", imported_preferences.value("OSCBroadcast"));
+                    if (imported_preferences.contains("OSCTranslations")) {
+                        _settings->remove("OSCTranslations");
+                        int size = imported_preferences.beginReadArray("OSCTranslations");
+                        _settings->beginWriteArray("OSCTranslations");
+                        for (int i = 0; i < size; ++i) {
+                            imported_preferences.setArrayIndex(i);
+                            _settings->setArrayIndex(i);
+                            _settings->setValue("before", imported_preferences.value("before"));
+                            _settings->setValue("after", imported_preferences.value("after"));
+                        }
+                        _settings->endArray();
+                        imported_preferences.endArray();
+                    }
+#endif
+                }
+                if (scd.windowstateSelected()) {
+                    // window state
+                    if (imported_preferences.contains("windowState"))
+                        _settings->setValue("windowState", imported_preferences.value("windowState"));
+                    if (imported_preferences.contains("performanceWindowState"))
+                        _settings->setValue("performanceWindowState", imported_preferences.value("performanceWindowState"));
+                }
+
+                // apply all settings we just overwrote
+                readSettings();
+                // ok
+                qDebug() << imported_preferences.fileName() << QChar(124).toLatin1() << tr("Settings imported.");
+            }
+        }
+    }
+
 }
 
 void GLMixer::on_actionResetToolbars_triggered()
 {
-    restoreGeometry(settings.value("defaultGeometry").toByteArray());
+    restoreGeometry(_settings->value("defaultGeometry").toByteArray());
     restoreState(static_windowstate);
-    OutputRenderWindow::getInstance()->restoreState( settings.value("defaultOutputRenderWindowState").toByteArray() );
+    OutputRenderWindow::getInstance()->restoreState( _settings->value("defaultOutputRenderWindowState").toByteArray() );
     restoreDockWidget(previewDockWidget);
     restoreDockWidget(sourceDockWidget);
     restoreDockWidget(vcontrolDockWidget);
@@ -3155,7 +3263,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
         upd->setModeMinimal(true);
 
         // make sure we reset preferences
-        upd->restoreDefaultPreferences();
+        upd->restoreAllDefaultPreferences();
 
         // show the dialog and apply preferences
         upd->exec();
@@ -3877,7 +3985,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 QStringList GLMixer::getMediaFileNames(bool &smartScalingRequest, bool &hwDecodingRequest) {
 
     QStringList fileNames;
-    QFileInfo fi( settings.value("recentMediaFile", "").toString() );
+    QFileInfo fi( _settings->value("recentMediaFile", "").toString() );
     QDir di(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
 
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
@@ -3906,11 +4014,35 @@ QStringList GLMixer::getMediaFileNames(bool &smartScalingRequest, bool &hwDecodi
     }
 
     if (!fileNames.empty())
-        settings.setValue("recentMediaFile", fileNames.front());
+        _settings->setValue("recentMediaFile", fileNames.front());
 
     return fileNames;
 }
 
+QString GLMixer::getMaskFileName(QString suggestion) {
+
+    // try to help user by proposing suggested file
+    QString previousfilename = suggestion;
+    if (previousfilename.isEmpty())
+        // the cource to operate on didn't have a custom mask : try with the one used here before
+        previousfilename = _settings->value("previousCustomMaskImage", "").toString();
+
+    // try to re-open where previous
+    QFileInfo fi( previousfilename );
+    QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
+    previousfilename = fi.isReadable() ? fi.absoluteFilePath() : di.absolutePath();
+    // open file
+    QString fileName = QFileDialog::getOpenFileName(NULL, "Open Custom Mask image", previousfilename, "Portable Network Graphics (*.png)" );
+
+    // check validity of file
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.isFile() && fileInfo.isReadable()) {
+        _settings->setValue("previousCustomMaskImage", fileName);
+        return fileInfo.absoluteFilePath() ;
+    }
+    else
+        return QString("");
+}
 
 void GLMixer::on_actionWebsite_triggered() {
 
@@ -3943,7 +4075,7 @@ void GLMixer::updateWorkspaceActions()
 void GLMixer::on_actionOSCTranslator_triggered()
 {
 #ifdef GLM_OSC
-    static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator(&settings);
+    static OpenSoundControlTranslator *oscwidget = new OpenSoundControlTranslator(_settings);
     oscwidget->show();
 #endif
 }
@@ -4058,12 +4190,12 @@ void GLMixer::setPerformanceModeEnabled(bool on)
      * */
     if (on) {
         // remember normal layout
-        settings.setValue("windowState", saveState());
-       qDebug() << "windowState" << saveState().toHex();
+        _settings->setValue("windowState", saveState());
+//       qDebug() << "windowState" << saveState().toHex();
     } else {
         // remember performance layout
-        settings.setValue("performanceWindowState", saveState());
-       qDebug() << "performanceWindowState" << saveState().toHex();
+        _settings->setValue("performanceWindowState", saveState());
+//       qDebug() << "performanceWindowState" << saveState().toHex();
     }
 
     /**
@@ -4086,8 +4218,8 @@ void GLMixer::setPerformanceModeEnabled(bool on)
      * */
     if (on) {
         // apply performance layout, or default one
-        if (settings.contains("performanceWindowState"))
-            restoreState(settings.value("performanceWindowState").toByteArray());
+        if (_settings->contains("performanceWindowState"))
+            restoreState(_settings->value("performanceWindowState").toByteArray());
         else {
             restoreState(static_performance_windowstate);
             // first time in live mode: explain
@@ -4095,7 +4227,7 @@ void GLMixer::setPerformanceModeEnabled(bool on)
         }
     } else {
         // apply normal layout
-        restoreState(settings.value("windowState").toByteArray());
+        restoreState(_settings->value("windowState").toByteArray());
     }
 
 }

@@ -110,8 +110,8 @@ public slots:
     void changed();
 
     // state restoration
-    QByteArray saveState() const;
-    bool restoreState(const QByteArray &state);
+    QByteArray getPresets() const;
+    bool restorePresets(const QByteArray &state);
 
 signals:
     // inform property manager when a property is modified here

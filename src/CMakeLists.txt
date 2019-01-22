@@ -551,7 +551,7 @@ ELSE(APPLE)
   IF(WIN32)
 
     # uninstall step to remove registry entry
-    SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "DeleteRegKey HKCU 'Software\\\\bhbn'")
+    # SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "DeleteRegKey HKCU 'Software\\\\bhbn'")
 
     # apparently useless, but harmless too..
     INCLUDE(InstallRequiredSystemLibraries)

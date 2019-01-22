@@ -42,6 +42,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
     IntroTextLabel->setVisible(false);
+    titleTextLabel->setVisible(false);
 
     // the default source properties
     defaultSource = new Source();
@@ -104,6 +105,10 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
     // refresh opengl preview
     previewOutput->setUpdatePeriod(updatePeriod->value());
 
+    // improve table appearance
+    resolutionTable->horizontalHeader()->resizeSections(QHeaderView::Stretch);
+    resolutionTable->verticalHeader()->resizeSections(QHeaderView::Stretch);
+
     QWidget::showEvent(e);
 }
 
@@ -120,6 +125,7 @@ void UserPreferencesDialog::setModeMinimal(bool on)
     listWidget->setVisible(!on);
     factorySettingsButton->setVisible(!on);
     IntroTextLabel->setVisible(on);
+    titleTextLabel->setVisible(on);
 
     if (on){
         stackedPreferences->setCurrentIndex(0);
@@ -133,17 +139,22 @@ void UserPreferencesDialog::setModeMinimal(bool on)
 }
 
 
-void UserPreferencesDialog::restoreAllDefaultPreferences() {
+void UserPreferencesDialog::factoryResetPreferences() {
 
     QString msg = tr("Do you want to reset GLMixer to factory settings and appearance?");
     if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg,
     QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
         // reset all
-        for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
-        restoreDefaultPreferences();
-
+        restoreAllDefaultPreferences();
         GLMixer::getInstance()->on_actionResetToolbars_triggered();
     }
+}
+
+void UserPreferencesDialog::restoreAllDefaultPreferences() {
+
+    // reset default for every preference page
+    for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
+        restoreDefaultPreferences();
 }
 
 void UserPreferencesDialog::restoreDefaultPreferences() {

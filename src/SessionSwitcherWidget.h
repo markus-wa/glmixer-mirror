@@ -68,14 +68,13 @@ public slots:
     void setTransitionMode(int m);
     void transitionSliderChanged(int t);
     void resetTransitionSlider();
-
     void customizeTransition();
-    void saveSettings();
-    void restoreSettings();
 
     void enableOnlyRenderingAspectRatio(bool);
     void restoreTransition();
     void restoreFolderView();
+    void saveSettings();
+    void restoreSettings();
 
     // contex menu
     void ctxMenu(const QPoint &pos);
@@ -86,6 +85,7 @@ signals:
 
 protected:
 
+    void closeEvent(QCloseEvent *e);
     void showEvent(QShowEvent *);
     QStandardItem *selectFile(const QString &filename);
 

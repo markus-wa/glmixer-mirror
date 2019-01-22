@@ -51,6 +51,7 @@ public slots:
 
     void restoreDefaultPreferences();
     void restoreAllDefaultPreferences();
+    void factoryResetPreferences();
 
     // GUI actions
     void on_updatePeriod_valueChanged(int period);

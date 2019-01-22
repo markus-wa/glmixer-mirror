@@ -952,12 +952,13 @@ void SessionSwitcherWidget::saveSettings()
 void SessionSwitcherWidget::restoreSettings()
 {
     // list of folders
-    QStringList folders(QDir::currentPath());
+    QStringList folders;//(QDir::currentPath());
     int lastFolderIndex = -1;
-    if ( appSettings->contains("recentFolderList") )
+    if ( appSettings->contains("recentFolderList") ) {
         folders = appSettings->value("recentFolderList").toStringList();
-    if ( appSettings->contains("recentFolderLast") )
-        lastFolderIndex = folders.indexOf(appSettings->value("recentFolderLast").toString());
+        if ( appSettings->contains("recentFolderLast") )
+            lastFolderIndex = folders.indexOf(appSettings->value("recentFolderLast").toString());
+    }
     folderHistory->addItems( folders );
     folderHistory->setCurrentIndex(lastFolderIndex);
     // recursive ?
@@ -975,10 +976,6 @@ void SessionSwitcherWidget::restoreSettings()
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
 
     // list of sessions
-    // enforce correct settings
-    proxyView->header()->setDragEnabled(false);
-    proxyView->header()->setMinimumSectionSize (30);
-    proxyView->header()->setStretchLastSection(false);
     // saved settings
     if ( appSettings->contains("transitionHeader") )
         proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
@@ -986,6 +983,10 @@ void SessionSwitcherWidget::restoreSettings()
         proxyView->header()->resizeSection(1, 30);
         proxyView->header()->resizeSection(2, 55);
     }
+    // enforce correct settings
+    proxyView->header()->setDragEnabled(false);
+    proxyView->header()->setMinimumSectionSize (30);
+    proxyView->header()->setStretchLastSection(false);
     proxyView->header()->setResizeMode(0, QHeaderView::Stretch);
     proxyView->header()->setResizeMode(1, QHeaderView::Interactive);
     proxyView->header()->setResizeMode(2, QHeaderView::Interactive);
@@ -1235,10 +1236,21 @@ void SessionSwitcherWidget::ctxMenu(const QPoint &pos)
     }
 }
 
+
+void SessionSwitcherWidget::closeEvent(QCloseEvent *e){
+
+    saveSettings();
+
+    QWidget::closeEvent(e);
+}
+
 void SessionSwitcherWidget::showEvent(QShowEvent *e){
 
-    static bool initialized = false;
+    // restore settings on show
+    restoreSettings();
 
+    // required to initialize first show
+    static bool initialized = false;
     if (!initialized) {
         reloadFolder();
         initialized = true;

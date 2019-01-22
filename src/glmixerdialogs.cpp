@@ -10,28 +10,22 @@
 #endif
 
 
-QString getPNGFile(QString previous)
-{
-    // try to re-open where previous
-    QFileInfo fi( previous );
-    QDir di(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation));
-    QString selectedfile = fi.isReadable() ? fi.absoluteFilePath() : di.absolutePath();
-    // open file
-    QString fileName = QFileDialog::getOpenFileName(NULL, "Open Custom Mask image", selectedfile, "Portable Network Graphics (*.png)" );
-    // check validity of file
-    QFileInfo fileInfo(fileName);
-    if (fileInfo.isFile() && fileInfo.isReadable())
-        return fileInfo.absoluteFilePath() ;
-    else
-        return QString("");
-}
-
 int CaptureDialog::getWidth()
 {
     return presetsSizeComboBox->itemData(presetsSizeComboBox->currentIndex()).toInt();
 }
 
-CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption): QDialog(parent), img(capture) {
+CaptureDialog::~CaptureDialog()
+{
+    // remember status
+    if (appSettings) {
+        appSettings->setValue("dialogCaptureGeometry", saveGeometry());
+        appSettings->setValue("dialogCaptureIndex", presetsSizeComboBox->currentIndex());
+    }
+}
+
+CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption, QSettings *settings): QDialog(parent), img(capture), appSettings(settings) {
+
 
     QVBoxLayout *verticalLayout;
     QLabel *Question, *Display, *Info, *Property;
@@ -47,7 +41,7 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption): 
     verticalLayout->addWidget(Question);
 
     Display = new QLabel(this);
-    Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(400));
+    Display->setAlignment( Qt::AlignCenter );
     verticalLayout->addWidget(Display);
 
     Info = new QLabel(this);
@@ -86,6 +80,15 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption): 
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    // restore status
+    if (appSettings) {
+        if (appSettings->contains("dialogCaptureGeometry"))
+            restoreGeometry(appSettings->value("dialogCaptureGeometry").toByteArray());
+        presetsSizeComboBox->setCurrentIndex(appSettings->value("dialogCaptureIndex", "0").toInt());
+    }
+
+    Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(width()-50));
 }
 
 
@@ -94,9 +97,17 @@ bool RenderingSourceDialog::getRecursive()
     return recursiveButton->isChecked();
 }
 
-RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
-{
 
+RenderingSourceDialog::~RenderingSourceDialog()
+{
+    // remember status
+    if (appSettings)
+        appSettings->setValue("dialogRenderingGeometry", saveGeometry());
+
+}
+
+RenderingSourceDialog::RenderingSourceDialog(QWidget *parent, QSettings *settings): QDialog(parent), appSettings(settings)
+{
     QVBoxLayout *verticalLayout, *vl;
     QLabel *Question, *Display, *Info;
     QDialogButtonBox *DecisionButtonBox;
@@ -164,15 +175,90 @@ RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    // restore status
+    if (appSettings && appSettings->contains("dialogRenderingGeometry"))
+        restoreGeometry(appSettings->value("dialogRenderingGeometry").toByteArray());
 }
 
+
+SettingsCategogyDialog::~SettingsCategogyDialog()
+{
+    // remember status
+    if (appSettings)
+        appSettings->setValue("dialogSettingsGeometry", saveGeometry());
+
+}
+
+SettingsCategogyDialog::SettingsCategogyDialog(QWidget *parent, QSettings *settings): QDialog(parent), appSettings(settings)
+{
+    QVBoxLayout *verticalLayout;
+    QLabel *Question, *Info;
+    QDialogButtonBox *DecisionButtonBox;
+
+    setObjectName(QString::fromUtf8("SettingsCategogyDialog"));
+    setWindowTitle(tr( "GLMixer - Import settings"));
+    verticalLayout = new QVBoxLayout(this);
+    verticalLayout->setSpacing(9);
+
+    Question = new QLabel(this);
+    Question->setText(tr("Select settings to import:"));
+    verticalLayout->addWidget(Question);
+
+    presetBox = new QCheckBox("Import Mixing Presets", this);
+    presetBox->setChecked(true);
+    verticalLayout->addWidget(presetBox);
+
+    oscBox = new QCheckBox("Import Open Sound Control parameters and translations", this);
+    oscBox->setChecked(true);
+    verticalLayout->addWidget(oscBox);
+
+    windowstateBox = new QCheckBox("Import Widgets and Toolbars layout", this);
+    verticalLayout->addWidget(windowstateBox);
+
+    preferenceBox = new QCheckBox("Import User Preferences", this);
+    verticalLayout->addWidget(preferenceBox);
+
+    Info = new QLabel(this);
+    Info->setText(tr("\nSelected settings will be overwritten.") );
+    verticalLayout->addWidget(Info);
+
+    DecisionButtonBox = new QDialogButtonBox(this);
+    DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    verticalLayout->addWidget(DecisionButtonBox);
+
+    QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    // restore status
+    if (appSettings->contains("dialogSettingsGeometry"))
+        restoreGeometry(appSettings->value("dialogSettingsGeometry").toByteArray());
+}
+
+
+bool SettingsCategogyDialog::preferenceSelected()
+{
+    return preferenceBox->isChecked();
+}
+bool SettingsCategogyDialog::presetsSelected()
+{
+    return presetBox->isChecked();
+}
+bool SettingsCategogyDialog::oscSelected()
+{
+    return oscBox->isChecked();
+}
+bool SettingsCategogyDialog::windowstateSelected()
+{
+    return windowstateBox->isChecked();
+}
 
 void SourceFileEditDialog::validateName(const QString &name)
 {
     emit nameChanged("Name", name);
 }
 
-SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QString caption): QDialog(parent), s(source) {
+SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QString caption, QSettings *settings): QDialog(parent), s(source), appSettings(settings) {
 
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout;
@@ -253,12 +339,12 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 #endif
 
     DecisionButtonBox = new QDialogButtonBox(this);
-    DecisionButtonBox->addButton(tr(" Done "), QDialogButtonBox::AcceptRole);
+    DecisionButtonBox->addButton(tr(" Done "), QDialogButtonBox::RejectRole);
 
     // allow re-create option for all types but clone and rendering
     if (source->rtti() != Source::CLONE_SOURCE &&
             source->rtti() != Source::RENDERING_SOURCE ) {
-        QPushButton *b = DecisionButtonBox->addButton(tr("Re-create"), QDialogButtonBox::RejectRole);
+        QPushButton *b = DecisionButtonBox->addButton(tr("Re-create"), QDialogButtonBox::AcceptRole);
         // special case for capture (pixmap) source
         if (source->rtti() == Source::CAPTURE_SOURCE ) {
             // can be created only if there is an image in the clipboard
@@ -270,9 +356,16 @@ SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QStr
 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    // restore status
+    if (appSettings && appSettings->contains("dialogEditSourceGeometry"))
+        restoreGeometry(appSettings->value("dialogEditSourceGeometry").toByteArray());
 }
 
 SourceFileEditDialog::~SourceFileEditDialog() {
+    // remember status
+    if (appSettings)
+        appSettings->setValue("dialogEditSourceGeometry", saveGeometry());
     delete nameEdit;
     delete specificSourcePropertyBrowser;
     delete sourcedisplay;
@@ -499,9 +592,16 @@ void LoggingWidget::on_logTexts_doubleClicked() {
 }
 
 
-void LoggingWidget::closeEvent ( QCloseEvent * event ) {
+void LoggingWidget::closeEvent ( QCloseEvent * event )
+{
+    // remember status
+    if (appSettings) {
+        appSettings->setValue("logGeometry", saveGeometry());
+        appSettings->setValue("logColumnWidth", logTexts->columnWidth(0));
+    }
 
     emit isVisible(false);
+
     QWidget::closeEvent(event);
 }
 
@@ -550,7 +650,7 @@ void LoggingWidget::Log(int type, QString msg)
     logTexts->setCurrentItem( item );
 }
 
-LoggingWidget::LoggingWidget(QWidget *parent) : QWidget(parent) {
+LoggingWidget::LoggingWidget(QSettings *settings) : QWidget(), appSettings(settings) {
 
     // Window title
     setObjectName(QString::fromUtf8("LoggingWindow"));
@@ -569,6 +669,12 @@ LoggingWidget::LoggingWidget(QWidget *parent) : QWidget(parent) {
     QMetaObject::connectSlotsByName(this);
     QObject::connect(toolButtonClearLogs, SIGNAL(clicked()), logTexts, SLOT(clear()));
 
+    // restore status
+    if (appSettings) {
+        if (appSettings->contains("logGeometry"))
+            restoreGeometry(appSettings->value("logGeometry").toByteArray());
+        logTexts->setColumnWidth(0, appSettings->value("logColumnWidth", "300").toInt());
+    }
 }
 
 void LoggingWidget::setupui() {
@@ -654,35 +760,6 @@ void LoggingWidget::setupui() {
 
     logsVerticalLayout->addWidget(logTexts);
 
-}
-
-
-QByteArray LoggingWidget::saveState() const {
-    QByteArray ba;
-    QDataStream stream(&ba, QIODevice::WriteOnly);
-
-    // get settings
-    stream << saveGeometry();
-    stream << logTexts->columnWidth(0);
-
-    return ba;
-}
-
-
-bool LoggingWidget::restoreState(const QByteArray &state) {
-
-    QByteArray sd = state;
-    QDataStream stream(&sd, QIODevice::ReadOnly);
-
-    // restore settings
-    QByteArray geom;
-    stream >> geom;
-    restoreGeometry(geom);
-    int w = 300;
-    stream >> w;
-    logTexts->setColumnWidth(0, w);
-
-    return true;
 }
 
 #endif

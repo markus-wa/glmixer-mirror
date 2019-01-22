@@ -355,9 +355,11 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
 
     // restore settings
     if (appSettings) {
-        // Mixing presets
-        if (appSettings->contains("MixingUserPresets"))
-            restoreState(appSettings->value("MixingUserPresets").toByteArray());
+#ifdef GLM_FFGL
+        // colum width table plugins
+        if (appSettings->contains("PluginPropertyBrowserState"))
+            pluginBrowser->restoreState( appSettings->value("PluginPropertyBrowserState").toByteArray() );
+#endif
     }
 }
 
@@ -366,8 +368,10 @@ MixingToolboxWidget::~MixingToolboxWidget()
 {
     // save settings
     if (appSettings) {
-        // Mixing presets
-        appSettings->setValue("MixingUserPresets", saveState());
+#ifdef GLM_FFGL
+        // colum width table plugins
+        appSettings->setValue("PluginPropertyBrowserState", pluginBrowser->saveState() );
+#endif
     }
 
     blendingMaskList->clear();
@@ -489,7 +493,7 @@ void MixingToolboxWidget::on_blendingMaskList_itemDoubleClicked(QListWidgetItem 
 {
     // special case of Custom Mask (no mask texture)
     if ( !ViewRenderWidget::getMaskTexture( blendingMaskList->currentRow() ) ) {
-        QString filename = getPNGFile( source->getCustomMaskTexture() );
+        QString filename = GLMixer::getInstance()->getMaskFileName( source->getCustomMaskTexture() );
         if (!filename.isEmpty())
             source->setCustomMaskTexture( filename );
     }
@@ -864,7 +868,7 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
     }
 }
 
-QByteArray MixingToolboxWidget::saveState() const {
+QByteArray MixingToolboxWidget::getPresets() const {
 
     int count = 0;
     QDomDocument config;
@@ -886,12 +890,11 @@ QByteArray MixingToolboxWidget::saveState() const {
     }
     config.appendChild(xmllist);
 
-    qDebug() << tr("Mixing presets saved (") << count << QObject::tr(" user presets)");
     return config.toByteArray();
 }
 
 
-bool MixingToolboxWidget::restoreState(const QByteArray &state) {
+bool MixingToolboxWidget::restorePresets(const QByteArray &state) {
 
     int count = 0;
     QDomDocument config;
@@ -924,7 +927,7 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
         }
     }
 
-    qDebug() << tr("Mixing presets restored (") << count << QObject::tr(" user presets)");
+    qDebug() << count << QObject::tr("Mixing presets restored");
     return true;
 }
 

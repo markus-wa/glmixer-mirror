@@ -113,6 +113,8 @@ public slots:
     void on_actionSourceSeekBackward_triggered();
     void on_actionSourcePause_triggered();
     void on_actionSourceSeekForward_triggered();
+    void on_actionImportSettings_triggered();
+    void on_actionExportSettings_triggered();
 
     // Clipboard
     void on_actionCopy_triggered();
@@ -160,6 +162,7 @@ public slots:
     void drop(QDropEvent *event);
     QString getFileName(QString title, QString filters, QString saveExtention = QString(), QString suggestion = QString());
     QStringList getMediaFileNames(bool &smartScalingRequest, bool &hwDecodingRequest);
+    QString getMaskFileName(QString suggestion);
 
     // timer display
     void setDisplayTimeEnabled(bool on);
@@ -221,7 +224,7 @@ private:
     bool _displayTimerEnabled;
     QElapsedTimer _displayTimer;
 
-    QSettings settings;
+    QSettings *_settings;
     QAction *recentFileActs[MAX_RECENT_FILES];
 
 #ifdef GLM_SESSION
