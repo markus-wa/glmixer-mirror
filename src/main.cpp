@@ -284,6 +284,7 @@ int main(int argc, char **argv)
         msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
         msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Ignore | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::Ignore);
+        msgBox.setWindowModality(Qt::ApplicationModal);
         ret = msgBox.exec();
 
         if (ret == QMessageBox::Open)

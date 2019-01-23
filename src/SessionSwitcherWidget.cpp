@@ -402,6 +402,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     controlBox = new QWidget(this);
     g = new QGridLayout(this);
     g->setContentsMargins(0, 0, 0, 0);
+    g->setSpacing(18);
     g->addWidget(prevButton, 0, 0);
     g->addWidget(nextButton, 0, 1);
     g->addWidget(closeButton, 0, 3);

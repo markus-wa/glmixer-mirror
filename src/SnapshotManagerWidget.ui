@@ -31,11 +31,17 @@
       </property>
       <item>
        <widget class="QToolButton" name="addSnapshot">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="toolTip">
          <string>Take a new snapshot</string>
         </property>
         <property name="text">
-         <string>Take snapshot</string>
+         <string>New</string>
         </property>
         <property name="icon">
          <iconset resource="../icons.qrc">

@@ -55,40 +55,41 @@ QToolButton {
 }
 
 QToolButton:checked {
-    border-color: palette(dark);
+    border-color: palette(mid);
     background-color: qradialgradient(cx: 0.5, cy: 0.75, fx: 0.5, fy: 1.25, radius: 0.8, stop: 0 palette(dark), stop: 1 transparent );
 }
 
 QToolButton:pressed {
-    background-color: palette(midlight);
+    background-color: palette(mid);
 }
 
 QToolButton:hover {
-    border-color: palette(mid);
+    border-color: palette(dark);
 }
-/*
-QPushButton{
+
+QPushButton {
     border-width: 1px;
     border-radius: 5px;
-    padding: 6px;
+    padding: 9px;
     border-style: solid;
-    border-color: palette(button);
+    border-color: palette(dark);
     background-color: transparent;
 }
 
+QPushButton:default {
+    border-color: palette(dark);
+    background-color: palette(light);
+}
+
 QPushButton:pressed {
-    background-color: palette(midlight);
-    border-color: palette(midlight);
+    border-color: palette(mid);
+    background-color: palette(mid);
 }
 
 QPushButton:hover {
     border-color: palette(mid);
+    background-color: palette(dark);
 }
-
-QPushButton:default {
-    border-color: palette(midlight);
-}
-*/
 
 
 QListWidget#filterList {

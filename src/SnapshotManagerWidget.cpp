@@ -12,7 +12,7 @@ SnapshotManagerWidget::SnapshotManagerWidget(QWidget *parent, QSettings *setting
     ui->snapshotsList->setAcceptDrops(false);
 
     // Create actions
-    newAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Take Snapshot"), this);
+    newAction = new QAction(QIcon(":/glmixer/icons/snapshot_new.png"), tr("Snapshot"), this);
     connect(newAction, SIGNAL(triggered()), SnapshotManager::getInstance(), SLOT(addSnapshot()));
     ui->addSnapshot->setDefaultAction(newAction);
 
