@@ -437,6 +437,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(closeButton, SIGNAL(clicked()), parent, SLOT(on_actionClose_Session_triggered()));
     connect(proxyView->header(), SIGNAL(sortIndicatorChanged(int, Qt::SortOrder)), SLOT(sortingChanged(int, Qt::SortOrder)));
 
+    // ready : start in full mode
+    setViewSimplified(false);
 }
 
 SessionSwitcherWidget::~SessionSwitcherWidget()
@@ -943,7 +945,7 @@ void SessionSwitcherWidget::saveSettings()
 
     appSettings->setValue("transitionSortingColumn", sortingColumn);
     appSettings->setValue("transitionSortingOrder", sortingOrder);
-    appSettings->setValue("transitionHeader", proxyView->header()->saveState());
+    appSettings->setValue("transitionViewHeader", proxyView->header()->saveState());
 
     appSettings->setValue("recentFolderRecursive", recursive);
     appSettings->setValue("recentFolderLast", folderHistory->currentText());
@@ -976,13 +978,6 @@ void SessionSwitcherWidget::restoreSettings()
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
 
     // list of sessions
-    // saved settings
-    if ( appSettings->contains("transitionHeader") )
-        proxyView->header()->restoreState( appSettings->value("transitionHeader").toByteArray() );
-    else {
-        proxyView->header()->resizeSection(1, 30);
-        proxyView->header()->resizeSection(2, 55);
-    }
     // enforce correct settings
     proxyView->header()->setDragEnabled(false);
     proxyView->header()->setMinimumSectionSize (30);
@@ -991,7 +986,13 @@ void SessionSwitcherWidget::restoreSettings()
     proxyView->header()->setResizeMode(1, QHeaderView::Interactive);
     proxyView->header()->setResizeMode(2, QHeaderView::Interactive);
     proxyView->header()->setResizeMode(3, QHeaderView::Interactive);
-    setViewSimplified(false);
+    // saved settings
+    if ( appSettings->contains("transitionViewHeader") )
+        proxyView->header()->restoreState( appSettings->value("transitionViewHeader").toByteArray() );
+    else {
+        proxyView->header()->resizeSection(1, 30);
+        proxyView->header()->resizeSection(2, 55);
+    }
 
     // order of transition
     sortingColumn = appSettings->value("transitionSortingColumn", "3").toInt();
@@ -1246,12 +1247,11 @@ void SessionSwitcherWidget::closeEvent(QCloseEvent *e){
 
 void SessionSwitcherWidget::showEvent(QShowEvent *e){
 
-    // restore settings on show
-    restoreSettings();
-
     // required to initialize first show
     static bool initialized = false;
     if (!initialized) {
+        // restore settings on first show
+        restoreSettings();
         reloadFolder();
         initialized = true;
     }
