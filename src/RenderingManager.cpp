@@ -479,27 +479,17 @@ void RenderingManager::postRenderToFrameBuffer() {
         {
             previous_frame_index = 0;
             // use the accelerated GL_EXT_framebuffer_blit if available
-            if (RenderingManager::blit_fbo_extension)
+            if (RenderingManager::blit_fbo_extension && previous_frame_state > LOOPBACK_INIT)
             {
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
-
-                if (previous_frame_state > LOOPBACK_INIT)  {
-                    // blit to the frame buffer object
-                    glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
-                                  previousframe_fbo->width(), previousframe_fbo->height(),
-                                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
-                }
-                else {
-                    // clear for init
-                    static const float transparent[] = { 0.f, 0.f, 0.f, 0.f };
-                    glClearBufferfv(GL_COLOR, 0, transparent);
-                    previous_frame_state = LOOPBACK_RENDER;
-                }
-
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+                // blit to the frame buffer object
+                glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+                                previousframe_fbo->width(), previousframe_fbo->height(),
+                                GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             }
-            // 	Draw quad with fbo texture in a more basic OpenGL way
+            // 	Init or Draw quad with fbo texture in a more basic OpenGL way
             else if (previousframe_fbo->bind()) {
                 glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
@@ -512,7 +502,7 @@ void RenderingManager::postRenderToFrameBuffer() {
                 }
                 else {
                     // clear for init
-                    glClearColor(0.f, 0.f, 0.f, 1.f);
+                    glClearColor(0.f, 0.f, 0.f, 0.f);
                     glClear(GL_COLOR_BUFFER_BIT);
                     previous_frame_state = LOOPBACK_RENDER;
                 }
