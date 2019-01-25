@@ -83,8 +83,8 @@ bool SnapshotView::activate(View *activeview, QString id)
     _view = 0;
     _factor = 0.0;
     _active = true;
-    _interpolate = true;
     _destinationId = QString();
+    _instruction = QString("");
 
     // store status
     SnapshotManager::getInstance()->storeTemporarySnapshotDescription();
@@ -109,24 +109,8 @@ bool SnapshotView::activate(View *activeview, QString id)
         if (_departureSource)
             _departureSource->setImage(_departure);
 
-        // update text for instructions
-        switch (activeview->getMode()){
-        case View::NULLVIEW:
-            _instruction = QString("");
-            break;
-        case View::MIXING:
-            _instruction = QString("Interpolate mixing values");
-            break;
-        case View::GEOMETRY:
-            _instruction = QString("Interpolate geometry");
-            break;
-        case View::LAYER:
-            _instruction = QString("Interpolate depth");
-            break;
-        case View::RENDERING:
-            _instruction = QString("Interpolate mixing, geometry and depth");
-            break;
-        }
+        // interpolate by default
+        setInterpolate(true);
 
         // success
         ret = true;
@@ -138,6 +122,7 @@ bool SnapshotView::activate(View *activeview, QString id)
     // no action by default
     setAction(View::NONE);
     _animationTimer.invalidate();
+
 
     return ret;
 }
@@ -262,31 +247,6 @@ void SnapshotView::paint()
     // bottom margin to leave place for text instructions
     glTranslated(0.0, 3.0, 0.0);
 
-    // 1) draw line
-
-    if (_interpolate){
-
-        glPushMatrix();
-        // line between circles
-        glScaled(ABS(_begin) - 1.95 * ICON_BORDER_SCALE * SOURCE_UNIT, ABS(_y), 1.0);
-        glCallList(ViewRenderWidget::snapshot + 1);
-        // marks
-        glPointSize(4);
-        glBegin(GL_POINTS);
-        for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
-            glVertex2d( i, -1.0);
-        glEnd();
-        glPointSize(7);
-        glBegin(GL_POINTS);
-        for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
-            glVertex2d( i, -1.0);
-        glEnd();
-
-        glPopMatrix();
-
-    }
-    else
-        _instruction = QString("Apply full snapshot");
 
     // 2) draw tools and cursor
 
@@ -295,6 +255,11 @@ void SnapshotView::paint()
     ViewRenderWidget::resetShaderAttributes();
     // draw flat version of sources
     ViewRenderWidget::program->setUniformValue(ViewRenderWidget::_baseAlpha, 1.f);
+
+    // show the interpolation line only if activating a target
+    float alpha_drawing = 0.4;
+    if ( *clickedSources.begin() == _departureSource || *clickedSources.begin() == _destinationSource)
+        alpha_drawing = 0.95;
 
     //
     //  DEPARTURE ICON
@@ -308,7 +273,7 @@ void SnapshotView::paint()
     ViewRenderWidget::setBaseColor(QColor(Qt::white), 1.0);
     drawSource(_departureSource, ICON_BORDER_SCALE);
     // draw circle border
-    ViewRenderWidget::setBaseColor(QColor(COLOR_DRAWINGS));
+    ViewRenderWidget::setBaseColor(QColor(COLOR_DRAWINGS), alpha_drawing);
     if ( *clickedSources.begin() == _departureSource)
         glCallList(ViewRenderWidget::snapshot + 3);
     else
@@ -326,12 +291,39 @@ void SnapshotView::paint()
     ViewRenderWidget::setBaseColor(QColor(Qt::white));
     drawSource(_destinationSource, ICON_BORDER_SCALE);
     // draw circle border
-    ViewRenderWidget::setBaseColor(QColor(COLOR_DRAWINGS));
+    ViewRenderWidget::setBaseColor(QColor(COLOR_DRAWINGS), alpha_drawing);
     if ( *clickedSources.begin() == _destinationSource)
         glCallList(ViewRenderWidget::snapshot + 3);
     else
         glCallList(ViewRenderWidget::snapshot + 2);
     glPopMatrix();
+
+    // 1) draw line
+
+    if (_interpolate){
+
+        glPushMatrix();
+        // line between circles
+        glScaled(ABS(_begin) - 1.95 * ICON_BORDER_SCALE * SOURCE_UNIT, ABS(_y), 1.0);
+        glCallList(ViewRenderWidget::snapshot + 1);
+
+        // draw points only if interpolating
+        if (alpha_drawing>0.5) {
+            // marks
+            glPointSize(5);
+            glBegin(GL_POINTS);
+            for (float i = -1.0; i < 1.0; i += 200.0 * ABS(_animationSpeed) )
+                glVertex2d( i, -1.0);
+            glEnd();
+            glPointSize(9);
+            glBegin(GL_POINTS);
+            for (float i = -1.0; i < 1.0; i += 2000.0 * ABS(_animationSpeed) )
+                glVertex2d( i, -1.0);
+            glEnd();
+        }
+        glPopMatrix();
+
+    }
 
     //
     //  CURSOR ICON (render preview with loopback)
@@ -525,6 +517,37 @@ void SnapshotView::setCursorAction(QPoint mousepos)
         setAction(View::NONE);
 }
 
+
+void SnapshotView::setInterpolate(bool on)
+{
+    _interpolate = on;
+
+    if (_interpolate) {
+
+        // update text for instructions
+        switch (_view->getMode()){
+        case View::NULLVIEW:
+            _instruction = QString("");
+            break;
+        case View::MIXING:
+            _instruction = QString("Interpolate mixing values");
+            break;
+        case View::GEOMETRY:
+            _instruction = QString("Interpolate geometry");
+            break;
+        case View::LAYER:
+            _instruction = QString("Interpolate depth");
+            break;
+        case View::RENDERING:
+            _instruction = QString("Interpolate mixing, geometry and depth");
+            break;
+        }
+    }
+    else
+        _instruction = QString("Apply full snapshot");
+
+}
+
 bool SnapshotView::mouseReleaseEvent ( QMouseEvent * event )
 {
     if (!_active || !event)
@@ -542,7 +565,7 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
         return false;
 
     // set action from mouse cursor
-    setCursorAction(event->pos());
+//    setCursorAction(event->pos());
 
 
     // Tool action : control the speed of animation by scroll wheel
@@ -550,7 +573,7 @@ bool SnapshotView::wheelEvent ( QWheelEvent * event )
 
         double dir = SIGN(_animationSpeed);
         double speed = ABS(_animationSpeed) + SIGN(event->delta()) * 0.0002;
-        _interpolate = speed < MAX_ANIMATION_SPEED;
+        setInterpolate( speed < MAX_ANIMATION_SPEED );
         _animationSpeed = dir * qBound(MIN_ANIMATION_SPEED, speed, MAX_ANIMATION_SPEED);
 
     }

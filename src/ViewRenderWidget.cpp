@@ -2612,14 +2612,7 @@ GLuint ViewRenderWidget::buildSnapshotList()
     glNewList(id + 1, GL_COMPILE);
 
         glDisable(GL_TEXTURE_2D);
-        glLineWidth(15.0);
-        glColor4ub(COLOR_DRAWINGS, 30);
-        glBegin(GL_LINES);
-        glVertex3d(-1.0, -1.0, 0.0);
-        glVertex3d(1.0, -1.0, 0.0);
-        glEnd();
         glLineWidth(2.0);
-        glColor4ub(COLOR_DRAWINGS, 250);
         glBegin(GL_LINES);
         glVertex3d(-1.0, -1.0, 0.0);
         glVertex3d(1.0, -1.0, 0.0);

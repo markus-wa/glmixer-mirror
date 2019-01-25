@@ -44,6 +44,7 @@ private:
     bool setTargetSnapshot(QString id);
     void grabSource(Source *s, int x, int y);
     void setCursorAction(QPoint mousepos);
+    void setInterpolate(bool on);
 
     bool _active, _interpolate;
     View *_view;
