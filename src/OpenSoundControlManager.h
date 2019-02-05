@@ -130,11 +130,13 @@ public slots:
 
     void readPendingDatagrams();
     void broadcastSourceCount(int count);
+    void broadcastCurrentSource();
 
 signals:
     void log(QString);
     void error(QString);
     void applyPreset(QString, QString);
+    void applyPreset(QString, int);
     void propertyChanged(QString);
 
 private:
@@ -146,6 +148,7 @@ private:
     void execute(QString object, QString property, QVariantList args);
     void executeSource(class Source *s, QString property, QVariantList args);
     void executeRender(QString property, QVariantList args);
+    void executeAlpha(QString property, QVariantList args);
     void executeRequest(QString property, QVariantList args);
 #ifdef GLM_SNAPSHOT
     void executeSnapshot(QString property, QVariantList args);

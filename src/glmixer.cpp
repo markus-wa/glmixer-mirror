@@ -406,6 +406,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef GLM_OSC
     // special link between OSC and MixingToolbox to call for presets
     QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, QString)), mixingToolBox, SLOT(applyPreset(QString, QString)) );
+    QObject::connect(OpenSoundControlManager::getInstance(), SIGNAL(applyPreset(QString, int)), mixingToolBox, SLOT(applyPreset(QString, int)) );
 #else
     delete actionOSCTranslator;
 #endif

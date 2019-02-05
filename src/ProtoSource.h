@@ -287,7 +287,15 @@ public:
     Q_INVOKABLE void _setFilter(filterType c);
 
     // for type compatibility
+    Q_INVOKABLE void _setPosition(double px, double py);
+    Q_INVOKABLE void _setPositionX(double px);
+    Q_INVOKABLE void _setPositionY(double py);
+    Q_INVOKABLE void _setScale(double sx, double sy);
+    Q_INVOKABLE void _setScaleX(double sx);
+    Q_INVOKABLE void _setScaleY(double sy);
+    Q_INVOKABLE void _setRotation(double a);
     Q_INVOKABLE void _setInvertMode(int i);
+    Q_INVOKABLE void _setInvertMode(double i);
     Q_INVOKABLE void _setFilter(int c);
     Q_INVOKABLE void _setColor(int r, int g, int b);
     Q_INVOKABLE void _setChromaKeyColor(int r, int g, int b);

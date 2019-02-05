@@ -50,27 +50,57 @@ ProtoSource::ProtoSource(QObject *parent) : QObject(parent),
 
 }
 
-
 void ProtoSource::_setName(QString n) {
     name = n;
     setObjectName(n);
 }
 
-
 void ProtoSource::_setGeometry(double px, double py, double sx, double sy, double rx, double ry, double a)
 {
-    if (px < std::numeric_limits<double>::max())
-        x = px;
-    if (py < std::numeric_limits<double>::max())
-        y = py;
-    if (sx < std::numeric_limits<double>::max())
-        scalex = sx;
-    if (sy < std::numeric_limits<double>::max())
-        scaley = sy;
+    _setPositionX(px);
+    _setPositionY(py);
+    _setScaleX(sx);
+    _setScaleY(sy);
+    _setRotation(a);
+
+    // not implemented yet
     if (rx < std::numeric_limits<double>::max())
         centerx = rx;
     if (ry < std::numeric_limits<double>::max())
         centery = ry;
+}
+
+void ProtoSource::_setPosition(double px, double py) {
+    _setPositionX(px);
+    _setPositionY(py);
+}
+
+void ProtoSource::_setPositionX(double px) {
+    if (px < std::numeric_limits<double>::max())
+        x = px;
+}
+
+void ProtoSource::_setPositionY(double py) {
+    if (py < std::numeric_limits<double>::max())
+        y = py;
+}
+
+void ProtoSource::_setScale(double sx, double sy) {
+    _setScaleX(sx);
+    _setScaleY(sy);
+}
+
+void ProtoSource::_setScaleX(double sx) {
+    if (sx < std::numeric_limits<double>::max())
+        scalex = sx;
+}
+
+void ProtoSource::_setScaleY(double sy) {
+    if (sy < std::numeric_limits<double>::max())
+        scaley = sy;
+}
+
+void ProtoSource::_setRotation(double a) {
     if (a < std::numeric_limits<double>::max())
         rotangle = fmod(a + 3600.0, 360.0);
 }
@@ -282,6 +312,10 @@ void ProtoSource::_setFilter(filterType c) {
 
 void ProtoSource::_setInvertMode(int i) {
     invertMode = (invertModeType) CLAMP( i, INVERT_NONE, INVERT_LUMINANCE);
+}
+
+void ProtoSource::_setInvertMode(double i) {
+    _setInvertMode( (int) i );
 }
 
 void ProtoSource::_setFilter(int c) {

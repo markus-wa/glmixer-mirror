@@ -748,6 +748,17 @@ void MixingToolboxWidget::applyPreset(QString sourceName, QString nameItemListPr
     }
 }
 
+void MixingToolboxWidget::applyPreset(QString sourceName, int idItemListPreset)
+{
+    SourceSet::const_iterator sit = RenderingManager::getInstance()->getByName(sourceName);
+
+    if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+
+        if ( idItemListPreset > 0 && idItemListPreset <= presetsList->count() )
+            applyPreset( *sit, presetsList->item(idItemListPreset -1) );
+    }
+}
+
 void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item)
 {
     applyPreset( source, item );

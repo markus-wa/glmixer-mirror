@@ -258,8 +258,8 @@ void VideoFile::close()
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(58,0,0)
     if (pHardwareCodec) {
-//        av_buffer_unref(&pHardwareCodec);
-//        video_dec->hw_device_ctx = NULL;
+       av_buffer_unref(&pHardwareCodec);
+    //    video_dec->hw_device_ctx = NULL;
     }
 #endif
 

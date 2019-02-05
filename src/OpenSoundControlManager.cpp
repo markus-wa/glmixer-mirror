@@ -60,7 +60,6 @@ OpenSoundControlManager *OpenSoundControlManager::getInstance() {
 OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpReceive(0), _udpBroadcast(0), _portReceive(7000), _portBroadcast(3000), _verbose(false)
 {
     _dictionnary = new QList< QPair<QString, QString> >();
-
 }
 
 qint16 OpenSoundControlManager::getPortReceive()
@@ -72,7 +71,6 @@ qint16 OpenSoundControlManager::getPortBroadcast()
 {
     return _portBroadcast;
 }
-
 
 bool OpenSoundControlManager::isEnabled()
 {
@@ -177,9 +175,9 @@ void OpenSoundControlManager::broadcastDatagram(QString property, QVariantList a
     p << osc::EndMessage;
 
     // broadcast message
-    _udpBroadcast->writeDatagram( p.Data(), p.Size(),
-                                 QHostAddress::Broadcast, _portBroadcast);
+    _udpBroadcast->writeDatagram( p.Data(), p.Size(), QHostAddress::Broadcast, _portBroadcast);
 
+    emit log(QString("Broadcast %1").arg(p.Data()) );
 }
 
 
@@ -412,8 +410,18 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
 
         //  case of PRESET property
         if ( property.compare(OSC_SOURCE_PRESET, Qt::CaseInsensitive) == 0 ){
-            if (args.size() > 0 && args[0].isValid())
-                emit applyPreset(s->getName(), args[0].toString() );
+            if (args.size() > 0 && args[0].isValid()) {                
+                bool ok = false;
+                double v = args[0].toInt(&ok);
+                if (ok) 
+                    emit applyPreset(s->getName(), v );
+                else
+                    emit applyPreset(s->getName(), args[0].toString() );
+                            
+                // broadcast data of updated source if current
+                if ( RenderingManager::getInstance()->isCurrentSource(s) )
+                    broadcastCurrentSource();
+            }
             else
                 throw osc::MissingArgumentException();
         }
@@ -449,7 +457,7 @@ void OpenSoundControlManager::executeSource(Source *s, QString property, QVarian
         else if ( property.compare(OSC_SOURCE_SPEED, Qt::CaseInsensitive) == 0 && vf ) {
             if (args.size() > 0 && args[0].isValid()) {
                 bool ok = false;
-                double v = args[0].toInt(&ok);
+                int v = args[0].toInt(&ok);
                 if (ok)
                     vf->setPlaySpeedFactor( v );
                 else
@@ -537,6 +545,11 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
 
         executeRequest(property, args);
     }
+    // Target OBJECT "request" (request for information)
+    else if ( object.compare(OSC_RENDER_ALPHA, Qt::CaseInsensitive) == 0 ) {
+
+        executeAlpha(property, args);
+    }
 #ifdef GLM_SNAPSHOT
     // Target OBJECT "snapshot" (control snapshots)
     else if ( object.compare(OSC_SNAPSHOT, Qt::CaseInsensitive) == 0 ) {
@@ -563,6 +576,8 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
             else
                 throw osc::InvalidAttributeException();
         }
+        // broadcast data of newly selected source
+        broadcastCurrentSource();
     }
     // Target OBJECT named "current" (control current source attributes)
     else if ( object.compare(OSC_SOURCE_CURRENT, Qt::CaseInsensitive) == 0 ) {
@@ -582,7 +597,7 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
         // maybe the index of the source was given instead of the name
         else {
             bool name_is_a_number = false;
-            uint index = object.toUInt(&name_is_a_number);
+            uint index = object.toUInt(&name_is_a_number) -1;
             // if a number is given and it is valid
             if ( name_is_a_number && index < RenderingManager::getInstance()->count() ) {
                 uint i = 0;
@@ -599,6 +614,25 @@ void OpenSoundControlManager::execute(QString object, QString property, QVariant
         }
     }
 
+}
+
+void OpenSoundControlManager::executeAlpha(QString property, QVariantList args)
+{
+    bool name_is_a_number = false;
+    uint index = property.toUInt(&name_is_a_number) - 1;
+    // if a number is given and it is valid
+    if ( name_is_a_number && index < RenderingManager::getInstance()->count() ) {
+        uint i = 0;
+        SourceSet::const_iterator sit;
+        for(sit = RenderingManager::getInstance()->getBegin(); sit != RenderingManager::getInstance()->getEnd(); sit++) {
+            if ( index == i++ )
+                break;
+        }
+        if ( RenderingManager::getInstance()->notAtEnd(sit))
+            executeSource( *sit, "Alpha", args);
+        else
+            throw osc::InvalidObjectException();
+    }
 }
 
 void OpenSoundControlManager::executeRender(QString property, QVariantList args)
@@ -675,6 +709,59 @@ void OpenSoundControlManager::broadcastSourceCount(int count)
     broadcastDatagram( OSC_REQUEST_COUNT, args );
 }
 
+void OpenSoundControlManager::broadcastCurrentSource()
+{
+    // if the current source is valid
+    SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
+    if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+        // get the name of current source
+        QString name = (*sit)->getName();
+        // reply to request with name of source
+        QVariantList args;
+        args.append(name);
+        broadcastDatagram( OSC_REQUEST_NAME, args );
+
+        args.clear();
+        args.append( (*sit)->getAlpha() );
+        broadcastDatagram( QString("%1/Alpha").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( double( (*sit)->getSaturation() + 100) / 200.0  );
+        broadcastDatagram( QString("%1/Saturation").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( double( (*sit)->getBrightness() + 100) / 200.0  );
+        broadcastDatagram( QString("%1/Brightness").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( double( (*sit)->getContrast() + 100) / 200.0  );
+        broadcastDatagram( QString("%1/Contrast").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( double( (*sit)->getHueShift() ) / 360.0  );
+        broadcastDatagram( QString("%1/HueShift").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( double( (*sit)->getThreshold() ) / 100.0  );
+        broadcastDatagram( QString("%1/Threshold").arg(OSC_SOURCE_CURRENT), args );
+        
+        args.clear();
+        args.append( double( (*sit)->getThreshold() ) / 100.0  );
+        broadcastDatagram( QString("%1/Threshold").arg(OSC_SOURCE_CURRENT), args );
+
+        args.clear();
+        args.append( (*sit)->getX() );
+        args.append( (*sit)->getY() );
+        broadcastDatagram( QString("%1/Position").arg(OSC_SOURCE_CURRENT), args );
+    }
+    else {        
+        QVariantList args;
+        args.append( "none");
+        broadcastDatagram( OSC_REQUEST_NAME, args );
+        emit log(QString("Replied /glmixer/name none") );
+    }
+}
+
 void OpenSoundControlManager::executeRequest(QString property, QVariantList args)
 {
     // Target ATTRIBUTE for request : count (number of sources)
@@ -684,20 +771,11 @@ void OpenSoundControlManager::executeRequest(QString property, QVariantList args
         // reply to request with count of sources
         broadcastSourceCount(list.count());
         emit log(QString("Replied /glmixer/count i %1 ").arg(list.count()) );
-
     }
     // Target ATTRIBUTE for request : current (name of the current source)
-    if ( property.compare(OSC_REQUEST_CURRENT, Qt::CaseInsensitive) == 0 ) {
-        // if the current source is valid
-        SourceSet::const_iterator sit = RenderingManager::getInstance()->getCurrentSource();
-        if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-            // get the name of current source
-            QString name = (*sit)->getName();
-            // reply to request with name of source
-            broadcastDatagram( name );
-            emit log(QString("Replied /glmixer/%1").arg(name) );
-        }
+    else if ( property.compare(OSC_REQUEST_CURRENT, Qt::CaseInsensitive) == 0 ) {
 
+        broadcastCurrentSource();
     }
     // Target ATTRIBUTE for request : name (of the source at given index)
     else if ( property.compare(OSC_REQUEST_NAME, Qt::CaseInsensitive) == 0 ) {
@@ -714,10 +792,9 @@ void OpenSoundControlManager::executeRequest(QString property, QVariantList args
                 else {
                     // reply to request with name of source
                     QVariantList args;
-                    args.append((int) n);
                     args.append(list[n]);
                     broadcastDatagram( OSC_REQUEST_NAME, args );
-                    emit log(QString("Replied /glmixer/%1").arg(list[n]) );
+                    emit log(QString("Replied /glmixer/name %1").arg(list[n]) );
                 }
             }
             else
