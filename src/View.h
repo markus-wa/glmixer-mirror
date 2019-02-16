@@ -368,7 +368,7 @@ protected:
     double modelview[16];
 
     reverseSourceSet clickedSources;
-    QPoint lastClicPos;
+    QPoint lastClicPos, mousePos;
     QPixmap icon;
     QString title;
 

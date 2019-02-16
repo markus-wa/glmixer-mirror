@@ -343,7 +343,7 @@ void MixerView::paint()
 
         glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
-        gluUnProject(double (lastClicPos.x()), double (viewport[3] - lastClicPos.y()), 1.0,
+        gluUnProject(double (mousePos.x()), double (viewport[3] - mousePos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
         glPushMatrix();
         glTranslated(ax, ay, az);
@@ -483,7 +483,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    lastClicPos = event->pos();
+    lastClicPos = mousePos = event->pos();
 
     // remember coordinates of clic in background for selection area
     double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
@@ -642,9 +642,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    int dx = event->x() - lastClicPos.x();
-    int dy = lastClicPos.y() - event->y();
-    lastClicPos = event->pos();
+    int dx = event->x() - mousePos.x();
+    int dy = mousePos.y() - event->y();
+    mousePos = event->pos();
 
     // DROP MODE : avoid other actions
     if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -797,6 +797,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
     bool ret = true;
+
     // remember position of cursor before zoom
     double bx, by, z;
     gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
@@ -824,9 +825,12 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
         // where is the mouse cursor now (after zoom and panning)?
         gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &ax, &ay, &z);
+
         // this means we have a delta of mouse position
         deltax = ax - bx;
         deltay = ay - by;
+
+//        fprintf(stderr, "bx %.2f ax %.2f  deltax %.2f \n", bx, ax, deltax);
 
         // simulate a movement of the mouse
         QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
@@ -1142,6 +1146,8 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
     double ix = s->getAlphaX() + ax - bx + deltax;
     double iy = s->getAlphaY() + ay - by + deltay;
+
+//    fprintf(stderr, "dx %.2f deltax %.2f \n", ax-bx, deltax);
 
     // move icon
     s->setAlphaCoordinates( qBound(_mixingArea[0], ix, _mixingArea[2]), qBound(_mixingArea[1], iy, _mixingArea[3]) );

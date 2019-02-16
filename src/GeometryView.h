@@ -77,7 +77,7 @@ private:
 
     bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double tolerance = 1.0 );
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
-    void grabSource(Source *s, int x, int y, int dx, int dy);
+    void grabSource(Source *s, int x, int y, int dx, int dy, bool snap = false);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool proportional = false);
     void scaleSources(Source *s, int x, int y, int dx, int dy, bool proportional = false);
@@ -101,6 +101,9 @@ private:
 
     bool _modeMoveFrame;
     double _geometryArea[4];
+
+    bool _snap;
+    double _snap_distance;
 
 };
 

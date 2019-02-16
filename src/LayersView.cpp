@@ -285,7 +285,7 @@ void LayersView::paint()
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
         glColor4ub(COLOR_SOURCE, 180);
-        double depth = unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y());
+        double depth = unProjectDepth(mousePos.x(), viewport[3] - mousePos.y());
 
         glPushMatrix();
         forwardDisplacement = MAXDISPLACEMENT;
@@ -377,10 +377,10 @@ void LayersView::bringForward(Source *s)
 
 bool LayersView::mousePressEvent ( QMouseEvent *event )
 {
-    lastClicPos = event->pos();
+    lastClicPos = mousePos = event->pos();
 
     // initial depth of selection area
-    _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
+    _selectionArea.markStart(QPointF(0.0, unProjectDepth(mousePos.x(), viewport[3] - mousePos.y()) ));
 
     // MIDDLE BUTTON ; panning cursor
     if ( isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) ) {
@@ -468,9 +468,9 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
     if (!event || !QRect(10, 10, viewport[2]-20, viewport[3]-20).contains(event->pos()))
         return false;
 
-    int dx = event->x() - lastClicPos.x();
-    int dy = lastClicPos.y() - event->y();
-    lastClicPos = event->pos();
+    int dx = event->x() - mousePos.x();
+    int dy = mousePos.y() - event->y();
+    mousePos = event->pos();
 
     // DROP MODE : avoid other actions
     if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -498,7 +498,7 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
             _selectionArea.setEnabled(true);
 
             // get coordinate of cursor
-            _selectionArea.markEnd(QPointF(6.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y())));
+            _selectionArea.markEnd(QPointF(6.0, unProjectDepth(mousePos.x(), viewport[3] - mousePos.y())));
 
             // loop over every sources to check if it is in the rectangle area
             SourceList rectSources;
@@ -599,7 +599,7 @@ bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
     bool ret = true;
-    lastClicPos = event->pos();
+    mousePos = event->pos();
 
     // wheel main effect is to change zoom
     setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
@@ -614,7 +614,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 
     // update selection area if enabled
     if (_selectionArea.isEnabled())
-        _selectionArea.markEnd(QPointF(6.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y())));
+        _selectionArea.markEnd(QPointF(6.0, unProjectDepth(mousePos.x(), viewport[3] - mousePos.y())));
 
     return ret;
 }

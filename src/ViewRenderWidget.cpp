@@ -738,8 +738,6 @@ void ViewRenderWidget::paintGL()
     // apply modelview transformations from zoom and panning only when requested
     if (_currentView->isModified()) {
         _currentView->setModelview();
-        // update modelview-projection matrix of the shader
-//		program->setUniformValue("ModelViewProjectionMatrix",QMatrix4x4 (_currentView->projection) * QMatrix4x4 (_currentView->modelview) );
     }
 
 

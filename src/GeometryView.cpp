@@ -63,6 +63,9 @@ GeometryView::GeometryView() : View(View::GEOMETRY), quadrant(0), currentSource(
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
     title = " Geometry";
+
+    _snap = false;
+    _snap_distance = 0.0; // DISABLED PROTOTYPE 0.5;
 }
 
 
@@ -274,7 +277,7 @@ void GeometryView::paint()
     if ( s ){
         glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
-        gluUnProject( double (lastClicPos.x()), double (viewport[3] - lastClicPos.y()), 1.0,
+        gluUnProject( double (mousePos.x()), double (viewport[3] - mousePos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
         glPushMatrix();
         glTranslated( ax, ay, az);
@@ -336,7 +339,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    lastClicPos = event->pos();
+    lastClicPos = mousePos = event->pos();
 
     // remember coordinates of clic
     double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
@@ -459,9 +462,9 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    int dx = event->x() - lastClicPos.x();
-    int dy = lastClicPos.y() - event->y();
-    lastClicPos = event->pos();
+    int dx = event->x() - mousePos.x();
+    int dy = mousePos.y() - event->y();
+    mousePos = event->pos();
 
     // DROP MODE ; show a question mark cursor and avoid other actions
     if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -473,16 +476,16 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     // PANNING of the background
     if ( currentAction == View::PANNING ) {
         // panning background
-        panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+        panningBy(mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
         // DRAG ?
         if ( isUserInput(event, INPUT_DRAG)  || ( isUserInput(event, INPUT_TOOL) && _modeMoveFrame ) ) {
             // special move ; move the sources in the opposite
             for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin();
                 its != RenderingManager::getInstance()->getEnd(); its++) {
-                grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
+                grabSource( *its, mousePos.x(), viewport[3] - mousePos.y(), -dx, -dy);
             }
             if ( SelectionManager::getInstance()->hasSelection() )
-                grabSource( SelectionManager::getInstance()->selectionSource(), event->x(), viewport[3] - event->y(), -dx, -dy);
+                grabSource( SelectionManager::getInstance()->selectionSource(), mousePos.x(), viewport[3] - mousePos.y(), -dx, -dy);
             // return true as we may have moved the current source
             return true;
         }
@@ -497,21 +500,21 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
         if (currentAction == View::TOOL) {
             if (currentTool == View::MOVE)
-                grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+                grabSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
             else if (currentTool == View::SCALE)
-                scaleSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+                scaleSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
             else if (currentTool == View::CROP)
-                cropSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+                cropSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
             else if (currentTool == View::ROTATE) {
-                rotateSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+                rotateSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
                 setTool(currentTool);
             }
         }
         else {
             if (currentTool == View::CROP)
-                cropSources(cs, event->x(), viewport[3] - event->y(), dx, dy, true);
+                cropSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy, true);
             else
-                grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
+                grabSources(cs, mousePos.x(), viewport[3] - mousePos.y(), dx, dy);
         }
         // the current source has been modified
         return true;
@@ -522,7 +525,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
         // get coordinate of cursor
         double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-        gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+        gluUnProject((double) mousePos.x(), (double) viewport[3] - mousePos.y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
 
         // enable drawing of selection area
         _selectionArea.setEnabled(true);
@@ -558,12 +561,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
         // Mouse over BORDER OF RENDER AREA
         // are we over the border of the frame ?
-        _modeMoveFrame = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::frame_screen, 5.0);
+        _modeMoveFrame = hasObjectAtCoordinates(mousePos.x(), viewport[3] - mousePos.y(), ViewRenderWidget::frame_screen, 5.0);
 
         // by default, reset quadrant
         quadrant = 0;
         // mouse over which sources ? fill in clickedSources list
-        if ( !_modeMoveFrame && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+        if ( !_modeMoveFrame && getSourcesAtCoordinates(mousePos.x(), viewport[3] - mousePos.y()) )
         {
             // if there is a current source
             // AND
@@ -571,7 +574,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
             // THEN
             // use the current source for quadrant computation
             if ( cs && clickedSources.count( cs ) > 0 )
-                quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
+                quadrant = getSourceQuadrant(cs, mousePos.x(), viewport[3] - mousePos.y());
 
             // deal with quadrant appropriately
             if (quadrant == 0 || currentTool == MOVE)
@@ -632,6 +635,8 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
     // reset list of clicked sources
     clickedSources.clear();
 
+    _snap = false;
+
     return true;
 }
 
@@ -665,7 +670,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
         deltay = ay - by;
 
         // simulate a movement of the mouse
-        QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
+        QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, mousePos, Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
         ret = mouseMoveEvent(e);
         delete e;
 
@@ -751,7 +756,10 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
             default:
                 return false;
         }
-        grabSources(cs, 0, 0, dx, dy);
+//        grabSources(cs, 0, 0, dx, dy);
+
+        // TODO
+
         return true;
     }
 
@@ -1019,15 +1027,19 @@ void GeometryView::panningBy(int x, int y, int dx, int dy) {
  *
  * move by (dx dy)
  **/
-void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
+void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy, bool snap) {
 
     if (!s) return;
+
+    // source position
+    double sx = s->getX();
+    double sy = s->getY();
 
     double dum;
     double bx, by; // before movement
     double ax, ay; // after  movement
 
-    gluUnProject((double) (x - dx), (double) (y - dy),
+    gluUnProject((double) (x- dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &dum);
     gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &dum);
@@ -1035,26 +1047,103 @@ void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
     // take into account movement of the cursor due to zoom with scroll wheel
     ax += deltax;
     ay += deltay;
+    // delta after minus before
+    ax -= bx;
+    ay -= by;
 
-    ax = s->getX() + (ax - bx);
-    ay = s->getY() + (ay - by);
+    // by default, target position is source destination
+    double tx =  sx + ax;
+    double ty =  sy + ay;
+
+    if (snap) {
+
+        // grab position
+        static double gx = 0.0, gy = 0.0;
+
+        // detect beginning of snap
+        if (!_snap) {
+            // initial pos of the grab movement
+            gx = sx;
+            gy = sy;
+            // done initializing snap ; will be resetted on Mouse Release
+            _snap = true;
+        }
+
+        // update grab destination with delta
+        gx += ax;
+        gy += ay;
+
+        // by default, target position is grabbing destination
+        tx = gx;
+        ty = gy;
+
+        // if snap if possible
+        if ( _snap_distance > 0.0 ) {
+
+            // build boxes to be snapped
+            QRectF sbox = GeometryView::getBoundingBox(s); // bounding box of source
+            QRectF ref = QRectF(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),-SOURCE_UNIT, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT); // reference to the geometry frame
+
+            //
+            //  HORIZONTAL X AXIS
+            //
+            // distance to left border
+            double d1 = ref.left() - sbox.left();
+            // distance to right border
+            double d2 = ref.right() - sbox.right();
+            // distance to the non-snapped grabbing destination
+            double dg = ABS(tx - sx);
+
+            // condition for snap : close to a border, AND not too far from grab destination
+            if ( MINI( ABS(d1), ABS(d2)) < _snap_distance && dg < _snap_distance) {
+                // decide for the closer
+                tx = sx + ( ABS(d1) < ABS(d2) ? d1 : d2 );
+            }
+
+            //
+            //  VERTICAL Y AXIS
+            //
+            // distance to top border
+            d1 = ref.top() - sbox.top();
+            // distance to bottom border
+            d2 = ref.bottom() - sbox.bottom();
+            // distance to the non-snapped grabbing destination
+            dg = ABS(ty - sy);
+
+            // condition for snap : close to a border, AND not too far from grab destination
+            if ( MINI( ABS(d1) , ABS(d2)) < _snap_distance && dg < _snap_distance) {
+                // decide for the closer
+                ty = sy + ( ABS(d1) < ABS(d2) ? d1 : d2 );
+            }
+
+        }
+    }
 
     // move source
-    s->setPosition( qBound(_geometryArea[0], ax, _geometryArea[2]), qBound(_geometryArea[1], ay, _geometryArea[3]) );
-
+    s->setPosition( qBound(_geometryArea[0], tx, _geometryArea[2]), qBound(_geometryArea[1], ty, _geometryArea[3]) );
 }
 
 void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
     if (!s) return;
 
-    // move the source individually
-       grabSource(s, x, y, dx, dy);
+    // remember position of source
+    double sx = s->getX();
+    double sy = s->getY();
+
+    // move the source individually, with snap
+    grabSource(s, x, y, dx, dy, true);
 
     // if the source is the selection, move the selection too
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
+
+        // compute displacement of selection
+        sx -= s->getX();
+        sy -= s->getY();
+
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            grabSource( *its, x, y, dx, dy);
+            // apply displacement to all selected sources
+            (*its)->setPosition( (*its)->getX() - sx, (*its)->getY() - sy );
         }
     }
     // otherwise, update selection source if we move a source of the selection
@@ -1157,6 +1246,9 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
         // ratio of scaling now / before
         sxratio *= s->getScaleX();
         syratio *= s->getScaleY();
+        // compute displacement of selection
+        sx -= s->getX();
+        sy -= s->getY();
         // apply scaling to all sources
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
             (*its)->setPosition( s->getX() + ((*its)->getX() - sx) * sxratio,
@@ -1180,7 +1272,7 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
  * scale of the source.
  *
  **/
-void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool option) {
+void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool noscale) {
 
     if (!s) return;
 
@@ -1204,7 +1296,7 @@ void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool op
     bx -= x; by -= y;
 
     // scale (center scaling) if option is OFF
-    if (!option) {
+    if (!noscale) {
         // compute scaling according to distances change
         dum = sqrt(ax * ax + ay * ay) / sqrt(bx * bx + by * by);
         // Scaling
@@ -1218,12 +1310,28 @@ void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool op
     dum = (bx * ax) > 0 ? bx - ax : SIGN(ax) * (bx + ax);
 
     // incremental relative rotation
-    s->setRotationAngle( s->getRotationAngle() + dum );
+   // s->setRotationAngle( s->getRotationAngle() + dum );
+
+    static double a = 0.0;
+    // detect beginning of snap
+    if (!_snap) {
+        // initial pos of the grab movement
+        a = s->getRotationAngle();
+        // done initializing snap ; will be resetted on Mouse Release
+        _snap = true;
+    }
+
+    a += dum;
+
+    double npi = qRound( a / 90.0) ;
+//    fprintf(stderr, "angle %f %f \n", a, qAbs( qAbs(a / 90.0) - qAbs(npi) ) );
+
+    s->setRotationAngle( qAbs( qAbs(a / 90.0) - qAbs(npi) ) < 0.02 ? npi * 90 : a );
 
 }
 
 
-void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool option) {
+void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool noscale) {
 
     if (!s) return;
 
@@ -1233,7 +1341,7 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
     double angle = s->getRotationAngle();
 
     // rotate the source individually
-    rotateSource(s, x, y, dx, dy, option);
+    rotateSource(s, x, y, dx, dy, noscale);
 
     // if the source is the View::selection, move the selection
     if ( s == SelectionManager::getInstance()->selectionSource() ) {

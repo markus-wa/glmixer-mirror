@@ -93,7 +93,7 @@ QPushButton{
     border-radius: 5px;
     padding: 6px;
     border-style: solid;
-    border-color: palette(button);
+    border-color: palette(mid);
     background-color: transparent;
 }
 

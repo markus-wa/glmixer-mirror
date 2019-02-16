@@ -170,7 +170,7 @@ bool RenderingView::mousePressEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    lastClicPos = event->pos();
+    lastClicPos = mousePos = event->pos();
 
     //  panning
     if ( isUserInput(event, INPUT_NAVIGATE) || isUserInput(event, INPUT_DRAG)) {
@@ -197,9 +197,9 @@ bool RenderingView::mouseMoveEvent(QMouseEvent *event)
     if (!event)
         return false;
 
-    int dx = event->x() - lastClicPos.x();
-    int dy = lastClicPos.y() - event->y();
-    lastClicPos = event->pos();
+    int dx = event->x() - mousePos.x();
+    int dy = mousePos.y() - event->y();
+    mousePos = event->pos();
 
     // PANNING of the background
     if ( currentAction == View::PANNING ) {
