@@ -756,7 +756,7 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
             default:
                 return false;
         }
-//        grabSources(cs, 0, 0, dx, dy);
+        grabSources(cs, 0, 0, dx, dy);
 
         // TODO
 
