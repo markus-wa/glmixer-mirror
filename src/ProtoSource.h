@@ -316,6 +316,15 @@ public:
     Q_INVOKABLE void _setGammaGreen(double value);
     Q_INVOKABLE void _setGammaBlue(double value);
 
+
+    // for OSC commands
+    Q_INVOKABLE void _incrementAlpha(double a);
+    Q_INVOKABLE void _incrementAlphaCoordinateX(double ax);
+    Q_INVOKABLE void _incrementAlphaCoordinateY(double ay);
+    Q_INVOKABLE void _incrementPositionX(double px);
+    Q_INVOKABLE void _incrementPositionY(double py);
+    Q_INVOKABLE void _incrementRotation(double a);
+
 protected:
 
     QString name;

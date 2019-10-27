@@ -80,9 +80,17 @@ void ProtoSource::_setPositionX(double px) {
         x = px;
 }
 
+void ProtoSource::_incrementPositionX(double px) {
+    _setPositionX(x + px);
+}
+
 void ProtoSource::_setPositionY(double py) {
     if (py < std::numeric_limits<double>::max())
         y = py;
+}
+
+void ProtoSource::_incrementPositionY(double py) {
+    _setPositionY(y + py);
 }
 
 void ProtoSource::_setScale(double sx, double sy) {
@@ -103,6 +111,10 @@ void ProtoSource::_setScaleY(double sy) {
 void ProtoSource::_setRotation(double a) {
     if (a < std::numeric_limits<double>::max())
         rotangle = fmod(a + 3600.0, 360.0);
+}
+
+void ProtoSource::_incrementRotation(double a) {
+    _setRotation(rotangle + a);
 }
 
 void ProtoSource::_setFixedAspectRatio(bool on) {
@@ -140,6 +152,16 @@ void ProtoSource::_setAlphaCoordinateY(double ay) {
     _setAlphaCoordinates(alphax, ay);
 }
 
+void ProtoSource::_incrementAlphaCoordinateX(double ax) {
+
+    _setAlphaCoordinates(alphax + ax, alphay);
+}
+
+void ProtoSource::_incrementAlphaCoordinateY(double ay) {
+
+    _setAlphaCoordinates(alphax, alphay + ay);
+}
+
 void ProtoSource::_setAlpha(double a) {
 
     // apply new alpha
@@ -150,6 +172,12 @@ void ProtoSource::_setAlpha(double a) {
     alphax = sin(alphaangle) * da;
     alphay = cos(alphaangle) * da;
 }
+
+
+void ProtoSource::_incrementAlpha(double a) {
+    _setAlpha( texalpha + a);
+}
+
 
 void ProtoSource::_setMask(int maskType) {
     mask_type = maskType;
