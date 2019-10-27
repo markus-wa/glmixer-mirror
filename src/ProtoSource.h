@@ -323,6 +323,8 @@ public:
     Q_INVOKABLE void _setIncrementAlphaCoordinateY(double ay);
     Q_INVOKABLE void _setIncrementPositionX(double px);
     Q_INVOKABLE void _setIncrementPositionY(double py);
+    Q_INVOKABLE void _setIncrementScaleX(double sx);
+    Q_INVOKABLE void _setIncrementScaleY(double sy);
     Q_INVOKABLE void _setIncrementRotation(double a);
 
 protected:

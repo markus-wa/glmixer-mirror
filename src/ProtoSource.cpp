@@ -108,6 +108,14 @@ void ProtoSource::_setScaleY(double sy) {
         scaley = sy;
 }
 
+void ProtoSource::_setIncrementScaleX(double sx) {
+    _setScaleX(scalex + sx);
+}
+
+void ProtoSource::_setIncrementScaleY(double sy) {
+    _setScaleY(scaley + sy);
+}
+
 void ProtoSource::_setRotation(double a) {
     if (a < std::numeric_limits<double>::max())
         rotangle = fmod(a + 3600.0, 360.0);
