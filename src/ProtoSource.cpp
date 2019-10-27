@@ -80,7 +80,7 @@ void ProtoSource::_setPositionX(double px) {
         x = px;
 }
 
-void ProtoSource::_incrementPositionX(double px) {
+void ProtoSource::_setIncrementPositionX(double px) {
     _setPositionX(x + px);
 }
 
@@ -89,7 +89,7 @@ void ProtoSource::_setPositionY(double py) {
         y = py;
 }
 
-void ProtoSource::_incrementPositionY(double py) {
+void ProtoSource::_setIncrementPositionY(double py) {
     _setPositionY(y + py);
 }
 
@@ -113,7 +113,7 @@ void ProtoSource::_setRotation(double a) {
         rotangle = fmod(a + 3600.0, 360.0);
 }
 
-void ProtoSource::_incrementRotation(double a) {
+void ProtoSource::_setIncrementRotation(double a) {
     _setRotation(rotangle + a);
 }
 
@@ -152,12 +152,12 @@ void ProtoSource::_setAlphaCoordinateY(double ay) {
     _setAlphaCoordinates(alphax, ay);
 }
 
-void ProtoSource::_incrementAlphaCoordinateX(double ax) {
+void ProtoSource::_setIncrementAlphaCoordinateX(double ax) {
 
     _setAlphaCoordinates(alphax + ax, alphay);
 }
 
-void ProtoSource::_incrementAlphaCoordinateY(double ay) {
+void ProtoSource::_setIncrementAlphaCoordinateY(double ay) {
 
     _setAlphaCoordinates(alphax, alphay + ay);
 }
@@ -174,7 +174,7 @@ void ProtoSource::_setAlpha(double a) {
 }
 
 
-void ProtoSource::_incrementAlpha(double a) {
+void ProtoSource::_setIncrementAlpha(double a) {
     _setAlpha( texalpha + a);
 }
 

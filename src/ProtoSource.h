@@ -318,12 +318,12 @@ public:
 
 
     // for OSC commands
-    Q_INVOKABLE void _incrementAlpha(double a);
-    Q_INVOKABLE void _incrementAlphaCoordinateX(double ax);
-    Q_INVOKABLE void _incrementAlphaCoordinateY(double ay);
-    Q_INVOKABLE void _incrementPositionX(double px);
-    Q_INVOKABLE void _incrementPositionY(double py);
-    Q_INVOKABLE void _incrementRotation(double a);
+    Q_INVOKABLE void _setIncrementAlpha(double a);
+    Q_INVOKABLE void _setIncrementAlphaCoordinateX(double ax);
+    Q_INVOKABLE void _setIncrementAlphaCoordinateY(double ay);
+    Q_INVOKABLE void _setIncrementPositionX(double px);
+    Q_INVOKABLE void _setIncrementPositionY(double py);
+    Q_INVOKABLE void _setIncrementRotation(double a);
 
 protected:
 
