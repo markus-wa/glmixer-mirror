@@ -178,10 +178,10 @@ QPixmap WorkspaceManager::getPixmap(int index, bool active)
 
 //    pix.save(tr("ws_%1_%2.png").arg(index).arg(active));
 
-#ifdef Q_OS_MAC
-    return pix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-#else
+#ifdef Q_OS_WIN
     return pix;
+#else
+    return pix.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);;
 #endif
 
 }
