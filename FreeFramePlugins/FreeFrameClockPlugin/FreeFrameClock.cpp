@@ -3,7 +3,6 @@
 
 #include <cmath>
 
-#define DEBUG
 
 #ifdef DEBUG
 #include <cstdio>
@@ -22,10 +21,12 @@ void printLog(GLuint obj)
 }
 #endif
 
+
 const GLchar *fragmentShaderCode =
         "#version 330 core \n"
-        "#define PI  3.14159265359"
-        "#define EPS .01"
+        "#define PI  3.14159265359\n"
+        "#define EPS 0.01\n"
+        "uniform float     time;\n"
         "uniform vec3      iResolution;\n"
         "out vec4          FragmentColor;\n"
         "float df_disk(in vec2 p, in vec2 c, in float r) {"
@@ -50,50 +51,30 @@ const GLchar *fragmentShaderCode =
         "}"
         "void main(void)"
         "{"
-        "    vec3 col = vec3(0);"
-        "    vec2 c = vec2(0), u = vec2(0,1);"
+        "    float tmin = mod(time, 3600.) / 60.;"
+        "    float tsec = mod(mod(time, 3600.), 60.);"
+        "    float tms  = tsec - floor(tsec);"
+        "    tsec = floor(tsec);"
+        "    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);"
+        "    uv.x *= iResolution.x / iResolution.y;"
+        "    vec2 c = vec2(0), u = vec2(0,-1);"
         "    float c1 = sharpen(df_circ(uv, c, .90), EPS * 1.5);"
         "    float c2 = sharpen(df_circ(uv, c, .04), EPS * 0.5);"
         "    float d1 = sharpen(df_disk(uv, c, .01), EPS * 1.5);"
-        "    col = max(max(c1, c2), d1);"
-        "    FragmentColor = vec4(col, 1.0);"
+        "    float ls = sharpen(df_line(uv, c, rotate(u, tsec / 60.) * .78), EPS * 0.5);"
+        "    float lm = sharpen(df_line(uv, c, rotate(u, tmin / 60.) * .65), EPS * 1.2);"
+        "    float lms = sharpen(df_line(uv, rotate(u, tms) * .8, rotate(u, tms) * .85), EPS * 0.2);"
+        "    vec3 col = vec3( max(lms, max(lm, max(ls, max(max(c1, c2), d1) ))) );"
+        "    \nFragmentColor = vec4(col, 1.0);"
         "}";
 
-/*
-float df_scene(vec2 uv)
-{
-    float thrs = 0. / 3600.;
-    float tmin = mod(0., 3600.) / 60.;
-    float tsec = mod(mod(0., 3600.), 60.);
-    tsec = floor(tsec);
-    
-    vec2 c = vec2(0), u = vec2(0,1);
-    float c1 = sharpen(df_circ(uv, c, .90), EPS * 1.5);
-    float c2 = sharpen(df_circ(uv, c, .04), EPS * 0.5);
-    float d1 = sharpen(df_disk(uv, c, .01), EPS * 1.5);
-    float l1 = sharpen(df_line(uv, c, rotate(u,-thrs / 12.) * .60), EPS * 1.7);
-    float l2 = sharpen(df_line(uv, c, rotate(u,-tmin / 60.) * .80), EPS * 1.0);
-    float l3 = sharpen(df_line(uv, c, rotate(u,-tsec / 60.) * .85), EPS * 0.5);
-    return max(max(max(max(max(l1, l2), l3), c1), c2), d1);
-}
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    vec2 uv = (fragCoord.xy / iResolution.xy * 2. - 1.);
-    uv.x *= iResolution.x / iResolution.y;
-    vec3 col = vec3(0);
-    col += df_scene(uv);
-    
-    fragColor = vec4(col, 1);
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo (
-    FreeFrameTest::CreateInstance,	// Create method
+    FreeFrameClock::CreateInstance,	// Create method
     "GLCLOCK",             // Plugin unique ID
     "FreeFrameClock",    // Plugin name
     1,                  // API major version number
@@ -110,17 +91,15 @@ static CFFGLPluginInfo PluginInfo (
 //  Constructor and destructor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FreeFrameTest::FreeFrameTest()
+FreeFrameClock::FreeFrameClock()
 : CFreeFrameGLPlugin()
 {
-    fbo = 0;
     shaderProgram = 0;
     fragmentShader = 0;
 
     // Input properties
     SetMinInputs(0);
     SetMaxInputs(0);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +110,7 @@ FreeFrameTest::FreeFrameTest()
 DWORD   FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
-FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+FFResult FreeFrameClock::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
 
@@ -158,13 +137,12 @@ FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 #endif
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
+    uniform_time = glGetUniformLocation(shaderProgram, "time");
 
     glUseProgram(shaderProgram);
     glUniform3f(uniform_viewportsize, vp->width, vp->height, 0.0);
+    glUniform1f(uniform_time, 100.0);
     glUseProgram(0);
-
-    glEnable(GL_TEXTURE);
-    glActiveTexture(GL_TEXTURE0);
 
     return FF_SUCCESS;
 }
@@ -175,7 +153,7 @@ FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 DWORD   FreeFrameTest::DeInitGL()
 #else
 // FFGL 1.6
-FFResult FreeFrameTest::DeInitGL()
+FFResult FreeFrameClock::DeInitGL()
 #endif
 {
     if (fragmentShader) glDeleteShader(fragmentShader);
@@ -189,7 +167,7 @@ FFResult FreeFrameTest::DeInitGL()
 DWORD   FreeFrameTest::SetTime(double time)
 #else
 // FFGL 1.6
-FFResult FreeFrameTest::SetTime(double time)
+FFResult FreeFrameClock::SetTime(double time)
 #endif
 {
   m_curTime = time;
@@ -201,16 +179,9 @@ FFResult FreeFrameTest::SetTime(double time)
 DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
-FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+FFResult FreeFrameClock::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
-  if (pGL->numInputTextures<1)
-    return FF_FAIL;
-
-  if (pGL->inputTextures[0]==NULL)
-    return FF_FAIL;
-
-  FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
   glClearColor(0.f, 0.f, 0.f, 0.f);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -218,45 +189,17 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   // use the blurring shader program
   glUseProgram(shaderProgram);
 
-  //enable texturemapping
-  glEnable(GL_TEXTURE_2D);
-
-  //modulate texture colors with white (just show
-  //the texture colors as they are)
-  glColor4f(1.f, 1.f, 1.f, 1.f);
-  //(default texturemapping behavior of OpenGL is to
-  //multiply texture colors by the current gl color)
-
-  //bind the texture handle to its target
-  glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+  glUniform1f(uniform_time, m_curTime);
 
   glBegin(GL_QUADS);
-
-  //lower left
-  glTexCoord2d(0.0, 0.0);
   glVertex2f(-1,-1);
-
-  //upper left
-  glTexCoord2d(0.0, 1.0);
   glVertex2f(-1,1);
-
-  //upper right
-  glTexCoord2d(1.0, 1.0);
   glVertex2f(1,1);
-
-  //lower right
-  glTexCoord2d(1.0, 0.0);
   glVertex2f(1,-1);
   glEnd();
 
   // disable shader program
   glUseProgram(0);
-
-  //unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  //disable texturemapping
-  glDisable(GL_TEXTURE_2D);
 
   return FF_SUCCESS;
 }

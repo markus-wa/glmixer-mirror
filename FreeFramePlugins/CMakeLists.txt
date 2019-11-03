@@ -32,6 +32,7 @@ add_subdirectory(FreeFrameFragmentCodePlugin)
 
 #add_subdirectory(FreeFrameFFPlayPlugin)
 add_subdirectory(FreeFrameClockPlugin)
+add_subdirectory(FreeFrameMirePlugin)
 
 
 # platform specific plugins & ressource

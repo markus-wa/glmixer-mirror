@@ -130,20 +130,20 @@
         </item>
         <item>
          <property name="text">
-          <string>Screen capture </string>
+          <string>Clock</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/display-capture.png</normaloff>:/glmixer/icons/display-capture.png</iconset>
+           <normaloff>:/glmixer/icons/history.png</normaloff>:/glmixer/icons/history.png</iconset>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Webcam</string>
+          <string>Test pattern</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/webcam.png</normaloff>:/glmixer/icons/webcam.png</iconset>
+           <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
          </property>
         </item>
        </widget>

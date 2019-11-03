@@ -3,11 +3,11 @@
 
 #include <FFGLPluginSDK.h>
 
-class FreeFrameTest : public CFreeFrameGLPlugin
+class FreeFrameClock : public CFreeFrameGLPlugin
 {
 public:
-    FreeFrameTest();
-    virtual ~FreeFrameTest() {}
+    FreeFrameClock();
+    virtual ~FreeFrameClock() {}
 
     ///////////////////////////////////////////////////
     // FreeFrame plugin methods
@@ -37,7 +37,7 @@ public:
     static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
-        *ppOutInstance = new FreeFrameTest();
+        *ppOutInstance = new FreeFrameClock();
         if (*ppOutInstance != NULL)
             return FF_SUCCESS;
         return FF_FAIL;
@@ -46,10 +46,10 @@ public:
 protected:
     // Time
     double m_curTime;
-    GLuint fbo;
     GLuint shaderProgram;
     GLuint fragmentShader;
-    GLuint uniform_viewportsize;
+    GLint uniform_viewportsize;
+    GLint uniform_time;
 };
 
 

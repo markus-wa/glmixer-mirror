@@ -41,21 +41,9 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 
     // setup filenames for embeded plugins
     ui->freeframeEmbededList->setItemData(0, QVariant::fromValue(QString("")));
-    ui->freeframeEmbededList->setItemData(1, QVariant::fromValue(FFGLPluginSource::libraryFileName("ScreenCapture")));
+    ui->freeframeEmbededList->setItemData(1, QVariant::fromValue(FFGLPluginSource::libraryFileName("Clock")));
+    ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Mire")));
 
-// TODO Implement Camera plugin for OSX
-#ifdef Q_OS_MAC
-    ui->freeframeEmbededList->removeItem(2);
-#else
-
-#ifdef Q_OS_LINUX
-    ui->freeframeEmbededList->setItemText(2, "Camera (Video4Linux)");
-#else
-    ui->freeframeEmbededList->setItemText(2, "Camera (Win ESCAPI)");
-#endif
-
-    ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Camera")));
-#endif
 
     // restore settings
     ui->freeframeFileList->addItem("");

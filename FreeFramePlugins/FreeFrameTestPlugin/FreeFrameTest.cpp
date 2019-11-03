@@ -3,8 +3,6 @@
 
 #include <cmath>
 
-#define DEBUG
-
 #ifdef DEBUG
 #include <cstdio>
 void printLog(GLuint obj)

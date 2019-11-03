@@ -3,6 +3,8 @@
         <file alias="ShadertoyEffect">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoyEffect.so</file>
         <file alias="ShadertoySource">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoySource.so</file>
         <file alias="ScreenCapture">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameQtScreenCapturePlugin/libffglQtScreenCapture.so</file>
+        <file alias="Clock">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameClockPlugin/libffclock.so</file>
+        <file alias="Mire">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameMirePlugin/libffmire.so</file>
         <file alias="Camera">${CMAKE_CURRENT_BINARY_DIR}/blackmagicFFGLPlugin/libblackmagicffgl.so</file>
     </qresource>
 </RCC>
