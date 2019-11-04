@@ -43,6 +43,7 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
     ui->freeframeEmbededList->setItemData(0, QVariant::fromValue(QString("")));
     ui->freeframeEmbededList->setItemData(1, QVariant::fromValue(FFGLPluginSource::libraryFileName("Clock")));
     ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Mire")));
+    ui->freeframeEmbededList->setItemData(3, QVariant::fromValue(FFGLPluginSource::libraryFileName("Grid")));
 
 
     // restore settings

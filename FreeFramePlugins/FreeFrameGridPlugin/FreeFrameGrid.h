@@ -3,18 +3,18 @@
 
 #include <FFGLPluginSDK.h>
 
-class FreeFrameMire : public CFreeFrameGLPlugin
+class FreeFrameGrid : public CFreeFrameGLPlugin
 {
 public:
-    FreeFrameMire();
-    virtual ~FreeFrameMire() {}
+    FreeFrameGrid();
+    virtual ~FreeFrameGrid() {}
 
     ///////////////////////////////////////////////////
     // FreeFrame plugin methods
     ///////////////////////////////////////////////////
 #ifdef FF_FAIL
     // FFGL 1.5
-    DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
+    DWORD   ProcessOpenGL(ProcessOpenGLStruct* pGL);
     DWORD   InitGL(const FFGLViewportStruct *vp);
     DWORD   DeInitGL();
 #else
@@ -35,7 +35,7 @@ public:
     static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
-        *ppOutInstance = new FreeFrameMire();
+        *ppOutInstance = new FreeFrameGrid();
         if (*ppOutInstance != NULL)
             return FF_SUCCESS;
         return FF_FAIL;

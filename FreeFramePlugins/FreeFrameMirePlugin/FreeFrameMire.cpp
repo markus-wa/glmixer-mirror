@@ -128,7 +128,7 @@ FreeFrameMire::FreeFrameMire()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+DWORD   FreeFrameMire::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
 FFResult FreeFrameMire::InitGL(const FFGLViewportStruct *vp)
@@ -158,11 +158,9 @@ FFResult FreeFrameMire::InitGL(const FFGLViewportStruct *vp)
 #endif
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
-    uniform_time = glGetUniformLocation(shaderProgram, "time");
 
     glUseProgram(shaderProgram);
     glUniform3f(uniform_viewportsize, vp->width, vp->height, 0.0);
-    glUniform1f(uniform_time, 100.0);
     glUseProgram(0);
 
     return FF_SUCCESS;
@@ -171,7 +169,7 @@ FFResult FreeFrameMire::InitGL(const FFGLViewportStruct *vp)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameTest::DeInitGL()
+DWORD   FreeFrameMire::DeInitGL()
 #else
 // FFGL 1.6
 FFResult FreeFrameMire::DeInitGL()
@@ -185,19 +183,7 @@ FFResult FreeFrameMire::DeInitGL()
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameTest::SetTime(double time)
-#else
-// FFGL 1.6
-FFResult FreeFrameMire::SetTime(double time)
-#endif
-{
-  m_curTime = time;
-  return FF_SUCCESS;
-}
-
-#ifdef FF_FAIL
-// FFGL 1.5
-DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+DWORD	FreeFrameMire::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
 FFResult FreeFrameMire::ProcessOpenGL(ProcessOpenGLStruct *pGL)
@@ -209,8 +195,6 @@ FFResult FreeFrameMire::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
   // use the blurring shader program
   glUseProgram(shaderProgram);
-
-  glUniform1f(uniform_time, m_curTime);
 
   glBegin(GL_QUADS);
   glVertex2f(-1,-1);

@@ -143,6 +143,15 @@
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/gear.png</normaloff>:/glmixer/icons/gear.png</iconset>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Test Grid</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
          </property>
         </item>
