@@ -20,7 +20,7 @@ void printLog(GLuint obj)
 }
 #endif
 
-const GLchar *fragmentShaderCode =
+static const GLchar *fragmentShaderCode =
         "#version 330 core \n"
         "uniform sampler2D texture;\n"
         "uniform vec3      iResolution;\n"

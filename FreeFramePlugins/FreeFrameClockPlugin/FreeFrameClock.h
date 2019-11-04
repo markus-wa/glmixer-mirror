@@ -45,11 +45,12 @@ public:
 
 protected:
     // Time
-    double m_curTime;
+    double m_curTime, m_fps;
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLint uniform_viewportsize;
     GLint uniform_time;
+    GLint uniform_fps;
 };
 
 
