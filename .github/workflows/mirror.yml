@@ -1,0 +1,42 @@
+name: Mirror SVN
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - mirror
+
+jobs:
+  mirror:
+    name: Mirror SVN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install git-svn
+        run: |
+          sudo apt-get install -y git-svn
+
+      - name: Update SVN
+        run: |
+            git svn rebase svn://svn.code.sf.net/p/glmixer/Source/trunk
+
+      - name: Create Pull Request
+        id: pr
+        if: env.UPSTREAM_CHANGED == 'true'
+        uses: peter-evans/create-pull-request@v2
+        with:
+          title: "upstream updated to ${{ env.SVN_REVISION }}"
+          base: master
+          branch: upstream-update
+          commit-message: |
+            upstream updated to ${{ env.SVN_REVISION }}
+
+            see https://sourceforge.net/projects/glmixer/
+          body: |
+            see https://sourceforge.net/projects/glmixer/
+
+      - name: Print PR outputs
+        if: env.PROTOBUFS_CHANGED == 'true'
+        run: |
+          echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
+          echo "Pull Request Number - ${{ steps.pr.outputs.pull-request-number }}"
